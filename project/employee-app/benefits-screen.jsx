@@ -678,11 +678,21 @@ function BikeLeaseScreen({ id }) {
               </Body14>
             </label>
 
-            <Button variant="primary" size="large" fullWidth
-              disabled={!agreed || submitted}
-              onClick={() => { setSubmitted(true); setTimeout(pop, 800); }}>
-              {submitted ? '✓ Submitted' : 'Submit'}
-            </Button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <button style={{
+                background: 'transparent', border: 'none', padding: '12px 16px',
+                cursor: 'pointer', whiteSpace: 'nowrap',
+                fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 16,
+                color: PFC.errorText,
+              }} onClick={pop}>Delete choice</button>
+              <div style={{ flex: 1 }}>
+                <Button variant="primary" size="large" fullWidth
+                  disabled={!agreed || submitted}
+                  onClick={() => { setSubmitted(true); setTimeout(pop, 800); }}>
+                  {submitted ? '✓ Submitted' : 'Submit'}
+                </Button>
+              </div>
+            </div>
           </>
         ) : (
           /* ── ACTIVE LAYOUT ── */
