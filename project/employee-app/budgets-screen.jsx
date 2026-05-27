@@ -448,11 +448,6 @@ function EndOfYearScreen() {
           display: 'flex', flexDirection: 'column', gap: 12,
         }}>
           <span style={{
-            fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 12,
-            lineHeight: '16px', letterSpacing: '0.05em', textTransform: 'uppercase',
-            color: '#1A5DC8',
-          }}>UNLOCK YOUR END OF YEAR PREMIUM</span>
-          <span style={{
             fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 22,
             lineHeight: '30px', letterSpacing: '-0.005em', color: PFC.ink,
           }}>Optimise your End of year premium</span>
