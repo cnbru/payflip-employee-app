@@ -704,7 +704,7 @@ function CashOutForm({ title, simulate }) {
 
         <div>
           <Body14 color={PFC.inkSoft} weight={700} style={{ textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-            EST NET ON YOUR NEXT PAYSLIP
+            EST NET AT CASH-OUT
           </Body14>
           <div style={{
             fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 36, lineHeight: '44px',
