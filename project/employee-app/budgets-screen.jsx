@@ -341,23 +341,50 @@ function BudgetDetailScreen({ title, choiceDeadline, cashOut, simulate, budgetKe
           )}
         </div>}
 
-        {!noSpend && <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          <Heading20>Spend it on benefits</Heading20>
-          <Body16 color={PFC.inkSoft}>Invest your budget in tax-friendly benefits — you'll get more value than a cash payout.</Body16>
-          <div style={{ marginTop: 8 }}>
-            <Button variant="outline" fullWidth onClick={() => push('eligible-benefits', { budget: budgetKey })}>
-              View eligible benefits
-            </Button>
-          </div>
-        </div>}
-
-        {!noCash && <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 16 }}>
-          <Heading20>{simulate ? 'Or wait until cash out' : 'Or take it as cash'}</Heading20>
-          <Body16 color={PFC.inkSoft}>Take some or all of this as cash with your next payslip. We'll show the gross &amp; net breakdown before you commit.</Body16>
-          <div style={{ marginTop: 8 }}>
-            {simulate
-              ? <Button variant="outline" fullWidth onClick={() => push('simulate-cash-out')}>Simulate cash out</Button>
-              : <Button variant="outline" fullWidth onClick={() => push('withdraw-cash')}>Withdraw as cash</Button>}
+        {(!noSpend || !noCash) && <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <Heading20>Use your budget</Heading20>
+          <Body16 color={PFC.inkSoft}>Pick how much goes to benefits and how much to cash. You can split.</Body16>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 8 }}>
+            {!noSpend && <button onClick={() => push('eligible-benefits', { budget: budgetKey })} style={{
+              appearance: 'none', border: `1px solid ${PFC.border}`, borderRadius: 16,
+              background: '#fff', padding: '16px', cursor: 'pointer', textAlign: 'left',
+              display: 'flex', alignItems: 'center', gap: 14,
+            }}>
+              <div style={{
+                width: 44, height: 44, borderRadius: 12, background: PFC.purple100,
+                display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+              }}>
+                <LucideIcon name="Gift" size={22} color={PFC.purple600} strokeWidth={2} />
+              </div>
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+                  <Body16 color={PFC.ink} weight={700}>Spend on benefits</Body16>
+                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 14, color: PFC.purple600 }}>€823</span>
+                </div>
+                <Body14 color={PFC.inkSoft} weight={500}>Tax-smart warrants, multimedia and more</Body14>
+              </div>
+              <LucideIcon name="ChevronRight" size={18} color={PFC.inkSoft} strokeWidth={2} />
+            </button>}
+            {!noCash && <button onClick={() => simulate ? push('simulate-cash-out') : push('withdraw-cash')} style={{
+              appearance: 'none', border: `1px solid ${PFC.border}`, borderRadius: 16,
+              background: '#fff', padding: '16px', cursor: 'pointer', textAlign: 'left',
+              display: 'flex', alignItems: 'center', gap: 14,
+            }}>
+              <div style={{
+                width: 44, height: 44, borderRadius: 12, background: PFC.purple100,
+                display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+              }}>
+                <LucideIcon name="Euro" size={22} color={PFC.purple600} strokeWidth={2} />
+              </div>
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+                  <Body16 color={PFC.ink} weight={700}>Take as cash</Body16>
+                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 14, color: PFC.purple600 }}>€512</span>
+                </div>
+                <Body14 color={PFC.inkSoft} weight={500}>Withdraw now or simulate what you'll cash out in December</Body14>
+              </div>
+              <LucideIcon name="ChevronRight" size={18} color={PFC.inkSoft} strokeWidth={2} />
+            </button>}
           </div>
         </div>}
 
