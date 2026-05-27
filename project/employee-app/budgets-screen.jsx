@@ -377,7 +377,7 @@ function BudgetDetailScreen({ title, choiceDeadline, cashOut, simulate, budgetKe
               </div>
               <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
                 <Body16 color={PFC.ink} weight={700}>Take <span style={{ color: '#1A5DC8' }}>€512</span> as cash</Body16>
-                <Body14 color={PFC.inkSoft} weight={500}>{simulate ? 'See what you\'d net if you cash out in December' : 'Withdraw now with your next payslip'}</Body14>
+                <Body14 color={PFC.inkSoft} weight={500}>{simulate ? 'Simulate what you\'ll cash out in December' : 'Withdraw now with your next payslip'}</Body14>
               </div>
               <LucideIcon name="ChevronRight" size={18} color={PFC.inkSoft} strokeWidth={2} />
             </button>}
