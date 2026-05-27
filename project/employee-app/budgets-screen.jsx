@@ -351,7 +351,8 @@ function BudgetDetailScreen({ title, choiceDeadline, cashOut, simulate, budgetKe
               display: 'flex', alignItems: 'center', gap: 14,
             }}>
               <div style={{
-                width: 44, height: 44, borderRadius: 12, background: PFC.purple100,
+                width: 44, height: 44, borderRadius: 12,
+                background: 'linear-gradient(135deg, #EDE5FF 0%, #D8CCFF 100%)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
               }}>
                 <LucideIcon name="Gift" size={22} color={PFC.purple600} strokeWidth={2} />
@@ -371,7 +372,8 @@ function BudgetDetailScreen({ title, choiceDeadline, cashOut, simulate, budgetKe
               display: 'flex', alignItems: 'center', gap: 14,
             }}>
               <div style={{
-                width: 44, height: 44, borderRadius: 12, background: PFC.purple100,
+                width: 44, height: 44, borderRadius: 12,
+                background: 'linear-gradient(135deg, #EDE5FF 0%, #D8CCFF 100%)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
               }}>
                 <LucideIcon name="Euro" size={22} color={PFC.purple600} strokeWidth={2} />
