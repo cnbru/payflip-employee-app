@@ -358,10 +358,7 @@ function BudgetDetailScreen({ title, choiceDeadline, cashOut, simulate, budgetKe
                 <LucideIcon name="Gift" size={22} color={PFC.purple} strokeWidth={2} />
               </div>
               <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
-                <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-                  <Body16 color={PFC.ink} weight={700}>Spend on benefits</Body16>
-                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 14, color: PFC.purple }}>€823</span>
-                </div>
+                <Body16 color={PFC.ink} weight={700}>Spend <span style={{ color: PFC.purple }}>€823</span> on benefits</Body16>
                 <Body14 color={PFC.inkSoft} weight={500}>Tax-smart warrants, multimedia and more</Body14>
               </div>
               <LucideIcon name="ChevronRight" size={18} color={PFC.inkSoft} strokeWidth={2} />
@@ -379,10 +376,7 @@ function BudgetDetailScreen({ title, choiceDeadline, cashOut, simulate, budgetKe
                 <LucideIcon name="Euro" size={22} color="#1A5DC8" strokeWidth={2} />
               </div>
               <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
-                <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-                  <Body16 color={PFC.ink} weight={700}>{simulate ? 'Simulate cash out' : 'Take as cash'}</Body16>
-                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 14, color: '#1A5DC8' }}>€512</span>
-                </div>
+                <Body16 color={PFC.ink} weight={700}>Take <span style={{ color: '#1A5DC8' }}>€512</span> as cash</Body16>
                 <Body14 color={PFC.inkSoft} weight={500}>{simulate ? 'See what you\'d net if you cash out in December' : 'Withdraw now with your next payslip'}</Body14>
               </div>
               <LucideIcon name="ChevronRight" size={18} color={PFC.inkSoft} strokeWidth={2} />
