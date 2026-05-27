@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 62 62" width="62" height="62">
+  <defs>
+    <linearGradient id="pf-pink" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#F9C5E7"></stop>
+      <stop offset="15%" stop-color="#FAB4DB"></stop>
+      <stop offset="44%" stop-color="#FB86BC"></stop>
+      <stop offset="85%" stop-color="#FE3E89"></stop>
+      <stop offset="100%" stop-color="#FF2175"></stop>
+    </linearGradient>
+    <linearGradient id="pf-pink-bar" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="1%" stop-color="#FF2175"></stop>
+      <stop offset="9%" stop-color="#FE287B"></stop>
+      <stop offset="70%" stop-color="#F95AA6"></stop>
+      <stop offset="100%" stop-color="#F76DB6"></stop>
+    </linearGradient>
+  </defs>
+  <circle cx="31" cy="31" r="31" fill="#220A35"></circle>
+  <g transform="translate(18.903 10.857)">
+    <rect x="0" y="9.403" width="9.098" height="30.293" rx="0" fill="url(#pf-pink-bar)"></rect>
+    <path d="M 13.956 0 L 13.232 0 L 13.21 0 L 9.254 0 C 4.799 0 1.09 3.142 0.202 7.336 C 0.082 7.918 0 9.127 0 9.127 L 0 16.837 C 0 16.837 0.746 12.172 6.694 10.06 C 8.239 9.515 9.866 9.254 11.508 9.254 L 11.933 9.254 L 13.217 9.254 L 13.24 9.254 L 14.023 9.254 C 16.561 9.254 18.62 11.314 18.62 13.852 C 18.62 16.389 16.561 18.449 14.023 18.449 L 13.24 18.449 L 13.217 18.449 L 11.933 18.449 L 7.291 18.449 C 3.269 18.449 0.007 21.71 0.007 25.733 L 0.007 27.696 L 0.007 39.584 C 0.007 39.584 1.09 28.412 10.926 27.696 L 11.933 27.696 L 13.217 27.696 L 13.24 27.696 L 13.963 27.696 C 21.613 27.696 27.815 21.494 27.815 13.844 C 27.8 6.202 21.606 0 13.956 0 Z" fill="url(#pf-pink)"></path>
+  </g>
+</svg>
