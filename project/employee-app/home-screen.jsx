@@ -387,7 +387,7 @@ function BikingSeasonHighlight({ onClick }) {
         border: 'none', background: 'transparent', cursor: 'pointer',
         borderRadius: 16, overflow: 'hidden'
       }}>
-      <img src="assets/home-biking-season.png" alt=""
+      <img src="assets/biking-season.png" alt=""
       style={{ display: 'block', width: '100%', height: 'auto' }} />
     </button>);
 
