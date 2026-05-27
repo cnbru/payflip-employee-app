@@ -79,11 +79,11 @@ const CATALOG = [
   },
   {
     id: 'cat-bike', kind: 'bike', icon: 'Bike',
-    name: 'Bike leasing',
+    name: 'Bike leasing via o2o',
     description: 'Lease a bike for up to 36 months and ride to work tax-free.',
     score: { label: 'Excellent', level: 3, pct: 38 },
     budgets: ['mobility'],
-    route: ['benefit-flow-start', { name: 'Bike leasing' }],
+    route: ['benefit-flow-start', { name: 'Bike leasing via o2o' }],
   },
   {
     id: 'cat-multimedia', kind: 'coolblue', icon: 'Monitor',
