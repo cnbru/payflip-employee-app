@@ -792,7 +792,7 @@ function CashOutForm({ title, simulate }) {
         }}>
           <div style={{
             background: '#fff', border: `1px solid ${PFC.border}`,
-            borderRadius: 16, padding: 20, minWidth: 260, flex: '0 0 auto',
+            borderRadius: 16, padding: 20, width: 280, minWidth: 280, flex: '0 0 auto',
             display: 'flex', flexDirection: 'column', gap: 16,
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
@@ -809,7 +809,7 @@ function CashOutForm({ title, simulate }) {
           </div>
           <div style={{
             background: '#fff', border: `1px solid ${PFC.border}`,
-            borderRadius: 16, padding: 20, minWidth: 260, flex: '0 0 auto',
+            borderRadius: 16, padding: 20, width: 280, minWidth: 280, flex: '0 0 auto',
             display: 'flex', flexDirection: 'column', gap: 16,
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
