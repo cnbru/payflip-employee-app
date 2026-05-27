@@ -455,9 +455,9 @@ function EndOfYearScreen() {
           <span style={{
             fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 22,
             lineHeight: '30px', letterSpacing: '-0.005em', color: PFC.ink,
-          }}>Spend up to €680 on benefits with your end of year premium</span>
+          }}>Optimise your End of year premium</span>
           <Body14 color={PFC.inkSoft} weight={500}>
-            That's €230 more in value than just cashing it out in December.
+            Get up to €230 more value than cashing it out in December.
           </Body14>
           <Button variant="primary" size="large" fullWidth
             onClick={() => push('unlock-eoy')}
