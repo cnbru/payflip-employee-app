@@ -625,9 +625,11 @@ function MealVouchersScreen() {
 }
 
 // ─────────────────────────────────────────────────────────────
-// Cash-out form (used for Withdraw + Simulate — same structure).
+// Cash-out form (used for Withdraw + Simulate — different layouts).
 // ─────────────────────────────────────────────────────────────
 const MAX_WITHDRAW = 824.23;
+const LOCKED_GROSS = 520.56;
+const LOCKED_NET = 187;
 function CashOutForm({ title, simulate }) {
   const { pop } = useNav();
   const [amountStr, setAmountStr] = React.useState(String(MAX_WITHDRAW).replace('.', ','));
@@ -643,18 +645,10 @@ function CashOutForm({ title, simulate }) {
     submitted && amt > MAX_WITHDRAW ? `Maximum is ${fmtEUR(MAX_WITHDRAW)}` :
     null;
   const cbErr = submitted && !understands ? 'You must confirm this is final' : null;
-  const valid = !err && !cbErr && amountStr && understands;
 
-  // Estimated net = ~66% of gross (mock calc)
   const netEstimate = amt > 0 && !isNaN(amt) ? Math.round(amt * 0.665) : 548;
-
-  const submit = () => {
-    setSubmitted(true);
-    if (amountStr && understands && !isNaN(amt) && amt > 0 && amt <= MAX_WITHDRAW) {
-      setSuccess(true);
-      setTimeout(pop, 900);
-    }
-  };
+  const cashOutNet = amt > 0 && !isNaN(amt) ? Math.round(amt * 0.36) : 262;
+  const totalNet = simulate ? LOCKED_NET + cashOutNet : netEstimate;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', position: 'relative', height: '100%', overflow: 'hidden' }}>
@@ -663,13 +657,46 @@ function CashOutForm({ title, simulate }) {
       <div style={{ padding: '0 16px 24px', display: 'flex', flexDirection: 'column', gap: 24 }}>
         <Heading24>{title}</Heading24>
         <Body16 color={PFC.ink}>
-          Take some or all of this as cash with your next payslip.
-          {simulate ? ' We\'ll show the gross & net breakdown before you commit.' : ''}
+          {simulate
+            ? 'Simulate how much you could get if after cash out date.'
+            : 'Take some or all of this as cash with your next payslip.'}
         </Body16>
+
+        {/* Already locked to cash — simulate only */}
+        {simulate && <div style={{
+          border: `1px solid ${PFC.border}`, borderRadius: 16, background: '#fff',
+          padding: '20px 16px', display: 'flex', flexDirection: 'column', gap: 12,
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <Body14 color={PFC.inkSoft} weight={700} style={{ textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block' }}>
+                ALREADY LOCKED TO CASH
+              </Body14>
+              <Body14 color={PFC.inkSoft} weight={500} style={{ display: 'block' }}>5 of 12 months elapsed</Body14>
+            </div>
+            <div style={{ textAlign: 'right' }}>
+              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 20, color: PFC.ink }}>
+                {fmtEUR(LOCKED_GROSS)}
+              </div>
+              <Body14 color={PFC.inkSoft} weight={500}>= {fmtEUR(LOCKED_NET)} net</Body14>
+            </div>
+          </div>
+          {/* Progress bar */}
+          <div style={{ display: 'flex', gap: 3 }}>
+            {Array.from({ length: 12 }, (_, i) => (
+              <div key={i} style={{
+                flex: 1, height: 6, borderRadius: 3,
+                background: i < 5 ? PFC.border : PFC.purple,
+              }} />
+            ))}
+          </div>
+        </div>}
 
         {/* Amount input with MAX */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          <Body14 color={PFC.inkSoft} weight={700}>Amount</Body14>
+          {simulate
+            ? <Body16 color={PFC.ink} weight={500}>Of the {fmtEUR(MAX_WITHDRAW)} still in Payflip, cash out</Body16>
+            : <Body14 color={PFC.inkSoft} weight={700}>Amount</Body14>}
           <div style={{
             display: 'flex', alignItems: 'center',
             background: err ? PFC.errorBg : '#fff',
@@ -697,24 +724,57 @@ function CashOutForm({ title, simulate }) {
           </div>
           {err && <Body14 color={PFC.errorText} weight={500}>{err}</Body14>}
           <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: 4 }}>
-            <Body14 color={PFC.inkSoft} weight={500}>Available to withdraw</Body14>
+            <Body14 color={PFC.inkSoft} weight={500}>{simulate ? 'Max electable' : 'Available to withdraw'}</Body14>
             <Body14 color={PFC.inkSoft} weight={500}>{fmtEUR(MAX_WITHDRAW)}</Body14>
           </div>
         </div>
 
         <div>
           <Body14 color={PFC.inkSoft} weight={700} style={{ textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-            EST NET AT CASH-OUT
+            {simulate ? 'EST NET AFTER CASH OUT' : 'EST NET AT CASH-OUT'}
           </Body14>
           <div style={{
             fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 36, lineHeight: '44px',
             letterSpacing: '-0.01em', color: PFC.ink, marginTop: 4,
-          }}>€{netEstimate}</div>
+          }}>€{simulate ? totalNet : netEstimate}</div>
+
+          {/* Breakdown — simulate only */}
+          {simulate && <div style={{
+            border: `1px solid ${PFC.border}`, borderRadius: 12, marginTop: 16, overflow: 'hidden',
+          }}>
+            <div style={{
+              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+              padding: '14px 16px', borderBottom: `1px solid ${PFC.border}`,
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <div style={{ width: 10, height: 10, borderRadius: 2, background: PFC.border }} />
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <Body14 color={PFC.ink} weight={700}>Locked portion</Body14>
+                  <Caption color={PFC.inkSoft}>{fmtEUR(LOCKED_GROSS)} x 36% net</Caption>
+                </div>
+              </div>
+              <Body14 color={PFC.ink} weight={700}>{fmtEUR(LOCKED_NET)}</Body14>
+            </div>
+            <div style={{
+              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+              padding: '14px 16px',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <div style={{ width: 10, height: 10, borderRadius: 2, background: PFC.purple }} />
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <Body14 color={PFC.ink} weight={700}>You cash out</Body14>
+                  <Caption color={PFC.inkSoft}>{fmtEUR(amt > 0 && !isNaN(amt) ? amt : MAX_WITHDRAW)} x 36% net</Caption>
+                </div>
+              </div>
+              <Body14 color={PFC.ink} weight={700}>{fmtEUR(cashOutNet)}</Body14>
+            </div>
+          </div>}
+
           <button onClick={() => {}} style={{
             background: 'transparent', border: 'none', padding: 0, cursor: 'pointer',
             fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 12,
             lineHeight: '16px', letterSpacing: '0.005em',
-            color: PFC.inkSoft, textDecoration: 'underline', marginTop: 8,
+            color: PFC.inkSoft, textDecoration: 'underline', marginTop: 12,
           }}>How is this calculated?</button>
         </div>
 
@@ -724,25 +784,31 @@ function CashOutForm({ title, simulate }) {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 24 }}>
           <Heading20>Cash benefits to consider instead</Heading20>
           <Body14 color={PFC.ink} weight={500}>
-            Get more net cash by choosing following benefits instead of cash withdrawal
+            Get more net cash value.
           </Body14>
         </div>
         <div style={{
-          background: '#fff', border: `1px solid ${PFC.border}`,
-          borderRadius: 16, padding: 20,
-          display: 'flex', flexDirection: 'column', gap: 16,
+          display: 'flex', gap: 12, overflowX: 'auto', margin: '0 -16px', padding: '0 16px',
         }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-            <IconTile name="ShieldCheck" />
-            <Body14 color={PFC.purple} weight={700}>Up to €240 more value</Body14>
-          </div>
-          <div>
-            <Heading20>Warrants</Heading20>
-            <Body14 color={PFC.ink} weight={500}>Reclaim part of it here more efficiently than any cash payout.</Body14>
+          <div style={{
+            background: '#fff', border: `1px solid ${PFC.border}`,
+            borderRadius: 16, padding: 20, minWidth: 260, flex: '0 0 auto',
+            display: 'flex', flexDirection: 'column', gap: 16,
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <IconTile name="Home" />
+              <Body14 color={PFC.purple} weight={700}>Up to €240 more value</Body14>
+            </div>
+            <div>
+              <Heading20>Warrants</Heading20>
+              <Body14 color={PFC.ink} weight={500}>Reclaim part of it here more efficiently than any cash payout.</Body14>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginTop: 4 }}>
+              <TaxScoreRow score={{ level: 2, label: 'Good', pct: 24 }} />
+            </div>
           </div>
         </div>
 
-        {/* Confirmation checkbox */}
         {/* Confirmation checkbox + CTA — sticky bottom */}
       </div>
       </div>
@@ -753,53 +819,58 @@ function CashOutForm({ title, simulate }) {
         padding: '16px 16px 24px',
         display: 'flex', flexDirection: 'column', gap: 12,
       }}>
-        <label style={{ display: 'flex', alignItems: 'flex-start', gap: 12, cursor: 'pointer' }}>
-          <input
-            type="checkbox"
-            checked={understands}
-            onChange={(e) => setUnderstands(e.target.checked)}
-            style={{
-              width: 20, height: 20, marginTop: 2,
-              accentColor: PFC.inkDarker,
-              flex: 'none',
-            }} />
-          <Body14 color={PFC.ink} weight={500}>
-            I understand that cash withdrawals cannot be undone.
-          </Body14>
-        </label>
-        {cbErr && <Body14 color={PFC.errorText} weight={500}>{cbErr}</Body14>}
-
-        <Button variant="primary" size="large" fullWidth disabled={loading || success} onClick={() => {
-          setSubmitted(true);
-          if (!understands) return;
-          const n = parseFloat(amountStr.replace(',', '.'));
-          if (isNaN(n) || n <= 0 || n > MAX_WITHDRAW) return;
-          setLoading(true);
-          setTimeout(() => { setLoading(false); setSuccess(true); }, 1800);
-        }}>
-          {loading ? (
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-              <span style={{
-                width: 18, height: 18, border: '2px solid rgba(255,255,255,0.3)',
-                borderTopColor: '#fff', borderRadius: '50%',
-                display: 'inline-block',
-                animation: 'cashSpin 0.7s linear infinite',
+        {simulate ? (
+          <Button variant="primary" size="large" fullWidth onClick={pop}>
+            Close simulation
+          </Button>
+        ) : (<>
+          <label style={{ display: 'flex', alignItems: 'flex-start', gap: 12, cursor: 'pointer' }}>
+            <input
+              type="checkbox"
+              checked={understands}
+              onChange={(e) => setUnderstands(e.target.checked)}
+              style={{
+                width: 20, height: 20, marginTop: 2,
+                accentColor: PFC.inkDarker,
+                flex: 'none',
               }} />
-              Processing…
-            </span>
-          ) : success ? '✓ Submitted' : (simulate ? 'Confirm simulation' : 'Request cash withdrawal')}
-        </Button>
-        <style>{`@keyframes cashSpin { to { transform: rotate(360deg); } }`}</style>
+            <Body14 color={PFC.ink} weight={500}>
+              I understand that cash withdrawals cannot be undone.
+            </Body14>
+          </label>
+          {cbErr && <Body14 color={PFC.errorText} weight={500}>{cbErr}</Body14>}
+
+          <Button variant="primary" size="large" fullWidth disabled={loading || success} onClick={() => {
+            setSubmitted(true);
+            if (!understands) return;
+            const n = parseFloat(amountStr.replace(',', '.'));
+            if (isNaN(n) || n <= 0 || n > MAX_WITHDRAW) return;
+            setLoading(true);
+            setTimeout(() => { setLoading(false); setSuccess(true); }, 1800);
+          }}>
+            {loading ? (
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                <span style={{
+                  width: 18, height: 18, border: '2px solid rgba(255,255,255,0.3)',
+                  borderTopColor: '#fff', borderRadius: '50%',
+                  display: 'inline-block',
+                  animation: 'cashSpin 0.7s linear infinite',
+                }} />
+                Processing…
+              </span>
+            ) : success ? '✓ Submitted' : 'Request cash withdrawal'}
+          </Button>
+          <style>{`@keyframes cashSpin { to { transform: rotate(360deg); } }`}</style>
+        </>)}
       </div>
 
-      {/* ── Success overlay ── */}
-      {success && (
+      {/* ── Success overlay (withdraw only) ── */}
+      {success && !simulate && (
         <div style={{
           position: 'absolute', inset: 0, background: '#fff', zIndex: 10,
           display: 'flex', flexDirection: 'column',
           animation: 'fadeSlideIn 0.4s ease-out both',
         }}>
-          {/* Close button */}
           <div style={{ padding: 16 }}>
             <button onClick={pop} style={{
               width: 36, height: 36, borderRadius: 999, border: `1px solid ${PFC.border}`,
@@ -809,15 +880,11 @@ function CashOutForm({ title, simulate }) {
               <LucideIcon name="X" size={18} color={PFC.ink} strokeWidth={2} />
             </button>
           </div>
-
-          {/* Centered content */}
           <div style={{
             flex: 1, display: 'flex', flexDirection: 'column',
             alignItems: 'center', justifyContent: 'center',
-            padding: '0 32px 80px',
-            gap: 16,
+            padding: '0 32px 80px', gap: 16,
           }}>
-            {/* Checkmark circle */}
             <div style={{
               width: 48, height: 48, borderRadius: 999,
               border: `2px solid ${PFC.successText}`,
@@ -826,21 +893,18 @@ function CashOutForm({ title, simulate }) {
             }}>
               <LucideIcon name="Check" size={24} color={PFC.successText} strokeWidth={2.5} />
             </div>
-
             <span style={{
               fontFamily: 'var(--font-display)', fontWeight: 700,
               fontSize: 22, lineHeight: '30px', letterSpacing: '-0.005em',
               color: PFC.inkDeep, textAlign: 'center',
               animation: 'fadeSlideIn 0.4s ease-out 0.25s both',
             }}>Withdrawal is on its way!</span>
-
             <span style={{
               fontFamily: 'var(--font-display)', fontWeight: 500,
               fontSize: 15, lineHeight: '22px', color: PFC.inkSoft,
               textAlign: 'center', maxWidth: 280,
               animation: 'fadeSlideIn 0.4s ease-out 0.35s both',
             }}>Est.€{netEstimate} will be paid out with your June payslip.</span>
-
             <div style={{ width: '100%', marginTop: 16, animation: 'fadeSlideIn 0.4s ease-out 0.45s both' }}>
               <Button variant="primary" size="large" fullWidth onClick={pop}>Back to budget</Button>
             </div>
