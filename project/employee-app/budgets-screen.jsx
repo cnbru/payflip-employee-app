@@ -268,7 +268,7 @@ function FaqSection() {
 // ─────────────────────────────────────────────────────────────
 // Budget detail — used by Bonus + End of year premium.
 // ─────────────────────────────────────────────────────────────
-function BudgetDetailScreen({ title, choiceDeadline, cashOut, simulate, budgetKey, noCash, expiryNote, noDeadlineCards, noSpend, locked }) {
+function BudgetDetailScreen({ title, choiceDeadline, cashOut, simulate, budgetKey, noCash, expiryNote, noDeadlineCards, noSpend, locked, transactions }) {
   const { push, switchTab } = useNav();
   const budget = BUDGETS.find(b => b.id === budgetKey);
   const amount = budget ? fmtEUR(budget.amount) : '—';
@@ -388,6 +388,32 @@ function BudgetDetailScreen({ title, choiceDeadline, cashOut, simulate, budgetKe
               <LucideIcon name="ChevronRight" size={18} color={PFC.inkSoft} strokeWidth={2} />
             </button>}
           </div>
+        </div>}
+
+        {transactions && transactions.length > 0 && <div style={{ display: 'flex', flexDirection: 'column', marginTop: 16 }}>
+          <SectionHeader title="Transactions" trailing={
+            <button onClick={() => push('transactions')} style={{
+              background: 'transparent', border: 'none', cursor: 'pointer',
+              fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 14,
+              color: PFC.ink, textDecoration: 'underline', padding: 0,
+            }}>View all</button>
+          } style={{ borderBottom: 'none' }} />
+          {transactions.map((t, i) => (
+            <button key={t.id} onClick={() => push(t.route || 'single-transaction', { tx: t })} style={{
+              width: '100%', appearance: 'none', background: '#fff',
+              border: 'none', borderTop: i === 0 ? 'none' : `1px solid ${PFC.border}`,
+              padding: '12px 0',
+              display: 'flex', alignItems: 'center', gap: 12,
+              cursor: 'pointer', textAlign: 'left',
+            }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <Body14 color={PFC.ink} weight={600}>{t.name}</Body14><br/>
+                <Body14 color={PFC.inkSoft} weight={500}>{t.date}</Body14>
+              </div>
+              <Body14 color={PFC.ink} weight={600}>{fmtEUR(t.amount)}</Body14>
+              <LucideIcon name="ChevronRight" size={14} color={PFC.inkSoft} strokeWidth={2} style={{ marginLeft: 4 }} />
+            </button>
+          ))}
         </div>}
 
         <div style={{ marginTop: 16 }}><FaqSection /></div>
@@ -527,8 +553,13 @@ function EndOfYearScreen() {
     </div>
   );
 }
+const MOBILITY_TX = [
+  { id: 'mt1', name: 'Housing cost',       date: '15 jan 2024', amount: 700.00, route: 'housing-costs' },
+  { id: 'mt2', name: 'Bike lease',         date: '8 jan 2024',  amount: 163.08, route: 'single-transaction' },
+  { id: 'mt3', name: 'Public transport',   date: '2 jan 2024',  amount: 86.00,  route: 'single-transaction' },
+];
 function MobilityDetailScreen() {
-  return <BudgetDetailScreen title="Mobility budget" choiceDeadline="7 dec 2026" cashOut="12 dec 2026" budgetKey="mobility" simulate />;
+  return <BudgetDetailScreen title="Mobility budget" choiceDeadline="7 dec 2026" cashOut="12 dec 2026" budgetKey="mobility" simulate transactions={MOBILITY_TX} />;
 }
 // ─── Meal vouchers — two variants, toggle via useMealPhoto ───
 function MealVouchersScreenSimple() {
