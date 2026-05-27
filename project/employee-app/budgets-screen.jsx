@@ -274,7 +274,7 @@ function BudgetDetailScreen({ title, choiceDeadline, cashOut, simulate, budgetKe
   const amount = budget ? fmtEUR(budget.amount) : '—';
   return (
     <div style={{ display: 'flex', flexDirection: 'column' }}>
-      <NavBar trailing={<IconBtn name="CircleHelp" ariaLabel="Help" />} />
+      <NavBar />
       <div style={{ padding: '0 16px 24px', display: 'flex', flexDirection: 'column', gap: 24 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <Heading24>{title}</Heading24>
@@ -388,7 +388,7 @@ function EndOfYearScreen() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column' }}>
-      <NavBar trailing={<IconBtn name="CircleHelp" ariaLabel="Help" />} />
+      <NavBar />
       <div style={{ padding: '0 16px 24px', display: 'flex', flexDirection: 'column', gap: 24 }}>
         <Heading24>End of year premium</Heading24>
 
@@ -858,7 +858,7 @@ function TransactionsScreen() {
   const shown = filter ? ALL_TX.filter(t => t.tag === filter) : ALL_TX;
   return (
     <div style={{ display: 'flex', flexDirection: 'column' }}>
-      <NavBar trailing={<IconBtn name="CircleHelp" ariaLabel="Help" bg="transparent" />} />
+      <NavBar />
       <div style={{ padding: '0 16px 24px', display: 'flex', flexDirection: 'column', gap: 16 }}>
         <Heading28>Transactions</Heading28>
         <div style={{ display: 'flex', gap: 8, overflowX: 'auto', margin: '0 -16px', padding: '4px 16px' }}>
