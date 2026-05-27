@@ -373,10 +373,10 @@ function BudgetDetailScreen({ title, choiceDeadline, cashOut, simulate, budgetKe
             }}>
               <div style={{
                 width: 44, height: 44, borderRadius: 12,
-                background: 'linear-gradient(135deg, #EDE5FF 0%, #D8CCFF 100%)',
+                background: 'linear-gradient(135deg, #E5F0FF 0%, #CCDDFF 100%)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
               }}>
-                <LucideIcon name="Euro" size={22} color={PFC.purple600} strokeWidth={2} />
+                <LucideIcon name="Euro" size={22} color="#1A5DC8" strokeWidth={2} />
               </div>
               <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
