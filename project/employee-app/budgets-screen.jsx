@@ -787,7 +787,7 @@ function CashOutForm({ title, simulate }) {
             Get more net cash value.
           </Body14>
         </div>
-        <div style={{
+        <div className="hide-scrollbar" style={{
           display: 'flex', gap: 12, overflowX: 'auto', margin: '0 -16px', padding: '0 16px',
         }}>
           <div style={{
@@ -807,7 +807,25 @@ function CashOutForm({ title, simulate }) {
               <TaxScoreRow score={{ level: 2, label: 'Good', pct: 24 }} />
             </div>
           </div>
+          <div style={{
+            background: '#fff', border: `1px solid ${PFC.border}`,
+            borderRadius: 16, padding: 20, minWidth: 260, flex: '0 0 auto',
+            display: 'flex', flexDirection: 'column', gap: 16,
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <IconTile name="Home" />
+              <Body14 color={PFC.purple} weight={700}>Up to €180 more value</Body14>
+            </div>
+            <div>
+              <Heading20>Pension savings</Heading20>
+              <Body14 color={PFC.ink} weight={500}>Set aside a penny for your old day. Get your yearly savings reimbursed via Payflip.</Body14>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginTop: 4 }}>
+              <TaxScoreRow score={{ level: 2, label: 'Good', pct: 54 }} />
+            </div>
+          </div>
         </div>
+        <style>{`.hide-scrollbar::-webkit-scrollbar { display: none; } .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }`}</style>
 
         {/* Confirmation checkbox + CTA — sticky bottom */}
       </div>
