@@ -23,9 +23,9 @@ const BUDGETS = [
 ];
 
 const RECENT_TX = [
-  { id: 't1', name: 'Public transport', date: '22 may 2024', amount: 12.50,  budget: 'Mobility budget',      kind: 'recurring', route: 'single-transaction', tag: 'mobility' },
-  { id: 't2', name: 'Smartphone',       date: '3 apr 2024',  amount: 849.00, budget: 'Bonus',                kind: 'one-time',  route: 'single-transaction', tag: 'bonus' },
-  { id: 't3', name: 'Pension savings',  date: '2 jan 2024',  amount: 312.50, budget: 'End of year premium',  kind: 'recurring', route: 'single-transaction', tag: 'eoy' },
+  { id: 't1', txId: 'tx1', name: 'Public transport', date: '22 may 2024', amount: 12.50,  budget: 'Mobility budget',      kind: 'recurring', tag: 'mobility' },
+  { id: 't2', txId: 'tx3', name: 'Smartphone',       date: '3 apr 2024',  amount: 849.00, budget: 'Bonus',                kind: 'one-time',  tag: 'bonus' },
+  { id: 't3', txId: 'tx6', name: 'Pension savings',  date: '2 jan 2024',  amount: 312.50, budget: 'End of year premium',  kind: 'recurring', tag: 'eoy' },
 ];
 
 const HOUSING_TX = [
@@ -187,7 +187,7 @@ function BudgetsScreen() {
       <div style={{ display: 'flex', flexDirection: 'column' }}>
         <SectionHeader title="Recent transactions" style={{ borderBottom: 'none' }} />
         {RECENT_TX.filter(t => t.tag !== 'eoy' || window.__eoyUnlocked).map((t, i) => (
-          <button key={t.id} onClick={() => push(t.route, { tx: t })} style={{
+          <button key={t.id} onClick={() => push('single-transaction', { txId: t.txId })} style={{
             width: '100%', appearance: 'none', background: '#fff',
             border: 'none', borderTop: i === 0 ? 'none' : `1px solid ${PFC.border}`,
             padding: '12px 0',
@@ -228,14 +228,36 @@ const FAQ_ITEMS = [
   },
 ];
 
-function FaqSection() {
+const LOCKED_FAQ = {
+  id: 'locked-portion',
+  q: 'Why is some of my budget going to cash?',
+  a: null,
+};
+
+function FaqSection({ budgetKey, openFaqId, onFaqOpened }) {
   const [open, setOpen] = React.useState(0);
+  const lockedRef = React.useRef(null);
+  const items = budgetKey === 'end-of-year'
+    ? [...FAQ_ITEMS, LOCKED_FAQ]
+    : FAQ_ITEMS;
+
+  React.useEffect(() => {
+    if (openFaqId === 'locked-portion' && budgetKey === 'end-of-year') {
+      const idx = items.findIndex(it => it.id === 'locked-portion');
+      setOpen(idx);
+      if (onFaqOpened) onFaqOpened();
+      setTimeout(() => {
+        if (lockedRef.current) lockedRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 50);
+    }
+  }, [openFaqId]);
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
       <Heading20>FAQ</Heading20>
       <div style={{ display: 'flex', flexDirection: 'column' }}>
-        {FAQ_ITEMS.map((item, i) => (
-          <div key={i} style={{
+        {items.map((item, i) => (
+          <div key={item.id || i} ref={item.id === 'locked-portion' ? lockedRef : undefined} style={{
             borderTop: i === 0 ? 'none' : `1px solid ${PFC.border}`,
           }}>
             <button
@@ -255,7 +277,32 @@ function FaqSection() {
             </button>
             {open === i && (
               <div style={{ paddingBottom: 16 }}>
-                <Body14 color={PFC.inkSoft} weight={500}>{item.a}</Body14>
+                {item.id === 'locked-portion' ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                    <Body14 color={PFC.inkSoft} weight={500}>
+                      You signed your addendum in May. The 5 months before that (5 × €104,11 = €520,56) were already queued for the December payslip by Belgian law. They can't move back into Payflip, but no more slots will lock from here on.
+                    </Body14>
+                    <Body14 color={PFC.inkSoft} weight={500}>
+                      This is a Belgian legal rule, not a Payflip charge. It applies to every employee whose salary becomes a flexible budget.
+                    </Body14>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <Caption color={PFC.inkSoft}>Dec 2025 until Nov 2026</Caption>
+                        <Caption color={PFC.inkSoft}>€104,11/mo</Caption>
+                      </div>
+                      <div style={{ display: 'flex', gap: 3 }}>
+                        {['J','F','M','A','M','J','J','A','S','O','N','D'].map((m, idx) => (
+                          <div key={idx} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+                            <div style={{ width: '100%', height: 6, borderRadius: 3, background: idx < 5 ? PFC.border : PFC.purple }} />
+                            <span style={{ fontSize: 10, fontWeight: 600, color: idx < 5 ? PFC.inkSoft : PFC.purple }}>{m}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <Body14 color={PFC.inkSoft} weight={500}>{item.a}</Body14>
+                )}
               </div>
             )}
           </div>
@@ -272,6 +319,7 @@ function BudgetDetailScreen({ title, choiceDeadline, cashOut, simulate, budgetKe
   const { push, switchTab } = useNav();
   const budget = BUDGETS.find(b => b.id === budgetKey);
   const amount = budget ? fmtEUR(budget.amount) : '—';
+  const [openFaqId, setOpenFaqId] = React.useState(null);
   return (
     <div style={{ display: 'flex', flexDirection: 'column' }}>
       <NavBar />
@@ -303,6 +351,22 @@ function BudgetDetailScreen({ title, choiceDeadline, cashOut, simulate, budgetKe
               fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 28, lineHeight: '36px',
               letterSpacing: '-0.007em', color: PFC.inkDeep, marginTop: 4,
             }}>{amount}</div>
+            {budgetKey === 'end-of-year' && (
+              <div style={{ marginTop: 12 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <Body14 color={PFC.inkSoft} weight={500}>Locked portion</Body14>
+                  <span onClick={() => setOpenFaqId('locked-portion')} style={{
+                    width: 18, height: 18, borderRadius: 9, border: `1.5px solid ${PFC.inkSoft}`,
+                    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: 11, fontWeight: 700, color: PFC.inkSoft, cursor: 'pointer',
+                  }}>?</span>
+                </div>
+                <div style={{
+                  fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 20, lineHeight: '28px',
+                  color: PFC.inkDeep, marginTop: 2,
+                }}>€720,56</div>
+              </div>
+            )}
             {expiryNote && (
               <span style={{
                 fontFamily: 'var(--font-display)', fontWeight: 500,
@@ -393,7 +457,7 @@ function BudgetDetailScreen({ title, choiceDeadline, cashOut, simulate, budgetKe
             }}>View all</button>
           } style={{ borderBottom: 'none' }} />
           {transactions.map((t, i) => (
-            <button key={t.id} onClick={() => push(t.route || 'single-transaction', { tx: t })} style={{
+            <button key={t.id} onClick={() => push('single-transaction', { txId: t.txId })} style={{
               width: '100%', appearance: 'none', background: '#fff',
               border: 'none', borderTop: i === 0 ? 'none' : `1px solid ${PFC.border}`,
               padding: '12px 0',
@@ -410,7 +474,7 @@ function BudgetDetailScreen({ title, choiceDeadline, cashOut, simulate, budgetKe
           ))}
         </div>}
 
-        <div style={{ marginTop: 16 }}><FaqSection /></div>
+        <div style={{ marginTop: 16 }}><FaqSection budgetKey={budgetKey} openFaqId={openFaqId} onFaqOpened={() => setOpenFaqId(null)} /></div>
       </div>
     </div>
   );
@@ -548,11 +612,11 @@ function EndOfYearScreen() {
   );
 }
 const MOBILITY_TX = [
-  { id: 'mt1', name: 'Public transport', date: '22 may 2024', amount: 12.50, route: 'single-transaction' },
-  { id: 'mt2', name: 'Public transport', date: '15 apr 2024', amount: 8.40,  route: 'single-transaction' },
-  { id: 'mt3', name: 'Public transport', date: '3 mar 2024',  amount: 14.00, route: 'single-transaction' },
-  { id: 'mt4', name: 'Public transport', date: '18 feb 2024', amount: 6.80,  route: 'single-transaction' },
-  { id: 'mt5', name: 'Public transport', date: '2 jan 2024',  amount: 11.20, route: 'single-transaction' },
+  { id: 'mt1', txId: 'tx1', name: 'Public transport', date: '22 may 2024', amount: 12.50 },
+  { id: 'mt2', txId: 'tx2', name: 'Public transport', date: '15 apr 2024', amount: 8.40 },
+  { id: 'mt3', txId: 'tx4', name: 'Public transport', date: '3 mar 2024',  amount: 14.00 },
+  { id: 'mt4', txId: 'tx5', name: 'Public transport', date: '18 feb 2024', amount: 6.80 },
+  { id: 'mt5', txId: 'tx7', name: 'Public transport', date: '2 jan 2024',  amount: 11.20 },
 ];
 function MobilityDetailScreen() {
   return <BudgetDetailScreen title="Mobility budget" choiceDeadline="7 dec 2026" cashOut="12 dec 2026" budgetKey="mobility" simulate transactions={MOBILITY_TX} />;
@@ -689,36 +753,6 @@ function CashOutForm({ title, simulate, budgetKey }) {
             ? 'Simulate how much you could get if after cash out date.'
             : 'Take some or all of this as cash with your next payslip.'}
         </Body16>
-
-        {/* Already locked to cash — EoY only */}
-        {simulate && budgetKey === 'end-of-year' && <div style={{
-          border: `1px solid ${PFC.border}`, borderRadius: 16, background: '#fff',
-          padding: '20px 16px', display: 'flex', flexDirection: 'column', gap: 12,
-        }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              <Body14 color={PFC.inkSoft} weight={700} style={{ textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block' }}>
-                ALREADY LOCKED TO CASH
-              </Body14>
-              <Body14 color={PFC.inkSoft} weight={500} style={{ display: 'block' }}>5 of 12 months elapsed</Body14>
-            </div>
-            <div style={{ textAlign: 'right' }}>
-              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 20, color: PFC.ink }}>
-                {fmtEUR(LOCKED_GROSS)}
-              </div>
-              <Body14 color={PFC.inkSoft} weight={500}>= {fmtEUR(LOCKED_NET)} net</Body14>
-            </div>
-          </div>
-          {/* Progress bar */}
-          <div style={{ display: 'flex', gap: 3 }}>
-            {Array.from({ length: 12 }, (_, i) => (
-              <div key={i} style={{
-                flex: 1, height: 6, borderRadius: 3,
-                background: i < 5 ? PFC.border : PFC.purple,
-              }} />
-            ))}
-          </div>
-        </div>}
 
         {/* Amount input with MAX */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -984,14 +1018,14 @@ function SimulateCashOutScreen() {
 // Transactions list
 // ─────────────────────────────────────────────────────────────
 const ALL_TX = [
-  { id: 'tx1',  name: 'Public transport', date: '22 may 2024', amount: 12.50,  tag: 'mobility' },
-  { id: 'tx2',  name: 'Public transport', date: '15 apr 2024', amount: 8.40,   tag: 'mobility' },
-  { id: 'tx3',  name: 'Smartphone',       date: '3 apr 2024',  amount: 849.00, tag: 'bonus' },
-  { id: 'tx4',  name: 'Public transport', date: '3 mar 2024',  amount: 14.00,  tag: 'mobility' },
-  { id: 'tx5',  name: 'Public transport', date: '18 feb 2024', amount: 6.80,   tag: 'mobility' },
-  { id: 'tx6',  name: 'Pension savings',  date: '2 jan 2024',  amount: 312.50, tag: 'eoy' },
-  { id: 'tx7',  name: 'Public transport', date: '2 jan 2024',  amount: 11.20,  tag: 'mobility' },
-  { id: 'tx8',  name: 'Multimedia',       date: '15 dec 2023', amount: 429.00, tag: 'eoy' },
+  { id: 'tx1',  orderId: 'PF-2024-0847', name: 'Public transport', date: '22 may 2024', amount: 12.50,  budget: 'Mobility budget',     kind: 'recurring',  tag: 'mobility' },
+  { id: 'tx2',  orderId: 'PF-2024-0811', name: 'Public transport', date: '15 apr 2024', amount: 8.40,   budget: 'Mobility budget',     kind: 'recurring',  tag: 'mobility' },
+  { id: 'tx3',  orderId: 'PF-2024-0793', name: 'Smartphone',       date: '3 apr 2024',  amount: 849.00, budget: 'Bonus',               kind: 'one-time',   tag: 'bonus' },
+  { id: 'tx4',  orderId: 'PF-2024-0756', name: 'Public transport', date: '3 mar 2024',  amount: 14.00,  budget: 'Mobility budget',     kind: 'recurring',  tag: 'mobility' },
+  { id: 'tx5',  orderId: 'PF-2024-0722', name: 'Public transport', date: '18 feb 2024', amount: 6.80,   budget: 'Mobility budget',     kind: 'recurring',  tag: 'mobility' },
+  { id: 'tx6',  orderId: 'PF-2024-0688', name: 'Pension savings',  date: '2 jan 2024',  amount: 312.50, budget: 'End of year premium', kind: 'recurring',  tag: 'eoy' },
+  { id: 'tx7',  orderId: 'PF-2024-0685', name: 'Public transport', date: '2 jan 2024',  amount: 11.20,  budget: 'Mobility budget',     kind: 'recurring',  tag: 'mobility' },
+  { id: 'tx8',  orderId: 'PF-2023-0634', name: 'Multimedia',       date: '15 dec 2023', amount: 429.00, budget: 'End of year premium', kind: 'one-time',   tag: 'eoy' },
 ];
 function TransactionsScreen() {
   const { push } = useNav();
@@ -1011,7 +1045,7 @@ function TransactionsScreen() {
         </div>
         <div style={{ display: 'flex', flexDirection: 'column' }}>
           {shown.map((t, i) => (
-            <button key={t.id} onClick={() => push('single-transaction', { tx: t })} style={{
+            <button key={t.id} onClick={() => push('single-transaction', { txId: t.id })} style={{
               width: '100%', appearance: 'none', background: '#fff',
               border: 'none', borderTop: i === 0 ? 'none' : `1px solid ${PFC.border}`,
               padding: '12px 0',
@@ -1545,13 +1579,13 @@ registerScreen('single-transaction', SingleTransactionScreen);
 // ─────────────────────────────────────────────────────────────
 // Single (one-time) transaction detail — same layout as housing costs
 // ─────────────────────────────────────────────────────────────
-function SingleTransactionScreen({ tx }) {
+function SingleTransactionScreen({ txId }) {
   const { pop } = useNav();
   const ST = window.StatusTimeline;
   const PA = window.PayflipAdvantageBlock;
   const DR = window.DetailRow;
-  const LO = window.LifecycleOption;
-  const item = tx || { name: 'Smartphone', date: '23 jan 2024', amount: 849.00, budget: 'Bonus' };
+  const item = ALL_TX.find(t => t.id === txId) || ALL_TX[0];
+  const kindLabel = item.kind === 'recurring' ? 'Recurring' : 'One-time purchase';
 
   const TIMELINE = [
     { title: 'Order placed',   meta: item.date },
@@ -1575,11 +1609,12 @@ function SingleTransactionScreen({ tx }) {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <Heading20>Details</Heading20>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            {DR && <DR label="Order ID" value={item.orderId} />}
             {DR && <DR label="Item" value={item.name} />}
             {DR && <DR label="Amount" value={fmtEUR(item.amount)} />}
             {DR && <DR label="Date" value={item.date} />}
             {DR && <DR label="Budget" value={item.budget} />}
-            {DR && <DR label="Type" value="One-time purchase" />}
+            {DR && <DR label="Type" value={kindLabel} />}
           </div>
         </div>
 
