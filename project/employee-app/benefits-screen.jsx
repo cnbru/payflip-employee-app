@@ -118,12 +118,12 @@ const CATALOG = [
     route: ['benefit-flow-start', { name: 'Extra holidays' }],
   },
   {
-    id: 'cat-mobility', kind: 'housing', icon: 'Car',
-    name: 'Mobility expenses',
+    id: 'cat-mobility', kind: 'housing', icon: 'Home',
+    name: 'Housing costs',
     description: 'Reimburse commuting, parking, public transport or housing costs.',
     score: { label: 'Great',     level: 2, pct: 33 },
     budgets: ['mobility'],
-    route: ['benefit-flow-start', { name: 'Mobility expenses' }],
+    route: ['benefit-flow-start', { name: 'Housing costs' }],
   },
 ];
 
@@ -363,7 +363,7 @@ function BenefitsScreen() {
       <div style={{ display: 'flex', gap: 8 }}>
         <BenefitStatCard
           title="Benefits in draft"
-          count={DRAFTS.length}
+          count={DRAFTS.filter(d => !(window.__deletedDrafts || []).includes(d.id)).length}
           onClick={() => push('benefits-in-draft')}
         />
         <BenefitStatCard
@@ -430,17 +430,39 @@ function BenefitsScreen() {
 // Benefits in draft (list)
 // ─────────────────────────────────────────────────────────────
 function BenefitsInDraftScreen() {
-  const { push } = useNav();
+  const { push, switchTab } = useNav();
+  const visibleDrafts = DRAFTS.filter(d => !(window.__deletedDrafts || []).includes(d.id));
   return (
-    <div style={{ display: 'flex', flexDirection: 'column' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <NavBar />
-      <div style={{ padding: '0 16px 24px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <div style={{ flex: 1, padding: '0 16px 24px', display: 'flex', flexDirection: 'column', gap: 16 }}>
         <Heading28>Benefits in draft</Heading28>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {DRAFTS.map(b => (
-            <ActivePillRow key={b.id} item={b} onClick={() => navigateToItem(push, b.id)} />
-          ))}
-        </div>
+        {visibleDrafts.length > 0 ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {visibleDrafts.map(b => (
+              <ActivePillRow key={b.id} item={b} onClick={() => navigateToItem(push, b.id)} />
+            ))}
+          </div>
+        ) : (
+          <div style={{
+            flex: 1, display: 'flex', flexDirection: 'column',
+            alignItems: 'center', justifyContent: 'center',
+            textAlign: 'center', gap: 16, padding: '40px 24px',
+          }}>
+            <div style={{
+              width: 64, height: 64, borderRadius: 16,
+              background: 'linear-gradient(135deg, #F3E8FF 0%, #E9D5FF 100%)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              <LucideIcon name="CheckCircle" size={32} color={PFC.purple} strokeWidth={1.5} />
+            </div>
+            <Heading20>All caught up</Heading20>
+            <Body14 color={PFC.inkSoft}>You have no benefits in draft. Browse the catalog to discover new benefits.</Body14>
+            <div style={{ marginTop: 8 }}>
+              <Button variant="primary" size="large" onClick={() => switchTab('benefits')}>Discover benefits</Button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -580,6 +602,7 @@ function BikeLeaseScreen({ id }) {
   const isDraft = !!draft;
   const [agreed, setAgreed] = React.useState(false);
   const [submitted, setSubmitted] = React.useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = React.useState(false);
 
   const WHAT_HAPPENS = [
     { title: 'Choice submitted',    meta: 'After this step' },
@@ -590,7 +613,7 @@ function BikeLeaseScreen({ id }) {
   ];
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', position: 'relative', height: '100%', overflow: showDeleteConfirm ? 'hidden' : undefined }}>
       <NavBar />
       <div style={{ padding: '0 16px 24px', display: 'flex', flexDirection: 'column', gap: 32 }}>
         <Heading28>Bike lease</Heading28>
@@ -688,7 +711,7 @@ function BikeLeaseScreen({ id }) {
                 cursor: 'pointer', whiteSpace: 'nowrap',
                 fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 16,
                 color: PFC.errorText,
-              }} onClick={pop}>Delete choice</button>
+              }} onClick={() => setShowDeleteConfirm(true)}>Delete choice</button>
               <div style={{ flex: 1 }}>
                 <Button variant="primary" size="large" fullWidth
                   disabled={!agreed || submitted}
@@ -743,6 +766,24 @@ function BikeLeaseScreen({ id }) {
           </>
         )}
       </div>
+
+      {showDeleteConfirm && <div style={{
+        position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.4)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50, padding: 24,
+      }} onClick={() => setShowDeleteConfirm(false)}>
+        <div onClick={e => e.stopPropagation()} style={{
+          background: '#fff', borderRadius: 20, padding: 24, width: '100%', maxWidth: 320,
+          display: 'flex', flexDirection: 'column', gap: 16,
+        }}>
+          <Heading20>Delete this choice?</Heading20>
+          <Body14 color={PFC.inkSoft}>This will remove your draft and free up the budget. You can always start a new choice later.</Body14>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 8 }}>
+            <Button variant="primary" size="large" fullWidth onClick={() => { window.__deletedDrafts = (window.__deletedDrafts || []); window.__deletedDrafts.push(id); pop(); }}
+              style={{ background: PFC.errorText, borderColor: PFC.errorText }}>Delete</Button>
+            <Button variant="ghost" size="large" fullWidth onClick={() => setShowDeleteConfirm(false)}>Cancel</Button>
+          </div>
+        </div>
+      </div>}
     </div>
   );
 }
@@ -767,6 +808,7 @@ function PensionDetailScreen({ id }) {
   const isRejected = item && item.status && item.status.kind === 'alert';
   const [agreed, setAgreed] = React.useState(false);
   const [submitted, setSubmitted] = React.useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = React.useState(false);
 
   const PENSION_TIMELINE = [
     { title: 'Choice submitted',      meta: 'After this step' },
@@ -776,9 +818,9 @@ function PensionDetailScreen({ id }) {
   ];
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', position: 'relative', overflow: showDeleteConfirm ? 'hidden' : undefined }}>
       <NavBar />
-      <div style={{ flex: 1, overflowY: 'auto', padding: '0 16px 32px', display: 'flex', flexDirection: 'column', gap: 32 }}>
+      <div style={{ flex: 1, overflowY: showDeleteConfirm ? 'hidden' : 'auto', padding: '0 16px 32px', display: 'flex', flexDirection: 'column', gap: 32 }}>
         <Heading28>Pension savings</Heading28>
 
         {/* Rejection banner */}
@@ -886,7 +928,7 @@ function PensionDetailScreen({ id }) {
           cursor: 'pointer',
           fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 16,
           color: PFC.errorText,
-        }}>Delete choice</button>
+        }} onClick={() => setShowDeleteConfirm(true)}>Delete choice</button>
         <div style={{ flex: 1 }}>
           <Button variant="primary" size="large" fullWidth
             disabled={!agreed || submitted}
@@ -899,6 +941,24 @@ function PensionDetailScreen({ id }) {
           </Button>
         </div>
       </div>
+
+      {showDeleteConfirm && <div style={{
+        position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.4)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50, padding: 24,
+      }} onClick={() => setShowDeleteConfirm(false)}>
+        <div onClick={e => e.stopPropagation()} style={{
+          background: '#fff', borderRadius: 20, padding: 24, width: '100%', maxWidth: 320,
+          display: 'flex', flexDirection: 'column', gap: 16,
+        }}>
+          <Heading20>Delete this choice?</Heading20>
+          <Body14 color={PFC.inkSoft}>This will remove your draft and free up the budget. You can always start a new choice later.</Body14>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 8 }}>
+            <Button variant="primary" size="large" fullWidth onClick={() => { window.__deletedDrafts = (window.__deletedDrafts || []); window.__deletedDrafts.push(id); pop(); }}
+              style={{ background: PFC.errorText, borderColor: PFC.errorText }}>Delete</Button>
+            <Button variant="ghost" size="large" fullWidth onClick={() => setShowDeleteConfirm(false)}>Cancel</Button>
+          </div>
+        </div>
+      </div>}
     </div>
   );
 }

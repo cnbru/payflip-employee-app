@@ -12,20 +12,20 @@
 // Mock data
 // ─────────────────────────────────────────────────────────────
 const BUDGETS = [
+  { id: 'end-of-year',icon: 'Gift',            name: 'End of year premium', amount: 824.23, locked: true,
+    tileFrom: '#DAEEFB', tileTo: '#B8DEFE', iconColor: '#1A5DC8' },
   { id: 'mobility',   icon: 'Bike',            name: 'Mobility budget',     amount: 1249.34,
     tileFrom: '#DAEEFB', tileTo: '#B8DEFE', iconColor: '#1A5DC8' },
   { id: 'bonus',      icon: 'Sparkles',        name: 'Bonus',               amount: 824.23,
     tileFrom: '#DAEEFB', tileTo: '#B8DEFE', iconColor: '#1A5DC8' },
   { id: 'meal',       icon: 'UtensilsCrossed', name: 'Meal vouchers',       amount: 187,
     tileFrom: '#DAEEFB', tileTo: '#B8DEFE', iconColor: '#1A5DC8' },
-  { id: 'end-of-year',icon: 'Gift',            name: 'End of year premium', amount: 824.23, locked: true,
-    tileFrom: '#DAEEFB', tileTo: '#B8DEFE', iconColor: '#1A5DC8' },
 ];
 
 const RECENT_TX = [
-  { id: 't1', name: 'Smartphone',     date: '23 jan 2024', amount: 849.00,  budget: 'Bonus',                kind: 'one-time',  route: 'single-transaction' },
-  { id: 't2', name: 'Housing cost',   date: '15 jan 2024', amount: 700.00,  budget: 'Mobility budget',      kind: 'recurring', route: 'housing-costs' },
-  { id: 't3', name: 'Pension savings',date: '2 jan 2024',  amount: 312.50,  budget: 'End of year premium',  kind: 'recurring', route: 'housing-costs' },
+  { id: 't1', name: 'Public transport', date: '22 may 2024', amount: 12.50,  budget: 'Mobility budget',      kind: 'recurring', route: 'single-transaction', tag: 'mobility' },
+  { id: 't2', name: 'Smartphone',       date: '3 apr 2024',  amount: 849.00, budget: 'Bonus',                kind: 'one-time',  route: 'single-transaction', tag: 'bonus' },
+  { id: 't3', name: 'Pension savings',  date: '2 jan 2024',  amount: 312.50, budget: 'End of year premium',  kind: 'recurring', route: 'single-transaction', tag: 'eoy' },
 ];
 
 const HOUSING_TX = [
@@ -186,7 +186,7 @@ function BudgetsScreen() {
 
       <div style={{ display: 'flex', flexDirection: 'column' }}>
         <SectionHeader title="Recent transactions" style={{ borderBottom: 'none' }} />
-        {RECENT_TX.map((t, i) => (
+        {RECENT_TX.filter(t => t.tag !== 'eoy' || window.__eoyUnlocked).map((t, i) => (
           <button key={t.id} onClick={() => push(t.route, { tx: t })} style={{
             width: '100%', appearance: 'none', background: '#fff',
             border: 'none', borderTop: i === 0 ? 'none' : `1px solid ${PFC.border}`,
@@ -363,7 +363,7 @@ function BudgetDetailScreen({ title, choiceDeadline, cashOut, simulate, budgetKe
               </div>
               <LucideIcon name="ChevronRight" size={18} color={PFC.inkSoft} strokeWidth={2} />
             </button>}
-            {!noCash && <button onClick={() => simulate ? push('simulate-cash-out') : push('withdraw-cash')} style={{
+            {!noCash && <button onClick={() => simulate ? push('simulate-cash-out', { budgetKey }) : push('withdraw-cash')} style={{
               appearance: 'none', border: `1px solid ${PFC.border}`, borderRadius: 16,
               background: '#fff', padding: '16px', cursor: 'pointer', textAlign: 'left',
               display: 'flex', alignItems: 'center', gap: 14,
@@ -548,9 +548,11 @@ function EndOfYearScreen() {
   );
 }
 const MOBILITY_TX = [
-  { id: 'mt1', name: 'Housing cost',       date: '15 jan 2024', amount: 700.00, route: 'housing-costs' },
-  { id: 'mt2', name: 'Bike lease',         date: '8 jan 2024',  amount: 163.08, route: 'single-transaction' },
-  { id: 'mt3', name: 'Public transport',   date: '2 jan 2024',  amount: 86.00,  route: 'single-transaction' },
+  { id: 'mt1', name: 'Public transport', date: '22 may 2024', amount: 12.50, route: 'single-transaction' },
+  { id: 'mt2', name: 'Public transport', date: '15 apr 2024', amount: 8.40,  route: 'single-transaction' },
+  { id: 'mt3', name: 'Public transport', date: '3 mar 2024',  amount: 14.00, route: 'single-transaction' },
+  { id: 'mt4', name: 'Public transport', date: '18 feb 2024', amount: 6.80,  route: 'single-transaction' },
+  { id: 'mt5', name: 'Public transport', date: '2 jan 2024',  amount: 11.20, route: 'single-transaction' },
 ];
 function MobilityDetailScreen() {
   return <BudgetDetailScreen title="Mobility budget" choiceDeadline="7 dec 2026" cashOut="12 dec 2026" budgetKey="mobility" simulate transactions={MOBILITY_TX} />;
@@ -655,7 +657,7 @@ function MealVouchersScreen() {
 const MAX_WITHDRAW = 824.23;
 const LOCKED_GROSS = 520.56;
 const LOCKED_NET = 187;
-function CashOutForm({ title, simulate }) {
+function CashOutForm({ title, simulate, budgetKey }) {
   const { pop } = useNav();
   const [amountStr, setAmountStr] = React.useState(String(MAX_WITHDRAW).replace('.', ','));
   const [understands, setUnderstands] = React.useState(false);
@@ -673,7 +675,8 @@ function CashOutForm({ title, simulate }) {
 
   const netEstimate = amt > 0 && !isNaN(amt) ? Math.round(amt * 0.665) : 548;
   const cashOutNet = amt > 0 && !isNaN(amt) ? Math.round(amt * 0.36) : 262;
-  const totalNet = simulate ? LOCKED_NET + cashOutNet : netEstimate;
+  const isEoy = simulate && budgetKey === 'end-of-year';
+  const totalNet = isEoy ? LOCKED_NET + cashOutNet : simulate ? cashOutNet : netEstimate;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', position: 'relative', height: '100%', overflow: 'hidden' }}>
@@ -687,8 +690,8 @@ function CashOutForm({ title, simulate }) {
             : 'Take some or all of this as cash with your next payslip.'}
         </Body16>
 
-        {/* Already locked to cash — simulate only */}
-        {simulate && <div style={{
+        {/* Already locked to cash — EoY only */}
+        {simulate && budgetKey === 'end-of-year' && <div style={{
           border: `1px solid ${PFC.border}`, borderRadius: 16, background: '#fff',
           padding: '20px 16px', display: 'flex', flexDirection: 'column', gap: 12,
         }}>
@@ -767,7 +770,7 @@ function CashOutForm({ title, simulate }) {
           {simulate && <div style={{
             border: `1px solid ${PFC.border}`, borderRadius: 12, marginTop: 16, overflow: 'hidden',
           }}>
-            <div style={{
+            {isEoy && <div style={{
               display: 'flex', justifyContent: 'space-between', alignItems: 'center',
               padding: '14px 16px', borderBottom: `1px solid ${PFC.border}`,
             }}>
@@ -779,7 +782,7 @@ function CashOutForm({ title, simulate }) {
                 </div>
               </div>
               <Body14 color={PFC.ink} weight={700}>{fmtEUR(LOCKED_NET)}</Body14>
-            </div>
+            </div>}
             <div style={{
               display: 'flex', justifyContent: 'space-between', alignItems: 'center',
               padding: '14px 16px',
@@ -972,50 +975,55 @@ function WithdrawCashScreen() {
   return <CashOutForm title="Withdraw as cash" />;
 }
 function SimulateCashOutScreen() {
-  return <CashOutForm title="Simulate cash out" simulate />;
+  const { current } = useNav();
+  const bk = current.params?.budgetKey;
+  return <CashOutForm title="Simulate cash out" simulate budgetKey={bk} />;
 }
 
 // ─────────────────────────────────────────────────────────────
 // Transactions list
 // ─────────────────────────────────────────────────────────────
 const ALL_TX = [
-  { id: 'tx1', name: 'Smartphone',     date: '23 jan 2024', amount: 1249.34, tag: 'eoy' },
-  { id: 'tx2', name: 'Housing cost',   date: '23 jan 2024', amount: 1249.34, tag: 'bonus' },
-  { id: 'tx3', name: 'Pension savings',date: '23 jan 2024', amount: 1249.34, tag: 'bonus' },
-  { id: 'tx4', name: 'Meal vouchers',  date: '23 jan 2024', amount: 1249.34, tag: 'bonus' },
-  { id: 'tx5', name: 'Pension savings',date: '23 jan 2024', amount: 1249.34, tag: 'eoy' },
-  { id: 'tx6', name: 'Pension savings',date: '25 jan 2024', amount: 1249.34, tag: 'bonus' },
-  { id: 'tx7', name: 'Pension savings',date: '25 jan 2024', amount: 1249.34, tag: 'bonus' },
-  { id: 'tx8', name: 'Pension savings',date: '23 jan 2024', amount: 1249.34, tag: 'eoy' },
+  { id: 'tx1',  name: 'Public transport', date: '22 may 2024', amount: 12.50,  tag: 'mobility' },
+  { id: 'tx2',  name: 'Public transport', date: '15 apr 2024', amount: 8.40,   tag: 'mobility' },
+  { id: 'tx3',  name: 'Smartphone',       date: '3 apr 2024',  amount: 849.00, tag: 'bonus' },
+  { id: 'tx4',  name: 'Public transport', date: '3 mar 2024',  amount: 14.00,  tag: 'mobility' },
+  { id: 'tx5',  name: 'Public transport', date: '18 feb 2024', amount: 6.80,   tag: 'mobility' },
+  { id: 'tx6',  name: 'Pension savings',  date: '2 jan 2024',  amount: 312.50, tag: 'eoy' },
+  { id: 'tx7',  name: 'Public transport', date: '2 jan 2024',  amount: 11.20,  tag: 'mobility' },
+  { id: 'tx8',  name: 'Multimedia',       date: '15 dec 2023', amount: 429.00, tag: 'eoy' },
 ];
 function TransactionsScreen() {
   const { push } = useNav();
   const [filter, setFilter] = React.useState(null);
-  const shown = filter ? ALL_TX.filter(t => t.tag === filter) : ALL_TX;
+  const available = window.__eoyUnlocked ? ALL_TX : ALL_TX.filter(t => t.tag !== 'eoy');
+  const shown = filter ? available.filter(t => t.tag === filter) : available;
+  const TAG_TO_BUDGET = { mobility: 'Mobility budget', bonus: 'Bonus', eoy: 'End of year premium' };
   return (
     <div style={{ display: 'flex', flexDirection: 'column' }}>
       <NavBar />
       <div style={{ padding: '0 16px 24px', display: 'flex', flexDirection: 'column', gap: 16 }}>
         <Heading28>Transactions</Heading28>
         <div style={{ display: 'flex', gap: 8, overflowX: 'auto', margin: '0 -16px', padding: '4px 16px' }}>
+          <FilterPill label="Mobility" active={filter === 'mobility'} onClick={() => setFilter(f => f === 'mobility' ? null : 'mobility')} />
           <FilterPill label="Bonus" active={filter === 'bonus'} onClick={() => setFilter(f => f === 'bonus' ? null : 'bonus')} />
-          <FilterPill label="End of year premium" active={filter === 'eoy'} onClick={() => setFilter(f => f === 'eoy' ? null : 'eoy')} />
+          {window.__eoyUnlocked && <FilterPill label="End of year premium" active={filter === 'eoy'} onClick={() => setFilter(f => f === 'eoy' ? null : 'eoy')} />}
         </div>
         <div style={{ display: 'flex', flexDirection: 'column' }}>
           {shown.map((t, i) => (
-            <button key={t.id} onClick={() => push('housing-costs')} style={{
+            <button key={t.id} onClick={() => push('single-transaction', { tx: t })} style={{
               width: '100%', appearance: 'none', background: '#fff',
               border: 'none', borderTop: i === 0 ? 'none' : `1px solid ${PFC.border}`,
-              padding: '16px 0',
+              padding: '12px 0',
               display: 'flex', alignItems: 'center', gap: 12,
               cursor: 'pointer', textAlign: 'left',
             }}>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <Body16 color={PFC.ink} weight={400}>{t.name}</Body16><br/>
-                <Body14 color={PFC.inkSoft} weight={500}>{t.date}</Body14>
+                <Body14 color={PFC.ink} weight={600}>{t.name}</Body14><br/>
+                <Body14 color={PFC.inkSoft} weight={500}>{t.date} · {TAG_TO_BUDGET[t.tag] || t.tag}</Body14>
               </div>
-              <Body16 color={PFC.ink} weight={500}>{fmtEUR(t.amount)}</Body16>
-              <LucideIcon name="ChevronRight" size={16} color={PFC.ink} strokeWidth={2} style={{ marginLeft: 8 }} />
+              <Body14 color={PFC.ink} weight={600}>{fmtEUR(t.amount)}</Body14>
+              <LucideIcon name="ChevronRight" size={14} color={PFC.inkSoft} strokeWidth={2} style={{ marginLeft: 4 }} />
             </button>
           ))}
         </div>
@@ -1333,7 +1341,7 @@ function UnlockEoyScreen() {
 // Sign addendum screen — signature pad + checkbox + submit
 // ─────────────────────────────────────────────────────────────
 function SignAddendumScreen() {
-  const { switchTab } = useNav();
+  const { switchTab, reset } = useNav();
   const [signed, setSigned] = React.useState(false);
   const [agreed, setAgreed] = React.useState(false);
   const [submitting, setSubmitting] = React.useState(false);
@@ -1491,9 +1499,9 @@ function SignAddendumScreen() {
             }}>Your end of year premium is now available to spend on benefits.</span>
             <div style={{ width: '100%', marginTop: 16, display: 'flex', flexDirection: 'column', gap: 8, animation: 'fadeSlideIn 0.4s ease-out 0.45s both' }}>
               <Button variant="primary" size="large" fullWidth onClick={() => {
-                switchTab('benefits');
+                reset('budgets'); switchTab('benefits');
               }}>View eligible benefits</Button>
-              <Button variant="ghost" size="large" fullWidth onClick={() => switchTab('home')}>Back to home</Button>
+              <Button variant="ghost" size="large" fullWidth onClick={() => { reset('budgets'); switchTab('home'); }}>Back to home</Button>
             </div>
           </div>
         </div>

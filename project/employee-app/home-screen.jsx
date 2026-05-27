@@ -398,7 +398,7 @@ function BikingSeasonHighlight({ onClick }) {
 // ─────────────────────────────────────────────────────────────
 function HomeScreen() {
   const nav = window.useNav ? window.useNav() : null;
-  const drafts = window.DRAFTS || [];
+  const drafts = (window.DRAFTS || []).filter(d => !(window.__deletedDrafts || []).includes(d.id));
   const [dismissed, setDismissed] = React.useState({});
   const dismiss = (key) => setDismissed((d) => ({ ...d, [key]: true }));
 
