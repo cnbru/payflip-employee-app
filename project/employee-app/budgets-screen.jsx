@@ -269,7 +269,7 @@ function FaqSection() {
 // Budget detail — used by Bonus + End of year premium.
 // ─────────────────────────────────────────────────────────────
 function BudgetDetailScreen({ title, choiceDeadline, cashOut, simulate, budgetKey, noCash, expiryNote, noDeadlineCards, noSpend, locked }) {
-  const { push } = useNav();
+  const { push, switchTab } = useNav();
   const budget = BUDGETS.find(b => b.id === budgetKey);
   const amount = budget ? fmtEUR(budget.amount) : '—';
   return (
@@ -345,7 +345,7 @@ function BudgetDetailScreen({ title, choiceDeadline, cashOut, simulate, budgetKe
           <Heading20>Use your budget</Heading20>
           <Body16 color={PFC.inkSoft}>Pick how much goes to benefits and how much to cash. You can split.</Body16>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 8 }}>
-            {!noSpend && <button onClick={() => push('eligible-benefits', { budget: budgetKey })} style={{
+            {!noSpend && <button onClick={() => { window.__benefitsFilter = budgetKey; switchTab('benefits'); }} style={{
               appearance: 'none', border: `1px solid ${PFC.border}`, borderRadius: 16,
               background: '#fff', padding: '16px', cursor: 'pointer', textAlign: 'left',
               display: 'flex', alignItems: 'center', gap: 14,

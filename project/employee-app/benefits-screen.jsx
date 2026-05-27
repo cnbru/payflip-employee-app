@@ -344,7 +344,11 @@ function getBenefitBadge(catalogItem) {
 // ─────────────────────────────────────────────────────────────
 function BenefitsScreen() {
   const { push } = useNav();
-  const [filter, setFilter] = React.useState(null);
+  const [filter, setFilter] = React.useState(() => {
+    const f = window.__benefitsFilter || null;
+    window.__benefitsFilter = null;
+    return f;
+  });
   const discoverItems = filter
     ? CATALOG.filter(c => c.budgets && c.budgets.includes(filter))
     : CATALOG;
