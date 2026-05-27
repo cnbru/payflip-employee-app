@@ -355,12 +355,12 @@ function BudgetDetailScreen({ title, choiceDeadline, cashOut, simulate, budgetKe
                 background: 'linear-gradient(135deg, #EDE5FF 0%, #D8CCFF 100%)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
               }}>
-                <LucideIcon name="Gift" size={22} color={PFC.purple600} strokeWidth={2} />
+                <LucideIcon name="Gift" size={22} color={PFC.purple} strokeWidth={2} />
               </div>
               <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
                   <Body16 color={PFC.ink} weight={700}>Spend on benefits</Body16>
-                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 14, color: PFC.purple600 }}>€823</span>
+                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 14, color: PFC.purple }}>€823</span>
                 </div>
                 <Body14 color={PFC.inkSoft} weight={500}>Tax-smart warrants, multimedia and more</Body14>
               </div>
