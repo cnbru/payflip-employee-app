@@ -219,36 +219,16 @@ const FAQ_ITEMS = [
   },
 ];
 
-const LOCKED_FAQ = {
-  id: 'locked-portion',
-  q: 'Why is some of my budget going to cash?',
-  a: null,
-};
-
-function FaqSection({ budgetKey, openFaqId, onFaqOpened }) {
+function FaqSection({ budgetKey }) {
   const [open, setOpen] = React.useState(0);
-  const lockedRef = React.useRef(null);
-  const items = budgetKey === 'end-of-year'
-    ? [...FAQ_ITEMS, LOCKED_FAQ]
-    : FAQ_ITEMS;
-
-  React.useEffect(() => {
-    if (openFaqId === 'locked-portion' && budgetKey === 'end-of-year') {
-      const idx = items.findIndex(it => it.id === 'locked-portion');
-      setOpen(idx);
-      if (onFaqOpened) onFaqOpened();
-      setTimeout(() => {
-        if (lockedRef.current) lockedRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 50);
-    }
-  }, [openFaqId]);
+  const items = FAQ_ITEMS;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
       <Heading20>FAQ</Heading20>
       <div style={{ display: 'flex', flexDirection: 'column' }}>
         {items.map((item, i) => (
-          <div key={item.id || i} ref={item.id === 'locked-portion' ? lockedRef : undefined} style={{
+          <div key={i} style={{
             borderTop: i === 0 ? 'none' : `1px solid ${PFC.border}`,
           }}>
             <button
@@ -268,32 +248,7 @@ function FaqSection({ budgetKey, openFaqId, onFaqOpened }) {
             </button>
             {open === i && (
               <div style={{ paddingBottom: 16 }}>
-                {item.id === 'locked-portion' ? (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                    <Body14 color={PFC.inkSoft} weight={500}>
-                      You signed your addendum in May. The 5 months before that (5 × €104,11 = €520,56) were already queued for the December payslip by Belgian law. They can't move back into Payflip, but no more slots will lock from here on.
-                    </Body14>
-                    <Body14 color={PFC.inkSoft} weight={500}>
-                      This is a Belgian legal rule, not a Payflip charge. It applies to every employee whose salary becomes a flexible budget.
-                    </Body14>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <Caption color={PFC.inkSoft}>Dec 2025 until Nov 2026</Caption>
-                        <Caption color={PFC.inkSoft}>€104,11/mo</Caption>
-                      </div>
-                      <div style={{ display: 'flex', gap: 3 }}>
-                        {['J','F','M','A','M','J','J','A','S','O','N','D'].map((m, idx) => (
-                          <div key={idx} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-                            <div style={{ width: '100%', height: 6, borderRadius: 3, background: idx < 5 ? PFC.border : PFC.purple }} />
-                            <span style={{ fontSize: 10, fontWeight: 600, color: idx < 5 ? PFC.inkSoft : PFC.purple }}>{m}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <Body14 color={PFC.inkSoft} weight={500}>{item.a}</Body14>
-                )}
+                <Body14 color={PFC.inkSoft} weight={500}>{item.a}</Body14>
               </div>
             )}
           </div>
@@ -310,7 +265,7 @@ function BudgetDetailScreen({ title, choiceDeadline, cashOut, simulate, budgetKe
   const { push, switchTab } = useNav();
   const budget = BUDGETS.find(b => b.id === budgetKey);
   const amount = budget ? fmtEUR(budget.amount) : '—';
-  const [openFaqId, setOpenFaqId] = React.useState(null);
+  const [showLockedSheet, setShowLockedSheet] = React.useState(false);
   return (
     <div style={{ display: 'flex', flexDirection: 'column' }}>
       <NavBar />
@@ -346,7 +301,7 @@ function BudgetDetailScreen({ title, choiceDeadline, cashOut, simulate, budgetKe
               <div style={{ marginTop: 12 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   <Body14 color={PFC.inkSoft} weight={500}>Locked portion</Body14>
-                  <span onClick={() => setOpenFaqId('locked-portion')} style={{
+                  <span onClick={() => setShowLockedSheet(true)} style={{
                     width: 18, height: 18, borderRadius: 9, border: `1.5px solid ${PFC.inkSoft}`,
                     display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
                     fontSize: 11, fontWeight: 700, color: PFC.inkSoft, cursor: 'pointer',
@@ -399,10 +354,14 @@ function BudgetDetailScreen({ title, choiceDeadline, cashOut, simulate, budgetKe
         {(!noSpend || !noCash) && <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           <Heading20>Use your budget</Heading20>
           <Body16 color={PFC.inkSoft}>Pick how much goes to benefits and how much to cash. You can split.</Body16>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 8 }}>
+          <div style={{
+            border: `1px solid ${PFC.border}`, borderRadius: 16,
+            background: '#fff', overflow: 'hidden', marginTop: 8,
+            display: 'flex', flexDirection: 'column',
+          }}>
             {!noSpend && <button onClick={() => { window.__benefitsFilter = budgetKey; switchTab('benefits'); }} style={{
-              appearance: 'none', border: `1px solid ${PFC.border}`, borderRadius: 16,
-              background: '#fff', padding: '16px', cursor: 'pointer', textAlign: 'left',
+              appearance: 'none', border: 'none', borderRadius: 0,
+              background: 'transparent', padding: '16px', cursor: 'pointer', textAlign: 'left',
               display: 'flex', alignItems: 'center', gap: 14,
             }}>
               <div style={{
@@ -413,14 +372,15 @@ function BudgetDetailScreen({ title, choiceDeadline, cashOut, simulate, budgetKe
                 <LucideIcon name="Gift" size={22} color={PFC.purple} strokeWidth={2} />
               </div>
               <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
-                <Body16 color={PFC.ink} weight={700}>Spend <span style={{ color: PFC.purple }}>€823</span> on benefits</Body16>
+                <Body16 color={PFC.ink} weight={700}>Spend on benefits</Body16>
                 <Body14 color={PFC.inkSoft} weight={500}>Tax-smart warrants, multimedia and more</Body14>
               </div>
               <LucideIcon name="ChevronRight" size={18} color={PFC.inkSoft} strokeWidth={2} />
             </button>}
+            {!noSpend && !noCash && <div style={{ height: 1, background: PFC.border, margin: '0 16px' }} />}
             {!noCash && <button onClick={() => simulate ? push('simulate-cash-out', { budgetKey }) : push('withdraw-cash')} style={{
-              appearance: 'none', border: `1px solid ${PFC.border}`, borderRadius: 16,
-              background: '#fff', padding: '16px', cursor: 'pointer', textAlign: 'left',
+              appearance: 'none', border: 'none', borderRadius: 0,
+              background: 'transparent', padding: '16px', cursor: 'pointer', textAlign: 'left',
               display: 'flex', alignItems: 'center', gap: 14,
             }}>
               <div style={{
@@ -431,7 +391,7 @@ function BudgetDetailScreen({ title, choiceDeadline, cashOut, simulate, budgetKe
                 <LucideIcon name="Euro" size={22} color="#1A5DC8" strokeWidth={2} />
               </div>
               <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
-                <Body16 color={PFC.ink} weight={700}>Take <span style={{ color: '#1A5DC8' }}>€512</span> as cash</Body16>
+                <Body16 color={PFC.ink} weight={700}>{simulate ? 'Simulate cash out' : 'Take as cash'}</Body16>
                 <Body14 color={PFC.inkSoft} weight={500}>{simulate ? 'Simulate what you\'ll cash out in December' : 'Withdraw now with your next payslip'}</Body14>
               </div>
               <LucideIcon name="ChevronRight" size={18} color={PFC.inkSoft} strokeWidth={2} />
@@ -465,8 +425,45 @@ function BudgetDetailScreen({ title, choiceDeadline, cashOut, simulate, budgetKe
           ))}
         </div>}
 
-        <div style={{ marginTop: 16 }}><FaqSection budgetKey={budgetKey} openFaqId={openFaqId} onFaqOpened={() => setOpenFaqId(null)} /></div>
+        <div style={{ marginTop: 16 }}><FaqSection budgetKey={budgetKey} /></div>
       </div>
+
+      {/* Bottom sheet — locked portion explainer (portalled to AppShell) */}
+      {showLockedSheet && ReactDOM.createPortal(
+        <>
+          <div onClick={() => setShowLockedSheet(false)} style={{
+            position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.35)',
+            zIndex: 20, animation: 'sheetFadeIn 0.2s ease-out both',
+          }} />
+          <div style={{
+            position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 21,
+            background: '#fff', borderRadius: '20px 20px 0 0',
+            padding: '12px 20px 34px',
+            display: 'flex', flexDirection: 'column', gap: 16,
+            animation: 'sheetSlideUp 0.3s ease-out both',
+            boxShadow: '0 -4px 24px rgba(0,0,0,0.12)',
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'center', paddingBottom: 4 }}>
+              <div style={{ width: 36, height: 4, borderRadius: 2, background: PFC.border }} />
+            </div>
+            <Heading20>What is locked portion?</Heading20>
+            <Body14 color={PFC.inkSoft} weight={500} style={{ lineHeight: '22px' }}>
+              You signed your addendum in May. The 5 months before that (5 × €144,11 = €720,56) were already queued for the December payslip by Belgian law. They can't move back into Payflip, but no more slots will lock from here on.
+            </Body14>
+            <Body14 color={PFC.inkSoft} weight={500} style={{ lineHeight: '22px' }}>
+              This is a Belgian legal rule, not a Payflip charge. It applies to every employee whose salary becomes a flexible budget.
+            </Body14>
+            <Button variant="primary" size="large" fullWidth onClick={() => setShowLockedSheet(false)} style={{ marginTop: 4 }}>
+              Got it
+            </Button>
+          </div>
+          <style>{`
+            @keyframes sheetFadeIn { from { opacity: 0; } to { opacity: 1; } }
+            @keyframes sheetSlideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+          `}</style>
+        </>,
+        document.querySelector('[data-app-shell]')
+      )}
     </div>
   );
 }

@@ -108,9 +108,11 @@ function AppShell() {
   const isFullscreen = FULLSCREEN_SCREENS.includes(current.name);
   return (
     <div data-screen-label={`${activeTab}/${current.name}`}
+      data-app-shell
       style={{
         height: '100%', display: 'flex', flexDirection: 'column',
         background: 'var(--bg-default)',
+        position: 'relative',
       }}>
       <div style={{
         flex: 1, minHeight: 0, overflowY: 'auto', overflowX: 'hidden',
