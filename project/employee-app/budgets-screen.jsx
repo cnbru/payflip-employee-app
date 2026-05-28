@@ -707,8 +707,9 @@ function MealVouchersScreen() {
 // Cash-out form (used for Withdraw + Simulate — different layouts).
 // ─────────────────────────────────────────────────────────────
 const MAX_WITHDRAW = 824.23;
-const LOCKED_GROSS = 520.56;
-const LOCKED_NET = 187;
+const LOCKED_GROSS = 720.56;
+const LOCKED_NET = 259;
+const TOTAL_EOY_BUDGET = MAX_WITHDRAW + LOCKED_GROSS; // 1544.79
 function CashOutForm({ title, simulate, budgetKey }) {
   const { pop } = useNav();
   const [amountStr, setAmountStr] = React.useState(String(MAX_WITHDRAW).replace('.', ','));
@@ -716,6 +717,7 @@ function CashOutForm({ title, simulate, budgetKey }) {
   const [submitted, setSubmitted] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
   const [success, setSuccess] = React.useState(false);
+  const [showLockedSheet, setShowLockedSheet] = React.useState(false);
 
   const amt = parseFloat(amountStr.replace(',', '.'));
   const err =
@@ -745,7 +747,7 @@ function CashOutForm({ title, simulate, budgetKey }) {
         {/* Amount input with MAX */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {simulate
-            ? <Body16 color={PFC.ink} weight={500}>Of the {fmtEUR(MAX_WITHDRAW)} still in Payflip, cash out</Body16>
+            ? <Body16 color={PFC.ink} weight={500}>Of the {fmtEUR(isEoy ? TOTAL_EOY_BUDGET : MAX_WITHDRAW)} in Payflip, simulate your cash out</Body16>
             : <Body14 color={PFC.inkSoft} weight={700}>Amount</Body14>}
           <div style={{
             display: 'flex', alignItems: 'center',
@@ -779,53 +781,34 @@ function CashOutForm({ title, simulate, budgetKey }) {
           </div>
         </div>
 
+        {/* Locked portion callout — simulate EoY only */}
+        {isEoy && <div style={{
+          background: '#F7F7F8', borderRadius: 12, padding: '14px 16px',
+          display: 'flex', flexDirection: 'column', gap: 6,
+        }}>
+          <Body14 color={PFC.ink} weight={500}>{fmtEUR(LOCKED_GROSS)} of your budget is already locked for cash out.</Body14>
+          <button onClick={() => setShowLockedSheet(true)} style={{
+            background: 'transparent', border: 'none', padding: 0, cursor: 'pointer',
+            fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 14,
+            color: PFC.ink, textDecoration: 'underline', textAlign: 'left',
+          }}>Why is this locked?</button>
+        </div>}
+
         <div>
           <Body14 color={PFC.inkSoft} weight={700} style={{ textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-            {simulate ? 'EST NET AFTER CASH OUT' : 'EST NET AT CASH-OUT'}
+            {simulate ? 'TOTAL EST NET AFTER CASH OUT' : 'EST NET AT CASH-OUT'}
           </Body14>
           <div style={{
             fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 36, lineHeight: '44px',
             letterSpacing: '-0.01em', color: PFC.ink, marginTop: 4,
           }}>€{simulate ? totalNet : netEstimate}</div>
 
-          {/* Breakdown — simulate only */}
-          {simulate && <div style={{
-            border: `1px solid ${PFC.border}`, borderRadius: 12, marginTop: 16, overflow: 'hidden',
-          }}>
-            {isEoy && <div style={{
-              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-              padding: '14px 16px', borderBottom: `1px solid ${PFC.border}`,
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <div style={{ width: 10, height: 10, borderRadius: 2, background: PFC.border }} />
-                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                  <Body14 color={PFC.ink} weight={700}>Locked portion</Body14>
-                  <Caption color={PFC.inkSoft}>{fmtEUR(LOCKED_GROSS)} x 36% net</Caption>
-                </div>
-              </div>
-              <Body14 color={PFC.ink} weight={700}>{fmtEUR(LOCKED_NET)}</Body14>
-            </div>}
-            <div style={{
-              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-              padding: '14px 16px',
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <div style={{ width: 10, height: 10, borderRadius: 2, background: PFC.purple }} />
-                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                  <Body14 color={PFC.ink} weight={700}>You cash out</Body14>
-                  <Caption color={PFC.inkSoft}>{fmtEUR(amt > 0 && !isNaN(amt) ? amt : MAX_WITHDRAW)} x 36% net</Caption>
-                </div>
-              </div>
-              <Body14 color={PFC.ink} weight={700}>{fmtEUR(cashOutNet)}</Body14>
-            </div>
-          </div>}
-
-          <button onClick={() => {}} style={{
+          {!simulate && <button onClick={() => {}} style={{
             background: 'transparent', border: 'none', padding: 0, cursor: 'pointer',
             fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 12,
             lineHeight: '16px', letterSpacing: '0.005em',
             color: PFC.inkSoft, textDecoration: 'underline', marginTop: 12,
-          }}>How is this calculated?</button>
+          }}>How is this calculated?</button>}
         </div>
 
         <div style={{ height: 1, background: PFC.borderHard }} />
@@ -990,6 +973,43 @@ function CashOutForm({ title, simulate, budgetKey }) {
           100% { opacity: 1; transform: scale(1); }
         }
       `}</style>
+
+      {/* Bottom sheet — Why is this locked? (portalled to AppShell) */}
+      {showLockedSheet && ReactDOM.createPortal(
+        <>
+          <div onClick={() => setShowLockedSheet(false)} style={{
+            position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.35)',
+            zIndex: 20, animation: 'sheetFadeIn 0.2s ease-out both',
+          }} />
+          <div style={{
+            position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 21,
+            background: '#fff', borderRadius: '20px 20px 0 0',
+            padding: '12px 20px 34px',
+            display: 'flex', flexDirection: 'column', gap: 16,
+            animation: 'sheetSlideUp 0.3s ease-out both',
+            boxShadow: '0 -4px 24px rgba(0,0,0,0.12)',
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'center', paddingBottom: 4 }}>
+              <div style={{ width: 36, height: 4, borderRadius: 2, background: PFC.border }} />
+            </div>
+            <Heading20>What is locked portion?</Heading20>
+            <Body14 color={PFC.inkSoft} weight={500} style={{ lineHeight: '22px' }}>
+              You signed your addendum in May. The 5 months before that (5 × €144,11 = €720,56) were already queued for the December payslip by Belgian law. They can't move back into Payflip, but no more slots will lock from here on.
+            </Body14>
+            <Body14 color={PFC.inkSoft} weight={500} style={{ lineHeight: '22px' }}>
+              This is a Belgian legal rule, not a Payflip charge. It applies to every employee whose salary becomes a flexible budget.
+            </Body14>
+            <Button variant="primary" size="large" fullWidth onClick={() => setShowLockedSheet(false)} style={{ marginTop: 4 }}>
+              Got it
+            </Button>
+          </div>
+          <style>{`
+            @keyframes sheetFadeIn { from { opacity: 0; } to { opacity: 1; } }
+            @keyframes sheetSlideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+          `}</style>
+        </>,
+        document.querySelector('[data-app-shell]')
+      )}
     </div>
   );
 }
