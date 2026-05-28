@@ -828,8 +828,15 @@ function PensionDetailScreen({ id }) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', position: 'relative', overflow: showDeleteConfirm ? 'hidden' : undefined }}>
-      <NavBar />
-      <div style={{ flex: 1, overflowY: showDeleteConfirm ? 'hidden' : 'auto', padding: '0 16px 32px', display: 'flex', flexDirection: 'column', gap: 32 }}>
+      <NavBar trailing={
+        <button style={{
+          background: 'transparent', border: 'none', padding: '6px 0',
+          cursor: 'pointer', whiteSpace: 'nowrap',
+          fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 14,
+          color: PFC.errorText,
+        }} onClick={() => setShowDeleteConfirm(true)}>Delete choice</button>
+      } />
+      <div style={{ flex: 1, minHeight: 0, overflowY: showDeleteConfirm ? 'hidden' : 'auto', padding: '0 16px 32px', display: 'flex', flexDirection: 'column', gap: 32 }}>
         <Heading28>Pension savings</Heading28>
 
         {/* Rejection banner */}
@@ -913,9 +920,15 @@ function PensionDetailScreen({ id }) {
           <StatusTimeline steps={PENSION_TIMELINE} currentIndex={-1} />
         </div>
 
-        <div style={{ height: 1, background: PFC.border }} />
+      </div>
 
-        {/* T&C */}
+      {/* Sticky bottom: T&C + Submit */}
+      <div style={{
+        flexShrink: 0, background: '#fff',
+        borderTop: `1px solid ${PFC.border}`,
+        padding: '12px 16px 24px',
+        display: 'flex', flexDirection: 'column', gap: 12,
+      }}>
         <label style={{ display: 'flex', alignItems: 'flex-start', gap: 12, cursor: 'pointer' }}>
           <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)}
             style={{ width: 20, height: 20, marginTop: 2, accentColor: PFC.inkDarker, flex: 'none' }} />
@@ -923,32 +936,15 @@ function PensionDetailScreen({ id }) {
             I agree to the <a href="#" onClick={(e) => e.preventDefault()} style={{ color: PFC.ink, textDecoration: 'underline' }}>Terms &amp; Conditions</a>
           </Body14>
         </label>
-      </div>
-
-      {/* Sticky bottom: Delete + Submit */}
-      <div style={{
-        flexShrink: 0, background: '#fff',
-        borderTop: `1px solid ${PFC.border}`,
-        padding: '16px 16px 24px',
-        display: 'flex', alignItems: 'center', gap: 12,
-      }}>
-        <button style={{
-          background: 'transparent', border: 'none', padding: '12px 16px',
-          cursor: 'pointer',
-          fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 16,
-          color: PFC.errorText,
-        }} onClick={() => setShowDeleteConfirm(true)}>Delete choice</button>
-        <div style={{ flex: 1 }}>
-          <Button variant="primary" size="large" fullWidth
-            disabled={!agreed || submitted}
-            onClick={() => {
-              setSubmitted(true);
-              window.__pensionResubmitted = true;
-              setTimeout(() => switchTab('home'), 800);
-            }}>
-            {submitted ? '✓ Submitted' : 'Submit'}
-          </Button>
-        </div>
+        <Button variant="primary" size="large" fullWidth
+          disabled={!agreed || submitted}
+          onClick={() => {
+            setSubmitted(true);
+            window.__pensionResubmitted = true;
+            setTimeout(() => switchTab('home'), 800);
+          }}>
+          {submitted ? '✓ Submitted' : 'Submit'}
+        </Button>
       </div>
 
       {showDeleteConfirm && <div style={{
