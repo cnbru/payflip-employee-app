@@ -401,7 +401,7 @@ function BenefitsScreen() {
             border: 'none', background: 'transparent', cursor: 'pointer',
             borderRadius: 16, overflow: 'hidden',
           }}>
-          <img src="assets/home-biking-season.png" alt=""
+          <img src="assets/biking-season.png" alt=""
             style={{ display: 'block', width: '100%', height: 'auto' }} />
         </button>}
         {discoverItems.length === 0
@@ -614,8 +614,15 @@ function BikeLeaseScreen({ id }) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', position: 'relative', height: '100%', overflow: showDeleteConfirm ? 'hidden' : undefined }}>
-      <NavBar />
-      <div style={{ padding: '0 16px 24px', display: 'flex', flexDirection: 'column', gap: 32 }}>
+      <NavBar trailing={isDraft ? (
+        <button style={{
+          background: 'transparent', border: 'none', padding: '6px 0',
+          cursor: 'pointer', whiteSpace: 'nowrap',
+          fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 14,
+          color: PFC.errorText,
+        }} onClick={() => setShowDeleteConfirm(true)}>Delete choice</button>
+      ) : undefined} />
+      <div style={{ padding: '0 16px 24px', display: 'flex', flexDirection: 'column', gap: 32, flex: 1, minHeight: 0, overflowY: 'auto' }}>
         <Heading28>Bike lease</Heading28>
 
         {isDraft ? (
@@ -689,37 +696,15 @@ function BikeLeaseScreen({ id }) {
             <div style={{ height: 1, background: PFC.border }} />
 
             {/* What happens after you confirm */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               <Heading20>What happens after you confirm?</Heading20>
-              <StatusTimeline steps={WHAT_HAPPENS} currentIndex={-1} />
+              <Body14 color={PFC.inkSoft} weight={500} style={{ lineHeight: '22px' }}>
+                After confirmation, your admin will review it. After approval, you'll be asked to sign the lease contract. That's the moment your bike will be ordered. Your bike dealer will contact you for delivery when your bike is ready.
+              </Body14>
             </div>
 
             <div style={{ height: 1, background: PFC.border }} />
 
-            {/* T&C + Submit */}
-            <label style={{ display: 'flex', alignItems: 'flex-start', gap: 12, cursor: 'pointer' }}>
-              <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)}
-                style={{ width: 20, height: 20, marginTop: 2, accentColor: PFC.inkDarker, flex: 'none' }} />
-              <Body14 color={PFC.ink} weight={500}>
-                I agree to the <a href="#" onClick={(e) => e.preventDefault()} style={{ color: PFC.ink, textDecoration: 'underline' }}>Terms &amp; Conditions</a>
-              </Body14>
-            </label>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <button style={{
-                background: 'transparent', border: 'none', padding: '12px 16px',
-                cursor: 'pointer', whiteSpace: 'nowrap',
-                fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 16,
-                color: PFC.errorText,
-              }} onClick={() => setShowDeleteConfirm(true)}>Delete choice</button>
-              <div style={{ flex: 1 }}>
-                <Button variant="primary" size="large" fullWidth
-                  disabled={!agreed || submitted}
-                  onClick={() => { setSubmitted(true); setTimeout(pop, 800); }}>
-                  {submitted ? '✓ Submitted' : 'Submit'}
-                </Button>
-              </div>
-            </div>
           </>
         ) : (
           /* ── ACTIVE LAYOUT ── */
@@ -766,6 +751,30 @@ function BikeLeaseScreen({ id }) {
           </>
         )}
       </div>
+
+      {/* Fixed footer — T&C + Submit */}
+      {isDraft && (
+        <div style={{
+          flexShrink: 0,
+          background: '#fff',
+          borderTop: `1px solid ${PFC.border}`,
+          padding: '12px 16px 24px',
+          display: 'flex', flexDirection: 'column', gap: 12,
+        }}>
+          <label style={{ display: 'flex', alignItems: 'flex-start', gap: 12, cursor: 'pointer' }}>
+            <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)}
+              style={{ width: 20, height: 20, marginTop: 2, accentColor: PFC.inkDarker, flex: 'none' }} />
+            <Body14 color={PFC.ink} weight={500}>
+              I agree to the <a href="#" onClick={(e) => e.preventDefault()} style={{ color: PFC.ink, textDecoration: 'underline' }}>Terms &amp; Conditions</a>
+            </Body14>
+          </label>
+          <Button variant="primary" size="large" fullWidth
+            disabled={!agreed || submitted}
+            onClick={() => { setSubmitted(true); window.__deletedDrafts = (window.__deletedDrafts || []); window.__deletedDrafts.push(id); setTimeout(pop, 800); }}>
+            {submitted ? '✓ Submitted' : 'Submit'}
+          </Button>
+        </div>
+      )}
 
       {showDeleteConfirm && <div style={{
         position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.4)',
