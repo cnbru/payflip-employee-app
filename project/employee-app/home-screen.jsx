@@ -411,7 +411,7 @@ function EoyOptimiseCard({ onClick }) {
         display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8,
         marginTop: 8
       }}>
-        Unlock budget
+        Sign addendum
       </button>
     </div>);
 }
@@ -516,7 +516,7 @@ function HomeScreen() {
 
       {/* EoY Optimise Card — prominent gradient card */}
       {!window.__eoyUnlocked &&
-        <EoyOptimiseCard onClick={() => nav && nav.push('unlock-eoy')} />
+        <EoyOptimiseCard onClick={() => nav && nav.push('sign-addendum')} />
       }
 
       {/* To review section — bike lease drafts + rejected pension */}

@@ -556,9 +556,9 @@ function EndOfYearScreen() {
             Get up to €230 more value than cashing it out in December.
           </Body14>
           <Button variant="primary" size="large" fullWidth
-            onClick={() => push('unlock-eoy')}
+            onClick={() => push('sign-addendum')}
             style={{ marginTop: 8 }}>
-            Unlock budget
+            Sign addendum
           </Button>
         </div>
 
@@ -712,7 +712,11 @@ const LOCKED_NET = 259;
 const TOTAL_EOY_BUDGET = MAX_WITHDRAW + LOCKED_GROSS; // 1544.79
 function CashOutForm({ title, simulate, budgetKey }) {
   const { pop } = useNav();
-  const [amountStr, setAmountStr] = React.useState(String(MAX_WITHDRAW).replace('.', ','));
+  const isEoy = simulate && budgetKey === 'end-of-year';
+  const simMax = isEoy ? TOTAL_EOY_BUDGET : MAX_WITHDRAW;
+  const [amountStr, setAmountStr] = React.useState(
+    simulate ? simMax.toFixed(2).replace('.', ',') : String(MAX_WITHDRAW).replace('.', ',')
+  );
   const [understands, setUnderstands] = React.useState(false);
   const [submitted, setSubmitted] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
@@ -720,17 +724,19 @@ function CashOutForm({ title, simulate, budgetKey }) {
   const [showLockedSheet, setShowLockedSheet] = React.useState(false);
 
   const amt = parseFloat(amountStr.replace(',', '.'));
+  const maxForValidation = simulate ? simMax : MAX_WITHDRAW;
   const err =
     submitted && (!amountStr || isNaN(amt)) ? 'Enter an amount' :
     submitted && amt <= 0 ? 'Amount must be greater than 0' :
-    submitted && amt > MAX_WITHDRAW ? `Maximum is ${fmtEUR(MAX_WITHDRAW)}` :
+    submitted && amt > maxForValidation ? `Maximum is ${fmtEUR(maxForValidation)}` :
     null;
   const cbErr = submitted && !understands ? 'You must confirm this is final' : null;
 
   const netEstimate = amt > 0 && !isNaN(amt) ? Math.round(amt * 0.665) : 548;
   const cashOutNet = amt > 0 && !isNaN(amt) ? Math.round(amt * 0.36) : 262;
-  const isEoy = simulate && budgetKey === 'end-of-year';
   const totalNet = isEoy ? LOCKED_NET + cashOutNet : simulate ? cashOutNet : netEstimate;
+  // For simulate: total net uses full amount at ~35.5%
+  const simNet = amt > 0 && !isNaN(amt) ? (amt * 0.355).toFixed(2).replace('.', ',') : '548,23';
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', position: 'relative', height: '100%', overflow: 'hidden' }}>
@@ -738,127 +744,204 @@ function CashOutForm({ title, simulate, budgetKey }) {
       <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden' }}>
       <div style={{ padding: '0 16px 24px', display: 'flex', flexDirection: 'column', gap: 24 }}>
         <Heading24>{title}</Heading24>
-        <Body16 color={PFC.ink}>
+        <Body16 color={PFC.inkSoft}>
           {simulate
-            ? 'Simulate how much you could get if after cash out date.'
+            ? 'How much you could get on cash out date in December.'
             : 'Take some or all of this as cash with your next payslip.'}
         </Body16>
 
-        {/* Amount input with MAX */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {simulate
-            ? <Body16 color={PFC.ink} weight={500}>Of the {fmtEUR(isEoy ? TOTAL_EOY_BUDGET : MAX_WITHDRAW)} in Payflip, simulate your cash out</Body16>
-            : <Body14 color={PFC.inkSoft} weight={700}>Amount</Body14>}
-          <div style={{
-            display: 'flex', alignItems: 'center',
-            background: err ? PFC.errorBg : '#fff',
-            border: `1px solid ${err ? PFC.errorBorder : PFC.borderHard}`,
-            borderRadius: 12, padding: '12px 8px 12px 16px', gap: 8,
-          }}>
-            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 20, color: PFC.ink }}>€</span>
-            <input
-              inputMode="decimal"
-              placeholder="0,00"
-              value={amountStr}
-              onChange={(e) => setAmountStr(e.target.value)}
-              style={{
-                flex: 1, border: 'none', outline: 'none', background: 'transparent',
-                fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 20, lineHeight: '28px',
-                color: PFC.ink, minWidth: 0, padding: 0,
-              }} />
-            <button onClick={() => setAmountStr(MAX_WITHDRAW.toFixed(2).replace('.', ','))} style={{
-              appearance: 'none', border: 'none',
-              background: PFC.purpleTile, color: PFC.inkDarker,
-              fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 14, lineHeight: '20px',
-              padding: '4px 12px', borderRadius: 999, cursor: 'pointer',
-              letterSpacing: '0.003em',
-            }}>MAX</button>
+        {/* ── Simulate mode layout ── */}
+        {simulate ? (<>
+          {/* Budget breakdown rows */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: `1px solid ${PFC.border}` }}>
+              <Body14 color={PFC.inkSoft} weight={500}>Available in Payflip</Body14>
+              <Body14 color={PFC.ink} weight={500}>{fmtEUR(MAX_WITHDRAW)}</Body14>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: `1px solid ${PFC.border}` }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <Body14 color={PFC.inkSoft} weight={500}>Locked portion</Body14>
+                <button onClick={() => setShowLockedSheet(true)} style={{
+                  background: 'transparent', border: 'none', padding: 0, cursor: 'pointer',
+                  display: 'inline-flex', alignItems: 'center',
+                }}>
+                  <LucideIcon name="CircleHelp" size={16} color={PFC.inkSoft} strokeWidth={1.75} />
+                </button>
+              </div>
+              <Body14 color={PFC.ink} weight={500}>{fmtEUR(LOCKED_GROSS)}</Body14>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0' }}>
+              <Body14 color={PFC.ink} weight={700}>Total available for cash out</Body14>
+              <Body14 color={PFC.ink} weight={700}>{fmtEUR(TOTAL_EOY_BUDGET)}</Body14>
+            </div>
           </div>
-          {err && <Body14 color={PFC.errorText} weight={500}>{err}</Body14>}
-          <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: 4 }}>
-            <Body14 color={PFC.inkSoft} weight={500}>{simulate ? 'Max electable' : 'Available to withdraw'}</Body14>
-            <Body14 color={PFC.inkSoft} weight={500}>{fmtEUR(MAX_WITHDRAW)}</Body14>
-          </div>
-        </div>
 
-        {/* Locked portion callout — simulate EoY only */}
-        {isEoy && <div style={{
-          background: '#F7F7F8', borderRadius: 12, padding: '14px 16px',
-          display: 'flex', flexDirection: 'column', gap: 6,
-        }}>
-          <Body14 color={PFC.ink} weight={500}>{fmtEUR(LOCKED_GROSS)} of your budget is already locked for cash out.</Body14>
-          <button onClick={() => setShowLockedSheet(true)} style={{
-            background: 'transparent', border: 'none', padding: 0, cursor: 'pointer',
-            fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 14,
-            color: PFC.ink, textDecoration: 'underline', textAlign: 'left',
-          }}>Why is this locked?</button>
-        </div>}
-
-        <div>
-          <Body14 color={PFC.inkSoft} weight={700} style={{ textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-            {simulate ? 'TOTAL EST NET AFTER CASH OUT' : 'EST NET AT CASH-OUT'}
-          </Body14>
+          {/* Purple input card */}
           <div style={{
-            fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 36, lineHeight: '44px',
-            letterSpacing: '-0.01em', color: PFC.ink, marginTop: 4,
-          }}>€{simulate ? totalNet : netEstimate}</div>
-
-          {!simulate && <button onClick={() => {}} style={{
-            background: 'transparent', border: 'none', padding: 0, cursor: 'pointer',
-            fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 12,
-            lineHeight: '16px', letterSpacing: '0.005em',
-            color: PFC.inkSoft, textDecoration: 'underline', marginTop: 12,
-          }}>How is this calculated?</button>}
-        </div>
-
-        <div style={{ height: 1, background: PFC.borderHard }} />
-
-        {/* Cash benefits suggestion */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 24 }}>
-          <Heading20>Cash benefits to consider instead</Heading20>
-          <Body14 color={PFC.ink} weight={500}>
-            Get more net cash value.
-          </Body14>
-        </div>
-        <div className="hide-scrollbar" style={{
-          display: 'flex', gap: 12, overflowX: 'auto', margin: '0 -16px', padding: '0 16px',
-        }}>
-          <div style={{
-            background: '#fff', border: `1px solid ${PFC.border}`,
-            borderRadius: 16, padding: 20, width: 280, minWidth: 280, flex: '0 0 auto',
+            background: PFC.purpleTile, borderRadius: 16, padding: '20px 16px',
             display: 'flex', flexDirection: 'column', gap: 16,
           }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-              <IconTile name="Home" />
-              <Body14 color={PFC.purple} weight={700}>Up to €240 more value</Body14>
+            <Body14 color={PFC.ink} weight={700}>Amount to simulate</Body14>
+            <div style={{
+              display: 'flex', alignItems: 'center',
+              background: '#fff',
+              border: `1px solid ${err ? PFC.errorBorder : PFC.borderHard}`,
+              borderRadius: 12, padding: '12px 8px 12px 16px', gap: 8,
+            }}>
+              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 20, color: PFC.ink }}>€</span>
+              <input
+                inputMode="decimal"
+                placeholder="0,00"
+                value={amountStr}
+                onChange={(e) => setAmountStr(e.target.value)}
+                style={{
+                  flex: 1, border: 'none', outline: 'none', background: 'transparent',
+                  fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 20, lineHeight: '28px',
+                  color: PFC.ink, minWidth: 0, padding: 0,
+                }} />
+              <button onClick={() => setAmountStr(simMax.toFixed(2).replace('.', ','))} style={{
+                appearance: 'none', border: 'none',
+                background: '#fff', color: PFC.inkDarker,
+                fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 14, lineHeight: '20px',
+                padding: '4px 12px', borderRadius: 999, cursor: 'pointer',
+                letterSpacing: '0.003em', border: `1px solid ${PFC.borderHard}`,
+              }}>MAX</button>
             </div>
+            {err && <Body14 color={PFC.errorText} weight={500}>{err}</Body14>}
+
             <div>
-              <Heading20>Warrants</Heading20>
-              <Body14 color={PFC.ink} weight={500}>Reclaim part of it here more efficiently than any cash payout.</Body14>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginTop: 4 }}>
-              <TaxScoreRow score={{ level: 2, label: 'Good', pct: 24 }} />
+              <Body14 color={PFC.inkSoft} weight={500}>Total estimated net after cash out</Body14>
+              <div style={{
+                fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 36, lineHeight: '44px',
+                letterSpacing: '-0.01em', color: PFC.ink, marginTop: 4,
+              }}>€{simNet}</div>
             </div>
           </div>
-          <div style={{
-            background: '#fff', border: `1px solid ${PFC.border}`,
-            borderRadius: 16, padding: 20, width: 280, minWidth: 280, flex: '0 0 auto',
-            display: 'flex', flexDirection: 'column', gap: 16,
+
+          <div style={{ height: 1, background: PFC.borderHard }} />
+
+          {/* Get more section */}
+          <Heading20>Get more</Heading20>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {[
+              { name: 'Warrants', value: '€620 value', desc: 'Reclaim part of it here more efficiently than any cash payout.' },
+              { name: 'Pension savings', value: '€598 value', desc: 'Reclaim part of it here more efficiently than any cash payout.' },
+            ].map((card) => (
+              <div key={card.name} style={{
+                background: '#fff', border: `1px solid ${PFC.border}`,
+                borderRadius: 16, padding: 20,
+                display: 'flex', flexDirection: 'column', gap: 12,
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <IconTile name="Home" />
+                  <Body14 color={PFC.purple} weight={700}>{card.value}</Body14>
+                </div>
+                <Heading20>{card.name}</Heading20>
+                <Body14 color={PFC.inkSoft} weight={500}>{card.desc}</Body14>
+              </div>
+            ))}
+          </div>
+        </>) : (<>
+          {/* ── Withdraw mode layout (unchanged) ── */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <Body14 color={PFC.inkSoft} weight={700}>Amount</Body14>
+            <div style={{
+              display: 'flex', alignItems: 'center',
+              background: err ? PFC.errorBg : '#fff',
+              border: `1px solid ${err ? PFC.errorBorder : PFC.borderHard}`,
+              borderRadius: 12, padding: '12px 8px 12px 16px', gap: 8,
+            }}>
+              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 20, color: PFC.ink }}>€</span>
+              <input
+                inputMode="decimal"
+                placeholder="0,00"
+                value={amountStr}
+                onChange={(e) => setAmountStr(e.target.value)}
+                style={{
+                  flex: 1, border: 'none', outline: 'none', background: 'transparent',
+                  fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 20, lineHeight: '28px',
+                  color: PFC.ink, minWidth: 0, padding: 0,
+                }} />
+              <button onClick={() => setAmountStr(MAX_WITHDRAW.toFixed(2).replace('.', ','))} style={{
+                appearance: 'none', border: 'none',
+                background: PFC.purpleTile, color: PFC.inkDarker,
+                fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 14, lineHeight: '20px',
+                padding: '4px 12px', borderRadius: 999, cursor: 'pointer',
+                letterSpacing: '0.003em',
+              }}>MAX</button>
+            </div>
+            {err && <Body14 color={PFC.errorText} weight={500}>{err}</Body14>}
+            <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: 4 }}>
+              <Body14 color={PFC.inkSoft} weight={500}>Available to withdraw</Body14>
+              <Body14 color={PFC.inkSoft} weight={500}>{fmtEUR(MAX_WITHDRAW)}</Body14>
+            </div>
+          </div>
+
+          <div>
+            <Body14 color={PFC.inkSoft} weight={700} style={{ textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              EST NET AT CASH-OUT
+            </Body14>
+            <div style={{
+              fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 36, lineHeight: '44px',
+              letterSpacing: '-0.01em', color: PFC.ink, marginTop: 4,
+            }}>€{netEstimate}</div>
+            <button onClick={() => {}} style={{
+              background: 'transparent', border: 'none', padding: 0, cursor: 'pointer',
+              fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 12,
+              lineHeight: '16px', letterSpacing: '0.005em',
+              color: PFC.inkSoft, textDecoration: 'underline', marginTop: 12,
+            }}>How is this calculated?</button>
+          </div>
+
+          <div style={{ height: 1, background: PFC.borderHard }} />
+
+          {/* Cash benefits suggestion */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 24 }}>
+            <Heading20>Cash benefits to consider instead</Heading20>
+            <Body14 color={PFC.ink} weight={500}>
+              Get more net cash value.
+            </Body14>
+          </div>
+          <div className="hide-scrollbar" style={{
+            display: 'flex', gap: 12, overflowX: 'auto', margin: '0 -16px', padding: '0 16px',
           }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-              <IconTile name="Home" />
-              <Body14 color={PFC.purple} weight={700}>Up to €180 more value</Body14>
+            <div style={{
+              background: '#fff', border: `1px solid ${PFC.border}`,
+              borderRadius: 16, padding: 20, width: 280, minWidth: 280, flex: '0 0 auto',
+              display: 'flex', flexDirection: 'column', gap: 16,
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <IconTile name="Home" />
+                <Body14 color={PFC.purple} weight={700}>Up to €240 more value</Body14>
+              </div>
+              <div>
+                <Heading20>Warrants</Heading20>
+                <Body14 color={PFC.ink} weight={500}>Reclaim part of it here more efficiently than any cash payout.</Body14>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginTop: 4 }}>
+                <TaxScoreRow score={{ level: 2, label: 'Good', pct: 24 }} />
+              </div>
             </div>
-            <div>
-              <Heading20>Pension savings</Heading20>
-              <Body14 color={PFC.ink} weight={500}>Set aside a penny for your old day. Get your yearly savings reimbursed via Payflip.</Body14>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginTop: 4 }}>
-              <TaxScoreRow score={{ level: 2, label: 'Good', pct: 54 }} />
+            <div style={{
+              background: '#fff', border: `1px solid ${PFC.border}`,
+              borderRadius: 16, padding: 20, width: 280, minWidth: 280, flex: '0 0 auto',
+              display: 'flex', flexDirection: 'column', gap: 16,
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <IconTile name="Home" />
+                <Body14 color={PFC.purple} weight={700}>Up to €180 more value</Body14>
+              </div>
+              <div>
+                <Heading20>Pension savings</Heading20>
+                <Body14 color={PFC.ink} weight={500}>Set aside a penny for your old day. Get your yearly savings reimbursed via Payflip.</Body14>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginTop: 4 }}>
+                <TaxScoreRow score={{ level: 2, label: 'Good', pct: 54 }} />
+              </div>
             </div>
           </div>
-        </div>
-        <style>{`.hide-scrollbar::-webkit-scrollbar { display: none; } .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }`}</style>
+          <style>{`.hide-scrollbar::-webkit-scrollbar { display: none; } .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }`}</style>
+        </>)}
 
         {/* Confirmation checkbox + CTA — sticky bottom */}
       </div>
@@ -1300,86 +1383,6 @@ function EditHousingCostsScreen() {
 }
 
 // ─────────────────────────────────────────────────────────────
-// Unlock End of Year Premium — addendum signing flow
-// ─────────────────────────────────────────────────────────────
-function UnlockEoyScreen() {
-  const { push, pop, switchTab } = useNav();
-
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column' }}>
-      <NavBar />
-      <div style={{ padding: '0 16px 32px', display: 'flex', flexDirection: 'column', gap: 32 }}>
-
-        {/* Header */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          <Heading28>Unlock your end of year premium</Heading28>
-          <Body16 color={PFC.inkSoft} weight={400} style={{ lineHeight: '24px' }}>
-            By unlocking your end-of-year premium in Payflip, you already get access to it to spend it on benefits. Everything unused will be taxed and paid out as usual.
-          </Body16>
-        </div>
-
-        {/* Comparison card */}
-        <div style={{
-          border: `1px solid ${PFC.border}`, borderRadius: 16, overflow: 'hidden',
-          background: '#fff',
-        }}>
-          {/* If you sign */}
-          <div style={{ padding: '20px 16px', borderBottom: `1px solid ${PFC.border}` }}>
-            <Body14 color={PFC.inkSoft} weight={700} style={{ textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: 11 }}>
-              IF YOU SIGN
-            </Body14>
-            <div style={{
-              fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 32, lineHeight: '40px',
-              letterSpacing: '-0.01em', color: PFC.purple, marginTop: 4,
-            }}>€680</div>
-            <Body14 color={PFC.inkSoft} weight={500} style={{ marginTop: 4 }}>in net value via benefits</Body14>
-          </div>
-          {/* If you don't */}
-          <div style={{ padding: '20px 16px' }}>
-            <Body14 color={PFC.inkSoft} weight={700} style={{ textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: 11 }}>
-              IF YOU DON&apos;T
-            </Body14>
-            <div style={{
-              fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 32, lineHeight: '40px',
-              letterSpacing: '-0.01em', color: PFC.ink, marginTop: 4,
-            }}>€450</div>
-            <Body14 color={PFC.inkSoft} weight={500} style={{ marginTop: 4 }}>as cash after tax</Body14>
-          </div>
-        </div>
-
-        {/* What you sign */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <Heading20>What you sign</Heading20>
-          <Body16 color={PFC.inkSoft} weight={400} style={{ lineHeight: '24px' }}>
-            A short addendum to your labor contract. Belgian law requires one whenever salary becomes a flexible budget. It applies only to your end of year premium, other budgets keep their own signing.
-          </Body16>
-        </div>
-      </div>
-
-      {/* Sticky bottom: Sign + Read link */}
-      <div style={{
-        flexShrink: 0, background: '#fff',
-        borderTop: `1px solid ${PFC.border}`,
-        padding: '16px 16px 24px',
-        display: 'flex', flexDirection: 'column', gap: 12, alignItems: 'center',
-      }}>
-        <Button variant="primary" size="large" fullWidth
-          onClick={() => push('sign-addendum')}>
-          Sign addendum
-        </Button>
-        <button style={{
-          background: 'transparent', border: 'none', padding: '8px 0',
-          cursor: 'pointer',
-          fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 16,
-          color: PFC.ink, textDecoration: 'underline',
-        }}>Read the full addendum (2 pages)</button>
-      </div>
-
-    </div>
-  );
-}
-
-// ─────────────────────────────────────────────────────────────
 // Sign addendum screen — signature pad + checkbox + submit
 // ─────────────────────────────────────────────────────────────
 function SignAddendumScreen() {
@@ -1570,7 +1573,6 @@ function SignAddendumScreen() {
 
 // Register all screens
 registerScreen('sign-addendum', SignAddendumScreen);
-registerScreen('unlock-eoy', UnlockEoyScreen);
 registerScreen('budgets', BudgetsScreen);
 registerScreen('bonus', BonusScreen);
 registerScreen('end-of-year-premium', EndOfYearScreen);
