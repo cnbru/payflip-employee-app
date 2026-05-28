@@ -1486,7 +1486,7 @@ function SignAddendumScreen() {
           animation: 'fadeSlideIn 0.4s ease-out both',
         }}>
           <div style={{ padding: 16 }}>
-            <button onClick={() => switchTab('home')} style={{
+            <button onClick={() => { reset('budgets'); switchTab('home'); }} style={{
               width: 36, height: 36, borderRadius: 999, border: `1px solid ${PFC.border}`,
               background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
               cursor: 'pointer',
