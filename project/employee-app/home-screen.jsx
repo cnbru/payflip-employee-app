@@ -376,6 +376,105 @@ function PensionLearnMoreCard({ onDismiss, onClick }) {
 
 }
 
+// ─────────────────────────────────────────────────────────────
+// EoY Optimise Card — gradient card prompting user to unlock
+// their end-of-year premium for better value.
+// ─────────────────────────────────────────────────────────────
+function EoyOptimiseCard({ onClick }) {
+  return (
+    <div style={{
+      width: '100%', boxSizing: 'border-box',
+      background: 'linear-gradient(135deg, rgb(235,244,255) 0%, rgb(208,228,255) 60%, rgb(59,141,248) 100%)',
+      borderRadius: 16,
+      padding: '24px 20px',
+      textAlign: 'left',
+      display: 'flex', flexDirection: 'column', gap: 12,
+    }}>
+      <div style={{
+        fontFamily: 'var(--font-display)',
+        fontWeight: 700, fontSize: 22, lineHeight: '30px',
+        letterSpacing: '-0.005em', color: C.ink
+      }}>Optimise your End of year premium</div>
+      <div style={{
+        fontFamily: 'var(--font-display)',
+        fontWeight: 500, fontSize: 14, lineHeight: '20px',
+        letterSpacing: '0.003em', color: C.inkSoft
+      }}>Get up to €230 more value than cashing it out in December.</div>
+      <button onClick={onClick} style={{
+        appearance: 'none', border: '1px solid transparent', cursor: 'pointer',
+        width: '100%', boxSizing: 'border-box',
+        background: C.ink, color: '#fff',
+        fontFamily: 'var(--font-display)',
+        fontWeight: 700, fontSize: 16, lineHeight: '24px',
+        padding: '12px 20px',
+        borderRadius: 12,
+        display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+        marginTop: 8
+      }}>
+        Unlock budget
+      </button>
+    </div>);
+}
+
+// ─────────────────────────────────────────────────────────────
+// Review Card — larger card for items that need user review
+// (e.g. bike lease drafts, rejected pension savings).
+// ─────────────────────────────────────────────────────────────
+function ReviewCard({ icon, title, subtitle, badge, onClick }) {
+  return (
+    <Card onClick={onClick} style={{
+      padding: '16px', cursor: 'pointer',
+      display: 'flex', alignItems: 'flex-start', gap: 14
+    }}>
+      <IconTile name={icon} size={44} iconSize={22} />
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{
+          fontFamily: 'var(--font-display)',
+          fontWeight: 700, fontSize: 16, lineHeight: '22px',
+          letterSpacing: '-0.003em', color: C.ink
+        }}>{title}</div>
+        {subtitle && <div style={{
+          marginTop: 2,
+          fontFamily: 'var(--font-display)',
+          fontWeight: 500, fontSize: 13, lineHeight: '18px',
+          color: C.inkSoft
+        }}>{subtitle}</div>}
+        {badge && <div style={{ marginTop: 8 }}>{badge}</div>}
+      </div>
+      <LucideIcon name="ChevronRight" size={20} color={C.inkSoft} strokeWidth={2}
+        style={{ marginTop: 2, flex: 'none' }} />
+    </Card>);
+}
+
+// Red rejection badge for review cards.
+function RejectedBadge({ reason }) {
+  return (
+    <span style={{
+      display: 'inline-flex', alignItems: 'center', gap: 6,
+      background: 'rgb(254,236,236)', color: 'rgb(180,35,35)',
+      border: '1px solid rgb(252,209,209)',
+      borderRadius: 8,
+      padding: '3px 8px',
+      fontFamily: 'var(--font-display)',
+      fontWeight: 500, fontSize: 12, lineHeight: '16px',
+      letterSpacing: '0.005em',
+      maxWidth: '100%'
+    }}>
+      <LucideIcon name="X" size={11} color="rgb(180,35,35)" strokeWidth={2.5} />
+      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>Rejected: "{reason}"</span>
+    </span>);
+}
+
+// Section header with just a label (no count badge).
+function SectionLabel({ title }) {
+  return (
+    <div style={{
+      fontFamily: 'var(--font-display)',
+      fontWeight: 700, fontSize: 20, lineHeight: '28px',
+      letterSpacing: '-0.003em', color: C.ink
+    }}>{title}</div>);
+}
+
 // Dark "It's biking season" card — baked card art (user-supplied).
 function BikingSeasonHighlight({ onClick }) {
   return (
@@ -402,6 +501,12 @@ function HomeScreen() {
   const [dismissed, setDismissed] = React.useState({});
   const dismiss = (key) => setDismissed((d) => ({ ...d, [key]: true }));
 
+  // Bike-lease drafts (filter from DRAFTS for review section)
+  const bikeDrafts = drafts.filter(d => d.kind === 'bike' || d.id === 'bike-1');
+  const pensionRejected = drafts.find(d => d.id === 'pension-1') && !window.__pensionResubmitted;
+
+  const hasReviewItems = bikeDrafts.length > 0 || pensionRejected;
+
   return (
     <div style={{
       padding: '8px 16px 24px',
@@ -409,57 +514,68 @@ function HomeScreen() {
     }}>
       <HomeHeader />
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-        {window.SectionHeader && <window.SectionHeader title="To do's" count={drafts.length + (window.__eoyUnlocked ? 0 : 1)} />}
-        {!window.__eoyUnlocked && <TodoCard
-          item={{
-            id: 'unlock-budgets',
-            kind: 'unlock',
-            icon: 'Lock',
-            bg: '#B8DEFE',
-            provider: 'Sign before 31 May',
-            name: 'Unlock your End of year premium',
-            status: { kind: 'alert', text: 'Sign before 31 May' }
-          }}
-          onClick={() => nav && nav.push('unlock-eoy')} />}
-        
-        {drafts.filter((d) => !(d.id === 'pension-1' && window.__pensionResubmitted)).map((d) =>
-        <TodoCard key={d.id} item={d}
-        onClick={() => nav && window.navigateToItem(nav.push, d.id)} />
-        )}
+      {/* EoY Optimise Card — prominent gradient card */}
+      {!window.__eoyUnlocked &&
+        <EoyOptimiseCard onClick={() => nav && nav.push('unlock-eoy')} />
+      }
+
+      {/* To review section — bike lease drafts + rejected pension */}
+      {hasReviewItems && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <SectionLabel title="To review" />
+
+          {bikeDrafts.length > 0 && (
+            <ReviewCard
+              icon="Link"
+              title={`${bikeDrafts.length} bike lease in draft`}
+              subtitle="Review it to submit"
+              onClick={() => nav && window.navigateToItem(nav.push, bikeDrafts[0].id)} />
+          )}
+
+          {pensionRejected && (
+            <ReviewCard
+              icon="HeartPulse"
+              title="Pension savings have been rejected"
+              badge={<RejectedBadge reason="amount is higher than mortgage on document" />}
+              onClick={() => nav && window.navigateToItem(nav.push, 'pension-1')} />
+          )}
+        </div>
+      )}
+
+      {/* Discover section — recommendations, highlights */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <SectionLabel title="Discover" />
+
+        <AccessoriesHighlight onClick={() => nav && nav.push('benefit-flow-start', { name: 'Laptop accessories via Coolblue' })} />
+
+        {!dismissed.smartphone &&
+        <DismissibleHighlight
+          badge="Reopens on July 23"
+          title="Smartphone"
+          body="Get a new, tax-friendly smartphone when your renting period expires."
+          score={{ label: 'Excellent', level: 3, pct: 48 }}
+          onDismiss={() => dismiss('smartphone')}
+          onClick={() => nav && nav.push('benefit-flow-start', { name: 'Smartphone' })} />
+        }
+
+        <BikingSeasonHighlight onClick={() => nav && nav.push('benefit-flow-start', { name: 'Bike leasing' })} />
+
+        {!dismissed.pension &&
+        <PensionLearnMoreCard
+          onDismiss={() => dismiss('pension')}
+          onClick={() => nav && nav.push('pension-detail', { id: 'pension-1' })} />
+        }
+
+        {!dismissed.warrants &&
+        <DismissibleHighlight
+          badge="Choose before 8 December"
+          title="Warrants"
+          body="The most tax-friendly way to get cash from your Flex budgets."
+          score={{ label: 'Good', level: 1, pct: 48 }}
+          onDismiss={() => dismiss('warrants')}
+          onClick={() => nav && nav.push('benefit-flow-start', { name: 'Warrants' })} />
+        }
       </div>
-
-      <AccessoriesHighlight onClick={() => nav && nav.push('benefit-flow-start', { name: 'Laptop accessories via Coolblue' })} />
-
-      {!dismissed.smartphone &&
-      <DismissibleHighlight
-        badge="Reopens on July 23"
-        title="Smartphone"
-        body="Get a new, tax-friendly smartphone when your renting period expires."
-        score={{ label: 'Excellent', level: 3, pct: 48 }}
-        onDismiss={() => dismiss('smartphone')}
-        onClick={() => nav && nav.push('benefit-flow-start', { name: 'Smartphone' })} />
-
-      }
-
-      <BikingSeasonHighlight onClick={() => nav && nav.push('benefit-flow-start', { name: 'Bike leasing' })} />
-
-      {!dismissed.pension &&
-      <PensionLearnMoreCard
-        onDismiss={() => dismiss('pension')}
-        onClick={() => nav && nav.push('pension-detail', { id: 'pension-1' })} />
-      }
-
-      {!dismissed.warrants &&
-      <DismissibleHighlight
-        badge="Choose before 8 December"
-        title="Warrants"
-        body="The most tax-friendly way to get cash from your Flex budgets."
-        score={{ label: 'Good', level: 1, pct: 48 }}
-        onDismiss={() => dismiss('warrants')}
-        onClick={() => nav && nav.push('benefit-flow-start', { name: 'Warrants' })} />
-
-      }
     </div>);
 
 }

@@ -78,40 +78,22 @@ const ELIGIBLE = {
 function BudgetsScreen() {
   const { push } = useNav();
   const budgets = BUDGETS.map(b => b.id === 'end-of-year' && window.__eoyUnlocked ? { ...b, locked: false } : b);
-  const totalBudget = budgets.reduce((sum, b) => sum + b.amount, 0);
   const [advantageMode, setAdvantageMode] = React.useState('yearly');
   const advantageValue = advantageMode === 'yearly' ? '€824,23' : '€3.296,92';
   return (
     <div style={{ padding: '8px 16px 24px', display: 'flex', flexDirection: 'column', gap: 24 }}>
       <Heading28>Budgets</Heading28>
 
-      {/* Side-by-side: Available budget + Payflip advantage (with yearly/total toggle) */}
+      {/* Payflip advantage */}
       <div style={{
-        display: 'flex', alignItems: 'stretch',
-        borderRadius: 16, border: `1px solid ${PFC.borderHard}`,
+        borderRadius: 16, border: 'none',
         background: '#F7F7F8', overflow: 'hidden',
+        padding: '20px 16px',
+        display: 'flex', alignItems: 'center',
+        position: 'relative',
       }}>
-        {/* Left cell */}
-        <div style={{
-          flex: 1, padding: '20px 16px',
-          display: 'flex', flexDirection: 'column', gap: 4,
-        }}>
-          <Body14 color={PFC.inkSoft} weight={700}>Available budget</Body14>
-          <span style={{
-            fontFamily: 'var(--font-display)', fontWeight: 700,
-            fontSize: 28, lineHeight: '36px', letterSpacing: '-0.007em',
-            color: PFC.inkDeep,
-          }}>{fmtEUR(totalBudget)}</span>
-        </div>
-
-        {/* Divider */}
-        <div style={{ width: 1, background: PFC.borderHard, alignSelf: 'stretch' }} />
-
-        {/* Right cell */}
-        <div style={{
-          flex: 1, padding: '20px 16px',
-          display: 'flex', flexDirection: 'column', gap: 4,
-        }}>
+        {/* Left: text content */}
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 4 }}>
           <Body14 color={PFC.inkSoft} weight={700}>Payflip advantage</Body14>
           <span style={{
             fontFamily: 'var(--font-display)', fontWeight: 700,
@@ -138,9 +120,20 @@ function BudgetsScreen() {
             ))}
           </div>
         </div>
+        {/* Right: Payflip logo mark */}
+        <span aria-hidden="true" style={{
+          display: 'inline-block', width: 64, height: 30, flex: 'none',
+          backgroundColor: 'rgba(15,13,40,0.10)',
+          WebkitMaskImage: 'url(assets/payflip-logo.png)',
+          maskImage: 'url(assets/payflip-logo.png)',
+          WebkitMaskSize: 'contain', maskSize: 'contain',
+          WebkitMaskRepeat: 'no-repeat', maskRepeat: 'no-repeat',
+          WebkitMaskPosition: 'center', maskPosition: 'center',
+        }} />
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column' }}>
+        <SectionHeader title="Budget balance" style={{ borderBottom: 'none' }} />
         {budgets.map((b, i) => {
           const route = b.id === 'bonus' ? 'bonus' : b.id === 'end-of-year' ? 'end-of-year-premium' : b.id === 'meal' ? 'meal-vouchers' : 'mobility-detail';
           return (
@@ -162,22 +155,20 @@ function BudgetsScreen() {
                 <LucideIcon name={b.locked ? 'Lock' : b.icon} size={20} color={b.locked ? '#A04F21' : b.iconColor} strokeWidth={1.75} />
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <Body16 color={PFC.ink} weight={700}>{b.name}</Body16>
-                  {b.locked && (
-                    <span style={{
-                      fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11,
-                      background: '#FFE5C7', color: '#A04F21',
-                      borderRadius: 999, padding: '1px 8px', whiteSpace: 'nowrap',
-                      display: 'inline-flex', alignItems: 'center', gap: 4,
-                    }}>
-                      <LucideIcon name="Lock" size={10} color="#A04F21" strokeWidth={2.5} />
-                      Locked
-                    </span>
-                  )}
-                </div>
-                <Body14 color={PFC.inkSoft} weight={500}>{fmtEUR(b.amount)}</Body14>
+                <Body16 color={PFC.ink} weight={700}>{b.name}</Body16>
+                {b.locked && <div style={{
+                  fontFamily: 'var(--font-display)', fontWeight: 500,
+                  fontSize: 13, lineHeight: '18px',
+                  color: PFC.inkSoft, marginTop: 1,
+                }}>Unlock to start using</div>}
               </div>
+              <span style={{
+                fontFamily: 'var(--font-display)', fontWeight: 700,
+                fontSize: 17, lineHeight: '24px', letterSpacing: '-0.003em',
+                color: b.locked ? PFC.inkSoft : PFC.ink,
+              }}>
+                {fmtEUR(b.amount)}
+              </span>
               <LucideIcon name="ChevronRight" size={20} color={PFC.inkSoft} strokeWidth={2} />
             </button>
           );
