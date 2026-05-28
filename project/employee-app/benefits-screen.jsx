@@ -819,13 +819,6 @@ function PensionDetailScreen({ id }) {
   const [submitted, setSubmitted] = React.useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = React.useState(false);
 
-  const PENSION_TIMELINE = [
-    { title: 'Choice submitted',      meta: 'After this step' },
-    { title: 'Admin reviews',         meta: 'Approves or rejects' },
-    { title: 'Validated by insurer',  meta: 'AG Insurance confirms attest' },
-    { title: 'Reimbursed on payslip', meta: 'Net amount on your next payslip' },
-  ];
-
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', position: 'relative', overflow: showDeleteConfirm ? 'hidden' : undefined }}>
       <NavBar trailing={
@@ -915,9 +908,11 @@ function PensionDetailScreen({ id }) {
         <div style={{ height: 1, background: PFC.border }} />
 
         {/* What happens after you confirm */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           <Heading20>What happens after you confirm?</Heading20>
-          <StatusTimeline steps={PENSION_TIMELINE} currentIndex={-1} />
+          <Body14 color={PFC.inkSoft} weight={500} style={{ lineHeight: '22px' }}>
+            After confirmation, your admin will review your request. Once approved, AG Insurance validates your fiscal attest. The reimbursement is then processed on your next payslip.
+          </Body14>
         </div>
 
       </div>
