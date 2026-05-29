@@ -12,7 +12,7 @@
 // Mock data
 // ─────────────────────────────────────────────────────────────
 const BUDGETS = [
-  { id: 'end-of-year',icon: 'Gift',            name: 'End of year premium', amount: 824.23, locked: true,
+  { id: 'end-of-year',icon: 'Gift',            name: 'End of year premium', amount: 3500, locked: true,
     tileFrom: '#DAEEFB', tileTo: '#B8DEFE', iconColor: '#1A5DC8' },
   { id: 'mobility',   icon: 'Bike',            name: 'Mobility budget',     amount: 1249.34,
     tileFrom: '#DAEEFB', tileTo: '#B8DEFE', iconColor: '#1A5DC8' },
@@ -1415,22 +1415,19 @@ function SignAddendumScreen() {
         </div>
 
         {/* Contract summary card */}
-        <div style={{
-          background: '#F7F7F8', borderRadius: 16, padding: '20px 16px',
-          display: 'flex', flexDirection: 'column', gap: 16,
-        }}>
-          <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
-            <span style={{ fontSize: 6, lineHeight: '24px', color: PFC.ink }}>●</span>
-            <Body16 color={PFC.ink} weight={400} style={{ lineHeight: '24px' }}>
-              This addendum modifies your existing employment contract dated 1 January 2023.
-            </Body16>
-          </div>
-          <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
-            <span style={{ fontSize: 6, lineHeight: '24px', color: PFC.ink }}>●</span>
-            <Body16 color={PFC.ink} weight={400} style={{ lineHeight: '24px' }}>
-              <strong style={{ fontWeight: 700 }}>Article 1.</strong> The End of year premium of €1249.34 is converted into a flexible benefits budget effective immediately.
-            </Body16>
-          </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <Body16 color={PFC.ink} weight={400} style={{ lineHeight: '24px' }}>
+            After signing this attachment, you can convert your end of year premium in other benefits.
+          </Body16>
+          <Body16 color={PFC.ink} weight={400} style={{ lineHeight: '24px' }}>
+            Even after signing, you can still keep your end of year premium in cash, and nothing changes to your rights.
+          </Body16>
+          <button style={{
+            background: 'transparent', border: 'none', padding: 0, cursor: 'pointer',
+            fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16,
+            lineHeight: '24px', color: PFC.ink, textDecoration: 'underline',
+            textAlign: 'left',
+          }}>Download attachment</button>
         </div>
 
         {/* Signature box */}

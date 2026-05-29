@@ -83,7 +83,7 @@ function NavBar({ title, trailing, onBack }) {
     <div style={{
       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       paddingLeft: 16, paddingRight: 16,
-      paddingTop: 4, paddingBottom: 4,
+      paddingTop: 4, paddingBottom: title ? 4 : 24,
       gap: 8,
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, minWidth: 0 }}>
@@ -93,10 +93,9 @@ function NavBar({ title, trailing, onBack }) {
             aria-label="Back"
             style={{
               width: 36, height: 36, borderRadius: 8,
-              background: 'transparent', border: 'none',
+              background: '#F7F7F8', border: 'none',
               cursor: 'pointer', padding: 0,
               display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-              marginLeft: -8,
               color: 'rgb(15,13,40)',
             }}>
             <LucideIcon name="ChevronLeft" size={28} color="rgb(15,13,40)" strokeWidth={2} />

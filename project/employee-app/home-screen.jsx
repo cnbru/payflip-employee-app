@@ -423,46 +423,42 @@ function EoyOptimiseCard({ onClick }) {
 function ReviewCard({ icon, title, subtitle, badge, onClick }) {
   return (
     <Card onClick={onClick} style={{
-      padding: '16px', cursor: 'pointer',
-      display: 'flex', alignItems: 'flex-start', gap: 14
+      padding: 0, cursor: 'pointer', overflow: 'hidden',
+      display: 'flex', flexDirection: 'column',
     }}>
-      <IconTile name={icon} size={44} iconSize={22} />
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{
-          fontFamily: 'var(--font-display)',
-          fontWeight: 700, fontSize: 16, lineHeight: '22px',
-          letterSpacing: '-0.003em', color: C.ink
-        }}>{title}</div>
-        {subtitle && <div style={{
-          marginTop: 2,
-          fontFamily: 'var(--font-display)',
-          fontWeight: 500, fontSize: 13, lineHeight: '18px',
-          color: C.inkSoft
-        }}>{subtitle}</div>}
-        {badge && <div style={{ marginTop: 8 }}>{badge}</div>}
+      <div style={{ padding: '16px', display: 'flex', alignItems: 'flex-start', gap: 14 }}>
+        <IconTile name={icon} size={44} iconSize={22} />
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{
+            fontFamily: 'var(--font-display)',
+            fontWeight: 700, fontSize: 16, lineHeight: '22px',
+            letterSpacing: '-0.003em', color: C.ink
+          }}>{title}</div>
+          {subtitle && <div style={{
+            marginTop: 2,
+            fontFamily: 'var(--font-display)',
+            fontWeight: 500, fontSize: 13, lineHeight: '18px',
+            color: C.inkSoft
+          }}>{subtitle}</div>}
+        </div>
+        <LucideIcon name="ChevronRight" size={20} color={C.inkSoft} strokeWidth={2}
+          style={{ marginTop: 2, flex: 'none' }} />
       </div>
-      <LucideIcon name="ChevronRight" size={20} color={C.inkSoft} strokeWidth={2}
-        style={{ marginTop: 2, flex: 'none' }} />
+      {badge && (
+        <div style={{
+          borderTop: '1px solid rgba(143,20,20,0.12)',
+          padding: '10px 16px',
+          background: 'rgba(255,235,235,0.6)',
+          fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 13, lineHeight: '18px',
+          color: 'rgb(143,20,20)',
+        }}>{badge}</div>
+      )}
     </Card>);
 }
 
 // Red rejection badge for review cards.
 function RejectedBadge({ reason }) {
-  return (
-    <span style={{
-      display: 'inline-flex', alignItems: 'center', gap: 6,
-      background: 'rgb(254,236,236)', color: 'rgb(180,35,35)',
-      border: '1px solid rgb(252,209,209)',
-      borderRadius: 8,
-      padding: '3px 8px',
-      fontFamily: 'var(--font-display)',
-      fontWeight: 500, fontSize: 12, lineHeight: '16px',
-      letterSpacing: '0.005em',
-      maxWidth: '100%'
-    }}>
-      <LucideIcon name="X" size={11} color="rgb(180,35,35)" strokeWidth={2.5} />
-      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>Rejected: "{reason}"</span>
-    </span>);
+  return reason;
 }
 
 // Section header with just a label (no count badge).
@@ -505,7 +501,7 @@ function HomeScreen() {
   const bikeDrafts = drafts.filter(d => d.kind === 'bike' || d.id === 'bike-1');
   const pensionRejected = drafts.find(d => d.id === 'pension-1') && !window.__pensionResubmitted;
 
-  const hasReviewItems = bikeDrafts.length > 0 || pensionRejected;
+  const hasReviewItems = !window.__eoyUnlocked || bikeDrafts.length > 0 || pensionRejected;
 
   return (
     <div style={{
@@ -514,15 +510,18 @@ function HomeScreen() {
     }}>
       <HomeHeader />
 
-      {/* EoY Optimise Card — prominent gradient card */}
-      {!window.__eoyUnlocked &&
-        <EoyOptimiseCard onClick={() => nav && nav.push('sign-addendum')} />
-      }
-
-      {/* To review section — bike lease drafts + rejected pension */}
+      {/* To review section — sign addendum + bike lease drafts + rejected pension */}
       {hasReviewItems && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           <SectionLabel title="To review" />
+
+          {!window.__eoyUnlocked && (
+            <ReviewCard
+              icon="PenLine"
+              title="Sign addendum"
+              subtitle="To unlock your end of year premium"
+              onClick={() => nav && nav.push('sign-addendum')} />
+          )}
 
           {bikeDrafts.length > 0 && (
             <ReviewCard
@@ -536,7 +535,7 @@ function HomeScreen() {
             <ReviewCard
               icon="HeartPulse"
               title="Pension savings have been rejected"
-              badge={<RejectedBadge reason="amount is higher than mortgage on document" />}
+              badge={<RejectedBadge reason="The actual amount mentioned on your attest is €900. Please edit your choice." />}
               onClick={() => nav && window.navigateToItem(nav.push, 'pension-1')} />
           )}
         </div>

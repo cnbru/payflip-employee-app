@@ -162,14 +162,15 @@ function navigateToItem(push, id) {
 // Also used for drafts — pass `showStatus` to display rejection/draft badges.
 function ActivePillRow({ item, onClick }) {
   const iconName = KIND_ICON[item.kind] || 'House';
+  const hasStatus = item.status && item.status.text;
   return (
     <button onClick={onClick} style={{
       width: '100%', appearance: 'none', textAlign: 'left', cursor: 'pointer',
       background: '#F4F4F6', border: 'none',
-      borderRadius: 16, padding: '16px 20px',
-      display: 'flex', flexDirection: 'column', gap: 10,
+      borderRadius: 16, padding: 0, overflow: 'hidden',
+      display: 'flex', flexDirection: 'column',
     }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 16, width: '100%' }}>
+      <div style={{ padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 16, width: '100%' }}>
         <LucideIcon name={iconName} size={28} color={PFC.purple} strokeWidth={1.75} />
         <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
           <Body14 color={PFC.inkSoft} weight={500}>{item.provider}</Body14>
@@ -181,10 +182,18 @@ function ActivePillRow({ item, onClick }) {
           <Body14 color={PFC.inkSoft} weight={500}>{item.meta}</Body14>
         </div>
       </div>
-      {item.status && item.status.text && (
-        <StatusBadge kind={item.status.kind} icon={item.status.kind === 'alert' ? 'TriangleAlert' : 'Hourglass'}>
-          {item.status.text}
-        </StatusBadge>
+      {hasStatus && (
+        <div style={{
+          borderTop: `1px solid ${item.status.kind === 'alert' ? 'rgba(143,20,20,0.12)' : PFC.border}`,
+          padding: '10px 20px',
+          display: 'flex', alignItems: 'center',
+          background: item.status.kind === 'alert' ? 'rgba(255,235,235,0.6)' : 'transparent',
+        }}>
+          <span style={{
+            fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 13, lineHeight: '18px',
+            color: item.status.kind === 'alert' ? 'rgb(143,20,20)' : PFC.inkSoft,
+          }}>{item.status.text}</span>
+        </div>
       )}
     </button>
   );
@@ -438,7 +447,7 @@ function BenefitsInDraftScreen() {
       <div style={{ flex: 1, padding: '0 16px 24px', display: 'flex', flexDirection: 'column', gap: 16 }}>
         <Heading28>Benefits in draft</Heading28>
         {visibleDrafts.length > 0 ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             {visibleDrafts.map(b => (
               <ActivePillRow key={b.id} item={b} onClick={() => navigateToItem(push, b.id)} />
             ))}
@@ -483,7 +492,7 @@ function MyActiveBenefitsScreen() {
           <FilterPill label="Bonus" active={filter === 'bonus'} onClick={() => setFilter(f => f === 'bonus' ? null : 'bonus')} />
           <FilterPill label="End of year premium" active={filter === 'eoy'} onClick={() => setFilter(f => f === 'eoy' ? null : 'eoy')} />
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           {ACTIVE_BENEFITS.map(b => (
             <ActivePillRow key={b.id} item={b} onClick={() => navigateToItem(push, b.id)} />
           ))}
@@ -865,7 +874,7 @@ function PensionDetailScreen({ id }) {
             <Body14 color={PFC.inkSoft} weight={500}>Budget</Body14>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
               <Body16 color={PFC.ink} weight={700}>End of year premium</Body16>
-              <Body16 color={PFC.ink} weight={700}>€1.050,00/year</Body16>
+              <Body16 color={PFC.ink} weight={700}>€1.418/year</Body16>
             </div>
             <Body14 color={PFC.inkSoft} weight={500}>Based on your fiscal attest 281.60.</Body14>
           </div>
@@ -876,7 +885,7 @@ function PensionDetailScreen({ id }) {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
               <Body16 color={PFC.ink} weight={700}>Total budget impact</Body16>
-              <Body16 color={PFC.ink} weight={700}>€1.050,00</Body16>
+              <Body16 color={PFC.ink} weight={700}>€1.418</Body16>
             </div>
             <Body14 color={PFC.inkSoft} weight={500}>Once a year</Body14>
           </div>
@@ -1052,7 +1061,7 @@ function EditActiveBenefitScreen({ id }) {
 
   // Wizard state
   const [step, setStep] = React.useState(0); // 0 = verify, 1 = budget, 2 = review, 3 = success
-  const [amount, setAmount] = React.useState('1050');
+  const [amount, setAmount] = React.useState('900');
   const [budget, setBudget] = React.useState('bonus');
   const [agreed, setAgreed] = React.useState(false);
   const [submitted, setSubmitted] = React.useState(false);
@@ -1160,14 +1169,14 @@ function EditActiveBenefitScreen({ id }) {
   ];
   const cur = wizSteps[step];
   const progressPct = (cur.n / cur.total) * 100;
-  const budgetImpact = +amount > 0 && !isNaN(+amount) ? Math.round(+amount * 1.35) : 0;
+  const budgetImpact = isPension ? 1418 : (+amount > 0 && !isNaN(+amount) ? Math.round(+amount * 1.35) : 0);
   const advantage = +amount > 0 && !isNaN(+amount) ? Math.round(+amount * 0.128) : 0;
   const employerCost = Math.round(+amount * 0.0886);
   const totalFund = +amount + employerCost;
   const netPayslip = Math.round(+amount * 0.67);
 
   const BUDGET_OPTIONS = [
-    { id: 'eoy', name: 'End of year premium', available: 3222.34, recommended: true },
+    { id: 'eoy', name: 'End of year premium', available: 3500, recommended: true },
     { id: 'bonus', name: 'Bonus', available: 322.34 },
   ];
 
@@ -1316,7 +1325,7 @@ function EditActiveBenefitScreen({ id }) {
                   <Body14 color={PFC.inkSoft} weight={500}>Budget</Body14>
                   <Body14 color={PFC.inkSoft} weight={500}>Funded from</Body14>
                   <Body16 color={PFC.ink} weight={700}>{budget === 'eoy' ? 'End of year premium' : 'Bonus'}</Body16>
-                  <Body14 color={PFC.inkSoft} weight={500}>€{budgetImpact.toLocaleString('nl-BE')} used · €{Math.max(0, (budget === 'eoy' ? 3222 - budgetImpact : 322 - budgetImpact)).toLocaleString('nl-BE')} remaining</Body14>
+                  <Body14 color={PFC.inkSoft} weight={500}>€{budgetImpact.toLocaleString('nl-BE')} used · €{Math.max(0, (budget === 'eoy' ? 3500 - budgetImpact : 322 - budgetImpact)).toLocaleString('nl-BE')} remaining</Body14>
                 </div>
                 <button onClick={() => setStep(1)} style={{
                   appearance: 'none', background: 'transparent', border: 'none', cursor: 'pointer',
