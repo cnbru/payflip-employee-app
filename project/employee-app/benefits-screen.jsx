@@ -874,7 +874,7 @@ function PensionDetailScreen({ id }) {
             <Body14 color={PFC.inkSoft} weight={500}>Budget</Body14>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
               <Body16 color={PFC.ink} weight={700}>End of year premium</Body16>
-              <Body16 color={PFC.ink} weight={700}>€1.418/year</Body16>
+              <Body16 color={PFC.ink} weight={700}>€3.500/year</Body16>
             </div>
             <Body14 color={PFC.inkSoft} weight={500}>Based on your fiscal attest 281.60.</Body14>
           </div>
@@ -885,7 +885,7 @@ function PensionDetailScreen({ id }) {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
               <Body16 color={PFC.ink} weight={700}>Total budget impact</Body16>
-              <Body16 color={PFC.ink} weight={700}>€1.418</Body16>
+              <Body16 color={PFC.ink} weight={700}>€980</Body16>
             </div>
             <Body14 color={PFC.inkSoft} weight={500}>Once a year</Body14>
           </div>
@@ -1169,7 +1169,7 @@ function EditActiveBenefitScreen({ id }) {
   ];
   const cur = wizSteps[step];
   const progressPct = (cur.n / cur.total) * 100;
-  const budgetImpact = isPension ? 1418 : (+amount > 0 && !isNaN(+amount) ? Math.round(+amount * 1.35) : 0);
+  const budgetImpact = isPension ? 980 : (+amount > 0 && !isNaN(+amount) ? Math.round(+amount * 1.35) : 0);
   const advantage = +amount > 0 && !isNaN(+amount) ? Math.round(+amount * 0.128) : 0;
   const employerCost = Math.round(+amount * 0.0886);
   const totalFund = +amount + employerCost;
