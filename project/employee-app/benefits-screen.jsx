@@ -75,7 +75,7 @@ const CATALOG = [
     description: 'Individual pension saving is a tax-friendly way of setting aside a penny for your old day. Get your yearly savings reimbursed via Payflip!',
     score: { label: 'Good',      level: 1, pct: 54 },
     budgets: ['end-of-year'],
-    route: ['benefit-flow-start', { name: 'Pension savings' }],
+    route: ['pension-savings-detail'],
   },
   {
     id: 'cat-bike', kind: 'bike', icon: 'Bike',
@@ -1054,15 +1054,28 @@ function CoolblueOrderScreen({ id }) {
 // ─────────────────────────────────────────────────────────────
 // Edit active benefit — wizard for rejected pension, simple form for others
 // ─────────────────────────────────────────────────────────────
-function EditActiveBenefitScreen({ id }) {
+function EditActiveBenefitScreen({ id, isNew = false }) {
   const { pop, switchTab } = useNav();
-  const item = ACTIVE_BENEFITS.find(b => b.id === id) || DRAFTS.find(b => b.id === id);
+  const item = ACTIVE_BENEFITS.find(b => b.id === id) || DRAFTS.find(b => b.id === id) || CATALOG.find(b => b.id === id);
   const isPension = item && item.kind === 'pension';
 
-  // Wizard state
-  const [step, setStep] = React.useState(0); // 0 = verify, 1 = budget, 2 = review, 3 = success
-  const [amount, setAmount] = React.useState('900');
-  const [budget, setBudget] = React.useState('bonus');
+  // Step indices differ between flows:
+  // isNew (from discover): 0=upload, 1=verify, 2=budget, 3=review, 4=success
+  // !isNew (rejection edit): 0=verify, 1=budget, 2=review, 3=success
+  const S = isNew
+    ? { upload: 0, verify: 1, budget: 2, review: 3, success: 4 }
+    : { upload: -1, verify: 0, budget: 1, review: 2, success: 3 };
+
+  const [step, setStep] = React.useState(0);
+  const [uploading, setUploading] = React.useState(false);
+  const [uploaded, setUploaded] = React.useState(false);
+
+  const handleUpload = () => {
+    setUploading(true);
+    setTimeout(() => { setUploading(false); setUploaded(true); }, 1800);
+  };
+  const [amount, setAmount] = React.useState(isNew ? '1050' : '900');
+  const [budget, setBudget] = React.useState('eoy');
   const [agreed, setAgreed] = React.useState(false);
   const [submitted, setSubmitted] = React.useState(false);
   const [submitting, setSubmitting] = React.useState(false);
@@ -1101,7 +1114,7 @@ function EditActiveBenefitScreen({ id }) {
   }
 
   // ── Pension wizard ──
-  if (step === 3) {
+  if (step === S.success) {
     // Success screen
     return (
       <div style={{
@@ -1136,13 +1149,13 @@ function EditActiveBenefitScreen({ id }) {
             fontSize: 22, lineHeight: '30px', letterSpacing: '-0.005em',
             color: PFC.inkDeep, textAlign: 'center',
             animation: 'fadeSlideIn 0.4s ease-out 0.25s both',
-          }}>Choice resubmitted!</span>
+          }}>{isNew ? 'Choice submitted!' : 'Choice resubmitted!'}</span>
           <span style={{
             fontFamily: 'var(--font-display)', fontWeight: 500,
             fontSize: 15, lineHeight: '22px', color: PFC.inkSoft,
             textAlign: 'center', maxWidth: 280,
             animation: 'fadeSlideIn 0.4s ease-out 0.35s both',
-          }}>Your pension savings choice is being reviewed again. We'll notify you once it's approved.</span>
+          }}>{isNew ? 'Your pension savings choice is being reviewed. We\'ll notify you once it\'s approved.' : 'Your pension savings choice is being reviewed again. We\'ll notify you once it\'s approved.'}</span>
           <div style={{ width: '100%', marginTop: 16, animation: 'fadeSlideIn 0.4s ease-out 0.45s both' }}>
             <Button variant="primary" size="large" fullWidth onClick={() => switchTab('home')}>Back to home</Button>
           </div>
@@ -1162,14 +1175,21 @@ function EditActiveBenefitScreen({ id }) {
     );
   }
 
-  const wizSteps = [
-    { label: 'Verify', n: 2, total: 4 },
-    { label: 'Budget', n: 3, total: 4 },
-    { label: 'Review', n: 4, total: 4 },
-  ];
+  const wizSteps = isNew
+    ? [
+        { label: 'Upload', n: 1, total: 4 },
+        { label: 'Verify', n: 2, total: 4 },
+        { label: 'Budget', n: 3, total: 4 },
+        { label: 'Review', n: 4, total: 4 },
+      ]
+    : [
+        { label: 'Verify', n: 2, total: 4 },
+        { label: 'Budget', n: 3, total: 4 },
+        { label: 'Review', n: 4, total: 4 },
+      ];
   const cur = wizSteps[step];
   const progressPct = (cur.n / cur.total) * 100;
-  const budgetImpact = isPension ? 980 : (+amount > 0 && !isNaN(+amount) ? Math.round(+amount * 1.35) : 0);
+  const budgetImpact = +amount > 0 && !isNaN(+amount) ? Math.round(+amount * 1.0886) : 0;
   const advantage = +amount > 0 && !isNaN(+amount) ? Math.round(+amount * 0.128) : 0;
   const employerCost = Math.round(+amount * 0.0886);
   const totalFund = +amount + employerCost;
@@ -1200,8 +1220,88 @@ function EditActiveBenefitScreen({ id }) {
       {/* Content */}
       <div style={{ flex: 1, overflowY: 'auto', padding: '0 16px' }}>
 
-        {/* Step 2: Verify amount */}
-        {step === 0 && (
+        {/* Step: Upload fiscal attest (isNew only) */}
+        {step === S.upload && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <Heading28>Upload 281.60 fiscal attest</Heading28>
+            <Body16 color={PFC.inkSoft} weight={400} style={{ lineHeight: '24px' }}>
+              Your insurer issues attest 281.61 each APRIL. We'll read your contribution amount from it automatically.
+            </Body16>
+            <button style={{
+              background: 'transparent', border: 'none', padding: 0, cursor: 'pointer',
+              fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14,
+              color: PFC.ink, textDecoration: 'underline', textAlign: 'left',
+            }}>How do I find my fiscal attest?</button>
+            {!uploaded ? (
+              uploading ? (
+                <div style={{
+                  background: '#F7F7F8', border: `1.5px dashed ${PFC.border}`,
+                  borderRadius: 16, padding: '28px 20px',
+                  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14,
+                }}>
+                  <LucideIcon name="UploadCloud" size={28} color={PFC.purple} strokeWidth={1.75} />
+                  <Body14 color={PFC.inkSoft} weight={500}>Uploading fiscal-attest-281.60.pdf…</Body14>
+                  <div style={{ width: '100%', height: 4, background: PFC.border, borderRadius: 2, overflow: 'hidden' }}>
+                    <div style={{
+                      height: '100%', background: PFC.purple, borderRadius: 2,
+                      animation: 'uploadProgress 1.6s ease-out forwards',
+                    }} />
+                  </div>
+                </div>
+              ) : (
+              <button
+                onClick={handleUpload}
+                style={{
+                  width: '100%', appearance: 'none', cursor: 'pointer',
+                  background: '#F7F7F8',
+                  border: `1.5px dashed ${PFC.border}`,
+                  borderRadius: 16, padding: '32px 16px',
+                  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12,
+                }}>
+                <LucideIcon name="UploadCloud" size={28} color={PFC.inkSoft} strokeWidth={1.75} />
+                <Body14 color={PFC.ink} weight={400}>
+                  Drag and drop file here or <strong style={{ fontWeight: 700 }}>choose file</strong> to upload
+                </Body14>
+              </button>)
+            ) : (
+              <div style={{
+                border: `1px solid ${PFC.border}`, borderRadius: 16, overflow: 'hidden',
+                animation: 'uploadSlideIn 0.3s ease-out both',
+              }}>
+                <div style={{ padding: '16px', display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <div style={{ animation: 'popIn 0.4s ease-out 0.1s both' }}>
+                    <LucideIcon name="FileCheck" size={24} color="rgb(34,139,34)" strokeWidth={1.75} />
+                  </div>
+                  <Body14 color={PFC.ink} weight={600} style={{ flex: 1 }}>fiscal-attest-281.60.pdf</Body14>
+                </div>
+                <div style={{ borderTop: `1px solid ${PFC.border}` }}>
+                  <button onClick={() => { setUploaded(false); setUploading(false); }} style={{
+                    width: '100%', appearance: 'none', background: 'transparent', border: 'none',
+                    padding: '12px', cursor: 'pointer',
+                    fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14,
+                    color: PFC.ink, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                  }}>
+                    <LucideIcon name="RefreshCw" size={14} color={PFC.ink} strokeWidth={2} />
+                    Change file
+                  </button>
+                </div>
+              </div>
+            )}
+            <style>{`
+              @keyframes uploadSlideIn {
+                from { opacity: 0; transform: translateY(8px) scale(0.98); }
+                to   { opacity: 1; transform: translateY(0) scale(1); }
+              }
+              @keyframes uploadProgress {
+                from { width: 0%; }
+                to   { width: 100%; }
+              }
+            `}</style>
+          </div>
+        )}
+
+        {/* Step: Verify amount */}
+        {step === S.verify && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             <Heading28>Verify amount</Heading28>
             <Body16 color={PFC.inkSoft} weight={500}>
@@ -1224,13 +1324,13 @@ function EditActiveBenefitScreen({ id }) {
           </div>
         )}
 
-        {/* Step 3: Choose budget */}
-        {step === 1 && (
+        {/* Step: Choose budget */}
+        {step === S.budget && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             <Heading28>Choose budget</Heading28>
             <Body16 color={PFC.inkSoft} weight={500}>How would you like to fund this benefit?</Body16>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+<div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
               <Body16 color={PFC.ink} weight={700}>Fund €{totalFund.toLocaleString('nl-BE')} from your budgets</Body16>
               <Body14 color={PFC.inkSoft} weight={500}>€{(+amount).toLocaleString('nl-BE')} contribution + €{employerCost} employer cost (8.86%)</Body14>
             </div>
@@ -1273,8 +1373,8 @@ function EditActiveBenefitScreen({ id }) {
           </div>
         )}
 
-        {/* Step 4: Review */}
-        {step === 2 && (
+        {/* Step: Review */}
+        {step === S.review && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 24, paddingBottom: 24 }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               <Heading28>Review</Heading28>
@@ -1283,8 +1383,9 @@ function EditActiveBenefitScreen({ id }) {
 
             {/* Editable cards */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {/* Fiscal attest */}
-              <div style={{
+              {/* Fiscal attest — only for rejection edit flow */}
+              {/* Fiscal attest — only for flows with upload step */}
+              {isNew && <div style={{
                 border: `1px solid ${PFC.border}`, borderRadius: 12, padding: '16px',
                 display: 'flex', justifyContent: 'space-between', alignItems: 'center',
               }}>
@@ -1295,11 +1396,11 @@ function EditActiveBenefitScreen({ id }) {
                     <Body16 color={PFC.ink} weight={500}>fiscal-attest.pdf</Body16>
                   </div>
                 </div>
-                <button onClick={() => setStep(0)} style={{
+                <button onClick={() => setStep(S.upload)} style={{
                   appearance: 'none', background: 'transparent', border: 'none', cursor: 'pointer',
                   fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: PFC.ink,
                 }}>Edit</button>
-              </div>
+              </div>}
 
               {/* Amount */}
               <div style={{
@@ -1310,7 +1411,7 @@ function EditActiveBenefitScreen({ id }) {
                   <Body14 color={PFC.inkSoft} weight={500}>Amount</Body14>
                   <div style={{ marginTop: 4 }}><Body16 color={PFC.ink} weight={700}>€{(+amount).toLocaleString('nl-BE')}</Body16></div>
                 </div>
-                <button onClick={() => setStep(0)} style={{
+                <button onClick={() => setStep(S.verify)} style={{
                   appearance: 'none', background: 'transparent', border: 'none', cursor: 'pointer',
                   fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: PFC.ink,
                 }}>Edit</button>
@@ -1321,13 +1422,12 @@ function EditActiveBenefitScreen({ id }) {
                 border: `1px solid ${PFC.border}`, borderRadius: 12, padding: '16px',
                 display: 'flex', justifyContent: 'space-between', alignItems: 'center',
               }}>
-                <div>
-                  <Body14 color={PFC.inkSoft} weight={500}>Budget</Body14>
-                  <Body14 color={PFC.inkSoft} weight={500}>Funded from</Body14>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  <Body14 color={PFC.inkSoft} weight={500}>Budget · Funded from</Body14>
                   <Body16 color={PFC.ink} weight={700}>{budget === 'eoy' ? 'End of year premium' : 'Bonus'}</Body16>
                   <Body14 color={PFC.inkSoft} weight={500}>€{budgetImpact.toLocaleString('nl-BE')} used · €{Math.max(0, (budget === 'eoy' ? 3500 - budgetImpact : 322 - budgetImpact)).toLocaleString('nl-BE')} remaining</Body14>
                 </div>
-                <button onClick={() => setStep(1)} style={{
+                <button onClick={() => setStep(S.budget)} style={{
                   appearance: 'none', background: 'transparent', border: 'none', cursor: 'pointer',
                   fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: PFC.ink,
                 }}>Edit</button>
@@ -1399,7 +1499,7 @@ function EditActiveBenefitScreen({ id }) {
                   setSubmitting(false);
                   setSubmitted(true);
                   window.__pensionResubmitted = true;
-                  setStep(3);
+                  setStep(S.success);
                 }, 1500);
               }}>
               {submitting ? (
@@ -1417,24 +1517,30 @@ function EditActiveBenefitScreen({ id }) {
         )}
       </div>
 
-      {/* Sticky bottom — only for steps 0 and 1 */}
-      {step < 2 && (
+      {/* Sticky bottom — upload, verify, budget steps */}
+      {step < S.review && (
         <div style={{
           flexShrink: 0, background: '#fff',
           borderTop: `1px solid ${PFC.border}`,
           padding: '12px 16px 24px',
-          display: 'flex', alignItems: 'flex-end', gap: 12,
+          display: 'flex', flexDirection: 'column', gap: 8,
         }}>
-          <div style={{ flex: 1 }}>
-            <Body14 color={PFC.inkSoft} weight={500}>Budget impact</Body14>
-            <div style={{
-              fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 20, lineHeight: '28px',
-              color: PFC.inkDeep,
-            }}>€{budgetImpact.toLocaleString('nl-BE')}</div>
-            <Body14 color={PFC.purple} weight={600}>+ €{advantage} Payflip advantage</Body14>
-          </div>
-          <Button variant="primary" size="large"
-            disabled={step === 0 ? (!amount || +amount <= 0) : !budget}
+          {step !== S.upload && (
+            <div>
+              <Body14 color={PFC.inkSoft} weight={500}>Budget impact</Body14>
+              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 20, lineHeight: '28px', color: PFC.inkDeep }}>€{budgetImpact.toLocaleString('nl-BE')}</div>
+              <Body14 color={PFC.purple} weight={600}>+ €{advantage} Payflip advantage</Body14>
+            </div>
+          )}
+          {step === S.upload && !uploaded && (
+            <Body14 color={PFC.inkSoft} weight={500}>Upload file to get started</Body14>
+          )}
+          <Button variant="primary" size="large" fullWidth
+            disabled={
+              step === S.upload ? (!uploaded || uploading) :
+              step === S.verify ? (!amount || +amount <= 0) :
+              !budget
+            }
             onClick={() => setStep(step + 1)}>
             Continue
           </Button>
@@ -1520,6 +1626,199 @@ function MultimediaCoolblueScreen() {
   );
 }
 
+// ─────────────────────────────────────────────────────────────
+// Pension savings intro/detail screen (from discover catalog)
+// ─────────────────────────────────────────────────────────────
+function PensionSavingsDetailScreen() {
+  const { push, pop } = useNav();
+  const [openFaq, setOpenFaq] = React.useState(0);
+
+  const faqs = [
+    {
+      q: "I don't have pension savings yet. How do I start?",
+      a: "Pension savings is a personal investment you set up directly with your bank or insurer (e.g. KBC, BNP Paribas Fortis, AG Insurance). You contribute up to €1,350/year. Once you've done that for at least one tax year, you'll receive a fiscal attest 281.60 and can claim this benefit here.",
+    },
+    { q: 'What about the 30% tax reduction from the government?', a: null },
+    { q: 'Can I claim this more than once a year?', a: null },
+  ];
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
+      <NavBar onBack={pop} />
+
+      {/* Scrollable content */}
+      <div style={{ flex: 1, overflowY: 'auto', padding: '0 16px 24px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+
+          {/* Header */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <IconTile name="House" size={56} iconSize={28} />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <Heading28>Pension savings</Heading28>
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                <Body14 color={PFC.inkSoft} weight={600}>Reimbursement</Body14>
+                <Body14 color={PFC.inkSoft} weight={500}>·</Body14>
+                <Body14 color={PFC.inkSoft} weight={600}>Once a year</Body14>
+              </div>
+            </div>
+            <Body16 color={PFC.ink} weight={400} style={{ lineHeight: '24px' }}>
+              If you contributed to a pension savings plan last year through your bank or insurer, you can reclaim part of it here more efficiently than any cash payout.
+            </Body16>
+          </div>
+
+          {/* Budget pills */}
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            {[
+              { label: 'End of year premium', value: '€3.500' },
+              { label: 'Bonus', value: '€322,34' },
+            ].map(pill => (
+              <span key={pill.label} style={{
+                border: `1px solid ${PFC.border}`, borderRadius: 999,
+                padding: '5px 12px', display: 'inline-flex', gap: 5, alignItems: 'center',
+                fontFamily: 'var(--font-display)', fontSize: 12, lineHeight: '16px',
+              }}>
+                <span style={{ fontWeight: 600, color: PFC.ink }}>{pill.label}</span>
+                <span style={{ color: PFC.inkSoft }}>·</span>
+                <span style={{ fontWeight: 600, color: PFC.ink }}>{pill.value}</span>
+              </span>
+            ))}
+          </div>
+
+          {/* Value card */}
+          <div style={{ border: `1px solid ${PFC.border}`, borderRadius: 16, overflow: 'hidden' }}>
+            <div style={{ display: 'flex' }}>
+              {/* Est net */}
+              <div style={{
+                flex: 1, padding: '20px 16px', borderRight: `1px solid ${PFC.border}`,
+                display: 'flex', flexDirection: 'column', gap: 4,
+              }}>
+                <Body14 color={PFC.inkSoft} weight={600} style={{ textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: 11 }}>Est. net on payslip</Body14>
+                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 24, lineHeight: '32px', color: PFC.ink }}>~€548</div>
+                <Caption color={PFC.inkSoft}>from €1,050 invested · optimal 30% gov. tax tier</Caption>
+              </div>
+              {/* Advantage */}
+              <div style={{
+                flex: 1, padding: '20px 16px',
+                display: 'flex', flexDirection: 'column', gap: 4,
+              }}>
+                <Body14 color={PFC.purple} weight={600} style={{ textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: 11 }}>Estimated Payflip advantage</Body14>
+                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 32, lineHeight: '40px', color: PFC.ink }}>+€168</div>
+                <Caption color={PFC.inkSoft}>vs cash pay out</Caption>
+              </div>
+            </div>
+            <div style={{ padding: '12px 16px', borderTop: `1px solid ${PFC.border}` }}>
+              <button style={{
+                background: 'transparent', border: 'none', padding: 0, cursor: 'pointer',
+                fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14,
+                color: PFC.inkSoft, textDecoration: 'underline',
+              }}>How is this calculated?</button>
+            </div>
+          </div>
+
+          <div style={{ height: 1, background: PFC.border }} />
+
+          {/* How it works */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+            <Heading20>How it works</Heading20>
+            {[
+              { n: 1, title: 'Last year, you invested with your bank or insurer', desc: 'You contributed up to €1,350 to your pension savings through your bank or insurer.' },
+              { n: 2, title: 'Upload your 281.60 fiscal attest', desc: "Drop in the fiscal attest 281.60 from your insurer. We'll validate the amount automatically." },
+              { n: 3, title: 'Get reimbursed via your next payslip', desc: 'The net amount lands on your next payslip.' },
+            ].map(step => (
+              <div key={step.n} style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
+                <div style={{
+                  width: 24, height: 24, borderRadius: 999, flexShrink: 0,
+                  background: PFC.purpleTile,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: PFC.purple }}>{step.n}</span>
+                </div>
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 16, lineHeight: '24px', color: PFC.ink }}>{step.title}</span>
+                  <Body14 color={PFC.inkSoft} weight={400}>{step.desc}</Body14>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ height: 1, background: PFC.border }} />
+
+          {/* FAQs */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <Heading20>FAQs</Heading20>
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              {faqs.map((faq, i) => (
+                <div key={i} style={{ borderBottom: `1px solid ${PFC.border}` }}>
+                  <button onClick={() => setOpenFaq(openFaq === i ? -1 : i)} style={{
+                    width: '100%', background: 'transparent', border: 'none', cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8,
+                    padding: '14px 0', textAlign: 'left',
+                  }}>
+                    <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 16, lineHeight: '24px', color: PFC.ink, flex: 1 }}>{faq.q}</span>
+                    <LucideIcon name={openFaq === i ? 'ChevronUp' : 'ChevronDown'} size={16} color={PFC.inkSoft} strokeWidth={2} style={{ flexShrink: 0 }} />
+                  </button>
+                  {openFaq === i && faq.a && (
+                    <Body14 color={PFC.inkSoft} weight={400} style={{ paddingBottom: 14, lineHeight: '22px' }}>{faq.a}</Body14>
+                  )}
+                </div>
+              ))}
+            </div>
+            <button style={{
+              background: 'transparent', border: 'none', padding: 0, cursor: 'pointer',
+              fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 15,
+              color: PFC.purple, textDecoration: 'underline', textAlign: 'left', display: 'flex', alignItems: 'center', gap: 4,
+            }}>
+              Visit our help centre
+              <LucideIcon name="ArrowRight" size={14} color={PFC.purple} strokeWidth={2} />
+            </button>
+          </div>
+
+          <div style={{ height: 1, background: PFC.border }} />
+
+          {/* Is this for me */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <Body14 color={PFC.inkSoft} weight={700} style={{ textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: 11 }}>Is this for me?</Body14>
+            {[
+              'You invested in pension savings through your bank or insurer last year',
+              'You have a fiscal attest 281.60 from your bank or insurer (or can get one)',
+            ].map((item, i) => (
+              <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+                <LucideIcon name="CircleCheck" size={16} color="rgb(34,139,34)" strokeWidth={2} style={{ flexShrink: 0, marginTop: 2 }} />
+                <Body14 color={PFC.ink} weight={400}>{item}</Body14>
+              </div>
+            ))}
+          </div>
+
+          <button style={{
+            background: 'transparent', border: 'none', padding: 0, cursor: 'pointer',
+            fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14,
+            color: PFC.inkSoft, textDecoration: 'underline', textAlign: 'left',
+          }}>Terms and conditions</button>
+
+        </div>
+      </div>
+
+      {/* Sticky footer */}
+      <div style={{
+        flexShrink: 0,
+        background: '#fff', borderTop: `1px solid ${PFC.border}`,
+        padding: '16px 16px 24px',
+        display: 'flex', flexDirection: 'column', gap: 8,
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+          <TaxScoreRow score={{ level: 1, label: 'Good', pct: 54 }} />
+          <Button variant="primary" size="large"
+            onClick={() => push('edit-active-benefit', { id: 'cat-pension', isNew: true })}>
+            Choose this benefit
+          </Button>
+        </div>
+        <Body14 color={PFC.inkSoft} weight={500} style={{ textAlign: 'center', fontSize: 12 }}>3 steps · about 2 minutes</Body14>
+      </div>
+    </div>
+  );
+}
+
+registerScreen('pension-savings-detail', PensionSavingsDetailScreen);
 registerScreen('multimedia-coolblue', MultimediaCoolblueScreen);
 registerScreen('benefits', BenefitsScreen);
 registerScreen('benefits-in-draft', BenefitsInDraftScreen);
