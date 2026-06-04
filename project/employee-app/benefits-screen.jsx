@@ -1866,7 +1866,7 @@ function PensionSavingsDetailScreen() {
               <div style={{ width: 36, height: 4, borderRadius: 2, background: PFC.border }} />
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Heading20>Advantage breakdown</Heading20>
+              <Heading20>Payflip vs cash payout</Heading20>
               <button onClick={() => setShowCalcSheet(false)} style={{
                 background: '#F7F7F8', border: 'none', borderRadius: 999, width: 32, height: 32,
                 cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
