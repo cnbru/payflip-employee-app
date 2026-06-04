@@ -1498,8 +1498,17 @@ function EditActiveBenefitScreen({ id, isNew = false }) {
                 setTimeout(() => {
                   setSubmitting(false);
                   setSubmitted(true);
-                  if (isNew) window.__pensionNewSubmitted = true;
-                  else window.__pensionResubmitted = true;
+                  if (isNew) {
+                    window.__pensionNewSubmitted = true;
+                    window.__pensionNewChoice = {
+                      amount: +amount,
+                      budgetImpact,
+                      budget: budget === 'eoy' ? 'End of year premium' : 'Bonus',
+                      netPayslip,
+                      advantage,
+                      submittedOn: new Date().toLocaleDateString('en-GB').replace(/\//g, '/'),
+                    };
+                  } else window.__pensionResubmitted = true;
                   setStep(S.success);
                 }, 1500);
               }}>
@@ -1808,13 +1817,18 @@ function PensionSavingsDetailScreen() {
       }}>
         {window.__pensionNewSubmitted ? (
           <div style={{
-            display: 'flex', alignItems: 'center', gap: 12,
+            display: 'flex', alignItems: 'flex-start', gap: 12,
             background: '#F7F7F8', borderRadius: 12, padding: '14px 16px',
           }}>
-            <LucideIcon name="Clock" size={20} color={PFC.inkSoft} strokeWidth={1.75} />
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <LucideIcon name="Clock" size={20} color={PFC.inkSoft} strokeWidth={1.75} style={{ marginTop: 2, flexShrink: 0 }} />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               <Body14 color={PFC.ink} weight={700}>In review</Body14>
               <Body14 color={PFC.inkSoft} weight={500}>Your admin is reviewing your pension savings choice.</Body14>
+              <button onClick={() => push('pension-savings-choice')} style={{
+                background: 'transparent', border: 'none', padding: 0, cursor: 'pointer',
+                fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 14,
+                color: PFC.ink, textDecoration: 'underline', textAlign: 'left',
+              }}>View choice details</button>
             </div>
           </div>
         ) : (
@@ -1834,6 +1848,115 @@ function PensionSavingsDetailScreen() {
   );
 }
 
+// ─────────────────────────────────────────────────────────────
+// Pension savings choice detail — shown when in review
+// ─────────────────────────────────────────────────────────────
+function PensionSavingsChoiceScreen() {
+  const { pop } = useNav();
+  const c = window.__pensionNewChoice || {
+    amount: 1050, budgetImpact: 1143, budget: 'End of year premium',
+    netPayslip: 705, advantage: 134, submittedOn: '12/10/2026',
+  };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column' }}>
+      <NavBar onBack={pop} />
+      <div style={{ padding: '0 16px 40px', display: 'flex', flexDirection: 'column', gap: 24 }}>
+        <Heading28>Pension savings</Heading28>
+
+        {/* Status banner */}
+        <div style={{
+          background: '#F7F7F8', borderRadius: 12, padding: '14px 16px',
+          display: 'flex', flexDirection: 'column', gap: 4,
+        }}>
+          <Body14 color={PFC.ink} weight={700}>Awaiting admin review</Body14>
+          <Body14 color={PFC.inkSoft} weight={500}>
+            {fmtEUR(c.netPayslip)} will be reimbursed through your next payslip upon approval
+          </Body14>
+        </div>
+
+        {/* Est net on payslip */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <Body14 color={PFC.inkSoft} weight={500}>Estimated net on payslip</Body14>
+          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 36, lineHeight: '44px', letterSpacing: '-0.01em', color: PFC.ink }}>
+            {fmtEUR(c.netPayslip)}
+          </div>
+          <button style={{
+            background: 'transparent', border: 'none', padding: 0, cursor: 'pointer',
+            fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14,
+            color: PFC.inkSoft, textDecoration: 'underline', textAlign: 'left',
+          }}>How is this calculated?</button>
+        </div>
+
+        <div style={{ height: 1, background: PFC.border }} />
+
+        {/* Payflip advantage */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <Body14 color={PFC.inkSoft} weight={500}>Estimated Payflip advantage</Body14>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+              <path d="M2 7.3a5.3 5.3 0 1 1 2.6 4.55L2.5 13l.6-2.6A5.3 5.3 0 0 1 2 7.3Z" fill="rgb(232,216,240)" stroke="rgb(232,216,240)" strokeWidth="1.2" strokeLinejoin="round"/>
+              <path d="M8 9.7c-.7-.6-2-1.3-2-2.5a1.1 1.1 0 0 1 2-.7 1.1 1.1 0 0 1 2 .7c0 1.2-1.3 1.9-2 2.5Z" fill="rgb(196,43,252)"/>
+            </svg>
+            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 36, lineHeight: '44px', letterSpacing: '-0.01em', color: PFC.purple }}>
+              +{fmtEUR(c.advantage * 8)}
+            </div>
+          </div>
+          <button style={{
+            background: 'transparent', border: 'none', padding: 0, cursor: 'pointer',
+            fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14,
+            color: PFC.inkSoft, textDecoration: 'underline', textAlign: 'left',
+          }}>How is this calculated?</button>
+        </div>
+
+        <div style={{ height: 1, background: PFC.border }} />
+
+        {/* Details */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <Heading20>Details</Heading20>
+          {[
+            { label: 'Amount', value: fmtEUR(c.amount) },
+            { label: 'Budget impact', value: fmtEUR(c.budgetImpact) },
+            { label: 'Budget used', value: c.budget },
+            { label: 'Est net on payslip', value: fmtEUR(c.netPayslip) },
+            { label: 'Submitted on', value: c.submittedOn },
+          ].map(row => (
+            <div key={row.label} style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <Body14 color={PFC.inkSoft} weight={500}>{row.label}</Body14>
+              <Body16 color={PFC.ink} weight={500}>{row.value}</Body16>
+            </div>
+          ))}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <Body14 color={PFC.inkSoft} weight={500}>Fiscal attest</Body14>
+            <button style={{
+              background: 'transparent', border: 'none', padding: 0, cursor: 'pointer',
+              display: 'flex', alignItems: 'center', gap: 6, textAlign: 'left',
+            }}>
+              <LucideIcon name="FileText" size={14} color={PFC.ink} strokeWidth={2} />
+              <Body16 color={PFC.ink} weight={500} style={{ textDecoration: 'underline' }}>fiscal-attest.pdf</Body16>
+            </button>
+          </div>
+        </div>
+
+        <div style={{ height: 1, background: PFC.border }} />
+
+        {/* Cancel */}
+        <button onClick={() => {
+          window.__pensionNewSubmitted = false;
+          window.__pensionNewChoice = null;
+          pop(); pop();
+        }} style={{
+          background: 'transparent', border: 'none', padding: 0, cursor: 'pointer',
+          fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 16,
+          color: 'rgb(180,35,35)', textAlign: 'left',
+        }}>Cancel choice</button>
+
+      </div>
+    </div>
+  );
+}
+
+registerScreen('pension-savings-choice', PensionSavingsChoiceScreen);
 registerScreen('pension-savings-detail', PensionSavingsDetailScreen);
 registerScreen('multimedia-coolblue', MultimediaCoolblueScreen);
 registerScreen('benefits', BenefitsScreen);
