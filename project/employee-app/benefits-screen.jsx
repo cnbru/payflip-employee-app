@@ -252,9 +252,9 @@ function DiscoverHighlightCard({ item, onClick, badge }) {
           <span style={{
             fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12,
             lineHeight: '16px', letterSpacing: '0.005em',
-            background: badge === 'Draft' ? PFC.warnBg : PFC.purpleTile,
-            color: badge === 'Draft' ? PFC.warnText : PFC.inkDarker,
-            border: `1px solid ${badge === 'Draft' ? PFC.warnBorder : 'rgba(139,55,235,0.2)'}`,
+            background: badge === 'Draft' ? PFC.warnBg : badge === 'In review' ? '#F7F7F8' : PFC.purpleTile,
+            color: badge === 'Draft' ? PFC.warnText : badge === 'In review' ? PFC.inkSoft : PFC.inkDarker,
+            border: `1px solid ${badge === 'Draft' ? PFC.warnBorder : badge === 'In review' ? PFC.border : 'rgba(139,55,235,0.2)'}`,
             borderRadius: 999, padding: '2px 10px', whiteSpace: 'nowrap',
           }}>{badge}</span>
         )}
@@ -343,6 +343,7 @@ function getBenefitBadge(catalogItem) {
   const isDraft = DRAFTS.some(d => d.kind === catalogItem.kind);
   const isActive = ACTIVE_BENEFITS.some(a => a.kind === catalogItem.kind);
   if (catalogItem.kind === 'coolblue') return null;
+  if (catalogItem.kind === 'pension' && window.__pensionNewSubmitted) return 'In review';
   if (isDraft) return 'Draft';
   if (isActive) return 'Already chosen';
   return null;
@@ -1055,7 +1056,7 @@ function CoolblueOrderScreen({ id }) {
 // Edit active benefit — wizard for rejected pension, simple form for others
 // ─────────────────────────────────────────────────────────────
 function EditActiveBenefitScreen({ id, isNew = false }) {
-  const { pop, switchTab } = useNav();
+  const { pop, switchTab, reset } = useNav();
   const item = ACTIVE_BENEFITS.find(b => b.id === id) || DRAFTS.find(b => b.id === id) || CATALOG.find(b => b.id === id);
   const isPension = item && item.kind === 'pension';
 
@@ -1123,7 +1124,7 @@ function EditActiveBenefitScreen({ id, isNew = false }) {
         animation: 'fadeSlideIn 0.4s ease-out both',
       }}>
         <div style={{ padding: 16 }}>
-          <button onClick={() => switchTab('home')} style={{
+          <button onClick={() => { reset('benefits'); switchTab('home'); }} style={{
             width: 36, height: 36, borderRadius: 999, border: `1px solid ${PFC.border}`,
             background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
             cursor: 'pointer',
@@ -1157,7 +1158,7 @@ function EditActiveBenefitScreen({ id, isNew = false }) {
             animation: 'fadeSlideIn 0.4s ease-out 0.35s both',
           }}>{isNew ? 'Your pension savings choice is being reviewed. We\'ll notify you once it\'s approved.' : 'Your pension savings choice is being reviewed again. We\'ll notify you once it\'s approved.'}</span>
           <div style={{ width: '100%', marginTop: 16, animation: 'fadeSlideIn 0.4s ease-out 0.45s both' }}>
-            <Button variant="primary" size="large" fullWidth onClick={() => switchTab('home')}>Back to home</Button>
+            <Button variant="primary" size="large" fullWidth onClick={() => { reset('benefits'); switchTab('home'); }}>Back to home</Button>
           </div>
         </div>
         <style>{`
@@ -1536,14 +1537,13 @@ function EditActiveBenefitScreen({ id, isNew = false }) {
           display: 'flex', flexDirection: 'column', gap: 8,
         }}>
           {step !== S.upload && (
-            <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
               <Body14 color={PFC.inkSoft} weight={500}>Budget impact</Body14>
-              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 20, lineHeight: '28px', color: PFC.inkDeep }}>€{budgetImpact.toLocaleString('nl-BE')}</div>
-              <Body14 color={PFC.purple} weight={600}>+ €{advantage} Payflip advantage</Body14>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 2 }}>
+                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 20, lineHeight: '28px', color: PFC.inkDeep }}>€{budgetImpact.toLocaleString('nl-BE')}</div>
+                <Body14 color={PFC.purple} weight={600}>+ €{advantage} Payflip advantage</Body14>
+              </div>
             </div>
-          )}
-          {step === S.upload && !uploaded && (
-            <Body14 color={PFC.inkSoft} weight={500}>Upload file to get started</Body14>
           )}
           <Button variant="primary" size="large" fullWidth
             disabled={
@@ -1554,6 +1554,9 @@ function EditActiveBenefitScreen({ id, isNew = false }) {
             onClick={() => setStep(step + 1)}>
             Continue
           </Button>
+          {step === S.upload && !uploaded && (
+            <Body14 color={PFC.inkSoft} weight={500} style={{ textAlign: 'center' }}>Upload file to get started</Body14>
+          )}
         </div>
       )}
     </div>
@@ -1834,14 +1837,14 @@ function PensionSavingsDetailScreen() {
           </div>
         ) : (
           <>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+            <Button variant="primary" size="large" fullWidth
+              onClick={() => push('edit-active-benefit', { id: 'cat-pension', isNew: true })}>
+              Choose this benefit
+            </Button>
+            <div style={{ display: 'flex', justifyContent: 'center' }}>
               <TaxScoreRow score={{ level: 1, label: 'Good', pct: 54 }} />
-              <Button variant="primary" size="large"
-                onClick={() => push('edit-active-benefit', { id: 'cat-pension', isNew: true })}>
-                Choose this benefit
-              </Button>
             </div>
-            <Body14 color={PFC.inkSoft} weight={500} style={{ textAlign: 'center', fontSize: 12 }}>3 steps · about 2 minutes</Body14>
+            <Body14 color={PFC.inkSoft} weight={500} style={{ fontSize: 12, textAlign: 'center' }}>3 steps · about 2 minutes</Body14>
           </>
         )}
       </div>
