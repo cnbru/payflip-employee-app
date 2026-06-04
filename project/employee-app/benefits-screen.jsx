@@ -1642,6 +1642,7 @@ function MultimediaCoolblueScreen() {
 function PensionSavingsDetailScreen() {
   const { push, pop } = useNav();
   const [openFaq, setOpenFaq] = React.useState(0);
+  const [showCalcSheet, setShowCalcSheet] = React.useState(false);
 
   const faqs = [
     {
@@ -1717,7 +1718,7 @@ function PensionSavingsDetailScreen() {
               </div>
             </div>
             <div style={{ padding: '12px 16px', borderTop: `1px solid ${PFC.border}` }}>
-              <button style={{
+              <button onClick={() => setShowCalcSheet(true)} style={{
                 background: 'transparent', border: 'none', padding: 0, cursor: 'pointer',
                 fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14,
                 color: PFC.inkSoft, textDecoration: 'underline',
@@ -1844,6 +1845,104 @@ function PensionSavingsDetailScreen() {
           </>
         )}
       </div>
+
+      {/* Advantage breakdown bottom sheet */}
+      {showCalcSheet && ReactDOM.createPortal(
+        <>
+          <div onClick={() => setShowCalcSheet(false)} style={{
+            position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.35)', zIndex: 20,
+            animation: 'sheetFadeIn 0.2s ease-out both',
+          }} />
+          <div style={{
+            position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 21,
+            background: '#fff', borderRadius: '20px 20px 0 0',
+            padding: '20px 20px 34px',
+            display: 'flex', flexDirection: 'column', gap: 20,
+            animation: 'sheetSlideUp 0.3s ease-out both',
+            boxShadow: '0 -4px 24px rgba(0,0,0,0.12)',
+          }}>
+            {/* Handle + header */}
+            <div style={{ display: 'flex', justifyContent: 'center' }}>
+              <div style={{ width: 36, height: 4, borderRadius: 2, background: PFC.border }} />
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Heading20>Advantage breakdown</Heading20>
+              <button onClick={() => setShowCalcSheet(false)} style={{
+                background: '#F7F7F8', border: 'none', borderRadius: 999, width: 32, height: 32,
+                cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                <LucideIcon name="X" size={16} color={PFC.ink} strokeWidth={2} />
+              </button>
+            </div>
+            <Body14 color={PFC.inkSoft} weight={500} style={{ lineHeight: '20px' }}>
+              Here's why going through Payflip beats taking the same amount as cash.
+            </Body14>
+
+            {/* Comparison table */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+              {/* Header row */}
+              <div style={{ display: 'flex', paddingBottom: 10, borderBottom: `1px solid ${PFC.border}` }}>
+                <div style={{ flex: 2 }} />
+                <Body14 color={PFC.inkSoft} weight={700} style={{ flex: 1, textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: 11, textAlign: 'center' }}>Cash</Body14>
+                <Body14 color={PFC.inkSoft} weight={700} style={{ flex: 1, textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: 11, textAlign: 'center' }}>Payflip</Body14>
+              </div>
+              {/* Data rows */}
+              {[
+                { label: 'Employer NSSO', cash: '−27,73%', payflip: '−8,86%', payflipColor: PFC.ink },
+                { label: 'Employee NSSO', cash: '−13,07%', payflip: '✓ Exempt', payflipColor: PFC.successText },
+                { label: 'Income tax', cash: '−', payflip: '−', payflipColor: PFC.ink },
+              ].map(row => (
+                <div key={row.label} style={{ display: 'flex', alignItems: 'center', padding: '10px 0', borderBottom: `1px solid ${PFC.border}` }}>
+                  <Body14 color={PFC.inkSoft} weight={500} style={{ flex: 2 }}>{row.label}</Body14>
+                  <Body14 color="rgb(180,35,35)" weight={500} style={{ flex: 1, textAlign: 'center' }}>{row.cash}</Body14>
+                  <Body14 color={row.payflipColor} weight={500} style={{ flex: 1, textAlign: 'center' }}>{row.payflip}</Body14>
+                </div>
+              ))}
+              {/* Total row */}
+              <div style={{ display: 'flex', alignItems: 'center', paddingTop: 12 }}>
+                <div style={{ flex: 2 }} />
+                <span style={{ flex: 1, textAlign: 'center', fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 18, color: PFC.inkSoft }}>€380</span>
+                <span style={{ flex: 1, textAlign: 'center', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18, color: PFC.ink }}>€548</span>
+              </div>
+            </div>
+
+            {/* Payflip advantage */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <Body14 color={PFC.inkSoft} weight={500}>Estimated Payflip advantage</Body14>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true">
+                  <path d="M2 7.3a5.3 5.3 0 1 1 2.6 4.55L2.5 13l.6-2.6A5.3 5.3 0 0 1 2 7.3Z" fill="rgb(232,216,240)" stroke="rgb(232,216,240)" strokeWidth="1.2" strokeLinejoin="round"/>
+                  <path d="M8 9.7c-.7-.6-2-1.3-2-2.5a1.1 1.1 0 0 1 2-.7 1.1 1.1 0 0 1 2 .7c0 1.2-1.3 1.9-2 2.5Z" fill="rgb(196,43,252)"/>
+                </svg>
+                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 24, color: PFC.purple }}>€104</span>
+              </div>
+              <Body14 color={PFC.inkSoft} weight={400} style={{ lineHeight: '20px' }}>
+                The extra you keep by routing through Payflip. Pensions savings is exempt from NSSO contributions. Estimation based on your current salary
+              </Body14>
+            </div>
+
+            {/* Info callout */}
+            <div style={{
+              background: '#EEF3FF', borderRadius: 10, padding: '12px 14px',
+              display: 'flex', gap: 10, alignItems: 'flex-start',
+            }}>
+              <LucideIcon name="Info" size={14} color="rgb(59,100,248)" strokeWidth={2} style={{ flexShrink: 0, marginTop: 2 }} />
+              <Body14 color="rgb(30,60,180)" weight={400} style={{ lineHeight: '20px', fontSize: 13 }}>
+                On top of this: the government also gives a separate 30% tax reduction at year-end filing. That stacks on top of the Payflip advantage shown here.
+              </Body14>
+            </div>
+
+            <Button variant="primary" size="large" fullWidth onClick={() => setShowCalcSheet(false)}>
+              Close
+            </Button>
+          </div>
+          <style>{`
+            @keyframes sheetFadeIn { from { opacity: 0; } to { opacity: 1; } }
+            @keyframes sheetSlideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+          `}</style>
+        </>,
+        document.querySelector('[data-app-shell]')
+      )}
     </div>
   );
 }
