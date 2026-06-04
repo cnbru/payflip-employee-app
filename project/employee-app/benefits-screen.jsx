@@ -1498,7 +1498,8 @@ function EditActiveBenefitScreen({ id, isNew = false }) {
                 setTimeout(() => {
                   setSubmitting(false);
                   setSubmitted(true);
-                  window.__pensionResubmitted = true;
+                  if (isNew) window.__pensionNewSubmitted = true;
+                  else window.__pensionResubmitted = true;
                   setStep(S.success);
                 }, 1500);
               }}>
@@ -1805,14 +1806,29 @@ function PensionSavingsDetailScreen() {
         padding: '16px 16px 24px',
         display: 'flex', flexDirection: 'column', gap: 8,
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-          <TaxScoreRow score={{ level: 1, label: 'Good', pct: 54 }} />
-          <Button variant="primary" size="large"
-            onClick={() => push('edit-active-benefit', { id: 'cat-pension', isNew: true })}>
-            Choose this benefit
-          </Button>
-        </div>
-        <Body14 color={PFC.inkSoft} weight={500} style={{ textAlign: 'center', fontSize: 12 }}>3 steps · about 2 minutes</Body14>
+        {window.__pensionNewSubmitted ? (
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: 12,
+            background: '#F7F7F8', borderRadius: 12, padding: '14px 16px',
+          }}>
+            <LucideIcon name="Clock" size={20} color={PFC.inkSoft} strokeWidth={1.75} />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <Body14 color={PFC.ink} weight={700}>In review</Body14>
+              <Body14 color={PFC.inkSoft} weight={500}>Your admin is reviewing your pension savings choice.</Body14>
+            </div>
+          </div>
+        ) : (
+          <>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+              <TaxScoreRow score={{ level: 1, label: 'Good', pct: 54 }} />
+              <Button variant="primary" size="large"
+                onClick={() => push('edit-active-benefit', { id: 'cat-pension', isNew: true })}>
+                Choose this benefit
+              </Button>
+            </div>
+            <Body14 color={PFC.inkSoft} weight={500} style={{ textAlign: 'center', fontSize: 12 }}>3 steps · about 2 minutes</Body14>
+          </>
+        )}
       </div>
     </div>
   );
