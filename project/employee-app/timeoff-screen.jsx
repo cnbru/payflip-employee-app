@@ -193,12 +193,13 @@ function BalanceCards() {
 // ─────────────────────────────────────────────────────────────
 // History list
 // ─────────────────────────────────────────────────────────────
-function HistoryRow({ item }) {
+function HistoryRow({ item, onClick }) {
   return (
-    <div style={{
+    <div role="button" onClick={onClick} style={{
       display: 'flex', alignItems: 'center', gap: 12,
       padding: '12px 0',
       borderBottom: `1px solid ${TO.divider}`,
+      cursor: 'pointer',
     }}>
       <LeaveIconTile type={item.type} size={40} />
       <div style={{ flex: 1, minWidth: 0 }}>
@@ -212,6 +213,7 @@ function HistoryRow({ item }) {
         }}>{item.dates} · {item.days === 0.5 ? '½ day' : `${item.days} ${item.days === 1 ? 'day' : 'days'}`}</div>
       </div>
       <StatusPill status={item.status} />
+      <LucideIcon name="ChevronRight" size={16} color={TO.border} strokeWidth={2} />
     </div>
   );
 }
@@ -220,17 +222,14 @@ function HistoryRow({ item }) {
 // TimeOffScreen — main tab root
 // ─────────────────────────────────────────────────────────────
 function TimeOffScreen() {
-  const { push } = useNav();
-  const [history, setHistory] = React.useState(() => {
-    return (window.__timeOffRequests || []).concat(MOCK_HISTORY);
-  });
+  const { push, stacks } = useNav();
 
-  // refresh history when returning
-  React.useEffect(() => {
-    if (window.__timeOffRequests && window.__timeOffRequests.length) {
-      setHistory((window.__timeOffRequests || []).concat(MOCK_HISTORY));
-    }
-  }, []);
+  // Recompute every time the nav stack changes (catches cancel/edit returns)
+  const history = React.useMemo(() => {
+    const cancelled = window.__cancelledMockIds || new Set();
+    return [...(window.__timeOffRequests || []), ...MOCK_HISTORY]
+      .filter(r => !cancelled.has(r.id));
+  }, [stacks]);
 
   return (
     <div style={{ padding: '8px 16px 32px', display: 'flex', flexDirection: 'column', gap: 24 }}>
@@ -268,7 +267,9 @@ function TimeOffScreen() {
             fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: TO.inkSoft,
           }}>No requests yet</div>
         )}
-        {history.map(item => <HistoryRow key={item.id} item={item} />)}
+        {history.map(item => (
+          <HistoryRow key={item.id} item={item} onClick={() => push('time-off-detail', { request: item })} />
+        ))}
       </div>
     </div>
   );
@@ -432,13 +433,25 @@ function PeriodChip({ period, fmtShort, fmtDays, effectiveDaysForPeriod, support
   );
 }
 
-function RequestTimeOffScreen() {
+function RequestTimeOffScreen({ editRequest }) {
   const { pop, reset, switchTab } = useNav();
-  const [step, setStep] = React.useState(0);
-  const [leaveType, setLeaveType] = React.useState(null);
+  const isEdit = !!editRequest;
+
+  // If editing, restore periods (dates were stored as ISO strings — parse back)
+  const initialPeriods = React.useMemo(() => {
+    if (!editRequest?.periods) return [];
+    return editRequest.periods.map(p => ({
+      ...p,
+      startDate: new Date(p.startDate),
+      endDate: new Date(p.endDate),
+    }));
+  }, []);
+
+  const [step, setStep] = React.useState(isEdit ? 1 : 0); // skip type step when editing
+  const [leaveType, setLeaveType] = React.useState(editRequest?.type || null);
 
   // Multiple confirmed periods
-  const [periods, setPeriods] = React.useState([]);
+  const [periods, setPeriods] = React.useState(initialPeriods);
 
   // Current draft period being edited in the calendar
   const [startDate, setStartDate] = React.useState(null);
@@ -579,7 +592,7 @@ function RequestTimeOffScreen() {
   });
 
   function handleSubmit() {
-    const finalPeriods = periods; // already finalized by handleContinueDates
+    const finalPeriods = periods;
     const totalD = finalPeriods.reduce((sum, p) => sum + effectiveDaysForPeriod(p), 0);
     const datesLabel = finalPeriods.length === 1
       ? (() => {
@@ -590,14 +603,19 @@ function RequestTimeOffScreen() {
         })()
       : `${finalPeriods.length} periods`;
     const newReq = {
-      id: `req-${Date.now()}`,
+      id: isEdit ? editRequest.id : `req-${Date.now()}`,
       type: leaveType,
       label: typeObj.label,
       dates: datesLabel,
       days: totalD,
       status: 'pending',
+      periods: finalPeriods,
+      note,
+      reason,
     };
-    window.__timeOffRequests = [newReq, ...(window.__timeOffRequests || [])];
+    // Remove old version if editing
+    window.__timeOffRequests = (window.__timeOffRequests || []).filter(r => r.id !== newReq.id);
+    window.__timeOffRequests = [newReq, ...window.__timeOffRequests];
     setStep(4);
   }
 
@@ -1051,12 +1069,14 @@ function RequestTimeOffScreen() {
           <div style={{
             fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 24,
             letterSpacing: '-0.005em', color: TO.ink, lineHeight: '32px',
-          }}>Request submitted</div>
+          }}>{isEdit ? 'Request updated' : 'Request submitted'}</div>
           <div style={{
             fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 15,
             color: TO.inkSoft, lineHeight: '22px',
           }}>
-            Your {typeObj?.label.toLowerCase()} request has been sent to your manager for approval.
+            {isEdit
+              ? 'Your updated request has been sent back to your manager for review.'
+              : `Your ${typeObj?.label.toLowerCase()} request has been sent to your manager for approval.`}
           </div>
 
           <div style={{ width: '100%', marginTop: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -1077,11 +1097,151 @@ function RequestTimeOffScreen() {
 }
 
 // ─────────────────────────────────────────────────────────────
+// Time Off Detail Screen — tap any history row
+// ─────────────────────────────────────────────────────────────
+function TimeOffDetailScreen({ request }) {
+  const { pop, push } = useNav();
+  const [confirmCancel, setConfirmCancel] = React.useState(false);
+
+  function fmtDays(d) {
+    if (d === 0.5) return '½ day';
+    if (d % 1 === 0.5) return `${Math.floor(d)}½ days`;
+    return `${d} working day${d !== 1 ? 's' : ''}`;
+  }
+
+  function handleCancel() {
+    // Remove from __timeOffRequests (for submitted requests)
+    window.__timeOffRequests = (window.__timeOffRequests || []).filter(r => r.id !== request.id);
+    // Also track cancelled mock ids
+    if (!window.__cancelledMockIds) window.__cancelledMockIds = new Set();
+    window.__cancelledMockIds.add(request.id);
+    pop();
+  }
+
+  const isPending = request.status === 'pending';
+  const typeObj = LEAVE_TYPES.find(t => t.id === request.type);
+
+  return (
+    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: '#fff' }}>
+      <NavBar title={request.label} />
+
+      <div style={{ flex: 1, overflowY: 'auto', padding: '0 16px 32px', display: 'flex', flexDirection: 'column', gap: 20 }}>
+
+        {/* Status + icon */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <LeaveIconTile type={request.type} size={48} />
+          <div>
+            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18, color: TO.ink, lineHeight: '24px' }}>
+              {request.label}
+            </div>
+            <div style={{ marginTop: 4 }}><StatusPill status={request.status} /></div>
+          </div>
+        </div>
+
+        {/* Details card */}
+        <div style={{ background: TO.bg, borderRadius: 14, padding: '4px 16px' }}>
+          {[
+            ['Date(s)', request.dates],
+            ['Duration', fmtDays(request.days)],
+            ...(request.reason ? [['Occasion', KLEIN_VERLET_REASONS.find(r => r.id === request.reason)?.label || request.reason]] : []),
+            ...(request.note ? [['Note', request.note]] : []),
+          ].map(([label, value], i, arr) => (
+            <div key={label} style={{
+              display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12,
+              padding: '12px 0',
+              borderBottom: i < arr.length - 1 ? `1px solid ${TO.divider}` : 'none',
+            }}>
+              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: TO.inkSoft, flex: 'none' }}>{label}</div>
+              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: TO.ink, textAlign: 'right', maxWidth: '65%' }}>{value}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* Approved info */}
+        {request.status === 'approved' && (
+          <div style={{
+            background: TO.greenBg, border: `1px solid ${TO.greenBorder}`,
+            borderRadius: 10, padding: '12px 14px',
+            display: 'flex', gap: 10, alignItems: 'flex-start',
+          }}>
+            <LucideIcon name="CheckCircle" size={16} color={TO.greenText} style={{ marginTop: 2, flex: 'none' }} />
+            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 13, color: TO.greenText, lineHeight: '18px' }}>
+              This request has been approved by your manager.
+            </div>
+          </div>
+        )}
+
+        {/* Pending actions */}
+        {isPending && !confirmCancel && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <button
+              onClick={() => push('request-time-off', { editRequest: request })}
+              style={{
+                appearance: 'none', width: '100%', cursor: 'pointer',
+                background: TO.bg, border: `1.5px solid ${TO.border}`,
+                borderRadius: 12, padding: '14px 16px',
+                display: 'flex', alignItems: 'center', gap: 12,
+                fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 15, color: TO.ink,
+              }}>
+              <LucideIcon name="Pencil" size={18} color={TO.ink} strokeWidth={2} />
+              Edit request
+            </button>
+            <button
+              onClick={() => setConfirmCancel(true)}
+              style={{
+                appearance: 'none', width: '100%', cursor: 'pointer',
+                background: 'transparent', border: `1.5px solid ${TO.border}`,
+                borderRadius: 12, padding: '14px 16px',
+                display: 'flex', alignItems: 'center', gap: 12,
+                fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 15, color: TO.redText,
+              }}>
+              <LucideIcon name="X" size={18} color={TO.redText} strokeWidth={2.5} />
+              Cancel request
+            </button>
+          </div>
+        )}
+
+        {/* Cancel confirmation */}
+        {isPending && confirmCancel && (
+          <div style={{
+            background: TO.redBg, borderRadius: 14, padding: '16px',
+            display: 'flex', flexDirection: 'column', gap: 12,
+            border: `1px solid rgba(143,20,20,0.15)`,
+          }}>
+            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 15, color: TO.redText }}>
+              Cancel this request?
+            </div>
+            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 13, color: TO.redText, lineHeight: '18px' }}>
+              Your manager will be notified. This action cannot be undone.
+            </div>
+            <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
+              <button onClick={() => setConfirmCancel(false)} style={{
+                flex: 1, appearance: 'none', cursor: 'pointer',
+                background: 'white', border: `1.5px solid ${TO.border}`,
+                borderRadius: 10, padding: '10px',
+                fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 14, color: TO.ink,
+              }}>Keep it</button>
+              <button onClick={handleCancel} style={{
+                flex: 1, appearance: 'none', cursor: 'pointer',
+                background: TO.redText, border: 'none',
+                borderRadius: 10, padding: '10px',
+                fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 14, color: '#fff',
+              }}>Yes, cancel</button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
 // Register
 // ─────────────────────────────────────────────────────────────
 window.TimeOffScreen = TimeOffScreen;
 window.registerScreen && window.registerScreen('timeoff', TimeOffScreen);
 window.registerScreen && window.registerScreen('request-time-off', RequestTimeOffScreen);
+window.registerScreen && window.registerScreen('time-off-detail', TimeOffDetailScreen);
 
 // Home card helper
 window.TimeOffHomeCard = function TimeOffHomeCard({ onPress }) {
