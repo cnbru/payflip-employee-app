@@ -280,7 +280,7 @@ function TimeOffScreen() {
 // ─────────────────────────────────────────────────────────────
 
 // Simple calendar component
-function MiniCalendar({ year, month, selected, onSelect, rangeEnd, rangeMode }) {
+function MiniCalendar({ year, month, selected, onSelect, rangeEnd, rangeMode, confirmedDates = [] }) {
   const firstDay = new Date(year, month, 1).getDay(); // 0=Sun
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   // Monday-first: shift Sunday (0) to 6
@@ -322,17 +322,31 @@ function MiniCalendar({ year, month, selected, onSelect, rangeEnd, rangeMode }) 
           const start = isStart(d);
           const end = isEnd(d);
           const weekend = isWeekend(d);
+          const dt = new Date(year, month, d);
+          const confirmed = confirmedDates.some(c => c.getTime() === dt.getTime());
           return (
-            <button key={d} onClick={() => onSelect(new Date(year, month, d))}
+            <button key={d} onClick={() => !weekend && onSelect(dt)}
               disabled={weekend}
               style={{
                 appearance: 'none', border: 'none',
-                background: (start || end) ? TO.ink : sel ? 'rgb(232,216,240)' : 'transparent',
-                color: (start || end) ? '#fff' : weekend ? TO.border : TO.ink,
-                fontFamily: 'var(--font-display)', fontWeight: sel ? 600 : 400, fontSize: 14,
+                background: (start || end) ? TO.ink
+                  : sel ? 'rgb(232,216,240)'
+                  : confirmed ? 'rgb(245,226,254)'
+                  : 'transparent',
+                color: (start || end) ? '#fff' : weekend ? TO.border : confirmed ? TO.purpleDeep : TO.ink,
+                fontFamily: 'var(--font-display)', fontWeight: (sel || confirmed) ? 600 : 400, fontSize: 14,
                 borderRadius: 8, padding: '7px 0',
                 cursor: weekend ? 'default' : 'pointer',
-              }}>{d}</button>
+                position: 'relative',
+              }}>
+              {d}
+              {confirmed && !sel && (
+                <span style={{
+                  position: 'absolute', bottom: 3, left: '50%', transform: 'translateX(-50%)',
+                  width: 4, height: 4, borderRadius: 99, background: TO.purpleDeep,
+                }} />
+              )}
+            </button>
           );
         })}
       </div>
@@ -377,14 +391,59 @@ function HalfDayPicker({ label, value, onChange, options }) {
   );
 }
 
+// ── Confirmed period chip ──
+function PeriodChip({ period, fmtShort, fmtDays, effectiveDaysForPeriod, supportsHalfDay, onRemove }) {
+  const isSingle = period.startDate.getTime() === period.endDate.getTime();
+  const days = effectiveDaysForPeriod(period);
+  const dateStr = isSingle
+    ? fmtShort(period.startDate)
+    : `${fmtShort(period.startDate)} – ${fmtShort(period.endDate)}`;
+  const halfStr = isSingle && supportsHalfDay && period.startHalf !== 'full'
+    ? ` · ${period.startHalf}`
+    : (!isSingle && supportsHalfDay && (period.startHalf !== 'full' || period.endHalf !== 'full'))
+      ? ` · partial days`
+      : '';
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'center', gap: 8,
+      background: TO.bg, border: `1px solid ${TO.border}`,
+      borderRadius: 10, padding: '8px 8px 8px 12px',
+    }}>
+      <LucideIcon name="CalendarDays" size={14} color={TO.inkSoft} style={{ flex: 'none' }} />
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: TO.ink }}>
+          {dateStr}
+        </span>
+        <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 13, color: TO.inkSoft }}>
+          {halfStr}
+        </span>
+        <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 12, color: TO.inkSoft, display: 'block' }}>
+          {fmtDays(days)}
+        </span>
+      </div>
+      <button onClick={onRemove} style={{
+        appearance: 'none', border: 'none', background: 'transparent',
+        width: 28, height: 28, borderRadius: 6, cursor: 'pointer',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+      }}>
+        <LucideIcon name="X" size={14} color={TO.inkSoft} strokeWidth={2.5} />
+      </button>
+    </div>
+  );
+}
+
 function RequestTimeOffScreen() {
   const { pop, reset, switchTab } = useNav();
   const [step, setStep] = React.useState(0);
   const [leaveType, setLeaveType] = React.useState(null);
+
+  // Multiple confirmed periods
+  const [periods, setPeriods] = React.useState([]);
+
+  // Current draft period being edited in the calendar
   const [startDate, setStartDate] = React.useState(null);
   const [endDate, setEndDate] = React.useState(null);
-  const [datePickMode, setDatePickMode] = React.useState('start'); // 'start' | 'end'
-  // Half-day: 'full' | 'morning' | 'afternoon'
+  const [datePickMode, setDatePickMode] = React.useState('start');
   const [startHalf, setStartHalf] = React.useState('full');
   const [endHalf, setEndHalf] = React.useState('full');
   const [reason, setReason] = React.useState(null);
@@ -399,43 +458,41 @@ function RequestTimeOffScreen() {
   const needsReason = typeObj && typeObj.needsReason;
   const supportsHalfDay = typeObj && typeObj.supportsHalfDay;
 
-  // Reset half-day when dates change
   React.useEffect(() => { setStartHalf('full'); setEndHalf('full'); }, [startDate, endDate]);
 
-  // Count working days between two dates
   function countWorkDays(start, end) {
     if (!start) return 0;
-    const s = start < end ? start : end;
-    const e = start < end ? end : start;
+    const s = start <= end ? start : end;
+    const e = start <= end ? end : start;
     let count = 0;
     const cur = new Date(s);
     while (cur <= e) {
-      const d = cur.getDay();
-      if (d !== 0 && d !== 6) count++;
+      const day = cur.getDay();
+      if (day !== 0 && day !== 6) count++;
       cur.setDate(cur.getDate() + 1);
     }
     return count;
   }
 
-  const isSingleDay = startDate && (!endDate || startDate.getTime() === (endDate || startDate).getTime());
-
-  // Effective days accounting for half-day selections
-  function getEffectiveDays() {
-    if (!startDate) return 0;
-    const base = isMultiDay ? countWorkDays(startDate, endDate || startDate) : 1;
+  function effectiveDaysForPeriod(p) {
+    const end = p.endDate || p.startDate;
+    const base = isMultiDay ? countWorkDays(p.startDate, end) : 1;
     if (!supportsHalfDay) return base;
+    const isSingle = p.startDate.getTime() === end.getTime();
     let deduct = 0;
-    if (isSingleDay) {
-      // single day: morning or afternoon = 0.5
-      if (startHalf === 'morning' || startHalf === 'afternoon') deduct = 0.5;
+    if (isSingle) {
+      if (p.startHalf === 'morning' || p.startHalf === 'afternoon') deduct = 0.5;
     } else {
-      if (startHalf === 'afternoon') deduct += 0.5;
-      if (endHalf === 'morning') deduct += 0.5;
+      if (p.startHalf === 'afternoon') deduct += 0.5;
+      if (p.endHalf === 'morning') deduct += 0.5;
     }
     return Math.max(0.5, base - deduct);
   }
 
-  const workDays = getEffectiveDays();
+  const isSingleDay = startDate && (!endDate || startDate.getTime() === (endDate || startDate).getTime());
+  const draftDays = startDate ? effectiveDaysForPeriod({ startDate, endDate: endDate || startDate, startHalf, endHalf }) : 0;
+  const confirmedDays = periods.reduce((sum, p) => sum + effectiveDaysForPeriod(p), 0);
+  const totalDays = confirmedDays + draftDays;
 
   function fmtDays(d) {
     if (d === 0.5) return '½ day';
@@ -446,6 +503,11 @@ function RequestTimeOffScreen() {
   function fmtDate(d) {
     if (!d) return '';
     return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+  }
+
+  function fmtShort(d) {
+    if (!d) return '';
+    return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
   }
 
   function handleDateSelect(d) {
@@ -459,37 +521,87 @@ function RequestTimeOffScreen() {
       setEndDate(null);
       setDatePickMode('end');
     } else {
-      if (d < startDate) {
-        setEndDate(startDate);
-        setStartDate(d);
-      } else {
-        setEndDate(d);
-      }
+      if (d < startDate) { setEndDate(startDate); setStartDate(d); }
+      else setEndDate(d);
       setDatePickMode('start');
     }
   }
 
+  // Confirm current draft as a period and reset the calendar
+  function addPeriod() {
+    if (!startDate) return;
+    setPeriods(prev => [...prev, {
+      id: Date.now(),
+      startDate,
+      endDate: endDate || startDate,
+      startHalf,
+      endHalf,
+    }]);
+    setStartDate(null);
+    setEndDate(null);
+    setDatePickMode('start');
+    setStartHalf('full');
+    setEndHalf('full');
+  }
+
+  function removePeriod(id) {
+    setPeriods(prev => prev.filter(p => p.id !== id));
+  }
+
+  // Continue: auto-finalize draft if present, then advance
+  function handleContinueDates() {
+    if (startDate) {
+      setPeriods(prev => [...prev, {
+        id: Date.now(),
+        startDate,
+        endDate: endDate || startDate,
+        startHalf,
+        endHalf,
+      }]);
+      setStartDate(null);
+      setEndDate(null);
+    }
+    setStep(2);
+  }
+
+  const draftReady = isMultiDay ? (startDate && endDate) : startDate;
+  const canContinueDates = periods.length > 0 || draftReady;
+
+  // For MiniCalendar: dim already-confirmed dates
+  const confirmedDates = periods.flatMap(p => {
+    const dates = [];
+    const cur = new Date(p.startDate);
+    while (cur <= p.endDate) {
+      dates.push(new Date(cur));
+      cur.setDate(cur.getDate() + 1);
+    }
+    return dates;
+  });
+
   function handleSubmit() {
-    const halfLabel = isSingleDay && startHalf !== 'full'
-      ? ` (${startHalf})`
-      : '';
+    const finalPeriods = periods; // already finalized by handleContinueDates
+    const totalD = finalPeriods.reduce((sum, p) => sum + effectiveDaysForPeriod(p), 0);
+    const datesLabel = finalPeriods.length === 1
+      ? (() => {
+          const p = finalPeriods[0];
+          const isSingle = p.startDate.getTime() === p.endDate.getTime();
+          const halfSuffix = isSingle && supportsHalfDay && p.startHalf !== 'full' ? ` (${p.startHalf})` : '';
+          return (isSingle ? fmtDate(p.startDate) : `${fmtDate(p.startDate)} – ${fmtDate(p.endDate)}`) + halfSuffix;
+        })()
+      : `${finalPeriods.length} periods`;
     const newReq = {
       id: `req-${Date.now()}`,
       type: leaveType,
       label: typeObj.label,
-      dates: (isMultiDay && endDate && endDate.getTime() !== startDate.getTime()
-        ? `${fmtDate(startDate)} – ${fmtDate(endDate)}`
-        : fmtDate(startDate)) + halfLabel,
-      days: workDays,
+      dates: datesLabel,
+      days: totalD,
       status: 'pending',
     };
     window.__timeOffRequests = [newReq, ...(window.__timeOffRequests || [])];
     setStep(4);
   }
 
-  const STEP_COUNT = 4; // 0..3 before success
-
-  // ── header ──
+  const STEP_COUNT = 4;
   const stepTitles = ['Leave type', 'Choose dates', needsReason ? 'Occasion' : 'Details', 'Review'];
 
   return (
@@ -558,8 +670,40 @@ function RequestTimeOffScreen() {
       {/* ── Step 1: date picker ── */}
       {step === 1 && (
         <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
-          <div style={{ flex: 1, padding: '0 16px', display: 'flex', flexDirection: 'column', gap: 20 }}>
-            {/* Date range pill selectors */}
+          <div style={{ flex: 1, padding: '0 16px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+
+            {/* Confirmed periods list */}
+            {periods.length > 0 && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <div style={{
+                  fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 11,
+                  color: TO.inkSoft, textTransform: 'uppercase', letterSpacing: '0.05em',
+                }}>Added periods</div>
+                {periods.map(p => (
+                  <PeriodChip
+                    key={p.id}
+                    period={p}
+                    fmtShort={fmtShort}
+                    fmtDays={fmtDays}
+                    effectiveDaysForPeriod={effectiveDaysForPeriod}
+                    supportsHalfDay={supportsHalfDay}
+                    onRemove={() => removePeriod(p.id)}
+                  />
+                ))}
+                <div style={{
+                  borderBottom: `1px solid ${TO.divider}`, marginTop: 4,
+                }} />
+              </div>
+            )}
+
+            {/* Current draft label */}
+            <div style={{
+              fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 11,
+              color: TO.inkSoft, textTransform: 'uppercase', letterSpacing: '0.05em',
+              marginBottom: -8,
+            }}>{periods.length > 0 ? 'Add another period' : 'Select dates'}</div>
+
+            {/* FROM / TO selectors */}
             {isMultiDay && (
               <div style={{ display: 'flex', gap: 8 }}>
                 {[['start', 'From', startDate], ['end', 'To', endDate]].map(([mode, label, val]) => (
@@ -579,7 +723,7 @@ function RequestTimeOffScreen() {
                       fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 14,
                       color: datePickMode === mode ? '#fff' : val ? TO.ink : TO.inkSoft,
                       marginTop: 2,
-                    }}>{val ? fmtDate(val) : '—'}</div>
+                    }}>{val ? fmtShort(val) : '—'}</div>
                   </button>
                 ))}
               </div>
@@ -625,10 +769,11 @@ function RequestTimeOffScreen() {
               selected={startDate}
               rangeEnd={isMultiDay ? endDate : null}
               rangeMode={isMultiDay}
+              confirmedDates={confirmedDates}
               onSelect={handleDateSelect}
             />
 
-            {/* Half-day pickers — only for supported leave types after date is selected */}
+            {/* Half-day pickers */}
             {supportsHalfDay && startDate && (
               isSingleDay ? (
                 <HalfDayPicker
@@ -636,9 +781,9 @@ function RequestTimeOffScreen() {
                   value={startHalf}
                   onChange={setStartHalf}
                   options={[
-                    { value: 'full',      label: 'Full day',  icon: 'Sun'      },
-                    { value: 'morning',   label: 'Morning',   icon: 'Sunrise'  },
-                    { value: 'afternoon', label: 'Afternoon', icon: 'Sunset'   },
+                    { value: 'full',      label: 'Full day',  icon: 'Sun'     },
+                    { value: 'morning',   label: 'Morning',   icon: 'Sunrise' },
+                    { value: 'afternoon', label: 'Afternoon', icon: 'Sunset'  },
                   ]}
                 />
               ) : endDate && (
@@ -665,22 +810,52 @@ function RequestTimeOffScreen() {
               )
             )}
 
-            {workDays > 0 && (
+            {/* Total counter */}
+            {totalDays > 0 && (
               <div style={{
                 background: TO.blueBg, border: `1px solid ${TO.blueBorder}`,
                 borderRadius: 10, padding: '10px 14px',
-                fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14,
-                color: TO.blueText,
+                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
               }}>
-                {fmtDays(workDays)} selected
+                <span style={{
+                  fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: TO.blueText,
+                }}>
+                  {fmtDays(totalDays)} total
+                  {periods.length > 0 && draftDays > 0 && (
+                    <span style={{ fontWeight: 500, fontSize: 12, marginLeft: 6 }}>
+                      ({periods.length + 1} periods)
+                    </span>
+                  )}
+                  {periods.length > 0 && draftDays === 0 && (
+                    <span style={{ fontWeight: 500, fontSize: 12, marginLeft: 6 }}>
+                      ({periods.length} period{periods.length > 1 ? 's' : ''})
+                    </span>
+                  )}
+                </span>
               </div>
             )}
+
+            {/* Add another period button */}
+            {draftReady && (
+              <button onClick={addPeriod} style={{
+                appearance: 'none', border: `1.5px dashed ${TO.border}`,
+                background: 'transparent', cursor: 'pointer',
+                borderRadius: 10, padding: '10px 14px',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: TO.inkSoft,
+              }}>
+                <LucideIcon name="Plus" size={16} color={TO.inkSoft} strokeWidth={2.5} />
+                Add another period
+              </button>
+            )}
+
+            <div style={{ height: 8 }} />
           </div>
 
           <div style={{ padding: '16px', flexShrink: 0 }}>
             <TOPrimaryButton
-              onClick={() => setStep(2)}
-              disabled={!startDate}
+              onClick={handleContinueDates}
+              disabled={!canContinueDates}
             >Continue</TOPrimaryButton>
           </div>
         </div>
@@ -782,28 +957,60 @@ function RequestTimeOffScreen() {
             </p>
 
             {/* Summary card */}
-            <div style={{
-              background: TO.bg, borderRadius: 14, padding: '16px',
-              display: 'flex', flexDirection: 'column', gap: 0,
-            }}>
-              {[
-                ['Leave type', typeObj.label],
-                ['Date', isMultiDay && endDate && endDate.getTime() !== startDate.getTime()
-                  ? `${fmtDate(startDate)} – ${fmtDate(endDate)}`
-                  : fmtDate(startDate)],
-                ['Duration', fmtDays(workDays)],
-                ...(needsReason && reason ? [['Occasion', KLEIN_VERLET_REASONS.find(r => r.id === reason)?.label || '']] : []),
-                ...(note ? [['Note', note]] : []),
-              ].map(([label, value], i, arr) => (
-                <div key={label} style={{
-                  display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12,
-                  padding: '10px 0',
-                  borderBottom: i < arr.length - 1 ? `1px solid ${TO.divider}` : 'none',
-                }}>
-                  <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: TO.inkSoft }}>{label}</div>
-                  <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: TO.ink, textAlign: 'right', flex: 1, maxWidth: '60%' }}>{value}</div>
+            <div style={{ background: TO.bg, borderRadius: 14, padding: '16px', display: 'flex', flexDirection: 'column' }}>
+              {/* Leave type row */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, paddingBottom: 10, borderBottom: `1px solid ${TO.divider}` }}>
+                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: TO.inkSoft }}>Leave type</div>
+                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: TO.ink }}>{typeObj.label}</div>
+              </div>
+
+              {/* Periods */}
+              {periods.map((p, i) => {
+                const isSingle = p.startDate.getTime() === p.endDate.getTime();
+                const days = effectiveDaysForPeriod(p);
+                const halfSuffix = isSingle && supportsHalfDay && p.startHalf !== 'full' ? ` · ${p.startHalf}` : '';
+                return (
+                  <div key={p.id} style={{
+                    display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12,
+                    padding: '10px 0',
+                    borderBottom: (i < periods.length - 1 || needsReason || note) ? `1px solid ${TO.divider}` : 'none',
+                  }}>
+                    <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: TO.inkSoft }}>
+                      {periods.length > 1 ? `Period ${i + 1}` : 'Date'}
+                    </div>
+                    <div style={{ textAlign: 'right', flex: 1, maxWidth: '65%' }}>
+                      <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: TO.ink }}>
+                        {isSingle ? fmtDate(p.startDate) : `${fmtShort(p.startDate)} – ${fmtShort(p.endDate)}`}{halfSuffix}
+                      </div>
+                      <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 12, color: TO.inkSoft, marginTop: 2 }}>
+                        {fmtDays(days)}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+
+              {/* Total when multiple periods */}
+              {periods.length > 1 && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, padding: '10px 0', borderBottom: (needsReason || note) ? `1px solid ${TO.divider}` : 'none' }}>
+                  <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: TO.ink }}>Total</div>
+                  <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 14, color: TO.ink }}>{fmtDays(confirmedDays)}</div>
                 </div>
-              ))}
+              )}
+
+              {/* Occasion / note */}
+              {needsReason && reason && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, padding: '10px 0', borderBottom: note ? `1px solid ${TO.divider}` : 'none' }}>
+                  <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: TO.inkSoft }}>Occasion</div>
+                  <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: TO.ink, textAlign: 'right', flex: 1, maxWidth: '60%' }}>{KLEIN_VERLET_REASONS.find(r => r.id === reason)?.label}</div>
+                </div>
+              )}
+              {note && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, padding: '10px 0' }}>
+                  <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: TO.inkSoft }}>Note</div>
+                  <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: TO.ink, textAlign: 'right', flex: 1, maxWidth: '60%' }}>{note}</div>
+                </div>
+              )}
             </div>
 
             <div style={{
