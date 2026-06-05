@@ -3,7 +3,7 @@
 
 const NavContext = React.createContext(null);
 
-const TAB_IDS = ['home', 'benefits', 'budgets'];
+const TAB_IDS = ['home', 'benefits', 'budgets', 'timeoff'];
 
 function NavProvider({ children }) {
   // stacks: { home: [...], benefits: [...], budgets: [...] }
@@ -14,6 +14,7 @@ function NavProvider({ children }) {
     home:     [{ name: 'home' }],
     benefits: [{ name: 'benefits' }],
     budgets:  [{ name: 'budgets' }],
+    timeoff:  [{ name: 'timeoff' }],
   });
 
   const push = React.useCallback((name, params) => {

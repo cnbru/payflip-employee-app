@@ -46,13 +46,15 @@ const HomeIcon = ({ size = 26 }) => {
     }} />
   );
 };
-const StoreIcon  = (p) => <LucideIcon name="Store"  {...p} />;
-const WalletIcon = (p) => <LucideIcon name="Wallet" {...p} />;
+const StoreIcon    = (p) => <LucideIcon name="Store"        {...p} />;
+const WalletIcon   = (p) => <LucideIcon name="Wallet"       {...p} />;
+const CalendarIcon = (p) => <LucideIcon name="CalendarDays" {...p} />;
 
 const TABS = [
-  { id: 'home',     label: 'Home',     Icon: HomeIcon   },
-  { id: 'benefits', label: 'Benefits', Icon: StoreIcon  },
-  { id: 'budgets',  label: 'Budgets',  Icon: WalletIcon },
+  { id: 'home',     label: 'Home',     Icon: HomeIcon     },
+  { id: 'benefits', label: 'Benefits', Icon: StoreIcon    },
+  { id: 'budgets',  label: 'Budgets',  Icon: WalletIcon   },
+  { id: 'timeoff',  label: 'Time off', Icon: CalendarIcon },
 ];
 
 // ─────────────────────────────────────────────────────────────
@@ -101,7 +103,7 @@ function TabBar() {
 // ─────────────────────────────────────────────────────────────
 // App shell
 // ─────────────────────────────────────────────────────────────
-const FULLSCREEN_SCREENS = ['withdraw-cash', 'simulate-cash-out', 'pension-detail', 'edit-active-benefit', 'sign-addendum', 'bike-lease', 'pension-savings-detail', 'pension-savings-choice'];
+const FULLSCREEN_SCREENS = ['withdraw-cash', 'simulate-cash-out', 'pension-detail', 'edit-active-benefit', 'sign-addendum', 'bike-lease', 'pension-savings-detail', 'pension-savings-choice', 'request-time-off'];
 
 function AppShell() {
   const { activeTab, current } = useNav();

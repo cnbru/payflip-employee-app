@@ -541,6 +541,11 @@ function HomeScreen() {
         </div>
       )}
 
+      {/* Time off quick-access card */}
+      {window.TimeOffHomeCard && (
+        <window.TimeOffHomeCard onPress={() => nav && nav.switchTab('timeoff')} />
+      )}
+
       {/* Discover section — recommendations, highlights */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
         <SectionLabel title="Discover" />
