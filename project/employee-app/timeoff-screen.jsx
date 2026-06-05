@@ -40,6 +40,7 @@ const LEAVE_TYPES = [
     unit: 'days',
     multiDay: true,
     needsReason: false,
+    supportsHalfDay: true,
     description: 'Your annual paid vacation days',
   },
   {
@@ -54,6 +55,7 @@ const LEAVE_TYPES = [
     unit: 'days',
     multiDay: true,
     needsReason: false,
+    supportsHalfDay: true,
     description: 'Recuperation days from overtime hours',
   },
   {
@@ -68,6 +70,7 @@ const LEAVE_TYPES = [
     unit: 'event',
     multiDay: false,
     needsReason: true,
+    supportsHalfDay: false,
     description: 'Paid leave for special personal events',
   },
   {
@@ -82,6 +85,7 @@ const LEAVE_TYPES = [
     unit: 'days',
     multiDay: false,
     needsReason: false,
+    supportsHalfDay: false,
     description: 'No doctor\'s certificate needed (max 2×/year)',
   },
 ];
@@ -205,7 +209,7 @@ function HistoryRow({ item }) {
         <div style={{
           fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 13,
           color: TO.inkSoft, lineHeight: '18px',
-        }}>{item.dates} · {item.days} {item.days === 1 ? 'day' : 'days'}</div>
+        }}>{item.dates} · {item.days === 0.5 ? '½ day' : `${item.days} ${item.days === 1 ? 'day' : 'days'}`}</div>
       </div>
       <StatusPill status={item.status} />
     </div>
@@ -336,6 +340,43 @@ function MiniCalendar({ year, month, selected, onSelect, rangeEnd, rangeMode }) 
   );
 }
 
+// ── Half-day segmented control ──
+function HalfDayPicker({ label, value, onChange, options }) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+      {label && (
+        <div style={{
+          fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 12,
+          color: TO.inkSoft, textTransform: 'uppercase', letterSpacing: '0.05em',
+        }}>{label}</div>
+      )}
+      <div style={{
+        display: 'flex', gap: 0,
+        background: TO.bg, borderRadius: 10, padding: 3,
+        border: `1px solid ${TO.border}`,
+      }}>
+        {options.map(opt => (
+          <button key={opt.value} onClick={() => onChange(opt.value)}
+            style={{
+              flex: 1, appearance: 'none', cursor: 'pointer',
+              background: value === opt.value ? '#fff' : 'transparent',
+              border: value === opt.value ? `1px solid ${TO.border}` : '1px solid transparent',
+              borderRadius: 8, padding: '7px 4px',
+              fontFamily: 'var(--font-display)', fontWeight: value === opt.value ? 700 : 500,
+              fontSize: 13, color: value === opt.value ? TO.ink : TO.inkSoft,
+              boxShadow: value === opt.value ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+              transition: 'all 120ms ease-out',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4,
+            }}>
+            {opt.icon && <LucideIcon name={opt.icon} size={12} color={value === opt.value ? TO.ink : TO.inkSoft} strokeWidth={2} />}
+            {opt.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function RequestTimeOffScreen() {
   const { pop, reset, switchTab } = useNav();
   const [step, setStep] = React.useState(0);
@@ -343,6 +384,9 @@ function RequestTimeOffScreen() {
   const [startDate, setStartDate] = React.useState(null);
   const [endDate, setEndDate] = React.useState(null);
   const [datePickMode, setDatePickMode] = React.useState('start'); // 'start' | 'end'
+  // Half-day: 'full' | 'morning' | 'afternoon'
+  const [startHalf, setStartHalf] = React.useState('full');
+  const [endHalf, setEndHalf] = React.useState('full');
   const [reason, setReason] = React.useState(null);
   const [note, setNote] = React.useState('');
 
@@ -353,6 +397,10 @@ function RequestTimeOffScreen() {
   const typeObj = LEAVE_TYPES.find(t => t.id === leaveType);
   const isMultiDay = typeObj && typeObj.multiDay;
   const needsReason = typeObj && typeObj.needsReason;
+  const supportsHalfDay = typeObj && typeObj.supportsHalfDay;
+
+  // Reset half-day when dates change
+  React.useEffect(() => { setStartHalf('full'); setEndHalf('full'); }, [startDate, endDate]);
 
   // Count working days between two dates
   function countWorkDays(start, end) {
@@ -369,9 +417,31 @@ function RequestTimeOffScreen() {
     return count;
   }
 
-  const workDays = isMultiDay
-    ? countWorkDays(startDate, endDate || startDate)
-    : startDate ? 1 : 0;
+  const isSingleDay = startDate && (!endDate || startDate.getTime() === (endDate || startDate).getTime());
+
+  // Effective days accounting for half-day selections
+  function getEffectiveDays() {
+    if (!startDate) return 0;
+    const base = isMultiDay ? countWorkDays(startDate, endDate || startDate) : 1;
+    if (!supportsHalfDay) return base;
+    let deduct = 0;
+    if (isSingleDay) {
+      // single day: morning or afternoon = 0.5
+      if (startHalf === 'morning' || startHalf === 'afternoon') deduct = 0.5;
+    } else {
+      if (startHalf === 'afternoon') deduct += 0.5;
+      if (endHalf === 'morning') deduct += 0.5;
+    }
+    return Math.max(0.5, base - deduct);
+  }
+
+  const workDays = getEffectiveDays();
+
+  function fmtDays(d) {
+    if (d === 0.5) return '½ day';
+    if (d % 1 === 0.5) return `${Math.floor(d)}½ days`;
+    return `${d} working day${d !== 1 ? 's' : ''}`;
+  }
 
   function fmtDate(d) {
     if (!d) return '';
@@ -400,13 +470,16 @@ function RequestTimeOffScreen() {
   }
 
   function handleSubmit() {
+    const halfLabel = isSingleDay && startHalf !== 'full'
+      ? ` (${startHalf})`
+      : '';
     const newReq = {
       id: `req-${Date.now()}`,
       type: leaveType,
       label: typeObj.label,
-      dates: isMultiDay && endDate && endDate.getTime() !== startDate.getTime()
+      dates: (isMultiDay && endDate && endDate.getTime() !== startDate.getTime()
         ? `${fmtDate(startDate)} – ${fmtDate(endDate)}`
-        : fmtDate(startDate),
+        : fmtDate(startDate)) + halfLabel,
       days: workDays,
       status: 'pending',
     };
@@ -555,6 +628,43 @@ function RequestTimeOffScreen() {
               onSelect={handleDateSelect}
             />
 
+            {/* Half-day pickers — only for supported leave types after date is selected */}
+            {supportsHalfDay && startDate && (
+              isSingleDay ? (
+                <HalfDayPicker
+                  label="Duration"
+                  value={startHalf}
+                  onChange={setStartHalf}
+                  options={[
+                    { value: 'full',      label: 'Full day',  icon: 'Sun'      },
+                    { value: 'morning',   label: 'Morning',   icon: 'Sunrise'  },
+                    { value: 'afternoon', label: 'Afternoon', icon: 'Sunset'   },
+                  ]}
+                />
+              ) : endDate && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  <HalfDayPicker
+                    label="First day starts"
+                    value={startHalf}
+                    onChange={setStartHalf}
+                    options={[
+                      { value: 'full',      label: 'Morning (full)' },
+                      { value: 'afternoon', label: 'Afternoon only'  },
+                    ]}
+                  />
+                  <HalfDayPicker
+                    label="Last day ends"
+                    value={endHalf}
+                    onChange={setEndHalf}
+                    options={[
+                      { value: 'full',    label: 'Evening (full)' },
+                      { value: 'morning', label: 'Midday only'    },
+                    ]}
+                  />
+                </div>
+              )
+            )}
+
             {workDays > 0 && (
               <div style={{
                 background: TO.blueBg, border: `1px solid ${TO.blueBorder}`,
@@ -562,7 +672,7 @@ function RequestTimeOffScreen() {
                 fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14,
                 color: TO.blueText,
               }}>
-                {workDays} working day{workDays !== 1 ? 's' : ''} selected
+                {fmtDays(workDays)} selected
               </div>
             )}
           </div>
@@ -681,7 +791,7 @@ function RequestTimeOffScreen() {
                 ['Date', isMultiDay && endDate && endDate.getTime() !== startDate.getTime()
                   ? `${fmtDate(startDate)} – ${fmtDate(endDate)}`
                   : fmtDate(startDate)],
-                ['Duration', `${workDays} working day${workDays !== 1 ? 's' : ''}`],
+                ['Duration', fmtDays(workDays)],
                 ...(needsReason && reason ? [['Occasion', KLEIN_VERLET_REASONS.find(r => r.id === reason)?.label || '']] : []),
                 ...(note ? [['Note', note]] : []),
               ].map(([label, value], i, arr) => (
