@@ -3,10 +3,10 @@
 
 const NavContext = React.createContext(null);
 
-const TAB_IDS = ['home', 'benefits', 'budgets'];
+const TAB_IDS = ['home', 'benefits', 'budgets', 'personal'];
 
 function NavProvider({ children }) {
-  // stacks: { home: [...], benefits: [...], budgets: [...] }
+  // stacks: { home: [...], benefits: [...], budgets: [...], personal: [...] }
   // each entry: { name: string, params?: object }
   // The bottom of every stack is the tab's root screen.
   const [activeTab, setActiveTab] = React.useState('home');
@@ -14,6 +14,7 @@ function NavProvider({ children }) {
     home:     [{ name: 'home' }],
     benefits: [{ name: 'benefits' }],
     budgets:  [{ name: 'budgets' }],
+    personal: [{ name: 'personal' }],
   });
 
   const push = React.useCallback((name, params) => {

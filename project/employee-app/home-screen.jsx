@@ -198,13 +198,13 @@ function HomeHeader() {
         fontWeight: 700, fontSize: 28, lineHeight: '36px',
         letterSpacing: '-0.007em', color: C.ink, margin: 0
       }}>Hi David</h1>
-      <button aria-label="Profile" onClick={() => {}} style={{
+      <button aria-label="Help" onClick={() => {}} style={{
         width: 32, height: 32, borderRadius: 999,
         background: C.purpleSoft, border: 'none', cursor: 'pointer',
         display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
         color: C.inkDarker, padding: 0
       }}>
-        <LucideIcon name="User" size={18} color={C.inkDarker} strokeWidth={2} />
+        <LucideIcon name="CircleHelp" size={18} color={C.inkDarker} strokeWidth={2} />
       </button>
     </div>);
 
