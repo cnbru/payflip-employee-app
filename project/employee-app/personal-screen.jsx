@@ -1,15 +1,26 @@
 // Personal tab — hub screen for employee-centric features.
 // Design reference: Figma node 1872-16071
 
-// ── Shared time-off state ────────────────────────────────────
-if (!window.__timeOffItems) {
-  window.__timeOffItems = [
-    { id: 'u1', label: 'Legal holiday', date: 'Aug 3–7', month: 'August',    days: 5, status: 'approved' },
-    { id: 'u4', label: 'ADV day',       date: 'Aug 21',  month: 'August',    days: 1, status: 'approved' },
-    { id: 'u2', label: 'ADV day',       date: 'Sep 11',  month: 'September', days: 1, status: 'pending'  },
-    { id: 'u5', label: 'Short leave',   date: 'Sep 18',  month: 'September', days: 1, status: 'pending'  },
-    { id: 'u3', label: 'Short leave',   date: 'Dec 1',   month: 'December',  days: 1, status: 'denied'   },
-  ];
+// ── Prototype state: ?state=fresh for new user, default for returning user ──
+const _protoState = new URLSearchParams(window.location.search).get('state');
+
+if (!window.__timeOffItems || window.__protoStateApplied !== _protoState) {
+  window.__protoStateApplied = _protoState;
+  if (_protoState === 'fresh') {
+    // Fresh user: full balance, no requests yet
+    window.__timeOffItems = [];
+    window.__timeOffTaken = 0;
+  } else {
+    // Returning user: some history
+    window.__timeOffItems = [
+      { id: 'u1', label: 'Legal holiday', date: 'Aug 3–7', month: 'August',    days: 5, status: 'approved' },
+      { id: 'u4', label: 'ADV day',       date: 'Aug 21',  month: 'August',    days: 1, status: 'approved' },
+      { id: 'u2', label: 'ADV day',       date: 'Sep 11',  month: 'September', days: 1, status: 'pending'  },
+      { id: 'u5', label: 'Short leave',   date: 'Sep 18',  month: 'September', days: 1, status: 'pending'  },
+      { id: 'u3', label: 'Short leave',   date: 'Dec 1',   month: 'December',  days: 1, status: 'denied'   },
+    ];
+    window.__timeOffTaken = 18;
+  }
 }
 
 const P = {
@@ -135,6 +146,46 @@ function PersonalScreen() {
           color: P.ink, lineHeight: '24px',
         }}>Logout</button>
       </div>
+
+      {/* Prototype persona switcher */}
+      {(() => {
+        const current = new URLSearchParams(window.location.search).get('state');
+        const isFresh = current === 'fresh';
+        const switchTo = (state) => {
+          const url = new URL(window.location);
+          if (state) { url.searchParams.set('state', state); } else { url.searchParams.delete('state'); }
+          window.location.href = url.toString();
+        };
+        return (
+          <div style={{ padding: '0 24px 24px' }}>
+            <div style={{
+              fontFamily: 'var(--font-body)', fontSize: 11, fontWeight: 500,
+              color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.05em',
+              marginBottom: 8, textAlign: 'center',
+            }}>Prototype persona</div>
+            <div style={{
+              display: 'flex', background: P.surface, borderRadius: 10, padding: 3,
+            }}>
+              <button onClick={() => switchTo(null)} style={{
+                flex: 1, appearance: 'none', border: 'none', cursor: 'pointer',
+                borderRadius: 8, padding: '8px 0',
+                background: !isFresh ? 'white' : 'transparent',
+                boxShadow: !isFresh ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13,
+                color: !isFresh ? P.ink : P.inkSoft,
+              }}>Returning user</button>
+              <button onClick={() => switchTo('fresh')} style={{
+                flex: 1, appearance: 'none', border: 'none', cursor: 'pointer',
+                borderRadius: 8, padding: '8px 0',
+                background: isFresh ? 'white' : 'transparent',
+                boxShadow: isFresh ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13,
+                color: isFresh ? P.ink : P.inkSoft,
+              }}>New user</button>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }
@@ -176,7 +227,7 @@ function TimeOffHubScreen() {
   // Balance — derived from live items list
   const items    = window.__timeOffItems || [];
   const total    = 40;
-  const taken    = 18;
+  const taken    = window.__timeOffTaken || 0;
   const approved  = items.filter(i => i.status === 'approved').reduce((sum, i) => sum + i.days, 0);
   const requested = items.filter(i => i.status === 'pending').reduce((sum, i)  => sum + i.days, 0);
   const available = total - taken - approved - requested;
@@ -374,11 +425,11 @@ function TimeOffHubScreen() {
                           <div style={{
                             fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14,
                             color: P.ink, lineHeight: '20px',
-                          }}>{item.days === 1 ? '1 day' : `${item.days} days`}</div>
+                          }}>{item.date}</div>
                           <div style={{
                             fontFamily: 'var(--font-body)', fontWeight: 400, fontSize: 12,
                             color: P.inkSoft,
-                          }}>{item.date}</div>
+                          }}>{item.days === 1 ? '1 day' : `${item.days} days`}</div>
                         </div>
                       </div>
                     );
@@ -388,8 +439,29 @@ function TimeOffHubScreen() {
             </div>
           );
 
+          const hasAny = pending.length > 0 || upcoming.length > 0 || past.length > 0;
+
           return (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+              {!hasAny && (
+                <div style={{
+                  display: 'flex', flexDirection: 'column', alignItems: 'center',
+                  padding: '32px 16px', textAlign: 'center', gap: 12,
+                }}>
+                  <div style={{
+                    width: 56, height: 56, borderRadius: '50%', background: '#f3f4f6',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  }}>
+                    <LucideIcon name="CalendarDays" size={28} color="#9ca3af" strokeWidth={1.5} />
+                  </div>
+                  <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.ink }}>
+                    No time off yet
+                  </div>
+                  <div style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, lineHeight: '20px', maxWidth: 260 }}>
+                    You have {available} days available. Tap below to request your first day off.
+                  </div>
+                </div>
+              )}
               {pending.length > 0 && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                   <SectionTitle label="Pending requests" />
@@ -437,17 +509,17 @@ function TimeOffHubScreen() {
         const LEAVE_TYPES = [
           {
             name: 'Statutory annual leave',
-            remaining: 2, total: 20,
+            remaining: _isFreshUser ? 20 : 2, total: 20,
             rule: 'Expires Dec 31, 2026. Carry-over only if blocked by certified long-term illness.',
           },
           {
             name: 'ADV / RTT',
-            remaining: 5, total: 12,
+            remaining: _isFreshUser ? 12 : 5, total: 12,
             rule: 'Expires Dec 31, 2026. No carry-over, no cash payout permitted.',
           },
           {
             name: 'Extra-legal leave',
-            remaining: 3, total: 4,
+            remaining: _isFreshUser ? 4 : 3, total: 4,
             rule: 'Up to 2 days carry until Mar 31, 2027. Remaining balance expires Dec 31.',
           },
           {
@@ -647,11 +719,12 @@ function computeWorkingDays(start, end) {
 }
 
 // Leave balances — shared with the balance info sheet
+const _isFreshUser = _protoState === 'fresh';
 const LEAVE_BALANCES = [
-  { type: 'Illness carry-over (2024)', remaining: 4, total: 4,  priority: 0, urgent: true,  label: 'Carry-over' },
-  { type: 'ADV / RTT',                 remaining: 5, total: 12, priority: 1, urgent: false, label: 'ADV day' },
-  { type: 'Extra-legal leave',          remaining: 3, total: 4,  priority: 2, urgent: false, label: 'Extra-legal' },
-  { type: 'Statutory annual leave',     remaining: 2, total: 20, priority: 3, urgent: false, label: 'Legal holiday' },
+  { type: 'Illness carry-over (2024)', remaining: _isFreshUser ? 4 : 4,  total: 4,  priority: 0, urgent: true,  label: 'Carry-over' },
+  { type: 'ADV / RTT',                 remaining: _isFreshUser ? 12 : 5, total: 12, priority: 1, urgent: false, label: 'ADV day' },
+  { type: 'Extra-legal leave',          remaining: _isFreshUser ? 4 : 3,  total: 4,  priority: 2, urgent: false, label: 'Extra-legal' },
+  { type: 'Statutory annual leave',     remaining: _isFreshUser ? 20 : 2, total: 20, priority: 3, urgent: false, label: 'Legal holiday' },
 ];
 
 function allocateLeave(days) {
