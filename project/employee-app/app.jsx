@@ -103,7 +103,7 @@ function TabBar() {
 // ─────────────────────────────────────────────────────────────
 // App shell
 // ─────────────────────────────────────────────────────────────
-const FULLSCREEN_SCREENS = ['withdraw-cash', 'simulate-cash-out', 'pension-detail', 'edit-active-benefit', 'sign-addendum', 'bike-lease', 'pension-savings-detail', 'pension-savings-choice', 'time-off-hub', 'time-off-detail', 'request-time-off', 'report-illness'];
+const FULLSCREEN_SCREENS = ['withdraw-cash', 'simulate-cash-out', 'pension-detail', 'edit-active-benefit', 'sign-addendum', 'bike-lease', 'pension-savings-detail', 'pension-savings-choice', 'time-off-hub', 'time-off-detail', 'time-off-history', 'request-time-off', 'report-illness'];
 
 function AppShell() {
   const { activeTab, current } = useNav();
