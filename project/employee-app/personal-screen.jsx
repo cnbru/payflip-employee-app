@@ -205,13 +205,13 @@ window.registerScreen('personal', PersonalScreen);
 
 // Leave type → icon/colour chip (used in hub list + detail screen)
 const LEAVE_TYPE_CHIP = {
-  'Legal holiday':    { icon: 'Palmtree',   bg: '#dbeafe', color: '#2563eb' },
-  'ADV day':          { icon: 'Coffee',     bg: '#fef3c7', color: '#d97706' },
-  'Extra-legal leave':{ icon: 'Sparkles',   bg: '#ede9fe', color: '#7c3aed' },
+  'Legal holiday':    { icon: 'Palmtree',   bg: '#eef4fb', color: '#2563eb' },
+  'ADV day':          { icon: 'Coffee',     bg: '#faf6eb', color: '#d97706' },
+  'Extra-legal leave':{ icon: 'Sparkles',   bg: '#f3f1fa', color: '#7c3aed' },
   'Short leave':      { icon: 'Shield',     bg: '#f3f4f6', color: '#6b7280' },
-  'Sick leave':       { icon: 'Heart',      bg: '#fce7f3', color: '#db2777' },
-  'Sick leave (with medical certificate)': { icon: 'Heart', bg: '#fce7f3', color: '#db2777' },
-  'Parental leave':   { icon: 'Baby',       bg: '#fdf2f8', color: '#a21caf' },
+  'Sick leave':       { icon: 'Heart',      bg: '#faf0f5', color: '#db2777' },
+  'Sick leave (with medical certificate)': { icon: 'Heart', bg: '#faf0f5', color: '#db2777' },
+  'Parental leave':   { icon: 'Baby',       bg: '#f9f1f7', color: '#a21caf' },
 };
 const _getLeaveChip = (label) => LEAVE_TYPE_CHIP[label] || { icon: 'Calendar', bg: '#f3f4f6', color: P.inkSoft };
 
@@ -282,7 +282,7 @@ function TimeOffHubScreen() {
       </div>
 
       {/* Scrollable content */}
-      <div style={{ flex: 1, padding: '0 16px', display: 'flex', flexDirection: 'column', gap: 32 }}>
+      <div style={{ flex: 1, padding: '0 16px 24px', display: 'flex', flexDirection: 'column', gap: 32 }}>
 
         {/* Balance section */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -306,8 +306,8 @@ function TimeOffHubScreen() {
 
         {/* Balance card */}
         <div style={{
-          background: '#f7f7f8', borderRadius: 16, padding: '24px',
-          display: 'flex', flexDirection: 'column', gap: 0,
+          background: '#f7f7f8', borderRadius: 16, padding: '20px 24px',
+          display: 'flex', flexDirection: 'column', gap: 16,
           position: 'relative',
         }}>
           {/* Info icon — top right */}
@@ -338,6 +338,26 @@ function TimeOffHubScreen() {
             }}>days</span></div>
           </div>
 
+          {/* Per-type breakdown */}
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+            {LEAVE_BALANCES.filter(b => b.remaining > 0).map(b => (
+              <div key={b.type} style={{
+                display: 'inline-flex', alignItems: 'center', gap: 4,
+                padding: '4px 10px', borderRadius: 8,
+                background: b.urgent ? 'rgba(185,28,28,0.08)' : 'rgba(15,13,40,0.06)',
+              }}>
+                <span style={{
+                  fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 13,
+                  color: b.urgent ? 'rgb(185,28,28)' : P.ink,
+                }}>{b.remaining}</span>
+                <span style={{
+                  fontFamily: 'var(--font-body)', fontWeight: 400, fontSize: 12,
+                  color: b.urgent ? 'rgb(185,28,28)' : P.inkSoft,
+                }}>{b.type === 'Illness carry-over (2024)' ? 'carry-over' : b.type === 'Statutory annual leave' ? 'statutory' : b.type === 'ADV / RTT' ? 'ADV' : 'extra-legal'}</span>
+              </div>
+            ))}
+          </div>
+
         </div>
         </div>{/* end Leave balance section */}
 
@@ -346,9 +366,9 @@ function TimeOffHubScreen() {
           const ALL = window.__timeOffItems || [];
 
           const STATUS = {
-            approved: { label: 'Approved by Sophie L.',  color: 'rgb(22,163,74)',  iconBg: 'rgb(220,252,231)', icon: 'Palmtree' },
-            pending:  { label: 'Pending — Sophie L.',    color: 'rgb(161,98,7)',   iconBg: 'rgb(254,243,199)', icon: 'Clock'    },
-            denied:   { label: 'Denied by Sophie L.',    color: 'rgb(185,28,28)',  iconBg: 'rgb(255,235,235)', icon: 'CircleX'  },
+            approved: { label: 'Approved by Sophie L.',  color: 'rgb(22,163,74)',  iconBg: 'rgb(236,247,239)', icon: 'Palmtree' },
+            pending:  { label: 'Pending — Sophie L.',    color: 'rgb(161,98,7)',   iconBg: 'rgb(250,246,235)', icon: 'Clock'    },
+            denied:   { label: 'Denied by Sophie L.',    color: 'rgb(185,28,28)',  iconBg: 'rgb(251,241,241)', icon: 'CircleX'  },
           };
 
           const pending  = ALL.filter(i => i.status === 'pending' || i.status === 'denied');
@@ -397,7 +417,7 @@ function TimeOffHubScreen() {
             </div>
           );
 
-          const ItemCard = ({ items }) => (
+          const ItemCard = ({ items, hideStatus }) => (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               {toGroups(items).map(({ month, items: groupItems }) => (
                 <div key={month} style={{
@@ -439,7 +459,8 @@ function TimeOffHubScreen() {
                           <div style={{
                             fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14,
                             color: P.ink, lineHeight: '20px',
-                          }}>{item.label}</div>
+                          }}>{item.date} · {item.days === 1 ? '1 day' : `${item.days} days`}</div>
+                          {!hideStatus && (
                           <div style={{
                             display: 'inline-flex', alignItems: 'center', gap: 4,
                             fontFamily: 'var(--font-body)', fontWeight: 400, fontSize: 12,
@@ -448,16 +469,13 @@ function TimeOffHubScreen() {
                             <span aria-hidden="true" style={{ fontSize: 10 }}>●</span>
                             {st.label}
                           </div>
+                          )}
                         </div>
                         <div style={{ textAlign: 'right', flexShrink: 0 }}>
                           <div style={{
-                            fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14,
-                            color: P.ink, lineHeight: '20px',
-                          }}>{item.date}</div>
-                          <div style={{
-                            fontFamily: 'var(--font-body)', fontWeight: 400, fontSize: 12,
-                            color: P.inkSoft,
-                          }}>{item.days === 1 ? '1 day' : `${item.days} days`}</div>
+                            fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 13,
+                            color: P.inkSoft, lineHeight: '20px',
+                          }}>{item.label}</div>
                         </div>
                       </div>
                     );
@@ -493,7 +511,7 @@ function TimeOffHubScreen() {
               {pending.length > 0 && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                   <SectionTitle label="Pending requests" />
-                  <ItemCard items={pending} />
+                  <ItemCard items={pending} hideStatus />
                 </div>
               )}
               {upcoming.length > 0 && (
@@ -1149,7 +1167,7 @@ const SPECIAL_LEAVE_OPTIONS = [
 ];
 
 // ── Main Request Screen ──
-function RequestTimeOffScreen({ editItem, prefillReason }) {
+function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
   const nav = window.useNav ? window.useNav() : null;
 
   // Parse edit data — supports both enriched (_startISO etc.) and legacy (date/month/label) items
@@ -1211,30 +1229,40 @@ function RequestTimeOffScreen({ editItem, prefillReason }) {
   // Existing request dates for calendar dots
   const existingDates = React.useMemo(() => getExistingRequestDates(editItem?.id), []);
 
+  // Prune half-day entries to only keep dates within the new [start, end] range
+  const _pruneHalfDay = (hd, newStart, newEnd) => {
+    if (!hd || !newStart || !newEnd) return null;
+    const pruned = {};
+    for (const iso in hd) {
+      const p = iso.split('-');
+      const dt = new Date(+p[0], +p[1]-1, +p[2]);
+      if (dt >= newStart && dt <= newEnd) pruned[iso] = hd[iso];
+    }
+    return Object.keys(pruned).length > 0 ? pruned : null;
+  };
+
   // Calendar date tap — driven by focusedField
   const handleDateTap = (d) => {
     setError('');
-    setHalfDay(null);
     if (focusedField === 'start') {
       setStartDate(d);
-      // If end date exists and is before new start, update it too
+      const newEnd = (endDate && d > endDate) ? d : endDate;
       if (endDate && d > endDate) setEndDate(d);
-      // Auto-switch focus to end date
+      setHalfDay(prev => _pruneHalfDay(prev, d, newEnd));
       setFocusedField('end');
-      // Navigate calendar to this month
       setCalMonth(d.getMonth());
       setCalYear(d.getFullYear());
     } else {
-      // focusedField === 'end' (or null, treat as end)
       if (!startDate) {
-        // No start yet — set both
         setStartDate(d); setEndDate(d);
+        setHalfDay(prev => _pruneHalfDay(prev, d, d));
         setFocusedField('end');
       } else if (d < startDate) {
-        // Tapped before start — move start here, keep end
         setStartDate(d);
+        setHalfDay(prev => _pruneHalfDay(prev, d, endDate));
       } else {
         setEndDate(d);
+        setHalfDay(prev => _pruneHalfDay(prev, startDate, d));
       }
       setCalMonth(d.getMonth());
       setCalYear(d.getFullYear());
@@ -1350,7 +1378,12 @@ function RequestTimeOffScreen({ editItem, prefillReason }) {
         // Update existing item
         window.__timeOffItems = (window.__timeOffItems || []).map(i => i.id === editItem.id ? newItem : i);
       } else {
-        window.__timeOffItems = [...(window.__timeOffItems || []), newItem];
+        // Remove the denied item we're replacing (if any) only on successful submit
+        let items = window.__timeOffItems || [];
+        if (replaceDeniedItem) {
+          items = items.filter(i => i.id !== replaceDeniedItem.id);
+        }
+        window.__timeOffItems = [...items, newItem];
       }
       setSubmitting(false);
       setStep(1);
@@ -1372,7 +1405,16 @@ function RequestTimeOffScreen({ editItem, prefillReason }) {
 
     // Per-leave-type personality
     const successConfig = (() => {
-      if (editItem) return { icon: 'Check', iconBg: PFC.successBg, iconColor: PFC.successText, heading: 'Request updated!', message: 'Your changes have been saved.' };
+      if (editItem) {
+        const wasApproved = editItem.status === 'approved';
+        return {
+          icon: wasApproved ? 'Clock' : 'Check',
+          iconBg: wasApproved ? 'rgb(250,246,235)' : PFC.successBg,
+          iconColor: wasApproved ? 'rgb(161,98,7)' : PFC.successText,
+          heading: wasApproved ? 'Re-submitted for approval' : 'Request updated!',
+          message: wasApproved ? 'Your approved leave was changed — Sophie L. will review the update.' : 'Your changes have been saved.',
+        };
+      }
       switch (leaveReason) {
         case 'sick-self':
           return { icon: 'Heart', iconBg: '#fce7f3', iconColor: '#db2777', heading: 'Take care of yourself', message: 'Rest up — we hope you feel better soon.' };
@@ -2350,13 +2392,9 @@ function TimeOffDetailScreen({ item }) {
               };
               return (
                 <Button variant="primary" size="large" fullWidth onClick={() => {
-                  if (window.__timeOffItems) {
-                    window.__timeOffItems = window.__timeOffItems.filter(i => i.id !== item.id);
-                  }
                   nav && nav.pop();
                   setTimeout(() => {
-                    window.__refreshTimeOff && window.__refreshTimeOff();
-                    nav && nav.push('request-time-off', { prefillReason: _labelToReason[item.label] || null });
+                    nav && nav.push('request-time-off', { prefillReason: _labelToReason[item.label] || null, replaceDeniedItem: item });
                   }, 50);
                 }}>
                   Request again
