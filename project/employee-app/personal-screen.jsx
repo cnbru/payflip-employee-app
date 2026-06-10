@@ -424,6 +424,28 @@ function TimeOffHubScreen() {
             </div>
           );
 
+          const DeniedReasonToggle = ({ reason }) => {
+            const [open, setOpen] = React.useState(false);
+            return (
+              <div style={{ marginTop: 2 }}>
+                {!open ? (
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setOpen(true); }}
+                    style={{
+                      appearance: 'none', border: 'none', background: 'transparent',
+                      padding: 0, cursor: 'pointer',
+                      fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: 12,
+                      color: P.inkSoft, textDecoration: 'underline', textUnderlineOffset: 2,
+                    }}>Why?</button>
+                ) : (
+                  <div style={{ fontFamily: 'var(--font-body)', fontWeight: 400, fontSize: 12, color: P.inkSoft }}>
+                    {reason}
+                  </div>
+                )}
+              </div>
+            );
+          };
+
           const ItemCard = ({ items, hideStatus, showDenialReason }) => (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               {toGroups(items).map(({ month, items: groupItems }) => (
@@ -478,12 +500,7 @@ function TimeOffHubScreen() {
                           </div>
                           )}
                           {showDenialReason && item._denialReason && (
-                          <div style={{
-                            fontFamily: 'var(--font-body)', fontWeight: 400, fontSize: 12,
-                            color: P.inkSoft, marginTop: 2,
-                          }}>
-                            {item._denialReason}
-                          </div>
+                            <DeniedReasonToggle reason={item._denialReason} />
                           )}
                         </div>
                         <div style={{ textAlign: 'right', flexShrink: 0 }}>
