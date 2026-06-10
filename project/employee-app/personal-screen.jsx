@@ -1603,18 +1603,6 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
             </button>
           </div>
 
-          {/* Live working-day count while selecting */}
-          {startDate && endDate && totalDays > 0 && (
-            <div style={{
-              textAlign: 'center', padding: '6px 0 2px',
-              fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13,
-              color: overBalance > 0 ? '#92400e' : PFC.successText,
-            }}>
-              {totalDays === 0.5 ? '½ working day' : totalDays === 1 ? '1 working day' : `${totalDays} working days`}
-              {overBalance > 0 && <span style={{ fontWeight: 500 }}> · exceeds by {overBalance === 0.5 ? '½' : overBalance}</span>}
-            </div>
-          )}
-
           {/* Inline calendar */}
           <div style={{ marginBottom: 16, position: 'relative' }}>
             <MiniCalendar
