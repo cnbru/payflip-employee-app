@@ -286,11 +286,7 @@ function TimeOffHubScreen() {
 
         {/* Balance section */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <h2 style={{
-            fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 17,
-            letterSpacing: '-0.003em', color: P.ink, margin: 0,
-          }}>Leave balance</h2>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
           {past.length > 0 && (
             <button
               aria-label="View leave history"
@@ -323,46 +319,28 @@ function TimeOffHubScreen() {
             <LucideIcon name="Info" size={16} color={P.inkSoft} strokeWidth={1.75} />
           </button>
 
-          {/* Available — hero number at top */}
-          <div>
-            <div style={{
-              fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 13,
-              color: P.inkSoft, letterSpacing: '0.01em', marginBottom: 0,
-            }}>Available</div>
-            <div style={{
-              fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 52,
-              letterSpacing: '-0.05em', color: P.ink, lineHeight: '54px',
-            }}>{available}<span style={{
-              fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 18,
-              letterSpacing: '-0.01em', color: P.inkSoft, marginLeft: 8,
-            }}>days</span></div>
-          </div>
-
-          {/* Per-type breakdown */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-            {LEAVE_BALANCES.filter(b => b.remaining > 0).map((b, i, arr) => {
-              const label = b.type === 'Illness carry-over (2024)' ? 'Carry-over (2024)'
-                : b.type === 'Statutory annual leave' ? 'Statutory leave'
-                : b.type === 'ADV / RTT' ? 'ADV / RTT'
-                : 'Extra-legal leave';
-              return (
-                <div key={b.type} style={{
-                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                  padding: '7px 0',
-                  borderBottom: i < arr.length - 1 ? `1px solid ${P.border}` : 'none',
-                }}>
-                  <span style={{
-                    fontFamily: 'var(--font-body)', fontWeight: 400, fontSize: 13,
-                    color: b.urgent ? 'rgb(185,28,28)' : P.ink,
-                  }}>{label}</span>
-                  <span style={{
-                    fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 13,
-                    color: b.urgent ? 'rgb(185,28,28)' : P.ink,
-                  }}>{b.remaining} <span style={{ fontWeight: 400, color: b.urgent ? 'rgb(185,28,28)' : P.inkSoft }}>day{b.remaining !== 1 ? 's' : ''}</span></span>
-                </div>
-              );
-            })}
-          </div>
+          {/* Hero — statutory + ADV */}
+          {(() => {
+            const stat = LEAVE_BALANCES.find(b => b.type === 'Statutory annual leave');
+            const adv  = LEAVE_BALANCES.find(b => b.type === 'ADV / RTT');
+            const heroTotal = (stat ? stat.remaining : 0) + (adv ? adv.remaining : 0);
+            return React.createElement('div', null,
+              React.createElement('div', { style: {
+                fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 13,
+                color: P.inkSoft, letterSpacing: '0.01em', marginBottom: 0,
+              }}, 'Available'),
+              React.createElement('div', { style: {
+                fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 52,
+                letterSpacing: '-0.05em', color: P.ink, lineHeight: '54px',
+              }}, heroTotal, React.createElement('span', { style: {
+                fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 18,
+                letterSpacing: '-0.01em', color: P.inkSoft, marginLeft: 8,
+              }}, 'days')),
+              React.createElement('div', { style: {
+                fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, marginTop: 4,
+              }}, 'Statutory annual leave + ADV / RTT'),
+            );
+          })()}
 
         </div>
         </div>{/* end Leave balance section */}
@@ -424,29 +402,7 @@ function TimeOffHubScreen() {
             </div>
           );
 
-          const DeniedReasonToggle = ({ reason }) => {
-            const [open, setOpen] = React.useState(false);
-            return (
-              <div style={{ marginTop: 2 }}>
-                {!open ? (
-                  <button
-                    onClick={(e) => { e.stopPropagation(); setOpen(true); }}
-                    style={{
-                      appearance: 'none', border: 'none', background: 'transparent',
-                      padding: 0, cursor: 'pointer',
-                      fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: 12,
-                      color: P.inkSoft, textDecoration: 'underline', textUnderlineOffset: 2,
-                    }}>Why?</button>
-                ) : (
-                  <div style={{ fontFamily: 'var(--font-body)', fontWeight: 400, fontSize: 12, color: P.inkSoft }}>
-                    {reason}
-                  </div>
-                )}
-              </div>
-            );
-          };
-
-          const ItemCard = ({ items, hideStatus, showDenialReason }) => (
+          const ItemCard = ({ items, hideStatus }) => (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               {toGroups(items).map(({ month, items: groupItems }) => (
                 <div key={month} style={{
@@ -499,9 +455,6 @@ function TimeOffHubScreen() {
                             {st.label}
                           </div>
                           )}
-                          {showDenialReason && item._denialReason && (
-                            <DeniedReasonToggle reason={item._denialReason} />
-                          )}
                         </div>
                         <div style={{ textAlign: 'right', flexShrink: 0 }}>
                           <div style={{
@@ -549,7 +502,7 @@ function TimeOffHubScreen() {
               {denied.length > 0 && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                   <SectionTitle label="Denied" />
-                  <ItemCard items={denied} showDenialReason />
+                  <ItemCard items={denied} />
                 </div>
               )}
               {upcoming.length > 0 && (
@@ -1192,17 +1145,25 @@ const LEAVE_REASONS = [
   { id: 'statutory',    label: 'Statutory annual leave' },
   { id: 'adv',          label: 'ADV / RTT days' },
   { id: 'extra-legal',  label: 'Extra-legal leave' },
-  { id: 'sick-self',    label: 'Sick leave (self-certified, max 1 day)' },
-  { id: 'sick-cert',    label: 'Sick leave (with medical certificate)' },
+  { id: 'sick',         label: 'Sick leave' },
   { id: 'special',      label: 'Special leave (events/milestones)', hasSubMenu: true },
 ];
 const SPECIAL_LEAVE_OPTIONS = [
-  { id: 'special-wedding',  label: 'Wedding (yours or close family)' },
-  { id: 'special-moving',   label: 'Moving / change of residence' },
-  { id: 'special-funeral',  label: 'Funeral / bereavement' },
-  { id: 'special-communion', label: 'Communion or similar ceremony' },
-  { id: 'special-civic',    label: 'Civic duties (jury, election, etc.)' },
+  { id: 'special-wedding',   label: 'Wedding',        sub: 'Yours or close family', icon: 'Heart' },
+  { id: 'special-moving',    label: 'Moving',          sub: 'Change of residence',   icon: 'Truck' },
+  { id: 'special-funeral',   label: 'Bereavement',     sub: 'Funeral / condolences', icon: 'Flower2', hasBereavementFlow: true },
+  { id: 'special-communion', label: 'Ceremony',        sub: 'Communion or similar',  icon: 'BookOpen' },
+  { id: 'special-civic',     label: 'Civic duty',      sub: 'Jury, election, etc.',  icon: 'Scale' },
 ];
+
+const BEREAVEMENT_OPTIONS = [
+  { id: 'special-funeral-partner', label: 'Partner or spouse' },
+  { id: 'special-funeral-child',   label: 'Child' },
+  { id: 'special-funeral-parent',  label: 'Parent or parent-in-law' },
+  { id: 'special-funeral-sibling', label: 'Sibling or grandparent', note: 'If you shared a household with this person, you may be entitled to an extra day — mention it in the note below.' },
+  { id: 'special-funeral-other',   label: 'Other family member' },
+];
+
 
 // ── Main Request Screen ──
 function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
@@ -1235,7 +1196,7 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
       'ADV day': 'adv', 'ADV / RTT days': 'adv',
       'Extra-legal leave': 'extra-legal',
       'Short leave': 'special-civic',
-      'Sick leave': 'sick-cert', 'Sick leave (with medical certificate)': 'sick-cert',
+      'Sick leave': 'sick',
     };
     return {
       start: new Date(2026, mo, sDay),
@@ -1251,7 +1212,6 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
   const [notes, setNotes] = React.useState(editItem?._notes || '');
   const [leaveReason, setLeaveReason] = React.useState(prefillReason || _editParsed.reason);
   const [showReasonSheet, setShowReasonSheet] = React.useState(false);
-  const [showSpecialSheet, setShowSpecialSheet] = React.useState(false);
   const [error, setError] = React.useState('');
   const [submitting, setSubmitting] = React.useState(false);
   const [focusedField, setFocusedField] = React.useState(editItem ? 'end' : 'start');
@@ -1341,7 +1301,7 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
 
   // Check overlap with existing approved/pending non-sick leave
   const sickOverlap = React.useMemo(() => {
-    const isSick = leaveReason === 'sick-self' || leaveReason === 'sick-cert';
+    const isSick = leaveReason === 'sick';
     if (!isSick || !startDate || !endDate) return null;
 
     const reqDays = getWorkingDaysInRange(startDate, endDate).map(d => _toISO(d));
@@ -1357,7 +1317,7 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
     for (const item of items) {
       if (item.status === 'denied') continue;
       // Skip other sick leave
-      if (item._leaveReason === 'sick-self' || item._leaveReason === 'sick-cert') continue;
+      if (item._leaveReason === 'sick') continue;
       if (editItem && item.id === editItem.id) continue;
 
       // Parse dates from the item
@@ -1382,7 +1342,7 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
     return overlaps.length > 0 ? overlaps : null;
   }, [leaveReason, startDate, endDate, editItem]);
 
-  const requiresAttachment = leaveReason === 'sick-cert';
+  const requiresAttachment = leaveReason === 'sick' && totalDays > 1;
 
   const handleSubmit = () => {
     if (!startDate || totalDays === 0) {
@@ -1411,7 +1371,7 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
 
       const newItem = {
         id: editItem ? editItem.id : 'req-' + Date.now(),
-        label: (LEAVE_REASONS.find(r => r.id === leaveReason) || SPECIAL_LEAVE_OPTIONS.find(r => r.id === leaveReason) || {}).label || primaryLabel,
+        label: (LEAVE_REASONS.find(r => r.id === leaveReason) || SPECIAL_LEAVE_OPTIONS.find(r => r.id === leaveReason) || BEREAVEMENT_OPTIONS.find(r => r.id === leaveReason) || {}).label || primaryLabel,
         date: startStr + endStr,
         month: monthStr,
         days: totalDays,
@@ -1454,66 +1414,64 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
   if (step === 1) {
     const dateLabel = _sameDay(startDate, endDate) ? _fmtShort(startDate) : `${_fmtShort(startDate)} – ${_fmtShort(endDate)}`;
 
-    // Per-leave-type personality
-    const successConfig = (() => {
-      if (editItem) {
-        const wasApproved = editItem.status === 'approved';
-        return {
-          icon: wasApproved ? 'Clock' : 'Check',
-          iconBg: wasApproved ? 'rgb(250,246,235)' : PFC.successBg,
-          iconColor: wasApproved ? 'rgb(161,98,7)' : PFC.successText,
-          heading: wasApproved ? 'Re-submitted for approval' : 'Request updated!',
-          message: wasApproved ? 'Your approved leave was changed — Sophie L. will review the update.' : 'Your changes have been saved.',
-        };
-      }
+    // Per-leave-type personality (personalized note shown below the main confirmation)
+    const personalNote = (() => {
+      if (editItem) return null;
       switch (leaveReason) {
-        case 'sick-self':
-          return { icon: 'Heart', iconBg: '#fce7f3', iconColor: '#db2777', heading: 'Take care of yourself', message: 'Rest up — we hope you feel better soon.' };
-        case 'sick-cert':
-          return { icon: 'Heart', iconBg: '#fce7f3', iconColor: '#db2777', heading: 'Wishing you a speedy recovery', message: 'Focus on getting better. We\'ve got things covered.' };
-        case 'statutory':
-          return { icon: 'Palmtree', iconBg: '#dbeafe', iconColor: '#2563eb', heading: 'Holiday time!', message: 'You\'ve earned it — enjoy every moment.' };
-        case 'adv':
-          return { icon: 'Coffee', iconBg: '#fef3c7', iconColor: '#d97706', heading: 'Enjoy your day off', message: 'A little break goes a long way. Recharge!' };
-        case 'extra-legal':
-          return { icon: 'Sparkles', iconBg: '#ede9fe', iconColor: '#7c3aed', heading: 'Extra time, well spent', message: 'Make the most of it — you deserve it.' };
-        case 'special-wedding':
-          return { icon: 'PartyPopper', iconBg: '#fef3c7', iconColor: '#d97706', heading: 'Congratulations!', message: 'What a special day — wishing you all the happiness.' };
-        case 'special-moving':
-          return { icon: 'Home', iconBg: '#dbeafe', iconColor: '#2563eb', heading: 'New chapter ahead', message: 'Good luck with the move — exciting times!' };
+        case 'sick':           return 'Rest up — we hope you feel better soon.';
+        case 'statutory':      return 'You\'ve earned it — enjoy every moment.';
+        case 'adv':            return 'A little break goes a long way. Recharge!';
+        case 'extra-legal':    return 'Make the most of it — you deserve it.';
+        case 'special-wedding':  return 'What a special day — wishing you all the happiness.';
+        case 'special-moving':   return 'Good luck with the move — exciting times!';
         case 'special-funeral':
-          return { icon: 'Heart', iconBg: '#f3f4f6', iconColor: '#6b7280', heading: 'Our thoughts are with you', message: 'Take all the time you need. We\'re here for you.' };
-        case 'special-communion':
-          return { icon: 'Star', iconBg: '#fef3c7', iconColor: '#d97706', heading: 'Enjoy the celebration', message: 'What a lovely milestone — have a wonderful day.' };
-        case 'special-civic':
-          return { icon: 'Shield', iconBg: '#dbeafe', iconColor: '#2563eb', heading: 'Civic duty calls', message: 'Thanks for doing your part. See you when you\'re back!' };
-        default:
-          return { icon: 'Check', iconBg: PFC.successBg, iconColor: PFC.successText, heading: 'Request submitted!', message: 'Pending approval by Sophie L.' };
+        case 'special-funeral-partner':
+        case 'special-funeral-child':
+        case 'special-funeral-parent':
+        case 'special-funeral-sibling':
+        case 'special-funeral-other': return 'Take all the time you need. We\'re here for you.';
+        case 'special-communion': return 'What a lovely milestone — have a wonderful day.';
+        case 'special-civic':    return 'Thanks for doing your part. See you when you\'re back!';
+        default: return null;
       }
     })();
 
+    const isEdit = !!editItem;
+    const wasApproved = isEdit && editItem.status === 'approved';
+    const iconBg = wasApproved ? 'rgb(250,246,235)' : PFC.successBg;
+    const iconColor = wasApproved ? 'rgb(161,98,7)' : PFC.successText;
+    const iconName = wasApproved ? 'Clock' : 'CircleCheck';
+    const heading = isEdit
+      ? (wasApproved ? 'Re-submitted for approval' : 'Request updated!')
+      : 'Your request was submitted';
+    const subtext = isEdit
+      ? (wasApproved ? 'Your approved leave was changed — Sophie L. will review the update.' : 'Your changes have been saved.')
+      : 'Your request has been sent to Sophie L. for approval. You\'ll hear back soon.';
+
     return (
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100%', padding: 32, background: 'white', textAlign: 'center' }}>
-        <div style={{ width: 72, height: 72, borderRadius: '50%', background: successConfig.iconBg, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 24, animation: 'popIn 0.5s ease-out' }}>
-          <LucideIcon name={successConfig.icon} size={36} color={successConfig.iconColor} strokeWidth={2} />
+        <div style={{ width: 72, height: 72, borderRadius: '50%', background: iconBg, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 24, animation: 'popIn 0.5s ease-out' }}>
+          <LucideIcon name={iconName} size={36} color={iconColor} strokeWidth={2} />
         </div>
         <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 22, color: P.ink, marginBottom: 8, animation: 'fadeSlideIn 0.5s ease-out 0.15s both' }}>
-          {successConfig.heading}
+          {heading}
         </div>
-        <div style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, lineHeight: '20px', marginBottom: 16, maxWidth: 280, animation: 'fadeSlideIn 0.5s ease-out 0.25s both' }}>
-          {successConfig.message}
+        <div style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, lineHeight: '20px', marginBottom: personalNote ? 8 : 20, maxWidth: 280, animation: 'fadeSlideIn 0.5s ease-out 0.25s both' }}>
+          {subtext}
         </div>
-        <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 17, color: P.ink, marginBottom: 8, animation: 'fadeSlideIn 0.5s ease-out 0.35s both' }}>
+        <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 17, color: P.ink, marginBottom: 32, animation: 'fadeSlideIn 0.5s ease-out 0.35s both' }}>
           {dateLabel} · {totalDays === 1 ? '1 day' : `${totalDays} days`}
         </div>
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgb(254,243,199)', borderRadius: 20, padding: '4px 8px', marginBottom: 32, animation: 'fadeSlideIn 0.5s ease-out 0.4s both' }}>
-          <LucideIcon name="Clock" size={12} color="rgb(161,98,7)" strokeWidth={2.5} />
-          <span style={{ fontFamily: 'var(--font-body)', fontWeight: 600, fontSize: 12, color: 'rgb(161,98,7)' }}>Pending — Sophie L.</span>
-        </div>
-        <div style={{ width: '100%', maxWidth: 320, animation: 'fadeSlideIn 0.5s ease-out 0.5s both' }}>
+        <div style={{ width: '100%', maxWidth: 320, display: 'flex', flexDirection: 'column', gap: 10, animation: 'fadeSlideIn 0.5s ease-out 0.45s both' }}>
           <Button variant="primary" size="large" fullWidth onClick={handleDone}>
             Back to time off
           </Button>
+          <button
+            onClick={() => setStep(0)}
+            style={{ width: '100%', appearance: 'none', border: 'none', background: 'transparent', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 15, color: P.inkSoft, padding: '8px 0' }}
+          >
+            Edit request
+          </button>
         </div>
       </div>
     );
@@ -1523,7 +1481,8 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
   if (step === 0) {
     const hasDates = startDate && endDate && totalDays > 0;
     const canSubmit = hasDates && leaveReason && !submitting;
-    const selectedReason = LEAVE_REASONS.find(r => r.id === leaveReason) || SPECIAL_LEAVE_OPTIONS.find(r => r.id === leaveReason);
+    const selectedReason = LEAVE_REASONS.find(r => r.id === leaveReason) || SPECIAL_LEAVE_OPTIONS.find(r => r.id === leaveReason) || BEREAVEMENT_OPTIONS.find(r => r.id === leaveReason);
+    const isBereavementSub = leaveReason?.startsWith('special-funeral-');
     const appShell = document.querySelector('[data-app-shell]');
 
     // Short date display: "Mon 15 Jun"
@@ -1555,9 +1514,19 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
             from { opacity: 0; transform: translateY(-12px); }
             to   { opacity: 1; transform: translateY(0); }
           }
+          @keyframes sheetFadeIn {
+            from { opacity: 0; }
+            to   { opacity: 1; }
+          }
+          @keyframes sheetSlideUp {
+            from { transform: translateY(100%); }
+            to   { transform: translateY(0); }
+          }
+          * { scrollbar-width: none; }
+          *::-webkit-scrollbar { display: none; }
         `}</style>
 
-        <div style={{ flex: 1, overflowY: 'auto', padding: '8px 16px 120px' }}>
+        <div style={{ flex: 1, overflowY: 'auto', padding: '8px 16px 24px' }}>
 
           {/* Leave reason selector */}
           <div style={{ marginBottom: 24 }}>
@@ -1577,15 +1546,21 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
                 fontFamily: 'var(--font-display)', fontWeight: selectedReason ? 600 : 400,
                 fontSize: 15, color: selectedReason ? P.ink : P.inkSoft,
               }}>
-                {selectedReason ? selectedReason.label : 'Select leave type…'}
+                {(leaveReason === 'special-funeral' || isBereavementSub) ? 'Bereavement' : (selectedReason ? selectedReason.label : 'Select leave type…')}
               </span>
               <LucideIcon name="ChevronDown" size={18} color={P.inkSoft} strokeWidth={2} />
             </button>
-            {selectedReason && leaveReason?.startsWith('special-') && (
+            {selectedReason && leaveReason?.startsWith('special-') && !isBereavementSub && leaveReason !== 'special-funeral' && (
               <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, marginTop: 8 }}>
                 Special leave: {selectedReason.label.toLowerCase()}
               </div>
             )}
+            {isBereavementSub && (
+              <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, marginTop: 8 }}>
+                Bereavement · {selectedReason.label}
+              </div>
+            )}
+
           </div>
 
           {/* Progressive disclosure: rest of form appears after leave type is selected (skip when editing) */}
@@ -1671,7 +1646,7 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
 
           {/* Working days summary + Edit hours */}
           {startDate && endDate && totalDays > 0 && (
-            <div style={{ position: 'relative', marginBottom: 16 }}>
+            <div style={{ position: 'relative', marginBottom: 32 }}>
               {/* Discovery tooltip — outside overflow:hidden card so it's not clipped */}
               {showHalfDayTip && !halfDay && (
                 <div
@@ -1794,6 +1769,35 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
           {(editItem || hasDates) && (
           <div key="note-attach" style={editItem ? {} : { animation: 'revealDown 0.35s ease-out both' }}>
 
+          {/* Bereavement inline relationship picker */}
+          {(leaveReason === 'special-funeral' || isBereavementSub) && (
+            <div style={{ marginBottom: 24, animation: 'revealDown 0.25s ease-out both' }}>
+              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.inkSoft, marginBottom: 8 }}>Your relationship to the person</div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                {BEREAVEMENT_OPTIONS.map(opt => {
+                  const sel = leaveReason === opt.id;
+                  return (
+                    <button key={opt.id} onClick={() => setLeaveReason(opt.id)} style={{
+                      padding: '6px 14px', borderRadius: 20,
+                      border: sel ? `1.5px solid ${P.ink}` : `1px solid ${P.border}`,
+                      background: sel ? P.ink : 'transparent',
+                      color: sel ? '#fff' : P.ink,
+                      fontFamily: 'var(--font-body)', fontSize: 13,
+                      fontWeight: sel ? 600 : 400,
+                      cursor: 'pointer',
+                    }}>{opt.label}</button>
+                  );
+                })}
+              </div>
+              {leaveReason === 'special-funeral-sibling' && (
+                <div style={{ display: 'flex', gap: 6, alignItems: 'flex-start', marginTop: 10, background: 'rgb(249,250,251)', borderRadius: 8, padding: '8px 10px' }}>
+                  <LucideIcon name="Info" size={13} color={P.inkSoft} strokeWidth={2} />
+                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, lineHeight: '17px' }}>If you shared a household with this person, you may be entitled to an extra day — mention it in the note below.</span>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Note */}
           <div style={{ marginBottom: 24 }}>
             <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.inkSoft, marginBottom: 8 }}>
@@ -1821,7 +1825,7 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
           <div id="attachments-section" style={{ marginBottom: 24 }}>
             <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: errorToast && requiresAttachment ? PFC.errorText : P.inkSoft, marginBottom: 8, transition: 'color 0.3s' }}>
               Attachments {requiresAttachment
-                ? <span style={{ color: PFC.errorText }}>*</span>
+                ? <span style={{ color: PFC.errorText }}>* <span style={{ fontWeight: 400, fontSize: 12 }}>Medical certificate required for {totalDays}+ days</span></span>
                 : <span style={{ fontWeight: 400 }}>(optional)</span>}
             </div>
 
@@ -1931,128 +1935,65 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
               onClick={(e) => e.stopPropagation()}
               style={{ background: 'white', borderRadius: '20px 20px 0 0', animation: 'sheetSlideUp 0.25s ease-out' }}
             >
-              <div style={{ padding: '24px 24px 16px' }}>
+              <div style={{ padding: '20px 24px 12px' }}>
                 <div aria-hidden="true" style={{ width: 36, height: 4, borderRadius: 2, background: P.border, margin: '0 auto 16px' }} />
                 <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 17, color: P.ink }}>
-                  Select leave type
+                  What type of leave?
                 </div>
               </div>
-              <div style={{ padding: '0 8px 40px' }}>
+              <div style={{ overflowY: 'auto', maxHeight: '70vh', padding: '0 24px 40px' }}>
                 {(() => {
                   const balanceMap = {
                     'statutory': LEAVE_BALANCES.find(b => b.type === 'Statutory annual leave'),
-                    'adv': LEAVE_BALANCES.find(b => b.type === 'ADV / RTT'),
+                    'adv':       LEAVE_BALANCES.find(b => b.type === 'ADV / RTT'),
                     'extra-legal': LEAVE_BALANCES.find(b => b.type === 'Extra-legal leave'),
                   };
-                  return LEAVE_REASONS.map((r, i) => {
-                  const isSelected = leaveReason === r.id || (r.hasSubMenu && leaveReason?.startsWith('special-'));
-                  const bal = balanceMap[r.id];
-                  return (
-                    <button
-                      key={r.id}
-                      onClick={() => {
-                        if (r.hasSubMenu) { setShowReasonSheet(false); setTimeout(() => setShowSpecialSheet(true), 200); }
-                        else { setLeaveReason(r.id); setShowReasonSheet(false); }
-                      }}
-                      style={{
-                        width: '100%', appearance: 'none', border: 'none', cursor: 'pointer',
-                        display: 'flex', alignItems: 'center', gap: 16,
-                        padding: '16px 16px',
-                        borderRadius: 12,
-                        background: isSelected ? 'rgba(15,13,40,0.05)' : 'transparent',
-                        textAlign: 'left',
-                        marginTop: i > 0 ? 2 : 0,
-                      }}
-                    >
-                      {/* Radio circle */}
-                      {!r.hasSubMenu && (
-                        <span style={{
-                          width: 22, height: 22, borderRadius: '50%', flexShrink: 0,
-                          border: isSelected ? 'none' : `2px solid ${P.border}`,
-                          background: isSelected ? P.ink : 'transparent',
-                          display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                        }}>
-                          {isSelected && <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#fff' }} />}
-                        </span>
-                      )}
-                      {r.hasSubMenu && (
-                        <span style={{
-                          width: 22, height: 22, borderRadius: '50%', flexShrink: 0,
-                          border: isSelected ? 'none' : `2px solid ${P.border}`,
-                          background: isSelected ? P.ink : 'transparent',
-                          display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                        }}>
-                          {isSelected && <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#fff' }} />}
-                        </span>
-                      )}
-                      <span style={{ flex: 1, fontFamily: 'var(--font-display)', fontWeight: isSelected ? 600 : 500, fontSize: 15, color: P.ink }}>{r.label}</span>
-                      {bal && (
-                        <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, flexShrink: 0 }}>
-                          {bal.remaining}/{bal.total}
-                        </span>
-                      )}
-                      {r.hasSubMenu && <LucideIcon name="ChevronRight" size={16} color={P.inkSoft} strokeWidth={2} />}
-                    </button>
-                  );
-                }); })()}
-              </div>
-            </div>
-          </div>,
-          appShell
-        )}
 
-        {/* Special leave sub-menu bottom sheet */}
-        {showSpecialSheet && appShell && ReactDOM.createPortal(
-          <div
-            onClick={() => setShowSpecialSheet(false)}
-            style={{ position: 'absolute', inset: 0, zIndex: 400, background: 'rgba(15,13,40,0.45)', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', animation: 'sheetFadeIn 0.2s ease-out' }}
-          >
-            <div
-              onClick={(e) => e.stopPropagation()}
-              style={{ background: 'white', borderRadius: '20px 20px 0 0', animation: 'sheetSlideUp 0.25s ease-out' }}
-            >
-              <div style={{ padding: '24px 24px 16px' }}>
-                <div aria-hidden="true" style={{ width: 36, height: 4, borderRadius: 2, background: P.border, margin: '0 auto 16px' }} />
-                <button
-                  onClick={() => { setShowSpecialSheet(false); setTimeout(() => setShowReasonSheet(true), 200); }}
-                  style={{ border: 'none', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, padding: 0, marginBottom: 8 }}
-                >
-                  <LucideIcon name="ChevronLeft" size={16} color={P.inkSoft} strokeWidth={2} />
-                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>Back</span>
-                </button>
-                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 17, color: P.ink }}>
-                  Special leave
-                </div>
-              </div>
-              <div style={{ padding: '0 8px 40px' }}>
-                {SPECIAL_LEAVE_OPTIONS.map((r, i) => {
-                  const isSelected = leaveReason === r.id;
-                  return (
-                    <button
-                      key={r.id}
-                      onClick={() => { setLeaveReason(r.id); setShowSpecialSheet(false); }}
-                      style={{
-                        width: '100%', appearance: 'none', border: 'none', cursor: 'pointer',
-                        display: 'flex', alignItems: 'center', gap: 16,
-                        padding: '16px 16px',
-                        borderRadius: 12,
-                        background: isSelected ? 'rgba(15,13,40,0.05)' : 'transparent',
-                        textAlign: 'left',
-                        marginTop: i > 0 ? 2 : 0,
-                      }}
-                    >
-                      <span style={{
-                        width: 22, height: 22, borderRadius: '50%', flexShrink: 0,
-                        border: isSelected ? 'none' : `2px solid ${P.border}`,
-                        background: isSelected ? P.ink : 'transparent',
-                        display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                      }}>
-                        {isSelected && <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#fff' }} />}
-                      </span>
-                      <span style={{ flex: 1, fontFamily: 'var(--font-display)', fontWeight: isSelected ? 600 : 500, fontSize: 15, color: P.ink }}>{r.label}</span>
-                    </button>
-                  );
-                })}
+                  const mainTypes = [
+                    { id: 'statutory',   label: 'Time off',          icon: 'Palmtree',     bal: balanceMap['statutory'] },
+                    { id: 'adv',         label: 'ADV / RTT',          icon: 'CalendarDays', bal: balanceMap['adv'] },
+                    { id: 'extra-legal', label: 'Extra-legal leave',   icon: 'Gift',         bal: balanceMap['extra-legal'] },
+                    { id: 'sick',        label: 'Sick leave',          icon: 'Thermometer' },
+                  ];
+
+                  const Row = ({ id, label, icon, sub, bal, urgent, isLast, hasBereavementFlow }) => {
+                    const isSelected = leaveReason?.startsWith('special-funeral') ? id === 'special-funeral' : leaveReason === id;
+                    const lowBalance = bal && bal.remaining <= 2;
+                    return (
+                      <button
+                        onClick={() => { setLeaveReason(id); setShowReasonSheet(false); }}
+                        style={{
+                          width: '100%', appearance: 'none', border: 'none', cursor: 'pointer',
+                          display: 'flex', alignItems: 'center', gap: 12,
+                          padding: '12px 0',
+                          borderBottom: isLast ? 'none' : `1px solid ${P.border}`,
+                          background: 'transparent', textAlign: 'left',
+                        }}
+                      >
+                        <span style={{
+                          width: 34, height: 34, borderRadius: 9, flexShrink: 0,
+                          background: urgent ? 'rgb(254,242,242)' : '#f3f4f6',
+                          display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                        }}>
+                          <LucideIcon name={icon} size={16} color={urgent ? 'rgb(185,28,28)' : P.inkSoft} strokeWidth={1.75} />
+                        </span>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontFamily: 'var(--font-display)', fontWeight: isSelected ? 600 : 500, fontSize: 15, color: urgent ? 'rgb(185,28,28)' : P.ink, lineHeight: '20px' }}>{label}</div>
+                          {sub && <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, marginTop: 1 }}>{sub}</div>}
+                          {bal && <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, marginTop: 1 }}>{bal.remaining} days left</div>}
+                        </div>
+                        <LucideIcon name="ChevronRight" size={18} color={P.inkSoft} strokeWidth={2.5} />
+                      </button>
+                    );
+                  };
+
+                  const lastSpecialIdx = SPECIAL_LEAVE_OPTIONS.length - 1;
+                  return [
+                    ...mainTypes.map((t, i) => React.createElement(Row, { key: t.id, ...t, isLast: i === mainTypes.length - 1 })),
+                    React.createElement('div', { key: 'special-header', style: { fontFamily: 'var(--font-body)', fontSize: 12, fontWeight: 600, color: P.inkSoft, textTransform: 'uppercase', letterSpacing: '0.06em', padding: '28px 0 4px' } }, 'Special leave'),
+                    ...SPECIAL_LEAVE_OPTIONS.map((o, i) => React.createElement(Row, { key: o.id, id: o.id, label: o.label, icon: o.icon, sub: o.sub, isLast: i === lastSpecialIdx, hasBereavementFlow: !!o.hasBereavementFlow })),
+                  ];
+                })()}
               </div>
             </div>
           </div>,
@@ -2406,7 +2347,7 @@ function TimeOffDetailScreen({ item }) {
         {/* Report illness banner — only for approved non-sick requests where some days are in the past */}
         {(() => {
           if (item.status !== 'approved') return false;
-          if (item._leaveReason === 'sick-self' || item._leaveReason === 'sick-cert') return false;
+          if (item._leaveReason === 'sick') return false;
           const mMap = { January:0, February:1, March:2, April:3, May:4, June:5, July:6, August:7, September:8, October:9, November:10, December:11 };
           const mo = mMap[item.month];
           if (mo == null) return false;
@@ -2468,7 +2409,7 @@ function TimeOffDetailScreen({ item }) {
               const _labelToReason = {
                 'Legal holiday': 'statutory', 'ADV day': 'adv',
                 'Extra-legal leave': 'extra-legal', 'Short leave': 'special-civic',
-                'Sick leave': 'sick-cert', 'Sick leave (with medical certificate)': 'sick-cert',
+                'Sick leave': 'sick',
               };
               return (
                 <Button variant="primary" size="large" fullWidth onClick={() => {
@@ -2666,7 +2607,7 @@ function ReportIllnessScreen({ sourceItem }) {
           month: sourceItem.month,
           days: sickCount,
           status: 'pending',
-          _leaveReason: 'sick-cert',
+          _leaveReason: 'sick',
           _attachments: attachments,
           _notes: 'Reported illness during ' + sourceItem.label.toLowerCase() + ' (' + sourceItem.date + ')',
         };
