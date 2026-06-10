@@ -1243,7 +1243,11 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
     const msg = _isNonWorkingDay(d) ? 'This is your day off (4/5 schedule)'
       : _isHoliday(d) ? 'Public holiday'
       : _isWeekend(d) ? 'Weekend' : null;
-    if (msg) { setCalToast(msg); setTimeout(() => setCalToast(null), 2000); }
+    if (msg) {
+      setShowHalfDayTip(false);
+      setCalToast(msg);
+      setTimeout(() => setCalToast(null), 2000);
+    }
   };
 
   const now = new Date();
@@ -1618,11 +1622,12 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
             />
             {calToast && (
               <div style={{
-                position: 'absolute', bottom: -4, left: '50%', transform: 'translateX(-50%)',
+                position: 'absolute', bottom: 8, left: '50%', transform: 'translateX(-50%)',
                 background: P.ink, color: '#fff', padding: '6px 14px', borderRadius: 8,
                 fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 12,
                 whiteSpace: 'nowrap', animation: 'fadeSlideIn 0.2s ease-out',
                 zIndex: 10, boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                pointerEvents: 'none',
               }}>{calToast}</div>
             )}
           </div>
