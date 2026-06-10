@@ -371,7 +371,8 @@ function TimeOffHubScreen() {
             denied:   { label: 'Denied by Sophie L.',    color: 'rgb(185,28,28)',  iconBg: 'rgb(251,241,241)', icon: 'CircleX'  },
           };
 
-          const pending  = ALL.filter(i => i.status === 'pending' || i.status === 'denied');
+          const pending  = ALL.filter(i => i.status === 'pending');
+          const denied   = ALL.filter(i => i.status === 'denied');
 
           // Split approved into upcoming (future) vs past
           const _mMap = { January:0, February:1, March:2, April:3, May:4, June:5, July:6, August:7, September:8, October:9, November:10, December:11 };
@@ -417,7 +418,7 @@ function TimeOffHubScreen() {
             </div>
           );
 
-          const ItemCard = ({ items, hideStatus }) => (
+          const ItemCard = ({ items, hideStatus, showDenialReason }) => (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               {toGroups(items).map(({ month, items: groupItems }) => (
                 <div key={month} style={{
@@ -470,6 +471,14 @@ function TimeOffHubScreen() {
                             {st.label}
                           </div>
                           )}
+                          {showDenialReason && item._denialReason && (
+                          <div style={{
+                            fontFamily: 'var(--font-body)', fontWeight: 400, fontSize: 12,
+                            color: P.inkSoft, marginTop: 2,
+                          }}>
+                            {item._denialReason}
+                          </div>
+                          )}
                         </div>
                         <div style={{ textAlign: 'right', flexShrink: 0 }}>
                           <div style={{
@@ -485,7 +494,7 @@ function TimeOffHubScreen() {
             </div>
           );
 
-          const hasAny = pending.length > 0 || upcoming.length > 0 || past.length > 0;
+          const hasAny = pending.length > 0 || denied.length > 0 || upcoming.length > 0 || past.length > 0;
 
           return (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
@@ -512,6 +521,12 @@ function TimeOffHubScreen() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                   <SectionTitle label="Pending requests" />
                   <ItemCard items={pending} hideStatus />
+                </div>
+              )}
+              {denied.length > 0 && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  <SectionTitle label="Denied" />
+                  <ItemCard items={denied} showDenialReason />
                 </div>
               )}
               {upcoming.length > 0 && (
@@ -929,7 +944,7 @@ function getExistingRequestDates(excludeId) {
 }
 
 // ── Mini Calendar ──
-function MiniCalendar({ month, year, onMonthChange, startDate, endDate, onDateTap, existingDates, halfDay }) {
+function MiniCalendar({ month, year, onMonthChange, startDate, endDate, onDateTap, onDisabledTap, existingDates, halfDay }) {
   const today = new Date(); today.setHours(0,0,0,0);
   const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
@@ -1046,8 +1061,8 @@ function MiniCalendar({ month, year, onMonthChange, startDate, endDate, onDateTa
           return (
             <div key={_toISO(d)} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', background: wrapBg }}>
               <button
-                disabled={disabled}
-                onClick={() => !disabled && onDateTap(d)}
+                aria-disabled={disabled || undefined}
+                onClick={() => disabled ? (onDisabledTap && onDisabledTap(d)) : onDateTap(d)}
                 style={{
                   width: 42, height: 42,
                   border: 'none', background: btnBg,
@@ -1221,6 +1236,15 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
   const [showHoursSheet, setShowHoursSheet] = React.useState(false);
   const [showHalfDayTip, setShowHalfDayTip] = React.useState(!editItem);
   const [errorToast, setErrorToast] = React.useState(null);
+  const [calToast, setCalToast] = React.useState(null);
+
+  const handleDisabledTap = (d) => {
+    if (!d) return;
+    const msg = _isNonWorkingDay(d) ? 'This is your day off (4/5 schedule)'
+      : _isHoliday(d) ? 'Public holiday'
+      : _isWeekend(d) ? 'Weekend' : null;
+    if (msg) { setCalToast(msg); setTimeout(() => setCalToast(null), 2000); }
+  };
 
   const now = new Date();
   const [calMonth, setCalMonth] = React.useState(_editParsed.start ? _editParsed.start.getMonth() : now.getMonth());
@@ -1579,8 +1603,20 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
             </button>
           </div>
 
+          {/* Live working-day count while selecting */}
+          {startDate && endDate && totalDays > 0 && (
+            <div style={{
+              textAlign: 'center', padding: '6px 0 2px',
+              fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13,
+              color: overBalance > 0 ? '#92400e' : PFC.successText,
+            }}>
+              {totalDays === 0.5 ? '½ working day' : totalDays === 1 ? '1 working day' : `${totalDays} working days`}
+              {overBalance > 0 && <span style={{ fontWeight: 500 }}> · exceeds by {overBalance === 0.5 ? '½' : overBalance}</span>}
+            </div>
+          )}
+
           {/* Inline calendar */}
-          <div style={{ marginBottom: 16 }}>
+          <div style={{ marginBottom: 16, position: 'relative' }}>
             <MiniCalendar
               month={calMonth}
               year={calYear}
@@ -1588,10 +1624,34 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
               startDate={startDate}
               endDate={endDate}
               onDateTap={handleDateTap}
+              onDisabledTap={handleDisabledTap}
               existingDates={existingDates}
               halfDay={halfDay}
             />
+            {calToast && (
+              <div style={{
+                position: 'absolute', bottom: -4, left: '50%', transform: 'translateX(-50%)',
+                background: P.ink, color: '#fff', padding: '6px 14px', borderRadius: 8,
+                fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 12,
+                whiteSpace: 'nowrap', animation: 'fadeSlideIn 0.2s ease-out',
+                zIndex: 10, boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+              }}>{calToast}</div>
+            )}
           </div>
+
+          {/* Half-day legend */}
+          {halfDay && Object.values(halfDay).some(v => v === 'am' || v === 'pm') && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                <span style={{ display: 'inline-block', width: 12, height: 12, borderRadius: '50%', background: `linear-gradient(to bottom, ${P.ink} 50%, rgba(15,13,40,0.45) 50%)` }} />
+                <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkSoft }}>Morning</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                <span style={{ display: 'inline-block', width: 12, height: 12, borderRadius: '50%', background: `linear-gradient(to bottom, rgba(15,13,40,0.45) 50%, ${P.ink} 50%)` }} />
+                <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkSoft }}>Afternoon</span>
+              </div>
+            </div>
+          )}
 
           {/* Working days summary + Edit hours */}
           {startDate && endDate && totalDays > 0 && (
@@ -2100,6 +2160,7 @@ const DETAIL_STATUS = {
 function TimeOffDetailScreen({ item }) {
   const nav = window.useNav ? window.useNav() : null;
   const [showConfirm, setShowConfirm] = React.useState(false);
+  const [detailToast, setDetailToast] = React.useState(null);
   if (!item) return <div style={{ padding: 40 }}>No item selected.</div>;
 
   const _stBase = DETAIL_STATUS[item.status] || DETAIL_STATUS.approved;
@@ -2199,7 +2260,10 @@ function TimeOffDetailScreen({ item }) {
 
             {/* Add to calendar — only for approved requests */}
             {item.status === 'approved' && (
-              <Button variant="outline" size="large" fullWidth leftIcon="CalendarPlus">
+              <Button variant="outline" size="large" fullWidth leftIcon="CalendarPlus" onClick={() => {
+                setDetailToast('Added to calendar');
+                setTimeout(() => setDetailToast(null), 2500);
+              }}>
                 Add to calendar
               </Button>
             )}
@@ -2424,6 +2488,21 @@ function TimeOffDetailScreen({ item }) {
             </Button>
           </div>
         )
+      )}
+
+      {/* Detail toast */}
+      {detailToast && (
+        <div style={{
+          position: 'fixed', top: 72, left: '50%', transform: 'translateX(-50%)',
+          background: P.ink, color: '#fff', padding: '10px 20px', borderRadius: 12,
+          fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14,
+          zIndex: 9999, boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+          animation: 'fadeSlideIn 0.25s ease-out',
+          display: 'flex', alignItems: 'center', gap: 8,
+        }}>
+          <LucideIcon name="Check" size={16} color="#fff" strokeWidth={2.5} />
+          {detailToast}
+        </div>
       )}
 
       {/* Delete confirmation sheet — inline portal, no inner component */}
