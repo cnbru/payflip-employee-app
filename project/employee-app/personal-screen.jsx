@@ -339,23 +339,30 @@ function TimeOffHubScreen() {
           </div>
 
           {/* Per-type breakdown */}
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-            {LEAVE_BALANCES.filter(b => b.remaining > 0).map(b => (
-              <div key={b.type} style={{
-                display: 'inline-flex', alignItems: 'center', gap: 4,
-                padding: '4px 10px', borderRadius: 8,
-                background: b.urgent ? 'rgba(185,28,28,0.08)' : 'rgba(15,13,40,0.06)',
-              }}>
-                <span style={{
-                  fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 13,
-                  color: b.urgent ? 'rgb(185,28,28)' : P.ink,
-                }}>{b.remaining}</span>
-                <span style={{
-                  fontFamily: 'var(--font-body)', fontWeight: 400, fontSize: 12,
-                  color: b.urgent ? 'rgb(185,28,28)' : P.inkSoft,
-                }}>{b.type === 'Illness carry-over (2024)' ? 'carry-over' : b.type === 'Statutory annual leave' ? 'statutory' : b.type === 'ADV / RTT' ? 'ADV' : 'extra-legal'}</span>
-              </div>
-            ))}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+            {LEAVE_BALANCES.filter(b => b.remaining > 0).map((b, i, arr) => {
+              const label = b.type === 'Illness carry-over (2024)' ? 'Carry-over (2024)'
+                : b.type === 'Statutory annual leave' ? 'Statutory leave'
+                : b.type === 'ADV / RTT' ? 'ADV / RTT'
+                : 'Extra-legal leave';
+              return (
+                <div key={b.type} style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  padding: '7px 0',
+                  borderTop: i === 0 ? `1px solid ${P.border}` : 'none',
+                  borderBottom: `1px solid ${P.border}`,
+                }}>
+                  <span style={{
+                    fontFamily: 'var(--font-body)', fontWeight: 400, fontSize: 13,
+                    color: b.urgent ? 'rgb(185,28,28)' : P.ink,
+                  }}>{label}</span>
+                  <span style={{
+                    fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 13,
+                    color: b.urgent ? 'rgb(185,28,28)' : P.ink,
+                  }}>{b.remaining} <span style={{ fontWeight: 400, color: b.urgent ? 'rgb(185,28,28)' : P.inkSoft }}>day{b.remaining !== 1 ? 's' : ''}</span></span>
+                </div>
+              );
+            })}
           </div>
 
         </div>
