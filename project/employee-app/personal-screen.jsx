@@ -349,8 +349,7 @@ function TimeOffHubScreen() {
                 <div key={b.type} style={{
                   display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                   padding: '7px 0',
-                  borderTop: i === 0 ? `1px solid ${P.border}` : 'none',
-                  borderBottom: `1px solid ${P.border}`,
+                  borderBottom: i < arr.length - 1 ? `1px solid ${P.border}` : 'none',
                 }}>
                   <span style={{
                     fontFamily: 'var(--font-body)', fontWeight: 400, fontSize: 13,
