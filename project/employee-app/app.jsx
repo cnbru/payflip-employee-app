@@ -127,7 +127,43 @@ function AppShell() {
   );
 }
 
+function SplashScreen({ onDone }) {
+  const containerRef = React.useRef(null);
+  const [fading, setFading] = React.useState(false);
+
+  React.useEffect(() => {
+    if (!window.lottie || !containerRef.current) return;
+    let timer1, timer2;
+    const anim = window.lottie.loadAnimation({
+      container: containerRef.current,
+      renderer: 'svg',
+      loop: false,
+      autoplay: false,
+      path: 'assets/splash-v1.json',
+    });
+    anim.addEventListener('DOMLoaded', () => {
+      anim.playSegments([0, 300], true);
+      timer1 = setTimeout(() => setFading(true), 5000);
+      timer2 = setTimeout(onDone, 5500);
+    });
+    return () => { anim.destroy(); clearTimeout(timer1); clearTimeout(timer2); };
+  }, []);
+
+  return (
+    <div style={{
+      position: 'absolute', inset: 0, zIndex: 100,
+      background: 'rgb(241, 231, 253)',
+      opacity: fading ? 0 : 1,
+      transition: 'opacity 0.45s ease',
+      pointerEvents: fading ? 'none' : 'auto',
+    }}>
+      <div ref={containerRef} style={{ width: '100%', height: '100%' }} />
+    </div>
+  );
+}
+
 function App() {
+  const [splashDone, setSplashDone] = React.useState(false);
   return (
     <div style={{
       minHeight: '100vh',
@@ -136,6 +172,7 @@ function App() {
       padding: 24,
     }}>
       <IOSDevice width={402} height={874}>
+        {!splashDone && <SplashScreen onDone={() => setSplashDone(true)} />}
         <NavProvider>
           <AppShell />
         </NavProvider>
