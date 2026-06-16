@@ -301,48 +301,50 @@ function TimeOffHubScreen() {
         </div>
 
         {/* Balance card */}
-        <div style={{
-          background: '#f7f7f8', borderRadius: 16, padding: '20px 24px',
-          display: 'flex', flexDirection: 'column', gap: 16,
-          position: 'relative',
-        }}>
-          {/* Info icon — top right */}
-          <button
-            aria-label="About leave balance"
-            onClick={() => setShowBalanceInfo(true)}
-            style={{
-              position: 'absolute', top: 16, right: 16,
-              appearance: 'none', border: 'none', background: 'transparent',
-              cursor: 'pointer', padding: 4,
-              display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-            }}>
-            <LucideIcon name="Info" size={16} color={P.inkSoft} strokeWidth={1.75} />
-          </button>
+        {(() => {
+          const PLANNABLE = [
+            { type: 'Statutory annual leave', short: 'Statutory annual leave' },
+            { type: 'ADV / RTT',              short: 'ADV / RTT'              },
+            { type: 'Extra-legal leave',       short: 'Extra-legal leave'      },
+          ];
+          const rows = PLANNABLE.map(p => ({
+            ...p,
+            remaining: (LEAVE_BALANCES.find(b => b.type === p.type) || {}).remaining || 0,
+          }));
 
-          {/* Hero — statutory + ADV */}
-          {(() => {
-            const stat = LEAVE_BALANCES.find(b => b.type === 'Statutory annual leave');
-            const adv  = LEAVE_BALANCES.find(b => b.type === 'ADV / RTT');
-            const heroTotal = (stat ? stat.remaining : 0) + (adv ? adv.remaining : 0);
-            return React.createElement('div', null,
-              React.createElement('div', { style: {
-                fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 13,
-                color: P.inkSoft, letterSpacing: '0.01em', marginBottom: 0,
-              }}, 'Available'),
-              React.createElement('div', { style: {
-                fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 52,
-                letterSpacing: '-0.05em', color: P.ink, lineHeight: '54px',
-              }}, heroTotal, React.createElement('span', { style: {
-                fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 18,
-                letterSpacing: '-0.01em', color: P.inkSoft, marginLeft: 8,
-              }}, 'days')),
-              React.createElement('div', { style: {
-                fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, marginTop: 4,
-              }}, 'Statutory annual leave + ADV / RTT'),
-            );
-          })()}
-
-        </div>
+          return (
+            <div style={{ background: '#f7f7f8', borderRadius: 16, overflow: 'hidden' }}>
+              {rows.map((row, i) => (
+                <div key={row.type} style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  padding: '13px 16px',
+                  borderTop: i > 0 ? `1px solid ${P.border}` : 'none',
+                }}>
+                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.ink }}>
+                    {row.short}
+                  </span>
+                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.ink, flexShrink: 0 }}>
+                    {row.remaining} <span style={{ fontWeight: 400, color: P.inkSoft }}>days</span>
+                  </span>
+                </div>
+              ))}
+              <button
+                onClick={() => setShowBalanceInfo(true)}
+                style={{
+                  width: '100%', appearance: 'none', cursor: 'pointer',
+                  borderTop: `1px solid ${P.border}`, background: 'transparent', border: 'none',
+                  borderTop: `1px solid ${P.border}`,
+                  padding: '12px 16px',
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                }}>
+                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.ink }}>
+                  View breakdown
+                </span>
+                <LucideIcon name="ChevronRight" size={16} color={P.inkSoft} strokeWidth={2} />
+              </button>
+            </div>
+          );
+        })()}
         </div>{/* end Leave balance section */}
 
         {/* Sections: pending requests + upcoming approved */}
@@ -536,27 +538,32 @@ function TimeOffHubScreen() {
         const appShell = document.querySelector('[data-app-shell]');
         if (!appShell) return null;
 
-        // Days you actively book — these make up your balance
-        const LEAVE_TYPES = [
+        const PLANNABLE_TYPES = [
           {
             name: 'Statutory annual leave',
             remaining: _isFreshUser ? 20 : 2, total: 20,
-            rule: 'Expires Dec 31, 2026. Carry-over only if blocked by certified long-term illness.',
+            expires: 'Expires Dec 31, 2026',
+            rule: 'Carry-over only if blocked by certified long-term illness.',
           },
           {
             name: 'ADV / RTT',
             remaining: _isFreshUser ? 12 : 5, total: 12,
-            rule: 'Expires Dec 31, 2026. No carry-over, no cash payout permitted.',
+            expires: 'Expires Dec 31, 2026',
+            rule: 'No carry-over, no cash payout permitted.',
           },
           {
             name: 'Extra-legal leave',
             remaining: _isFreshUser ? 4 : 3, total: 4,
-            rule: 'Up to 2 days carry until Mar 31, 2027. Remaining balance expires Dec 31.',
+            expires: 'Expires Dec 31, 2026',
+            rule: 'Up to 2 days may carry until Mar 31, 2027.',
           },
+        ];
+        const OTHER_TYPES = [
           {
             name: 'Illness carry-over (2024)',
             remaining: 4, total: 4,
-            rule: 'Legal carry-over due to 2024 medical incapacity. Must be used before Dec 31, 2026.',
+            expires: 'Must use before Dec 31, 2026',
+            rule: 'Legal carry-over due to 2024 medical incapacity. Not counted in your plannable balance — HR applies it automatically.',
             urgent: true,
           },
         ];
@@ -572,64 +579,107 @@ function TimeOffHubScreen() {
               style={{ background: 'white', borderRadius: '20px 20px 0 0', display: 'flex', flexDirection: 'column', maxHeight: '88%' }}
             >
               {/* Sticky header */}
-              <div style={{ padding: '24px 24px 0', flexShrink: 0 }}>
-                <div aria-hidden="true" style={{ width: 36, height: 4, borderRadius: 2, background: P.border, margin: '0 auto 20px' }} />
-                <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 8 }}>
+              <div style={{ padding: '20px 24px 0', flexShrink: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 6 }}>
                   <div id="balance-info-title" style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18, color: P.ink }}>
-                    Leave breakdown
+                    Your leave in 2026
                   </div>
-                  <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18, color: P.ink }}>
-                    {available} <span style={{ fontWeight: 500, fontSize: 13, color: P.inkSoft }}>days left</span>
-                  </div>
+                  <button
+                    onClick={() => { setShowBalanceInfo(false); setExpandedRows({}); }}
+                    aria-label="Close"
+                    style={{
+                      width: 36, height: 36, borderRadius: 10,
+                      border: 'none', background: 'transparent', cursor: 'pointer',
+                      display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                      marginRight: -8, marginTop: -4, flexShrink: 0,
+                    }}>
+                    <LucideIcon name="X" size={22} color={P.ink} strokeWidth={1.75} />
+                  </button>
                 </div>
                 <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, lineHeight: '19px', marginBottom: 16 }}>
-                  Your leave entitlements as of Jan 1, 2026 — each type has its own expiry and carry-over rules.
+                  Each type has its own expiry — tap a row to see its rules.
                 </div>
               </div>
 
               {/* Scrollable body */}
-              <div style={{ overflowY: 'auto', flex: 1, padding: '8px 24px 8px' }}>
+              <div style={{ overflowY: 'auto', flex: 1, padding: '8px 20px 8px' }}>
 
-                {LEAVE_TYPES.map((lt) => {
-                  const isOpen = !!expandedRows[lt.name];
-                  return (
-                    <div key={lt.name} style={{ borderTop: `1px solid ${P.border}` }}>
-                      <button
-                        onClick={() => toggleRow(lt.name)}
-                        aria-expanded={isOpen}
-                        style={{
-                          width: '100%', appearance: 'none', border: 'none', background: 'transparent',
-                          cursor: 'pointer', padding: '12px 0',
-                          display: 'flex', alignItems: 'center', gap: 8,
+                {(() => {
+                  const urgentColor = 'rgb(161,98,7)';
+                  const plannableTotal = PLANNABLE_TYPES.reduce((s, b) => s + b.remaining, 0);
+
+                  const renderRow = (lt, i, arr) => {
+                    const isOpen = !!expandedRows[lt.name];
+                    const isLast = i === arr.length - 1;
+                    const ink = lt.urgent ? urgentColor : P.ink;
+                    return (
+                      <div key={lt.name}>
+                        <button
+                          onClick={() => toggleRow(lt.name)}
+                          aria-expanded={isOpen}
+                          aria-label={`${lt.name}, ${lt.remaining} of ${lt.total} days remaining`}
+                          style={{
+                            width: '100%', appearance: 'none', border: 'none', background: 'transparent',
+                            cursor: 'pointer', padding: '13px 0',
+                            display: 'flex', alignItems: 'center', gap: 8,
+                          }}>
+                          <span style={{ flex: 1, textAlign: 'left', fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: ink }}>
+                            {lt.name}
+                          </span>
+                          <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: ink, flexShrink: 0 }}>
+                            {lt.remaining} <span style={{ fontWeight: 400, color: P.inkSoft }}>/ {lt.total}</span>
+                          </span>
+                          <LucideIcon
+                            name="ChevronDown" size={15} color={P.inkSoft} strokeWidth={2}
+                            style={{ flexShrink: 0, transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 200ms ease' }}
+                          />
+                        </button>
+                        <div style={{
+                          display: 'grid',
+                          gridTemplateRows: isOpen ? '1fr' : '0fr',
+                          transition: 'grid-template-rows 250ms ease',
                         }}>
-                        <div style={{ flex: 1, textAlign: 'left', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: lt.urgent ? 'rgb(185,28,28)' : P.ink }}>
-                          {lt.name}
+                          <div style={{ overflow: 'hidden' }}>
+                            <div style={{
+                              fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft,
+                              lineHeight: '19px', paddingBottom: 12,
+                              opacity: isOpen ? 1 : 0,
+                              transition: 'opacity 200ms ease',
+                            }}>
+                              <span style={{ color: lt.urgent ? urgentColor : P.inkSoft }}>{lt.expires}. </span>{lt.rule}
+                            </div>
+                          </div>
                         </div>
-                        <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 15, letterSpacing: '-0.02em', color: lt.urgent ? 'rgb(185,28,28)' : P.ink, flexShrink: 0 }}>
-                          {lt.remaining}<span style={{ fontWeight: 400, fontSize: 12, color: P.inkSoft }}>/{lt.total}</span>
-                        </span>
-                        <LucideIcon
-                          name="ChevronDown" size={16} color={P.inkSoft} strokeWidth={2}
-                          style={{ flexShrink: 0, transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 200ms ease' }}
-                        />
-                      </button>
-                      {isOpen && (
-                        <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: lt.urgent ? 'rgb(220,38,38)' : P.inkSoft, lineHeight: '18px', padding: '0 0 12px', paddingRight: 24 }}>
-                          {lt.rule}
-                        </div>
-                      )}
+                      </div>
+                    );
+                  };
+
+                  const SectionHeader = ({ label }) => (
+                    <div style={{
+                      padding: '20px 20px 8px',
+                      margin: '0 -20px',
+                    }}>
+                      <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 11, color: P.inkSoft, textTransform: 'uppercase', letterSpacing: '0.07em' }}>
+                        {label}
+                      </span>
                     </div>
                   );
-                })}
+
+                  return (
+                    <>
+                      <div style={{ height: 1, background: P.border, margin: '0 -20px' }} />
+                      <SectionHeader label="Plannable leave" />
+                      {PLANNABLE_TYPES.map(renderRow)}
+                      <div style={{ height: 1, background: P.border, margin: '8px -20px 0' }} />
+                      <SectionHeader label="Other entitlements" />
+                      {OTHER_TYPES.map(renderRow)}
+                    </>
+                  );
+                })()}
 
               </div>
 
-              {/* Sticky footer */}
-              <div style={{ padding: '16px 24px 40px', borderTop: `1px solid ${P.border}`, flexShrink: 0 }}>
-                <Button variant="outline" size="large" fullWidth autoFocus onClick={() => { setShowBalanceInfo(false); setExpandedRows({}); }}>
-                  Got it
-                </Button>
-              </div>
+              <div style={{ height: 32, flexShrink: 0 }} />
             </div>
           </div>,
           appShell
