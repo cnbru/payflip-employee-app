@@ -24,11 +24,6 @@ if (!window.__timeOffItems || window.__protoStateApplied !== _protoState) {
       { id: 'u4', label: 'ADV day',       date: 'Aug 21',       month: 'August',    days: 1, status: 'approved' },
       // Admin-recorded
       { id: 'pl1', label: 'Parental leave', date: 'Oct 1–Dec 31', month: 'October', days: 65, status: 'approved', _adminRecorded: true },
-      // Pending
-      { id: 'u2', label: 'ADV day',       date: 'Sep 11',       month: 'September', days: 1, status: 'pending'  },
-      { id: 'u5', label: 'Short leave',   date: 'Sep 18',       month: 'September', days: 1, status: 'pending'  },
-      // Denied
-      { id: 'u3', label: 'Short leave',   date: 'Dec 1',        month: 'December',  days: 1, status: 'denied', _denialReason: 'Team at full capacity on this day.' },
     ];
     window.__timeOffTaken = 6; // extra taken days not in items (total 40 − 6 − 18 approved − 2 pending = 14 available)
   }
@@ -224,6 +219,7 @@ function TimeOffHubScreen() {
   const [toast, setToast] = React.useState(null);
   const [showBalanceInfo, setShowBalanceInfo] = React.useState(false);
   const [expandedRows, setExpandedRows] = React.useState({});
+  const [balanceDetailOpen, setBalanceDetailOpen] = React.useState(false);
   const toggleRow = React.useCallback((key) => {
     setExpandedRows(prev => ({ ...prev, [key]: !prev[key] }));
   }, []);
@@ -272,80 +268,55 @@ function TimeOffHubScreen() {
       {/* Back nav */}
       <NavBar />
 
-      {/* Date as title */}
+      {/* Title */}
       <div style={{ padding: '0 16px 16px' }}>
         <h1 style={{
           fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 28,
           letterSpacing: '-0.007em', color: P.ink, lineHeight: '36px',
           margin: 0,
-        }}>{dateStr}</h1>
+        }}>Time off</h1>
       </div>
 
       {/* Scrollable content */}
       <div style={{ flex: 1, padding: '0 16px 24px', display: 'flex', flexDirection: 'column', gap: 32 }}>
 
         {/* Balance section */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
-          {past.length > 0 && (
-            <button
-              aria-label="View leave history"
-              onClick={() => nav && nav.push('time-off-history')}
-              style={{
-                appearance: 'none', border: 'none', background: 'transparent',
-                cursor: 'pointer', padding: 0,
-                fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13,
-                color: P.ink, textDecoration: 'underline', textUnderlineOffset: 2,
-              }}>Leave history</button>
-          )}
-        </div>
-
-        {/* Balance card */}
         {(() => {
-          const PLANNABLE = [
-            { type: 'Statutory annual leave', short: 'Statutory annual leave' },
-            { type: 'ADV / RTT',              short: 'ADV / RTT'              },
-            { type: 'Extra-legal leave',       short: 'Extra-legal leave'      },
-          ];
-          const rows = PLANNABLE.map(p => ({
-            ...p,
-            remaining: (LEAVE_BALANCES.find(b => b.type === p.type) || {}).remaining || 0,
-          }));
-
+          const plannableDays = ['Statutory annual leave', 'ADV / RTT']
+            .reduce((sum, t) => sum + ((LEAVE_BALANCES.find(b => b.type === t) || {}).remaining || 0), 0);
           return (
-            <div style={{ background: '#f7f7f8', borderRadius: 16, overflow: 'hidden' }}>
-              {rows.map((row, i) => (
-                <div key={row.type} style={{
-                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                  padding: '13px 16px',
-                  borderTop: i > 0 ? `1px solid ${P.border}` : 'none',
-                }}>
-                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.ink }}>
-                    {row.short}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {/* Card */}
+              <div style={{ background: '#f7f7f8', borderRadius: 16, overflow: 'hidden' }}>
+                <div style={{ padding: '16px 16px 12px', display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 13, color: P.inkSoft }}>
+                    Plannable leave
                   </span>
-                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.ink, flexShrink: 0 }}>
-                    {row.remaining} <span style={{ fontWeight: 400, color: P.inkSoft }}>days</span>
-                  </span>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+                    <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 48, color: P.ink, lineHeight: 1 }}>
+                      {plannableDays}
+                    </span>
+                    <span style={{ fontFamily: 'var(--font-display)', fontWeight: 400, fontSize: 15, color: P.inkSoft }}>
+                      days available
+                    </span>
+                  </div>
                 </div>
-              ))}
-              <button
-                onClick={() => setShowBalanceInfo(true)}
-                style={{
-                  width: '100%', appearance: 'none', cursor: 'pointer',
-                  borderTop: `1px solid ${P.border}`, background: 'transparent', border: 'none',
-                  borderTop: `1px solid ${P.border}`,
-                  padding: '12px 16px',
-                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                }}>
-                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.ink }}>
-                  View breakdown
-                </span>
-                <LucideIcon name="ChevronRight" size={16} color={P.inkSoft} strokeWidth={2} />
-              </button>
+                <button
+                  onClick={() => setShowBalanceInfo(true)}
+                  style={{
+                    width: '100%', appearance: 'none', cursor: 'pointer',
+                    border: 'none', borderTop: `1px solid ${P.border}`,
+                    background: 'transparent', padding: '13px 16px',
+                    fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.ink,
+                    textAlign: 'center',
+                  }}>
+                  View all
+                </button>
+              </div>
             </div>
           );
         })()}
-        </div>{/* end Leave balance section */}
+        {/* end Leave balance section */}
 
         {/* Sections: pending requests + upcoming approved */}
         {(() => {
@@ -405,15 +376,12 @@ function TimeOffHubScreen() {
           );
 
           const ItemCard = ({ items, hideStatus }) => (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              {toGroups(items).map(({ month, items: groupItems }) => (
-                <div key={month} style={{
-                  background: 'white', borderRadius: 16,
-                  border: `1px solid ${P.border}`, overflow: 'hidden',
-                }}>
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              {toGroups(items).map(({ month, items: groupItems }, groupIdx, arr) => (
+                <div key={month}>
                   <div style={{
-                    padding: '12px 16px 10px',
-                    fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 13,
+                    padding: '4px 0 8px',
+                    fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 12,
                     color: P.inkSoft, textTransform: 'uppercase', letterSpacing: '0.06em',
                   }}>{month}</div>
                   {groupItems.map((item) => {
@@ -431,8 +399,8 @@ function TimeOffHubScreen() {
                         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); nav && nav.push('time-off-detail', { item }); } }}
                         style={{
                           display: 'flex', alignItems: 'center', gap: 12,
-                          padding: '12px 16px',
-                          borderTop: `1px solid ${P.border}`,
+                          padding: '10px 0',
+                          borderBottom: `1px solid ${P.border}`,
                           cursor: 'pointer',
                         }}>
                         <div style={{
@@ -467,6 +435,9 @@ function TimeOffHubScreen() {
                       </div>
                     );
                   })}
+                  {groupIdx < arr.length - 1 && (
+                    <div style={{ height: 20 }} />
+                  )}
                 </div>
               ))}
             </div>
@@ -495,17 +466,42 @@ function TimeOffHubScreen() {
                   </div>
                 </div>
               )}
-              {pending.length > 0 && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                  <SectionTitle label="Pending requests" />
-                  <ItemCard items={pending} hideStatus />
-                </div>
-              )}
-              {denied.length > 0 && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                  <SectionTitle label="Denied" />
-                  <ItemCard items={denied} />
-                </div>
+              {(pending.length > 0 || denied.length > 0) && (
+                <button
+                  onClick={() => nav && nav.push('time-off-history')}
+                  style={{
+                    appearance: 'none', border: `1px solid ${P.border}`, borderRadius: 12,
+                    background: 'white', cursor: 'pointer',
+                    padding: '12px 16px',
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8,
+                  }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    {pending.length > 0 && (
+                      <span style={{
+                        fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 13,
+                        color: 'rgb(161,98,7)',
+                        display: 'inline-flex', alignItems: 'center', gap: 4,
+                      }}>
+                        <span style={{ fontSize: 10 }}>●</span>
+                        {pending.length} pending
+                      </span>
+                    )}
+                    {pending.length > 0 && denied.length > 0 && (
+                      <span style={{ color: P.border }}>·</span>
+                    )}
+                    {denied.length > 0 && (
+                      <span style={{
+                        fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 13,
+                        color: 'rgb(185,28,28)',
+                        display: 'inline-flex', alignItems: 'center', gap: 4,
+                      }}>
+                        <span style={{ fontSize: 10 }}>●</span>
+                        {denied.length} denied
+                      </span>
+                    )}
+                  </div>
+                  <LucideIcon name="ChevronRight" size={16} color={P.inkSoft} strokeWidth={2} />
+                </button>
               )}
               {upcoming.length > 0 && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -516,6 +512,19 @@ function TimeOffHubScreen() {
             </div>
           );
         })()}
+
+        {/* Leave history link */}
+        {past.length > 0 && (
+          <button
+            aria-label="View leave history"
+            onClick={() => nav && nav.push('time-off-history')}
+            style={{
+              appearance: 'none', border: 'none', background: 'transparent',
+              cursor: 'pointer', padding: 0, alignSelf: 'flex-start',
+              fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14,
+              color: P.inkSoft, textDecoration: 'underline', textUnderlineOffset: 3,
+            }}>Leave history</button>
+        )}
 
       </div>
 
@@ -724,10 +733,11 @@ function TimeOffHistoryScreen() {
   const ALL = window.__timeOffItems || [];
 
   const STATUS = {
-    approved: { label: 'Approved', color: 'rgb(22,163,74)', iconBg: 'rgb(220,252,231)', icon: 'Palmtree' },
+    approved: { label: 'Approved',          color: 'rgb(22,163,74)',  iconBg: 'rgb(220,252,231)', icon: 'Palmtree' },
+    pending:  { label: 'Pending — Sophie L.',color: 'rgb(161,98,7)',  iconBg: 'rgb(250,246,235)', icon: 'Clock'    },
+    denied:   { label: 'Denied by Sophie L.',color: 'rgb(185,28,28)', iconBg: 'rgb(251,241,241)', icon: 'CircleX'  },
   };
 
-  // Determine past items
   const _mMap = { January:0, February:1, March:2, April:3, May:4, June:5, July:6, August:7, September:8, October:9, November:10, December:11 };
   const _today = new Date(); _today.setHours(0,0,0,0);
   const _itemEndDate = (item) => {
@@ -738,136 +748,109 @@ function TimeOffHistoryScreen() {
     const eDay = dm[2] ? parseInt(dm[2]) : parseInt(dm[1]);
     return new Date(2026, mo, eDay);
   };
-  const past = ALL.filter(i => i.status === 'approved').filter(i => {
+
+  const pending = ALL.filter(i => i.status === 'pending');
+  const denied  = ALL.filter(i => i.status === 'denied');
+  const past    = ALL.filter(i => i.status === 'approved').filter(i => {
     const d = _itemEndDate(i); return !d || d < _today;
   });
   const totalDays = past.reduce((s, i) => s + i.days, 0);
 
-  // Group by month (reverse chronological — most recent first)
   const toGroups = (items) => {
     const map = new Map();
     items.forEach(item => {
       if (!map.has(item.month)) map.set(item.month, []);
       map.get(item.month).push(item);
     });
-    const _monthOrder = { January:0, February:1, March:2, April:3, May:4, June:5, July:6, August:7, September:8, October:9, November:10, December:11 };
+    const _mo = { January:0, February:1, March:2, April:3, May:4, June:5, July:6, August:7, September:8, October:9, November:10, December:11 };
     return Array.from(map.entries())
       .map(([month, items]) => ({ month, items }))
-      .sort((a, b) => (_monthOrder[b.month] || 0) - (_monthOrder[a.month] || 0));
+      .sort((a, b) => (_mo[b.month] || 0) - (_mo[a.month] || 0));
   };
+
+  const ItemRow = ({ item }) => {
+    const _stBase = STATUS[item.status] || STATUS.approved;
+    const st = item._adminRecorded ? { ..._stBase, label: 'Recorded by Sophie L.' } : _stBase;
+    return (
+      <div key={item.id}
+        role="button" tabIndex={0}
+        aria-label={`${item.label}, ${item.days === 1 ? '1 day' : item.days + ' days'}, ${item.date}`}
+        onClick={() => nav && nav.push('time-off-detail', { item })}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); nav && nav.push('time-off-detail', { item }); } }}
+        style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', borderTop: `1px solid ${P.border}`, cursor: 'pointer' }}>
+        <div style={{ width: 40, height: 40, borderRadius: 12, flexShrink: 0, background: st.iconBg, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+          <LucideIcon name={st.icon} size={20} color={st.color} strokeWidth={1.75} />
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.ink, lineHeight: '20px' }}>{item.label}</div>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontFamily: 'var(--font-body)', fontWeight: 400, fontSize: 12, color: st.color }}>
+            <span aria-hidden="true" style={{ fontSize: 10 }}>●</span>{st.label}
+          </div>
+        </div>
+        <div style={{ textAlign: 'right', flexShrink: 0 }}>
+          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.ink, lineHeight: '20px' }}>{item.date}</div>
+          <div style={{ fontFamily: 'var(--font-body)', fontWeight: 400, fontSize: 12, color: P.inkSoft }}>{item.days === 1 ? '1 day' : `${item.days} days`}</div>
+        </div>
+      </div>
+    );
+  };
+
+  const MonthGroup = ({ month, items }) => (
+    <div style={{ background: 'white', borderRadius: 16, border: `1px solid ${P.border}`, overflow: 'hidden' }}>
+      <div style={{ padding: '12px 16px 10px', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 13, color: P.inkSoft, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{month}</div>
+      {items.map(item => <ItemRow key={item.id} item={item} />)}
+    </div>
+  );
+
+  const hasAny = pending.length > 0 || denied.length > 0 || past.length > 0;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: P.pageBg }}>
-      {/* NavBar */}
-      <div style={{
-        display: 'flex', alignItems: 'center', gap: 8,
-        padding: '12px 16px', background: 'white',
-        borderBottom: `1px solid ${P.border}`,
-        flexShrink: 0,
-      }}>
-        <button
-          onClick={() => nav && nav.pop()}
-          aria-label="Back"
-          style={{
-            width: 36, height: 36, borderRadius: 10,
-            border: 'none', background: 'transparent', cursor: 'pointer',
-            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-          }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 16px', background: 'white', borderBottom: `1px solid ${P.border}`, flexShrink: 0 }}>
+        <button onClick={() => nav && nav.pop()} aria-label="Back"
+          style={{ width: 36, height: 36, borderRadius: 10, border: 'none', background: 'transparent', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
           <LucideIcon name="ArrowLeft" size={22} color={P.ink} strokeWidth={1.75} />
         </button>
-        <span style={{
-          flex: 1, fontFamily: 'var(--font-display)', fontWeight: 700,
-          fontSize: 17, color: P.ink,
-        }}>History</span>
-        <span style={{
-          fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: 13, color: P.inkSoft,
-        }}>{totalDays} {totalDays === 1 ? 'day' : 'days'}</span>
+        <span style={{ flex: 1, fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 17, color: P.ink }}>Requests</span>
+        <span style={{ fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: 13, color: P.inkSoft }}>{totalDays} {totalDays === 1 ? 'day' : 'days'} taken</span>
       </div>
 
-      {/* Content */}
-      <div style={{ flex: 1, overflow: 'auto', padding: '24px 16px', display: 'flex', flexDirection: 'column', gap: 12 }}>
-        {past.length === 0 ? (
-          <div style={{
-            display: 'flex', flexDirection: 'column', alignItems: 'center',
-            padding: '48px 16px', textAlign: 'center', gap: 12,
-          }}>
-            <div style={{
-              width: 56, height: 56, borderRadius: '50%', background: '#f3f4f6',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}>
+      <div style={{ flex: 1, overflow: 'auto', padding: '24px 16px', display: 'flex', flexDirection: 'column', gap: 24 }}>
+        {!hasAny && (
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '48px 16px', textAlign: 'center', gap: 12 }}>
+            <div style={{ width: 56, height: 56, borderRadius: '50%', background: '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <LucideIcon name="History" size={28} color="#9ca3af" strokeWidth={1.5} />
             </div>
-            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.ink }}>
-              No history yet
-            </div>
-            <div style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, lineHeight: '20px', maxWidth: 260 }}>
-              Your past time off will appear here once those dates have passed.
+            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.ink }}>No requests yet</div>
+            <div style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, lineHeight: '20px', maxWidth: 260 }}>Your time off requests will appear here.</div>
+          </div>
+        )}
+
+        {pending.length > 0 && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 13, color: P.inkSoft, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Pending</span>
+            <div style={{ background: 'white', borderRadius: 16, border: `1px solid ${P.border}`, overflow: 'hidden' }}>
+              {pending.map(item => <ItemRow key={item.id} item={item} />)}
             </div>
           </div>
-        ) : (
-          toGroups(past).map(({ month, items }) => (
-            <div key={month} style={{
-              background: 'white', borderRadius: 16,
-              border: `1px solid ${P.border}`, overflow: 'hidden',
-            }}>
-              <div style={{
-                padding: '12px 16px 10px',
-                fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 13,
-                color: P.inkSoft, textTransform: 'uppercase', letterSpacing: '0.06em',
-              }}>{month}</div>
-              {items.map((item) => {
-                const _stBase = STATUS[item.status] || STATUS.approved;
-                const st = item._adminRecorded
-                  ? { ..._stBase, label: 'Recorded by Sophie L.' }
-                  : _stBase;
-                return (
-                  <div key={item.id}
-                    role="button" tabIndex={0}
-                    aria-label={`${item.label}, ${item.days === 1 ? '1 day' : item.days + ' days'}, ${item.date}`}
-                    onClick={() => nav && nav.push('time-off-detail', { item })}
-                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); nav && nav.push('time-off-detail', { item }); } }}
-                    style={{
-                      display: 'flex', alignItems: 'center', gap: 12,
-                      padding: '12px 16px',
-                      borderTop: `1px solid ${P.border}`,
-                      cursor: 'pointer',
-                    }}>
-                    <div style={{
-                      width: 40, height: 40, borderRadius: 12, flexShrink: 0,
-                      background: st.iconBg,
-                      display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                    }}>
-                      <LucideIcon name={st.icon} size={20} color={st.color} strokeWidth={1.75} />
-                    </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{
-                        fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14,
-                        color: P.ink, lineHeight: '20px',
-                      }}>{item.label}</div>
-                      <div style={{
-                        display: 'inline-flex', alignItems: 'center', gap: 4,
-                        fontFamily: 'var(--font-body)', fontWeight: 400, fontSize: 12,
-                        color: st.color,
-                      }}>
-                        <span aria-hidden="true" style={{ fontSize: 10 }}>●</span>
-                        {st.label}
-                      </div>
-                    </div>
-                    <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                      <div style={{
-                        fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14,
-                        color: P.ink, lineHeight: '20px',
-                      }}>{item.date}</div>
-                      <div style={{
-                        fontFamily: 'var(--font-body)', fontWeight: 400, fontSize: 12,
-                        color: P.inkSoft,
-                      }}>{item.days === 1 ? '1 day' : `${item.days} days`}</div>
-                    </div>
-                  </div>
-                );
-              })}
+        )}
+
+        {denied.length > 0 && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 13, color: P.inkSoft, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Denied</span>
+            <div style={{ background: 'white', borderRadius: 16, border: `1px solid ${P.border}`, overflow: 'hidden' }}>
+              {denied.map(item => <ItemRow key={item.id} item={item} />)}
             </div>
-          ))
+          </div>
+        )}
+
+        {past.length > 0 && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 13, color: P.inkSoft, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Past</span>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {toGroups(past).map(({ month, items }) => <MonthGroup key={month} month={month} items={items} />)}
+            </div>
+          </div>
         )}
       </div>
     </div>
