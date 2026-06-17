@@ -1212,6 +1212,7 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
   const [attachments, setAttachments] = React.useState(editItem?._attachments || []);
   const [showHoursSheet, setShowHoursSheet] = React.useState(false);
   const [showReasonSheet, setShowReasonSheet] = React.useState(false);
+  const [showSpecialSheet, setShowSpecialSheet] = React.useState(false);
   const [showHalfDayTip, setShowHalfDayTip] = React.useState(!editItem);
   const [errorToast, setErrorToast] = React.useState(null);
   const [calToast, setCalToast] = React.useState(null);
@@ -1695,12 +1696,7 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
                       </span>
                     </button>
                   </div>
-                  {/* Balance remaining after request */}
-                  {selectedBalance && totalDays > 0 && overBalance === 0 && (
-                    <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, marginTop: 4 }}>
-                      {Math.max(0, selectedBalance.remaining - totalDays)} of {selectedBalance.remaining} days remaining after this
-                    </div>
-                  )}
+                  {/* Balance remaining after request — shown inside the card like the over-balance warning */}
                   {/* Half-day annotations */}
                   {halfDay && (() => {
                     const parts = [];
@@ -1718,15 +1714,26 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
                     ) : null;
                   })()}
                 </div>
-                {/* Over-balance warning banner — always at card bottom */}
-                {overBalance > 0 && selectedBalance && (
+                {/* Over-balance warning banner */}
+                {overBalance > 0 && selectedBalance && (<React.Fragment>
+                  <div style={{ height: 1, background: P.border }} />
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 16px', background: '#FFF3E5' }}>
                     <LucideIcon name="AlertTriangle" size={14} color="#92400e" strokeWidth={2} style={{ flexShrink: 0 }} />
                     <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, fontWeight: 500, color: '#92400e', lineHeight: '16px' }}>
                       Exceeds balance by {overBalance === 0.5 ? '½' : overBalance} day{overBalance > 1 ? 's' : ''} — {selectedBalance.remaining} remaining
                     </span>
                   </div>
-                )}
+                </React.Fragment>)}
+                {/* Balance remaining info banner */}
+                {selectedBalance && totalDays > 0 && overBalance === 0 && (<React.Fragment>
+                  <div style={{ height: 1, background: P.border }} />
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 16px', background: '#f3f4f6' }}>
+                    <LucideIcon name="Info" size={14} color={P.inkSoft} strokeWidth={2} style={{ flexShrink: 0 }} />
+                    <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, fontWeight: 500, color: P.inkSoft, lineHeight: '16px' }}>
+                      {Math.max(0, selectedBalance.remaining - totalDays)} of {selectedBalance.remaining} days remaining after this
+                    </span>
+                  </div>
+                </React.Fragment>)}
               </div>
             </div>
           )}
@@ -1949,17 +1956,19 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
                     'adv':       LEAVE_BALANCES.find(b => b.type === 'ADV / RTT'),
                     'extra-legal': LEAVE_BALANCES.find(b => b.type === 'Extra-legal leave'),
                   };
-                  const mainTypes = [
+                  const holidayTypes = [
                     { id: 'statutory',   label: 'Time off',          icon: 'Palmtree',     bal: balanceMap['statutory'] },
                     { id: 'adv',         label: 'ADV / RTT',          icon: 'CalendarDays', bal: balanceMap['adv'] },
                     { id: 'extra-legal', label: 'Extra-legal leave',   icon: 'Gift',         bal: balanceMap['extra-legal'] },
-                    { id: 'sick',        label: 'Sick leave',          icon: 'Thermometer' },
                   ];
-                  const Row = ({ id, label, icon, sub, bal, urgent, isLast }) => {
+                  const SectionLabel = ({ label }) => (
+                    <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.inkSoft, textTransform: 'uppercase', letterSpacing: '0.06em', padding: '16px 0 4px' }}>{label}</div>
+                  );
+                  const Row = ({ id, label, icon, sub, bal, urgent, isLast, onClick: onClickOverride }) => {
                     const isSelected = leaveReason?.startsWith('special-funeral') ? id === 'special-funeral' : leaveReason === id;
                     return (
                       <button
-                        onClick={() => { setLeaveReason(id); setShowReasonSheet(false); }}
+                        onClick={onClickOverride || (() => { setLeaveReason(id); setShowReasonSheet(false); })}
                         style={{
                           width: '100%', appearance: 'none', border: 'none', cursor: 'pointer',
                           display: 'flex', alignItems: 'center', gap: 12,
@@ -1980,17 +1989,89 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
                           {sub && <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, marginTop: 1 }}>{sub}</div>}
                           {bal && <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, marginTop: 1 }}>{bal.remaining} days left</div>}
                         </div>
-                        <LucideIcon name="ChevronRight" size={18} color={P.inkSoft} strokeWidth={2.5} />
+                        <LucideIcon name="ChevronRight" size={18} color={P.inkSoft} strokeWidth={2.5} style={{ flexShrink: 0 }} />
                       </button>
                     );
                   };
-                  const lastSpecialIdx = SPECIAL_LEAVE_OPTIONS.length - 1;
-                  return [
-                    ...mainTypes.map((t, i) => React.createElement(Row, { key: t.id, ...t, isLast: i === mainTypes.length - 1 })),
-                    React.createElement('div', { key: 'special-header', style: { fontFamily: 'var(--font-body)', fontSize: 12, fontWeight: 600, color: P.inkSoft, textTransform: 'uppercase', letterSpacing: '0.06em', padding: '28px 0 4px' } }, 'Special leave'),
-                    ...SPECIAL_LEAVE_OPTIONS.map((o, i) => React.createElement(Row, { key: o.id, id: o.id, label: o.label, icon: o.icon, sub: o.sub, isLast: i === lastSpecialIdx })),
-                  ];
+                  const isAnySpecial = leaveReason?.startsWith('special-');
+                  const specialSelected = isAnySpecial ? SPECIAL_LEAVE_OPTIONS.find(o => o.id === leaveReason) || BEREAVEMENT_OPTIONS.find(o => o.id === leaveReason) : null;
+                  return (
+                    <div>
+                      <SectionLabel label="Holidays" />
+                      {holidayTypes.map((t, i) => <Row key={t.id} {...t} isLast={i === holidayTypes.length - 1} />)}
+
+                      <SectionLabel label="Sick leave" />
+                      <Row id="sick" label="Sick leave" icon="Thermometer" sub="1 day without certificate, 2+ days requires one" isLast />
+
+                      <SectionLabel label="Special leave" />
+                      <Row
+                        id="_special" label="Special leave" icon="Sparkles"
+                        sub={specialSelected ? specialSelected.label : 'Wedding, moving, bereavement…'}
+                        isLast
+                        onClick={() => { setShowReasonSheet(false); setTimeout(() => setShowSpecialSheet(true), 180); }}
+                      />
+                    </div>
+                  );
                 })()}
+              </div>
+            </div>
+          </div>,
+          appShell
+        )}
+
+        {/* Special leave bottom sheet */}
+        {showSpecialSheet && appShell && ReactDOM.createPortal(
+          <div
+            onClick={() => setShowSpecialSheet(false)}
+            style={{ position: 'absolute', inset: 0, zIndex: 400, background: 'rgba(15,13,40,0.45)', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', animation: 'sheetFadeIn 0.2s ease-out' }}
+          >
+            <div
+              onClick={(e) => e.stopPropagation()}
+              style={{ background: 'white', borderRadius: '20px 20px 0 0', animation: 'sheetSlideUp 0.25s ease-out' }}
+            >
+              <div style={{ padding: '20px 24px 12px' }}>
+                <div aria-hidden="true" style={{ width: 36, height: 4, borderRadius: 2, background: P.border, margin: '0 auto 16px' }} />
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <button
+                    onClick={() => { setShowSpecialSheet(false); setTimeout(() => setShowReasonSheet(true), 180); }}
+                    aria-label="Back"
+                    style={{ width: 28, height: 28, borderRadius: 6, background: 'transparent', border: 'none', cursor: 'pointer', padding: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+                  >
+                    <LucideIcon name="ChevronLeft" size={20} color={P.ink} strokeWidth={2.5} />
+                  </button>
+                  <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 17, color: P.ink }}>Special leave</div>
+                </div>
+              </div>
+              <div style={{ padding: '0 24px 40px' }}>
+                {SPECIAL_LEAVE_OPTIONS.map((o, i) => {
+                  const isSelected = leaveReason?.startsWith('special-funeral') ? o.id === 'special-funeral' : leaveReason === o.id;
+                  return (
+                    <button
+                      key={o.id}
+                      onClick={() => { setLeaveReason(o.id); setShowSpecialSheet(false); }}
+                      style={{
+                        width: '100%', appearance: 'none', border: 'none', cursor: 'pointer',
+                        display: 'flex', alignItems: 'center', gap: 12,
+                        padding: '12px 0',
+                        borderBottom: i === SPECIAL_LEAVE_OPTIONS.length - 1 ? 'none' : `1px solid ${P.border}`,
+                        background: 'transparent', textAlign: 'left',
+                      }}
+                    >
+                      <span style={{
+                        width: 34, height: 34, borderRadius: 9, flexShrink: 0,
+                        background: '#f3f4f6',
+                        display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                      }}>
+                        <LucideIcon name={o.icon} size={16} color={P.inkSoft} strokeWidth={1.75} />
+                      </span>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontFamily: 'var(--font-display)', fontWeight: isSelected ? 600 : 500, fontSize: 15, color: P.ink, lineHeight: '20px' }}>{o.label}</div>
+                        {o.sub && <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, marginTop: 1 }}>{o.sub}</div>}
+                      </div>
+                      <LucideIcon name="ChevronRight" size={18} color={P.inkSoft} strokeWidth={2.5} />
+                    </button>
+                  );
+                })}
               </div>
             </div>
           </div>,
