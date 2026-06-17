@@ -19,6 +19,8 @@ if (!window.__timeOffItems || window.__protoStateApplied !== _protoState) {
       { id: 'p2', label: 'ADV day',       date: 'Apr 24',       month: 'April',     days: 1, status: 'approved' },
       { id: 'p3', label: 'Legal holiday', date: 'May 18–22',    month: 'May',       days: 5, status: 'approved' },
       { id: 'p4', label: 'Extra-legal leave', date: 'Jun 2',    month: 'June',      days: 1, status: 'approved' },
+      // Pending
+      { id: 'q1', label: 'Legal holiday', date: 'Jul 14',       month: 'July',      days: 1, status: 'pending'  },
       // Upcoming
       { id: 'u1', label: 'Legal holiday', date: 'Aug 3–7',      month: 'August',    days: 5, status: 'approved' },
       { id: 'u4', label: 'ADV day',       date: 'Aug 21',       month: 'August',    days: 1, status: 'approved' },
@@ -218,6 +220,8 @@ function TimeOffHubScreen() {
   const [, setTick] = React.useState(0);
   const [toast, setToast] = React.useState(null);
   const [showBalanceInfo, setShowBalanceInfo] = React.useState(false);
+  const [balanceSheetOpen, setBalanceSheetOpen] = React.useState(false);
+  const [balanceSheetAnimating, setBalanceSheetAnimating] = React.useState(false);
   const [expandedRows, setExpandedRows] = React.useState({});
   const [balanceDetailOpen, setBalanceDetailOpen] = React.useState(false);
   const toggleRow = React.useCallback((key) => {
@@ -268,51 +272,34 @@ function TimeOffHubScreen() {
       {/* Back nav */}
       <NavBar />
 
-      {/* Title */}
-      <div style={{ padding: '0 16px 16px' }}>
-        <h1 style={{
-          fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 28,
-          letterSpacing: '-0.007em', color: P.ink, lineHeight: '36px',
-          margin: 0,
-        }}>Time off</h1>
-      </div>
-
       {/* Scrollable content */}
       <div style={{ flex: 1, padding: '0 16px 24px', display: 'flex', flexDirection: 'column', gap: 32 }}>
 
         {/* Balance section */}
         {(() => {
-          const plannableDays = ['Statutory annual leave', 'ADV / RTT']
+          const plannableDays = ['Statutory annual leave', 'ADV / RTT', 'Extra-legal leave']
             .reduce((sum, t) => sum + ((LEAVE_BALANCES.find(b => b.type === t) || {}).remaining || 0), 0);
           return (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {/* Card */}
-              <div style={{ background: '#f7f7f8', borderRadius: 16, overflow: 'hidden' }}>
-                <div style={{ padding: '16px 16px 12px', display: 'flex', flexDirection: 'column', gap: 4 }}>
-                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 13, color: P.inkSoft }}>
-                    Plannable leave
-                  </span>
-                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
-                    <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 48, color: P.ink, lineHeight: 1 }}>
-                      {plannableDays}
-                    </span>
-                    <span style={{ fontFamily: 'var(--font-display)', fontWeight: 400, fontSize: 15, color: P.inkSoft }}>
-                      days available
-                    </span>
-                  </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 40, letterSpacing: '-0.04em', color: P.ink, lineHeight: '46px' }}>
+                  {plannableDays} days
                 </div>
-                <button
-                  onClick={() => setShowBalanceInfo(true)}
-                  style={{
-                    width: '100%', appearance: 'none', cursor: 'pointer',
-                    border: 'none', borderTop: `1px solid ${P.border}`,
-                    background: 'transparent', padding: '13px 16px',
-                    fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.ink,
-                    textAlign: 'center',
-                  }}>
-                  View all
-                </button>
+                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 15, color: P.inkSoft }}>
+                  Plannable leave available
+                </div>
               </div>
+              <button
+                onClick={() => { setShowBalanceInfo(true); setBalanceSheetAnimating(true); requestAnimationFrame(() => requestAnimationFrame(() => { setBalanceSheetOpen(true); setTimeout(() => setBalanceSheetAnimating(false), 340); })); }}
+                style={{
+                  appearance: 'none', cursor: 'pointer',
+                  border: `1px solid ${P.border}`, borderRadius: 10,
+                  background: 'white', padding: '8px 16px',
+                  fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.inkSoft,
+                  width: '100%', display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                View all entitlements
+              </button>
             </div>
           );
         })()}
@@ -384,7 +371,7 @@ function TimeOffHubScreen() {
                     fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 12,
                     color: P.inkSoft, textTransform: 'uppercase', letterSpacing: '0.06em',
                   }}>{month}</div>
-                  {groupItems.map((item) => {
+                  {groupItems.map((item, itemIdx) => {
                     const _stBase = STATUS[item.status] || STATUS.approved;
                     const _chip = _getLeaveChip(item.label);
                     const st = item._adminRecorded
@@ -400,7 +387,7 @@ function TimeOffHubScreen() {
                         style={{
                           display: 'flex', alignItems: 'center', gap: 12,
                           padding: '10px 0',
-                          borderBottom: `1px solid ${P.border}`,
+                          borderBottom: itemIdx < groupItems.length - 1 ? `1px solid ${P.border}` : 'none',
                           cursor: 'pointer',
                         }}>
                         <div style={{
@@ -411,10 +398,10 @@ function TimeOffHubScreen() {
                           <LucideIcon name={st.icon} size={20} color={st.color} strokeWidth={1.75} />
                         </div>
                         <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{
-                            fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14,
-                            color: P.ink, lineHeight: '20px',
-                          }}>{item.date} · {item.days === 1 ? '1 day' : `${item.days} days`}</div>
+                          <div style={{ fontFamily: 'var(--font-display)', fontSize: 14, lineHeight: '20px' }}>
+                            <span style={{ fontWeight: 600, color: P.ink }}>{item.date}</span>
+                            <span style={{ fontWeight: 400, color: P.inkSoft }}>{' · '}{item.days === 1 ? '1 day' : `${item.days} days`}</span>
+                          </div>
                           {!hideStatus && (
                           <div style={{
                             display: 'inline-flex', alignItems: 'center', gap: 4,
@@ -426,12 +413,7 @@ function TimeOffHubScreen() {
                           </div>
                           )}
                         </div>
-                        <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                          <div style={{
-                            fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 13,
-                            color: P.inkSoft, lineHeight: '20px',
-                          }}>{item.label}</div>
-                        </div>
+                        <LucideIcon name="ChevronRight" size={18} color={P.inkSoft} strokeWidth={2} />
                       </div>
                     );
                   })}
@@ -466,46 +448,21 @@ function TimeOffHubScreen() {
                   </div>
                 </div>
               )}
-              {(pending.length > 0 || denied.length > 0) && (
-                <button
-                  onClick={() => nav && nav.push('time-off-history')}
-                  style={{
-                    appearance: 'none', border: `1px solid ${P.border}`, borderRadius: 12,
-                    background: 'white', cursor: 'pointer',
-                    padding: '12px 16px',
-                    display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8,
-                  }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    {pending.length > 0 && (
-                      <span style={{
-                        fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 13,
-                        color: 'rgb(161,98,7)',
-                        display: 'inline-flex', alignItems: 'center', gap: 4,
-                      }}>
-                        <span style={{ fontSize: 10 }}>●</span>
-                        {pending.length} pending
-                      </span>
-                    )}
-                    {pending.length > 0 && denied.length > 0 && (
-                      <span style={{ color: P.border }}>·</span>
-                    )}
-                    {denied.length > 0 && (
-                      <span style={{
-                        fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 13,
-                        color: 'rgb(185,28,28)',
-                        display: 'inline-flex', alignItems: 'center', gap: 4,
-                      }}>
-                        <span style={{ fontSize: 10 }}>●</span>
-                        {denied.length} denied
-                      </span>
-                    )}
-                  </div>
-                  <LucideIcon name="ChevronRight" size={16} color={P.inkSoft} strokeWidth={2} />
-                </button>
+              {pending.length > 0 && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  <SectionTitle label="Pending requests" />
+                  <ItemCard items={pending} />
+                </div>
+              )}
+              {denied.length > 0 && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  <SectionTitle label="Denied" />
+                  <ItemCard items={denied} />
+                </div>
               )}
               {upcoming.length > 0 && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                  <SectionTitle label="Upcoming time off" action="View all" actionAriaLabel="View all upcoming time off" />
+                  <SectionTitle label="Upcoming time off" />
                   <ItemCard items={upcoming} />
                 </div>
               )}
@@ -580,21 +537,26 @@ function TimeOffHubScreen() {
 
         return ReactDOM.createPortal(
           <div
-            style={{ position: 'absolute', inset: 0, zIndex: 400, background: 'rgba(15,13,40,0.45)', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}
-            onKeyDown={(e) => { if (e.key === 'Escape') { setShowBalanceInfo(false); setExpandedRows({}); } }}
+            style={{ position: 'absolute', inset: 0, zIndex: 400, background: 'rgba(15,13,40,0.45)', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end',
+              opacity: balanceSheetOpen ? 1 : 0, transition: 'opacity 300ms ease' }}
+            onClick={(e) => { if (e.target === e.currentTarget) { setBalanceSheetAnimating(true); setBalanceSheetOpen(false); setTimeout(() => { setShowBalanceInfo(false); setExpandedRows({}); setBalanceSheetAnimating(false); }, 340); } }}
+            onKeyDown={(e) => { if (e.key === 'Escape') { setBalanceSheetAnimating(true); setBalanceSheetOpen(false); setTimeout(() => { setShowBalanceInfo(false); setExpandedRows({}); setBalanceSheetAnimating(false); }, 340); } }}
           >
             <div
               role="dialog" aria-modal="true" aria-labelledby="balance-info-title"
-              style={{ background: 'white', borderRadius: '20px 20px 0 0', display: 'flex', flexDirection: 'column', maxHeight: '88%' }}
+              style={{ background: 'white', borderRadius: '20px 20px 0 0', display: 'flex', flexDirection: 'column', maxHeight: '88%',
+                overflow: 'hidden',
+                transform: balanceSheetOpen ? 'translateY(0)' : 'translateY(100%)', transition: 'transform 320ms cubic-bezier(0.32, 0.72, 0, 1)',
+                willChange: 'transform', backfaceVisibility: 'hidden' }}
             >
               {/* Sticky header */}
               <div style={{ padding: '20px 24px 0', flexShrink: 0 }}>
                 <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 6 }}>
                   <div id="balance-info-title" style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18, color: P.ink }}>
-                    Your leave in 2026
+                    Leave entitlements 2026
                   </div>
                   <button
-                    onClick={() => { setShowBalanceInfo(false); setExpandedRows({}); }}
+                    onClick={() => { setBalanceSheetAnimating(true); setBalanceSheetOpen(false); setTimeout(() => { setShowBalanceInfo(false); setExpandedRows({}); setBalanceSheetAnimating(false); }, 340); }}
                     aria-label="Close"
                     style={{
                       width: 36, height: 36, borderRadius: 10,
@@ -611,7 +573,7 @@ function TimeOffHubScreen() {
               </div>
 
               {/* Scrollable body */}
-              <div style={{ overflowY: 'auto', flex: 1, padding: '8px 20px 8px' }}>
+              <div className="hide-scrollbar" style={{ overflowY: 'auto', flex: 1, padding: '8px 20px 8px' }}>
 
                 {(() => {
                   const urgentColor = 'rgb(161,98,7)';
@@ -1244,12 +1206,12 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
   const [halfDay, setHalfDay] = React.useState(editItem?._halfDay || null);
   const [notes, setNotes] = React.useState(editItem?._notes || '');
   const [leaveReason, setLeaveReason] = React.useState(prefillReason || _editParsed.reason);
-  const [showReasonSheet, setShowReasonSheet] = React.useState(false);
   const [error, setError] = React.useState('');
   const [submitting, setSubmitting] = React.useState(false);
   const [focusedField, setFocusedField] = React.useState(editItem ? 'end' : 'start');
   const [attachments, setAttachments] = React.useState(editItem?._attachments || []);
   const [showHoursSheet, setShowHoursSheet] = React.useState(false);
+  const [showReasonSheet, setShowReasonSheet] = React.useState(false);
   const [showHalfDayTip, setShowHalfDayTip] = React.useState(!editItem);
   const [errorToast, setErrorToast] = React.useState(null);
   const [calToast, setCalToast] = React.useState(null);
@@ -1593,7 +1555,6 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
                 Bereavement · {selectedReason.label}
               </div>
             )}
-
           </div>
 
           {/* Progressive disclosure: rest of form appears after leave type is selected (skip when editing) */}
@@ -1734,6 +1695,12 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
                       </span>
                     </button>
                   </div>
+                  {/* Balance remaining after request */}
+                  {selectedBalance && totalDays > 0 && overBalance === 0 && (
+                    <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, marginTop: 4 }}>
+                      {Math.max(0, selectedBalance.remaining - totalDays)} of {selectedBalance.remaining} days remaining after this
+                    </div>
+                  )}
                   {/* Half-day annotations */}
                   {halfDay && (() => {
                     const parts = [];
@@ -1958,6 +1925,7 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
           appShell
         )}
 
+
         {/* Leave reason bottom sheet */}
         {showReasonSheet && appShell && ReactDOM.createPortal(
           <div
@@ -1981,17 +1949,14 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
                     'adv':       LEAVE_BALANCES.find(b => b.type === 'ADV / RTT'),
                     'extra-legal': LEAVE_BALANCES.find(b => b.type === 'Extra-legal leave'),
                   };
-
                   const mainTypes = [
                     { id: 'statutory',   label: 'Time off',          icon: 'Palmtree',     bal: balanceMap['statutory'] },
                     { id: 'adv',         label: 'ADV / RTT',          icon: 'CalendarDays', bal: balanceMap['adv'] },
                     { id: 'extra-legal', label: 'Extra-legal leave',   icon: 'Gift',         bal: balanceMap['extra-legal'] },
                     { id: 'sick',        label: 'Sick leave',          icon: 'Thermometer' },
                   ];
-
-                  const Row = ({ id, label, icon, sub, bal, urgent, isLast, hasBereavementFlow }) => {
+                  const Row = ({ id, label, icon, sub, bal, urgent, isLast }) => {
                     const isSelected = leaveReason?.startsWith('special-funeral') ? id === 'special-funeral' : leaveReason === id;
-                    const lowBalance = bal && bal.remaining <= 2;
                     return (
                       <button
                         onClick={() => { setLeaveReason(id); setShowReasonSheet(false); }}
@@ -2019,12 +1984,11 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
                       </button>
                     );
                   };
-
                   const lastSpecialIdx = SPECIAL_LEAVE_OPTIONS.length - 1;
                   return [
                     ...mainTypes.map((t, i) => React.createElement(Row, { key: t.id, ...t, isLast: i === mainTypes.length - 1 })),
                     React.createElement('div', { key: 'special-header', style: { fontFamily: 'var(--font-body)', fontSize: 12, fontWeight: 600, color: P.inkSoft, textTransform: 'uppercase', letterSpacing: '0.06em', padding: '28px 0 4px' } }, 'Special leave'),
-                    ...SPECIAL_LEAVE_OPTIONS.map((o, i) => React.createElement(Row, { key: o.id, id: o.id, label: o.label, icon: o.icon, sub: o.sub, isLast: i === lastSpecialIdx, hasBereavementFlow: !!o.hasBereavementFlow })),
+                    ...SPECIAL_LEAVE_OPTIONS.map((o, i) => React.createElement(Row, { key: o.id, id: o.id, label: o.label, icon: o.icon, sub: o.sub, isLast: i === lastSpecialIdx })),
                   ];
                 })()}
               </div>
