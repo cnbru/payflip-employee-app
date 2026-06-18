@@ -277,8 +277,7 @@ function TimeOffHubScreen() {
 
         {/* Balance section */}
         {(() => {
-          const plannableDays = ['Statutory annual leave', 'ADV / RTT', 'Extra-legal leave']
-            .reduce((sum, t) => sum + ((LEAVE_BALANCES.find(b => b.type === t) || {}).remaining || 0), 0);
+          const plannableDays = LEAVE_BALANCES.filter(b => !b.urgent || b.remaining > 0).reduce((s, b) => s + b.remaining, 0);
           return (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -286,7 +285,7 @@ function TimeOffHubScreen() {
                   {plannableDays} days
                 </div>
                 <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 15, color: P.inkSoft }}>
-                  Plannable leave available
+                  Time off available
                 </div>
               </div>
               <button
@@ -310,9 +309,9 @@ function TimeOffHubScreen() {
           const ALL = window.__timeOffItems || [];
 
           const STATUS = {
-            approved: { label: 'Approved by Sophie L.',  color: 'rgb(22,163,74)',  iconBg: 'rgb(236,247,239)', icon: 'Palmtree' },
-            pending:  { label: 'Pending — Sophie L.',    color: 'rgb(161,98,7)',   iconBg: 'rgb(250,246,235)', icon: 'Clock'    },
-            denied:   { label: 'Denied by Sophie L.',    color: 'rgb(185,28,28)',  iconBg: 'rgb(251,241,241)', icon: 'CircleX'  },
+            approved: { label: 'Approved',  color: 'rgb(22,163,74)',  iconBg: 'rgb(236,247,239)', icon: 'Palmtree' },
+            pending:  { label: 'Pending',   color: 'rgb(161,98,7)',   iconBg: 'rgb(250,246,235)', icon: 'Clock'    },
+            denied:   { label: 'Denied',    color: 'rgb(185,28,28)',  iconBg: 'rgb(251,241,241)', icon: 'CircleX'  },
           };
 
           const pending  = ALL.filter(i => i.status === 'pending');
@@ -376,7 +375,7 @@ function TimeOffHubScreen() {
                     const _chip = _getLeaveChip(item.label);
                     const st = item._adminRecorded
                       ? { ..._stBase, label: 'Recorded by Sophie L.', icon: _chip.icon, iconBg: _chip.bg, color: _chip.color }
-                      : _stBase;
+                      : { ..._stBase, icon: _chip.icon };
                     return (
                       <div key={item.id}
                         role="button"
@@ -510,18 +509,21 @@ function TimeOffHubScreen() {
             remaining: _isFreshUser ? 20 : 2, total: 20,
             expires: 'Expires Dec 31, 2026',
             rule: 'Carry-over only if blocked by certified long-term illness.',
+            icon: 'Palmtree', iconBg: '#eef4fb', iconColor: '#2563eb',
           },
           {
             name: 'ADV / RTT',
             remaining: _isFreshUser ? 12 : 5, total: 12,
             expires: 'Expires Dec 31, 2026',
             rule: 'No carry-over, no cash payout permitted.',
+            icon: 'Coffee', iconBg: '#faf6eb', iconColor: '#d97706',
           },
           {
             name: 'Extra-legal leave',
             remaining: _isFreshUser ? 4 : 3, total: 4,
             expires: 'Expires Dec 31, 2026',
             rule: 'Up to 2 days may carry until Mar 31, 2027.',
+            icon: 'Sparkles', iconBg: '#f3f1fa', iconColor: '#7c3aed',
           },
         ];
         const OTHER_TYPES = [
@@ -531,6 +533,7 @@ function TimeOffHubScreen() {
             expires: 'Must use before Dec 31, 2026',
             rule: 'Legal carry-over due to 2024 medical incapacity. Not counted in your plannable balance — HR applies it automatically.',
             urgent: true,
+            icon: 'AlertCircle', iconBg: 'rgb(254,243,199)', iconColor: 'rgb(161,98,7)',
           },
         ];
         // Time off that doesn't touch the balance above
@@ -551,9 +554,9 @@ function TimeOffHubScreen() {
             >
               {/* Sticky header */}
               <div style={{ padding: '20px 24px 0', flexShrink: 0 }}>
-                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 6 }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 0 }}>
                   <div id="balance-info-title" style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18, color: P.ink }}>
-                    Leave entitlements 2026
+                    Your leave balance 2026
                   </div>
                   <button
                     onClick={() => { setBalanceSheetAnimating(true); setBalanceSheetOpen(false); setTimeout(() => { setShowBalanceInfo(false); setExpandedRows({}); setBalanceSheetAnimating(false); }, 340); }}
@@ -568,7 +571,7 @@ function TimeOffHubScreen() {
                   </button>
                 </div>
                 <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, lineHeight: '19px', marginBottom: 16 }}>
-                  Each type has its own expiry — tap a row to see its rules.
+                  Tap a row to see when it expires and how it works.
                 </div>
               </div>
 
@@ -582,42 +585,46 @@ function TimeOffHubScreen() {
                   const renderRow = (lt, i, arr) => {
                     const isOpen = !!expandedRows[lt.name];
                     const isLast = i === arr.length - 1;
-                    const ink = lt.urgent ? urgentColor : P.ink;
+                    const urgentC = lt.urgent ? urgentColor : null;
                     return (
-                      <div key={lt.name}>
+                      <div key={lt.name} style={{ borderBottom: isLast ? 'none' : `1px solid ${P.border}` }}>
                         <button
                           onClick={() => toggleRow(lt.name)}
                           aria-expanded={isOpen}
                           aria-label={`${lt.name}, ${lt.remaining} of ${lt.total} days remaining`}
                           style={{
                             width: '100%', appearance: 'none', border: 'none', background: 'transparent',
-                            cursor: 'pointer', padding: '13px 0',
-                            display: 'flex', alignItems: 'center', gap: 8,
+                            cursor: 'pointer', padding: '12px 0',
+                            display: 'flex', alignItems: 'center', gap: 12, textAlign: 'left',
                           }}>
-                          <span style={{ flex: 1, textAlign: 'left', fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: ink }}>
-                            {lt.name}
+                          <span style={{
+                            width: 34, height: 34, borderRadius: 9, flexShrink: 0,
+                            background: lt.urgent ? lt.iconBg : P.surface,
+                            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                          }}>
+                            <LucideIcon name={lt.icon} size={16} color={lt.urgent ? lt.iconColor : P.inkSoft} strokeWidth={1.75} />
                           </span>
-                          <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: ink, flexShrink: 0 }}>
-                            {lt.remaining} <span style={{ fontWeight: 400, color: P.inkSoft }}>/ {lt.total}</span>
-                          </span>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 15, color: urgentC || P.ink, lineHeight: '20px' }}>
+                              {lt.name}
+                            </div>
+                            <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: urgentC || P.inkSoft, marginTop: 1 }}>
+                              <span style={{ fontWeight: 600, color: urgentC || P.ink }}>{lt.remaining}</span> of {lt.total} days left
+                            </div>
+                          </div>
                           <LucideIcon
-                            name="ChevronDown" size={15} color={P.inkSoft} strokeWidth={2}
+                            name="ChevronDown" size={16} color={P.inkSoft} strokeWidth={2}
                             style={{ flexShrink: 0, transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 200ms ease' }}
                           />
                         </button>
-                        <div style={{
-                          display: 'grid',
-                          gridTemplateRows: isOpen ? '1fr' : '0fr',
-                          transition: 'grid-template-rows 250ms ease',
-                        }}>
+                        <div style={{ display: 'grid', gridTemplateRows: isOpen ? '1fr' : '0fr', transition: 'grid-template-rows 250ms ease' }}>
                           <div style={{ overflow: 'hidden' }}>
                             <div style={{
                               fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft,
-                              lineHeight: '19px', paddingBottom: 12,
-                              opacity: isOpen ? 1 : 0,
-                              transition: 'opacity 200ms ease',
+                              lineHeight: '19px', padding: '8px 0 12px 46px',
+                              opacity: isOpen ? 1 : 0, transition: 'opacity 200ms ease',
                             }}>
-                              <span style={{ color: lt.urgent ? urgentColor : P.inkSoft }}>{lt.expires}. </span>{lt.rule}
+                              <span style={{ color: urgentC || P.inkSoft }}>{lt.expires}. </span>{lt.rule}
                             </div>
                           </div>
                         </div>
@@ -627,7 +634,7 @@ function TimeOffHubScreen() {
 
                   const SectionHeader = ({ label }) => (
                     <div style={{
-                      padding: '20px 20px 8px',
+                      padding: '12px 20px 8px',
                       margin: '0 -20px',
                     }}>
                       <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 11, color: P.inkSoft, textTransform: 'uppercase', letterSpacing: '0.07em' }}>
@@ -638,10 +645,8 @@ function TimeOffHubScreen() {
 
                   return (
                     <>
-                      <div style={{ height: 1, background: P.border, margin: '0 -20px' }} />
                       <SectionHeader label="Plannable leave" />
                       {PLANNABLE_TYPES.map(renderRow)}
-                      <div style={{ height: 1, background: P.border, margin: '8px -20px 0' }} />
                       <SectionHeader label="Other entitlements" />
                       {OTHER_TYPES.map(renderRow)}
                     </>
@@ -732,7 +737,10 @@ function TimeOffHistoryScreen() {
 
   const ItemRow = ({ item }) => {
     const _stBase = STATUS[item.status] || STATUS.approved;
-    const st = item._adminRecorded ? { ..._stBase, label: 'Recorded by Sophie L.' } : _stBase;
+    const _chip = _getLeaveChip(item.label);
+    const st = item._adminRecorded
+      ? { ..._stBase, label: 'Recorded by Sophie L.', icon: _chip.icon, iconBg: _chip.bg, color: _chip.color }
+      : { ..._stBase, icon: _chip.icon };
     return (
       <div key={item.id}
         role="button" tabIndex={0}
@@ -831,9 +839,25 @@ const BELGIAN_HOLIDAYS_2026 = [
 ];
 const _hset = new Set(BELGIAN_HOLIDAYS_2026);
 
+// Collective holidays — company-wide closure (3 weeks summer)
+const COLLECTIVE_HOLIDAYS = [
+  '2026-07-20','2026-07-22','2026-07-23','2026-07-24',
+  '2026-07-27','2026-07-28','2026-07-29','2026-07-30','2026-07-31',
+  '2026-08-03','2026-08-04','2026-08-05','2026-08-06','2026-08-07',
+];
+const _cset = new Set(COLLECTIVE_HOLIDAYS);
+
 function _toISO(d) { return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); }
 function _isWeekend(d) { const wd = d.getDay(); return wd === 0 || wd === 6; }
 function _isHoliday(d) { return _hset.has(_toISO(d)); }
+function _isCollectiveHoliday(d) { return _cset.has(_toISO(d)); }
+function _collectiveHolidayRange() {
+  const sorted = [...COLLECTIVE_HOLIDAYS].sort();
+  const start = new Date(sorted[0] + 'T00:00:00');
+  const end   = new Date(sorted[sorted.length - 1] + 'T00:00:00');
+  const fmt = (dt) => dt.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+  return `Company closed · ${fmt(start)} – ${fmt(end)}`;
+}
 
 // Work schedule — employee's contracted work pattern (4/5: Wednesday off)
 const WORK_SCHEDULE = {
@@ -857,7 +881,7 @@ function computeWorkingDays(start, end, existingDates) {
   while (cur <= last) {
     if (_isWeekend(cur)) { /* skip */ }
     else if (_isHoliday(cur)) { holidays++; }
-    else if (_isNonWorkingDay(cur)) { nonWorkingDays++; }
+    else if (_isNonWorkingDay(cur) || _isCollectiveHoliday(cur)) { nonWorkingDays++; }
     else if (existingDates && existingDates.has(_toISO(cur))) { existingOverlaps++; }
     else { days++; }
     cur.setDate(cur.getDate() + 1);
@@ -936,7 +960,7 @@ function MiniCalendar({ month, year, onMonthChange, startDate, endDate, onDateTa
   const isStart = (d) => d && startDate && _sameDay(d, startDate);
   const isEnd = (d) => d && endDate && _sameDay(d, endDate);
   const isToday = (d) => d && _sameDay(d, today);
-  const isDisabled = (d) => !d || _isWeekend(d) || _isHoliday(d) || _isNonWorkingDay(d);
+  const isDisabled = (d) => !d || _isWeekend(d) || _isHoliday(d) || _isNonWorkingDay(d) || _isCollectiveHoliday(d);
   const hasExisting = (d) => d && existingDates && existingDates.has(_toISO(d));
 
   const prevMonth = () => {
@@ -999,6 +1023,7 @@ function MiniCalendar({ month, year, onMonthChange, startDate, endDate, onDateTa
           const todayMark = isToday(d) && !sel;
           const weekend = _isWeekend(d);
           const holiday = _isHoliday(d);
+          const collective = _isCollectiveHoliday(d);
           const nonWorking = _isNonWorkingDay(d);
           const hasRange = startDate && endDate && !_sameDay(startDate, endDate);
           const rangeBg = '#FAF0FF';
@@ -1050,6 +1075,9 @@ function MiniCalendar({ month, year, onMonthChange, startDate, endDate, onDateTa
                   <span style={{ position: 'absolute', bottom: 4, left: '50%', transform: 'translateX(-50%)', width: 4, height: 4, borderRadius: 2, background: PFC.warnText }} />
                 )}
                 {hasExisting(d) && !sel && !inRange && (
+                  <span style={{ position: 'absolute', bottom: 4, left: '50%', transform: 'translateX(-50%)', width: 5, height: 5, borderRadius: '50%', background: P.ink }} />
+                )}
+                {collective && !sel && (
                   <span style={{ position: 'absolute', bottom: 4, left: '50%', transform: 'translateX(-50%)', width: 5, height: 5, borderRadius: '50%', background: P.ink }} />
                 )}
               </button>
@@ -1118,7 +1146,7 @@ function getWorkingDaysInRange(start, end) {
   const cur = new Date(start); cur.setHours(0,0,0,0);
   const last = new Date(end); last.setHours(0,0,0,0);
   while (cur <= last) {
-    if (!_isWeekend(cur) && !_isHoliday(cur) && !_isNonWorkingDay(cur)) result.push(new Date(cur));
+    if (!_isWeekend(cur) && !_isHoliday(cur) && !_isNonWorkingDay(cur) && !_isCollectiveHoliday(cur)) result.push(new Date(cur));
     cur.setDate(cur.getDate() + 1);
   }
   return result;
@@ -1137,26 +1165,29 @@ function getHalfDayDeduction(halfDay) {
 
 // ── Leave reason options for PC200 Belgium ──
 const LEAVE_REASONS = [
-  { id: 'statutory',    label: 'Statutory annual leave' },
-  { id: 'adv',          label: 'ADV / RTT days' },
-  { id: 'extra-legal',  label: 'Extra-legal leave' },
+  { id: 'timeoff',      label: 'Time off' },
   { id: 'sick',         label: 'Sick leave' },
   { id: 'special',      label: 'Special leave (events/milestones)', hasSubMenu: true },
 ];
 const SPECIAL_LEAVE_OPTIONS = [
-  { id: 'special-wedding',   label: 'Wedding',        sub: 'Yours or close family', icon: 'Heart' },
-  { id: 'special-moving',    label: 'Moving',          sub: 'Change of residence',   icon: 'Truck' },
-  { id: 'special-funeral',   label: 'Bereavement',     sub: 'Funeral / condolences', icon: 'Flower2', hasBereavementFlow: true },
-  { id: 'special-communion', label: 'Ceremony',        sub: 'Communion or similar',  icon: 'BookOpen' },
-  { id: 'special-civic',     label: 'Civic duty',      sub: 'Jury, election, etc.',  icon: 'Scale' },
+  { id: 'special-wedding',   label: 'Wedding',        sub: 'Yours or close family', icon: 'Heart',    entitlement: '1–2 days', entitlementType: 'variable' },
+  { id: 'special-moving',    label: 'Moving',          sub: 'Change of residence',   icon: 'Truck',    entitlement: '1 day',    entitlementType: 'company-policy', entitledDays: 1 },
+  { id: 'special-funeral',   label: 'Funeral leave',   sub: 'Death of a family member', icon: 'Flower2',  entitlement: '1–10 days', entitlementType: 'variable', hasBereavementFlow: true },
+  { id: 'special-communion', label: 'Ceremony',        sub: 'Communion or similar',  icon: 'BookOpen', entitlement: '1 day',    entitlementType: 'fixed', entitledDays: 1 },
+  { id: 'special-civic',     label: 'Civic duty',      sub: 'Jury, election, etc.',  icon: 'Scale',    entitlement: 'Up to 5 days', entitlementType: 'variable' },
 ];
 
 const BEREAVEMENT_OPTIONS = [
-  { id: 'special-funeral-partner', label: 'Partner or spouse' },
-  { id: 'special-funeral-child',   label: 'Child' },
-  { id: 'special-funeral-parent',  label: 'Parent or parent-in-law' },
-  { id: 'special-funeral-sibling', label: 'Sibling or grandparent', note: 'If you shared a household with this person, you may be entitled to an extra day — mention it in the note below.' },
-  { id: 'special-funeral-other',   label: 'Other family member' },
+  { id: 'special-funeral-partner', label: 'Partner or spouse',    entitledDays: 10, note: '3 around the funeral, and 7 more to use within the year' },
+  { id: 'special-funeral-child',   label: 'Child',                entitledDays: 10, note: '3 around the funeral, and 7 more to use within the year' },
+  { id: 'special-funeral-parent',  label: 'Parent or parent-in-law', entitledDays: 3, note: '3 days around the funeral' },
+  { id: 'special-funeral-sibling', label: 'Sibling or grandparent', entitledDays: 2, note: '2 days if co-residing, 1 day otherwise — mention it in the note below' },
+  { id: 'special-funeral-other',   label: 'Other family member',  entitledDays: 1 },
+];
+
+const WEDDING_OPTIONS = [
+  { id: 'special-wedding-own',    label: 'Your own wedding',        entitledDays: 2 },
+  { id: 'special-wedding-family', label: 'Child, sibling, or parent', entitledDays: 1 },
 ];
 
 
@@ -1187,9 +1218,9 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
     const eDay = dm[2] ? parseInt(dm[2]) : sDay;
     // Infer leave reason from label
     const labelMap = {
-      'Legal holiday': 'statutory', 'Statutory annual leave': 'statutory',
-      'ADV day': 'adv', 'ADV / RTT days': 'adv',
-      'Extra-legal leave': 'extra-legal',
+      'Legal holiday': 'timeoff', 'Statutory annual leave': 'timeoff',
+      'ADV day': 'timeoff', 'ADV / RTT days': 'timeoff',
+      'Extra-legal leave': 'timeoff', 'Time off': 'timeoff',
       'Short leave': 'special-civic',
       'Sick leave': 'sick',
     };
@@ -1213,13 +1244,15 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
   const [showHoursSheet, setShowHoursSheet] = React.useState(false);
   const [showReasonSheet, setShowReasonSheet] = React.useState(false);
   const [showSpecialSheet, setShowSpecialSheet] = React.useState(false);
+  const [showSubSheet, setShowSubSheet] = React.useState(false);
   const [showHalfDayTip, setShowHalfDayTip] = React.useState(!editItem);
   const [errorToast, setErrorToast] = React.useState(null);
   const [calToast, setCalToast] = React.useState(null);
 
   const handleDisabledTap = (d) => {
     if (!d) return;
-    const msg = _isNonWorkingDay(d) ? 'This is your day off (4/5 schedule)'
+    const msg = _isCollectiveHoliday(d) ? _collectiveHolidayRange()
+      : _isNonWorkingDay(d) ? 'This is your day off (4/5 schedule)'
       : _isHoliday(d) ? 'Public holiday'
       : _isWeekend(d) ? 'Weekend' : null;
     if (msg) {
@@ -1284,16 +1317,18 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
   const totalAvailable = LEAVE_BALANCES.reduce((s, b) => s + b.remaining, 0);
   const { allocation, shortage, primaryLabel } = allocateLeave(totalDays);
 
-  // Balance check for selected leave type
-  const _reasonBalanceMap = {
-    'statutory': LEAVE_BALANCES.find(b => b.type === 'Statutory annual leave'),
-    'adv': LEAVE_BALANCES.find(b => b.type === 'ADV / RTT'),
-    'extra-legal': LEAVE_BALANCES.find(b => b.type === 'Extra-legal leave'),
-  };
-  const selectedBalance = _reasonBalanceMap[leaveReason] || null;
-  const overBalance = selectedBalance && totalDays > selectedBalance.remaining
-    ? totalDays - selectedBalance.remaining
+  // Balance check — cascade mode for timeoff, entitlement check for special
+  const plannableTotal = LEAVE_BALANCES.filter(b => !b.urgent || b.remaining > 0).reduce((s, b) => s + b.remaining, 0);
+  const overBalance = leaveReason === 'timeoff' && totalDays > plannableTotal
+    ? totalDays - plannableTotal
     : 0;
+
+  // Special leave entitlement limit
+  const _bereaveMatch = BEREAVEMENT_OPTIONS.find(o => o.id === leaveReason);
+  const _weddingMatch = WEDDING_OPTIONS.find(o => o.id === leaveReason);
+  const _specialOpt = SPECIAL_LEAVE_OPTIONS.find(o => o.id === leaveReason || leaveReason?.startsWith(o.id + '-'));
+  const entitledDaysLimit = _bereaveMatch?.entitledDays || _weddingMatch?.entitledDays || _specialOpt?.entitledDays || null;
+  const overEntitlement = entitledDaysLimit && totalDays > entitledDaysLimit ? totalDays - entitledDaysLimit : 0;
 
   // Check overlap with existing approved/pending non-sick leave
   const sickOverlap = React.useMemo(() => {
@@ -1367,7 +1402,7 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
 
       const newItem = {
         id: editItem ? editItem.id : 'req-' + Date.now(),
-        label: (LEAVE_REASONS.find(r => r.id === leaveReason) || SPECIAL_LEAVE_OPTIONS.find(r => r.id === leaveReason) || BEREAVEMENT_OPTIONS.find(r => r.id === leaveReason) || {}).label || primaryLabel,
+        label: (LEAVE_REASONS.find(r => r.id === leaveReason) || SPECIAL_LEAVE_OPTIONS.find(r => r.id === leaveReason) || BEREAVEMENT_OPTIONS.find(r => r.id === leaveReason) || WEDDING_OPTIONS.find(r => r.id === leaveReason) || {}).label || primaryLabel,
         date: startStr + endStr,
         month: monthStr,
         days: totalDays,
@@ -1415,10 +1450,10 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
       if (editItem) return null;
       switch (leaveReason) {
         case 'sick':           return 'Rest up — we hope you feel better soon.';
-        case 'statutory':      return 'You\'ve earned it — enjoy every moment.';
-        case 'adv':            return 'A little break goes a long way. Recharge!';
-        case 'extra-legal':    return 'Make the most of it — you deserve it.';
-        case 'special-wedding':  return 'What a special day — wishing you all the happiness.';
+        case 'timeoff':        return 'You\'ve earned it — enjoy every moment.';
+        case 'special-wedding':
+        case 'special-wedding-own':
+        case 'special-wedding-family': return 'What a special day — wishing you all the happiness.';
         case 'special-moving':   return 'Good luck with the move — exciting times!';
         case 'special-funeral':
         case 'special-funeral-partner':
@@ -1476,9 +1511,10 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
   // ── Step 1: Pick dates + reason ──
   if (step === 0) {
     const hasDates = startDate && endDate && totalDays > 0;
-    const canSubmit = hasDates && leaveReason && !submitting;
-    const selectedReason = LEAVE_REASONS.find(r => r.id === leaveReason) || SPECIAL_LEAVE_OPTIONS.find(r => r.id === leaveReason) || BEREAVEMENT_OPTIONS.find(r => r.id === leaveReason);
+    const canSubmit = hasDates && leaveReason && !submitting && !overEntitlement;
+    const selectedReason = LEAVE_REASONS.find(r => r.id === leaveReason) || SPECIAL_LEAVE_OPTIONS.find(r => r.id === leaveReason) || BEREAVEMENT_OPTIONS.find(r => r.id === leaveReason) || WEDDING_OPTIONS.find(r => r.id === leaveReason);
     const isBereavementSub = leaveReason?.startsWith('special-funeral-');
+    const isWeddingSub = leaveReason?.startsWith('special-wedding-');
     const appShell = document.querySelector('[data-app-shell]');
 
     // Short date display: "Mon 15 Jun"
@@ -1542,24 +1578,71 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
                 fontFamily: 'var(--font-display)', fontWeight: selectedReason ? 600 : 400,
                 fontSize: 15, color: selectedReason ? P.ink : P.inkSoft,
               }}>
-                {(leaveReason === 'special-funeral' || isBereavementSub) ? 'Bereavement' : (selectedReason ? selectedReason.label : 'Select leave type…')}
+                {(leaveReason === 'special-funeral' || isBereavementSub) ? 'Funeral leave'
+                  : (leaveReason === 'special-wedding' || isWeddingSub) ? 'Wedding'
+                  : (selectedReason ? selectedReason.label : 'Select leave type…')}
               </span>
               <LucideIcon name="ChevronDown" size={18} color={P.inkSoft} strokeWidth={2} />
             </button>
-            {selectedReason && leaveReason?.startsWith('special-') && !isBereavementSub && leaveReason !== 'special-funeral' && (
+            {selectedReason && leaveReason?.startsWith('special-') && !isBereavementSub && !isWeddingSub && leaveReason !== 'special-funeral' && leaveReason !== 'special-wedding' && (
               <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, marginTop: 8 }}>
                 Special leave: {selectedReason.label.toLowerCase()}
               </div>
             )}
-            {isBereavementSub && (
-              <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, marginTop: 8 }}>
-                Bereavement · {selectedReason.label}
-              </div>
-            )}
           </div>
 
-          {/* Progressive disclosure: rest of form appears after leave type is selected (skip when editing) */}
-          {(editItem || leaveReason) && (
+          {/* Sub-selector dropdown for wedding / bereavement */}
+          {(leaveReason === 'special-wedding' || isWeddingSub || leaveReason === 'special-funeral' || isBereavementSub) && (
+          <div style={{ marginBottom: 8, animation: 'revealDown 0.25s ease-out both' }}>
+            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.inkSoft, marginBottom: 8 }}>
+              {(leaveReason === 'special-wedding' || isWeddingSub) ? 'Whose wedding?' : 'What is your relationship to the person?'}
+              {' '}<span style={{ color: PFC.errorText }}>*</span>
+            </div>
+            <button
+              onClick={() => setShowSubSheet(true)}
+              style={{
+                width: '100%', appearance: 'none', cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                padding: '16px 16px', borderRadius: 12,
+                border: `1px solid ${PFC.borderHard}`, background: '#fff',
+              }}
+            >
+              <span style={{
+                fontFamily: 'var(--font-display)', fontWeight: (isWeddingSub || isBereavementSub) ? 600 : 400,
+                fontSize: 15, color: (isWeddingSub || isBereavementSub) ? P.ink : P.inkSoft,
+              }}>
+                {isWeddingSub ? selectedReason.label : isBereavementSub ? selectedReason.label : 'Select…'}
+              </span>
+              <LucideIcon name="ChevronDown" size={18} color={P.inkSoft} strokeWidth={2} />
+            </button>
+          </div>
+          )}
+
+          {/* Entitlement info banner */}
+          {(() => {
+            const specialOpt = SPECIAL_LEAVE_OPTIONS.find(o => o.id === leaveReason || leaveReason?.startsWith(o.id + '-'));
+            if (!specialOpt) return null;
+            const bereaveMatch = BEREAVEMENT_OPTIONS.find(o => o.id === leaveReason);
+            const weddingMatch = WEDDING_OPTIONS.find(o => o.id === leaveReason);
+            const entitled = bereaveMatch?.entitledDays || weddingMatch?.entitledDays || specialOpt.entitledDays;
+            if (!entitled) return null;
+            const isCompanyPolicy = specialOpt.entitlementType === 'company-policy';
+            const noteText = bereaveMatch?.note;
+            const bannerText = bereaveMatch
+              ? `We're sorry for your loss. You have ${entitled} days of paid leave${noteText ? ` — ${noteText}` : ''}.`
+              : `You're entitled to ${entitled} day${entitled > 1 ? 's' : ''} for this event${isCompanyPolicy ? ' (company policy)' : ''}.`;
+            return (
+              <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start', marginBottom: 24, background: '#f3f4f6', borderRadius: 10, padding: '10px 12px' }}>
+                <LucideIcon name="Info" size={14} color={P.inkSoft} strokeWidth={2} style={{ flexShrink: 0, marginTop: 1 }} />
+                <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, fontWeight: 500, color: P.inkSoft, lineHeight: '17px' }}>
+                  {bannerText}
+                </span>
+              </div>
+            );
+          })()}
+
+          {/* Progressive disclosure: rest of form appears after leave type is fully resolved (skip when editing) */}
+          {(editItem || (leaveReason && leaveReason !== 'special-wedding' && leaveReason !== 'special-funeral')) && (
           <div key="rest-of-form" style={editItem ? {} : { animation: 'revealDown 0.35s ease-out both' }}>
 
           {/* Start / End date buttons */}
@@ -1715,22 +1798,35 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
                   })()}
                 </div>
                 {/* Over-balance warning banner */}
-                {overBalance > 0 && selectedBalance && (<React.Fragment>
+                {overBalance > 0 && leaveReason === 'timeoff' && (<React.Fragment>
                   <div style={{ height: 1, background: P.border }} />
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 16px', background: '#FFF3E5' }}>
                     <LucideIcon name="AlertTriangle" size={14} color="#92400e" strokeWidth={2} style={{ flexShrink: 0 }} />
                     <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, fontWeight: 500, color: '#92400e', lineHeight: '16px' }}>
-                      Exceeds balance by {overBalance === 0.5 ? '½' : overBalance} day{overBalance > 1 ? 's' : ''} — {selectedBalance.remaining} remaining
+                      Exceeds your balance by {overBalance === 0.5 ? '½' : overBalance} day{overBalance > 1 ? 's' : ''} — {plannableTotal} days available
                     </span>
                   </div>
                 </React.Fragment>)}
-                {/* Balance remaining info banner */}
-                {selectedBalance && totalDays > 0 && overBalance === 0 && (<React.Fragment>
+                {/* Over-entitlement error banner */}
+                {overEntitlement > 0 && (<React.Fragment>
+                  <div style={{ height: 1, background: P.border }} />
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 16px', background: '#fef2f2' }}>
+                    <LucideIcon name="AlertCircle" size={14} color="#b91c1c" strokeWidth={2} style={{ flexShrink: 0 }} />
+                    <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, fontWeight: 500, color: '#b91c1c', lineHeight: '16px' }}>
+                      Maximum {entitledDaysLimit} day{entitledDaysLimit > 1 ? 's' : ''} for this leave type — reduce your selection by {overEntitlement} day{overEntitlement > 1 ? 's' : ''}
+                    </span>
+                  </div>
+                </React.Fragment>)}
+                {/* Cascade allocation breakdown + remaining */}
+                {leaveReason === 'timeoff' && totalDays > 0 && overBalance === 0 && (<React.Fragment>
                   <div style={{ height: 1, background: P.border }} />
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 16px', background: '#f3f4f6' }}>
                     <LucideIcon name="Info" size={14} color={P.inkSoft} strokeWidth={2} style={{ flexShrink: 0 }} />
                     <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, fontWeight: 500, color: P.inkSoft, lineHeight: '16px' }}>
-                      {Math.max(0, selectedBalance.remaining - totalDays)} of {selectedBalance.remaining} days remaining after this
+                      {allocation.length > 1
+                        ? `Using ${allocation.map(a => `${a.days === 0.5 ? '½' : a.days} ${a.label}`).join(' + ')} · ${Math.max(0, plannableTotal - totalDays)} days left`
+                        : `${Math.max(0, plannableTotal - totalDays)} of ${plannableTotal} days remaining after this`
+                      }
                     </span>
                   </div>
                 </React.Fragment>)}
@@ -1775,35 +1871,6 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
           {/* Progressive disclosure: Note & Attachments appear once dates are selected (skip when editing) */}
           {(editItem || hasDates) && (
           <div key="note-attach" style={editItem ? {} : { animation: 'revealDown 0.35s ease-out both' }}>
-
-          {/* Bereavement inline relationship picker */}
-          {(leaveReason === 'special-funeral' || isBereavementSub) && (
-            <div style={{ marginBottom: 24, animation: 'revealDown 0.25s ease-out both' }}>
-              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.inkSoft, marginBottom: 8 }}>Your relationship to the person</div>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                {BEREAVEMENT_OPTIONS.map(opt => {
-                  const sel = leaveReason === opt.id;
-                  return (
-                    <button key={opt.id} onClick={() => setLeaveReason(opt.id)} style={{
-                      padding: '6px 14px', borderRadius: 20,
-                      border: sel ? `1.5px solid ${P.ink}` : `1px solid ${P.border}`,
-                      background: sel ? P.ink : 'transparent',
-                      color: sel ? '#fff' : P.ink,
-                      fontFamily: 'var(--font-body)', fontSize: 13,
-                      fontWeight: sel ? 600 : 400,
-                      cursor: 'pointer',
-                    }}>{opt.label}</button>
-                  );
-                })}
-              </div>
-              {leaveReason === 'special-funeral-sibling' && (
-                <div style={{ display: 'flex', gap: 6, alignItems: 'flex-start', marginTop: 10, background: 'rgb(249,250,251)', borderRadius: 8, padding: '8px 10px' }}>
-                  <LucideIcon name="Info" size={13} color={P.inkSoft} strokeWidth={2} />
-                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, lineHeight: '17px' }}>If you shared a household with this person, you may be entitled to an extra day — mention it in the note below.</span>
-                </div>
-              )}
-            </div>
-          )}
 
           {/* Note */}
           <div style={{ marginBottom: 24 }}>
@@ -1951,62 +2018,46 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
               </div>
               <div style={{ overflowY: 'auto', maxHeight: '70vh', padding: '0 24px 40px' }}>
                 {(() => {
-                  const balanceMap = {
-                    'statutory': LEAVE_BALANCES.find(b => b.type === 'Statutory annual leave'),
-                    'adv':       LEAVE_BALANCES.find(b => b.type === 'ADV / RTT'),
-                    'extra-legal': LEAVE_BALANCES.find(b => b.type === 'Extra-legal leave'),
-                  };
-                  const holidayTypes = [
-                    { id: 'statutory',   label: 'Time off',          icon: 'Palmtree',     bal: balanceMap['statutory'] },
-                    { id: 'adv',         label: 'ADV / RTT',          icon: 'CalendarDays', bal: balanceMap['adv'] },
-                    { id: 'extra-legal', label: 'Extra-legal leave',   icon: 'Gift',         bal: balanceMap['extra-legal'] },
-                  ];
-                  const SectionLabel = ({ label }) => (
-                    <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.inkSoft, textTransform: 'uppercase', letterSpacing: '0.06em', padding: '16px 0 4px' }}>{label}</div>
-                  );
-                  const Row = ({ id, label, icon, sub, bal, urgent, isLast, onClick: onClickOverride }) => {
-                    const isSelected = leaveReason?.startsWith('special-funeral') ? id === 'special-funeral' : leaveReason === id;
+                  const _plannableTotal = LEAVE_BALANCES.filter(b => !b.urgent || b.remaining > 0).reduce((s, b) => s + b.remaining, 0);
+                  const Row = ({ id, label, icon, sub, isLast, onClick: onClickOverride }) => {
+                    const isSelected = leaveReason === 'timeoff' ? id === 'timeoff'
+                      : leaveReason?.startsWith('special-funeral') ? id === 'special-funeral'
+                      : leaveReason === id;
                     return (
                       <button
                         onClick={onClickOverride || (() => { setLeaveReason(id); setShowReasonSheet(false); })}
                         style={{
                           width: '100%', appearance: 'none', border: 'none', cursor: 'pointer',
                           display: 'flex', alignItems: 'center', gap: 12,
-                          padding: '12px 0',
+                          padding: '14px 0',
                           borderBottom: isLast ? 'none' : `1px solid ${P.border}`,
                           background: 'transparent', textAlign: 'left',
                         }}
                       >
                         <span style={{
                           width: 34, height: 34, borderRadius: 9, flexShrink: 0,
-                          background: urgent ? 'rgb(254,242,242)' : '#f3f4f6',
+                          background: '#f3f4f6',
                           display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
                         }}>
-                          <LucideIcon name={icon} size={16} color={urgent ? 'rgb(185,28,28)' : P.inkSoft} strokeWidth={1.75} />
+                          <LucideIcon name={icon} size={16} color={P.inkSoft} strokeWidth={1.75} />
                         </span>
                         <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontFamily: 'var(--font-display)', fontWeight: isSelected ? 600 : 500, fontSize: 15, color: urgent ? 'rgb(185,28,28)' : P.ink, lineHeight: '20px' }}>{label}</div>
+                          <div style={{ fontFamily: 'var(--font-display)', fontWeight: isSelected ? 600 : 500, fontSize: 15, color: P.ink, lineHeight: '20px' }}>{label}</div>
                           {sub && <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, marginTop: 1 }}>{sub}</div>}
-                          {bal && <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, marginTop: 1 }}>{bal.remaining} days left</div>}
                         </div>
                         <LucideIcon name="ChevronRight" size={18} color={P.inkSoft} strokeWidth={2.5} style={{ flexShrink: 0 }} />
                       </button>
                     );
                   };
                   const isAnySpecial = leaveReason?.startsWith('special-');
-                  const specialSelected = isAnySpecial ? SPECIAL_LEAVE_OPTIONS.find(o => o.id === leaveReason) || BEREAVEMENT_OPTIONS.find(o => o.id === leaveReason) : null;
+                  const specialSelected = isAnySpecial ? SPECIAL_LEAVE_OPTIONS.find(o => o.id === leaveReason) || BEREAVEMENT_OPTIONS.find(o => o.id === leaveReason) || WEDDING_OPTIONS.find(o => o.id === leaveReason) : null;
                   return (
                     <div>
-                      <SectionLabel label="Holidays" />
-                      {holidayTypes.map((t, i) => <Row key={t.id} {...t} isLast={i === holidayTypes.length - 1} />)}
-
-                      <SectionLabel label="Sick leave" />
-                      <Row id="sick" label="Sick leave" icon="Thermometer" sub="1 day without certificate, 2+ days requires one" isLast />
-
-                      <SectionLabel label="Special leave" />
+                      <Row id="timeoff" label="Time off" icon="Palmtree" sub={`${_plannableTotal} days available`} />
+                      <Row id="sick" label="Sick leave" icon="Thermometer" sub="1 day without certificate, 2+ days requires one" />
                       <Row
-                        id="_special" label="Special leave" icon="Sparkles"
-                        sub={specialSelected ? specialSelected.label : 'Wedding, moving, bereavement…'}
+                        id="_special" label="Special leave" icon="Gift"
+                        sub={specialSelected ? specialSelected.label : 'Wedding, funeral, moving…'}
                         isLast
                         onClick={() => { setShowReasonSheet(false); setTimeout(() => setShowSpecialSheet(true), 180); }}
                       />
@@ -2044,7 +2095,9 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
               </div>
               <div style={{ padding: '0 24px 40px' }}>
                 {SPECIAL_LEAVE_OPTIONS.map((o, i) => {
-                  const isSelected = leaveReason?.startsWith('special-funeral') ? o.id === 'special-funeral' : leaveReason === o.id;
+                  const isSelected = leaveReason?.startsWith('special-funeral') ? o.id === 'special-funeral'
+                    : leaveReason?.startsWith('special-wedding') ? o.id === 'special-wedding'
+                    : leaveReason === o.id;
                   return (
                     <button
                       key={o.id}
@@ -2066,9 +2119,59 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
                       </span>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ fontFamily: 'var(--font-display)', fontWeight: isSelected ? 600 : 500, fontSize: 15, color: P.ink, lineHeight: '20px' }}>{o.label}</div>
-                        {o.sub && <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, marginTop: 1 }}>{o.sub}</div>}
+                        <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, marginTop: 1 }}>
+                          {o.sub} · {o.entitlementType === 'company-policy' ? `${o.entitlement} (company policy)` : o.entitlement}
+                        </div>
                       </div>
                       <LucideIcon name="ChevronRight" size={18} color={P.inkSoft} strokeWidth={2.5} />
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>,
+          appShell
+        )}
+
+        {/* Sub-selection sheet (wedding / bereavement) */}
+        {showSubSheet && appShell && ReactDOM.createPortal(
+          <div
+            onClick={() => setShowSubSheet(false)}
+            style={{ position: 'absolute', inset: 0, zIndex: 400, background: 'rgba(15,13,40,0.45)', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', animation: 'sheetFadeIn 0.2s ease-out' }}
+          >
+            <div
+              onClick={(e) => e.stopPropagation()}
+              style={{ background: 'white', borderRadius: '20px 20px 0 0', animation: 'sheetSlideUp 0.25s ease-out' }}
+            >
+              <div style={{ padding: '20px 24px 12px' }}>
+                <div aria-hidden="true" style={{ width: 36, height: 4, borderRadius: 2, background: P.border, margin: '0 auto 16px' }} />
+                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 17, color: P.ink }}>
+                  {(leaveReason === 'special-wedding' || isWeddingSub) ? 'Whose wedding?' : 'What is your relationship to the person?'}
+                </div>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, marginTop: 4, lineHeight: '18px' }}>
+                  The number of days you're entitled to depends on your answer.
+                </div>
+              </div>
+              <div style={{ padding: '0 24px 40px' }}>
+                {((leaveReason === 'special-wedding' || isWeddingSub) ? WEDDING_OPTIONS : BEREAVEMENT_OPTIONS).map((o, i, arr) => {
+                  const isSelected = leaveReason === o.id;
+                  return (
+                    <button
+                      key={o.id}
+                      onClick={() => { setLeaveReason(o.id); setShowSubSheet(false); }}
+                      style={{
+                        width: '100%', appearance: 'none', border: 'none', cursor: 'pointer',
+                        display: 'flex', alignItems: 'center', gap: 12,
+                        padding: '14px 0',
+                        borderBottom: i === arr.length - 1 ? 'none' : `1px solid ${P.border}`,
+                        background: 'transparent', textAlign: 'left',
+                      }}
+                    >
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontFamily: 'var(--font-display)', fontWeight: isSelected ? 600 : 500, fontSize: 15, color: P.ink, lineHeight: '20px' }}>{o.label}</div>
+                        {o.note && <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, marginTop: 2, lineHeight: '16px' }}>{o.note}</div>}
+                      </div>
+                      <LucideIcon name="ChevronRight" size={16} color={P.inkSoft} strokeWidth={2} style={{ flexShrink: 0 }} />
                     </button>
                   );
                 })}
@@ -2485,8 +2588,9 @@ function TimeOffDetailScreen({ item }) {
           }}>
             {(() => {
               const _labelToReason = {
-                'Legal holiday': 'statutory', 'ADV day': 'adv',
-                'Extra-legal leave': 'extra-legal', 'Short leave': 'special-civic',
+                'Legal holiday': 'timeoff', 'ADV day': 'timeoff',
+                'Extra-legal leave': 'timeoff', 'Time off': 'timeoff',
+                'Short leave': 'special-civic',
                 'Sick leave': 'sick',
               };
               return (
@@ -2502,7 +2606,7 @@ function TimeOffDetailScreen({ item }) {
             })()}
           </div>
         ) : (
-          // Pending or approved: Delete + Edit
+          // Pending or approved: Cancel + Edit
           <div style={{
             display: 'flex', gap: 12,
             padding: '16px 24px 40px',
@@ -2513,7 +2617,7 @@ function TimeOffDetailScreen({ item }) {
               variant="outline" size="large"
               style={{ flex: 1, color: PFC.errorText, borderColor: PFC.errorBorder }}
               onClick={() => setShowConfirm(true)}>
-              Delete
+              Cancel request
             </Button>
             <Button
               variant="primary" size="large"
@@ -2540,7 +2644,7 @@ function TimeOffDetailScreen({ item }) {
         </div>
       )}
 
-      {/* Delete confirmation sheet — inline portal, no inner component */}
+      {/* Cancel confirmation sheet — inline portal, no inner component */}
       {showConfirm && (() => {
         const appShell = document.querySelector('[data-app-shell]');
         if (!appShell) return null;
@@ -2551,7 +2655,7 @@ function TimeOffDetailScreen({ item }) {
           nav && nav.pop();
           setTimeout(() => {
             window.__refreshTimeOff && window.__refreshTimeOff();
-            window.__showTimeOffToast && window.__showTimeOffToast('Request deleted');
+            window.__showTimeOffToast && window.__showTimeOffToast('Request cancelled');
           }, 50);
         };
         return ReactDOM.createPortal(
@@ -2566,8 +2670,8 @@ function TimeOffDetailScreen({ item }) {
             <div
               role="dialog"
               aria-modal="true"
-              aria-labelledby="confirm-delete-title"
-              aria-describedby="confirm-delete-desc"
+              aria-labelledby="confirm-cancel-title"
+              aria-describedby="confirm-cancel-desc"
               style={{
                 background: 'white',
                 borderRadius: '20px 20px 0 0',
@@ -2578,20 +2682,20 @@ function TimeOffDetailScreen({ item }) {
                 width: 36, height: 4, borderRadius: 2,
                 background: P.border, margin: '0 auto 16px',
               }} />
-              <div id="confirm-delete-title" style={{
+              <div id="confirm-cancel-title" style={{
                 fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18,
                 color: P.ink, textAlign: 'center', marginBottom: 8,
-              }}>Delete this request?</div>
-              <div id="confirm-delete-desc" style={{
+              }}>Cancel this request?</div>
+              <div id="confirm-cancel-desc" style={{
                 fontFamily: 'var(--font-body)', fontWeight: 400, fontSize: 14,
                 color: P.inkSoft, textAlign: 'center', marginBottom: 16,
                 lineHeight: '20px',
-              }}>This will permanently remove your time off request. This action cannot be undone.</div>
+              }}>Your time off request will be withdrawn. You can always submit a new one.</div>
               <Button
                 variant="outline" size="large" fullWidth
                 style={{ color: PFC.errorText, borderColor: PFC.errorBorder }}
                 onClick={doDelete}>
-                Delete
+                Cancel request
               </Button>
               <Button
                 variant="ghost" size="large" fullWidth
