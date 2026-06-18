@@ -1629,7 +1629,7 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
             const isCompanyPolicy = specialOpt.entitlementType === 'company-policy';
             const noteText = bereaveMatch?.note;
             const bannerText = bereaveMatch
-              ? `We're sorry for your loss. You have ${entitled} days of paid leave${noteText ? ` — ${noteText}` : ''}.`
+              ? `You have ${entitled} days of paid leave${noteText ? ` — ${noteText}` : ''}.`
               : `You're entitled to ${entitled} day${entitled > 1 ? 's' : ''} for this event${isCompanyPolicy ? ' (company policy)' : ''}.`;
             return (
               <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start', marginBottom: 24, background: '#f3f4f6', borderRadius: 10, padding: '10px 12px' }}>
