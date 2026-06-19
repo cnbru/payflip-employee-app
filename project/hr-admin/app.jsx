@@ -1,6 +1,6 @@
 // ── Payflip HR Admin — Desktop Prototype ──────────────────────────────────
 
-const { useState, useEffect, useRef, useCallback } = React;
+const { useState, useEffect, useRef, useCallback, useMemo } = React;
 
 // ── Design tokens ──────────────────────────────────────────────────────────
 const P = {
@@ -16,6 +16,32 @@ const StatusMeta = {
   pending:  { dot: '#f59e0b', label: 'Requested' },
   approved: { dot: '#22c55e', label: 'Approved'  },
   rejected: { dot: '#ef4444', label: 'Declined'  },
+};
+
+const LEAVE_COLORS = {
+  'Time off':        '#7eb5fa',
+  'Sick leave':      '#f4a0c5',
+  'Special leave':   '#a8b4c0',
+  'Funeral leave':   '#a8b4c0',
+  'Paternity leave': '#bbaef5',
+  'Maternity leave': '#bbaef5',
+  'Paid absence':    '#6dd5e0',
+  'Unpaid absence':  '#c5cfd8',
+};
+
+const ALL_LEAVE_TYPES = [
+  'Time off', 'Sick leave', 'Special leave',
+  'Paternity leave', 'Maternity leave', 'Paid absence', 'Unpaid absence',
+];
+
+const ADMIN_ONLY_TYPES = new Set(['Paternity leave', 'Maternity leave', 'Paid absence', 'Unpaid absence']);
+
+const ATTACHMENT_RULES = {
+  'Sick leave':      { label: 'Medical certificate', note: 'Required for absences of 2 or more consecutive days' },
+  'Special leave':   { label: 'Supporting document', note: 'Marriage/birth certificate or official event proof' },
+  'Funeral leave':   { label: 'Death certificate', note: 'Required to process bereavement leave' },
+  'Paternity leave': { label: 'Birth certificate', note: 'Required to activate paternity leave entitlement' },
+  'Maternity leave': { label: 'Medical certificate', note: 'Required to activate maternity leave entitlement' },
 };
 
 // ── Lucide icon helper ─────────────────────────────────────────────────────
@@ -41,17 +67,139 @@ function Icon({ name, size = 16, color = P.inkSoft, strokeWidth = 1.75, style })
   return <span ref={ref} style={{ display: 'inline-flex', alignItems: 'center', ...style }} />;
 }
 
-// ── Employees ──────────────────────────────────────────────────────────────
-const EMPLOYEES = {
-  david:   { name: 'David Laurent',   initials: 'DL', color: '#bfdbfe', entitlement: 30, department: 'Engineering' },
-  sarah:   { name: 'Sarah Dubois',    initials: 'SD', color: '#ddd6fe', entitlement: 25, department: 'Marketing'   },
-  thomas:  { name: 'Thomas Lejeune',  initials: 'TL', color: '#fde68a', entitlement: 25, department: 'Sales'       },
-  emma:    { name: 'Emma Claes',      initials: 'EC', color: '#a7f3d0', entitlement: 25, department: 'Design'      },
-  julie:   { name: 'Julie Martens',   initials: 'JM', color: '#fecdd3', entitlement: 25, department: 'Finance'     },
-  nicolas: { name: 'Nicolas Peeters', initials: 'NP', color: '#fed7aa', entitlement: 25, department: 'Engineering' },
+// ── Belgian calendar constants (ported from employee app) ──────────────────
+const BELGIAN_HOLIDAYS_2026 = [
+  '2026-01-01','2026-04-06','2026-05-01','2026-05-14',
+  '2026-05-25','2026-07-21','2026-08-15','2026-11-01',
+  '2026-11-11','2026-12-25',
+];
+const _holidaySet = new Set(BELGIAN_HOLIDAYS_2026);
+const BELGIAN_HOLIDAY_NAMES = {
+  '2026-01-01': "New Year's Day",      '2026-04-06': 'Easter Monday',
+  '2026-05-01': 'Labour Day',          '2026-05-14': 'Ascension Day',
+  '2026-05-25': 'Whit Monday',         '2026-07-21': 'Belgian National Day',
+  '2026-08-15': 'Assumption of Mary',  '2026-11-01': "All Saints' Day",
+  '2026-11-11': 'Armistice Day',       '2026-12-25': 'Christmas Day',
+};
+const COLLECTIVE_HOLIDAYS = [
+  '2026-07-20','2026-07-22','2026-07-23','2026-07-24',
+  '2026-07-27','2026-07-28','2026-07-29','2026-07-30','2026-07-31',
+  '2026-08-03','2026-08-04','2026-08-05','2026-08-06','2026-08-07',
+];
+const _collectiveSet = new Set(COLLECTIVE_HOLIDAYS);
+const HOLIDAY_ICON = {
+  "New Year's Day":    { emoji: '🎆' },
+  'Easter Monday':     { emoji: '🐣' },
+  'Labour Day':        { lucide: 'Hammer' },
+  'Ascension Day':     { lucide: 'Church' },
+  'Whit Monday':       { lucide: 'Church' },
+  'Belgian National Day': { emoji: '🇧🇪' },
+  'Assumption of Mary':   { lucide: 'Church' },
+  "All Saints' Day":   { emoji: '🕯️' },
+  'Armistice Day':     { lucide: 'Shield' },
+  'Christmas Day':     { emoji: '🎄' },
 };
 
-const initialRequests = [];
+// ── Employee data generation ───────────────────────────────────────────────
+const FIRST_NAMES = ['David','Sarah','Thomas','Emma','Julie','Nicolas','Lotte','Pieter','Elise','Bram','Marie','Jonas','Laura','Wout','Charlotte','Stijn','Noor','Kevin','Ines','Thibault','Sofie','Mathias','Leen','Dieter','Jana','Ruben','Hanne','Joris','Fien','Sander'];
+const LAST_NAMES = ['Laurent','Dubois','Lejeune','Claes','Martens','Peeters','Janssens','Wouters','De Smedt','Verhoeven','Maes','Willems','Goossens','De Backer','Van Damme','Hendrickx','Mertens','Stevens','Lambert','Van den Berg'];
+const DEPARTMENTS = ['Engineering','Marketing','Sales','Design','Finance','Operations'];
+const AVATAR_COLORS = ['#bfdbfe','#ddd6fe','#fde68a','#a7f3d0','#fecdd3','#fed7aa','#c7d2fe','#fca5a5','#d9f99d','#99f6e4'];
+
+function generateEmployees() {
+  const emps = {};
+  const used = new Set();
+  for (let i = 0; i < 25; i++) {
+    let fn, ln, full;
+    do {
+      fn = FIRST_NAMES[i % FIRST_NAMES.length];
+      ln = LAST_NAMES[(i * 7 + i) % LAST_NAMES.length];
+      full = fn + ' ' + ln;
+    } while (used.has(full) && (ln = LAST_NAMES[(i * 3 + 5) % LAST_NAMES.length], full = fn + ' ' + ln, false));
+    used.add(full);
+    const id = (fn + '-' + ln).toLowerCase().replace(/\s+/g, '-');
+    emps[id] = {
+      name: full,
+      initials: fn[0] + ln[0],
+      color: AVATAR_COLORS[i % AVATAR_COLORS.length],
+      entitlement: 20 + (i % 4) * 3,
+      department: DEPARTMENTS[i % DEPARTMENTS.length],
+    };
+  }
+  // Ensure 'david' key exists for localStorage bridge
+  if (!emps['david']) {
+    emps['david'] = emps[Object.keys(emps)[0]];
+    delete emps[Object.keys(emps)[0]];
+    emps['david'].name = 'David Laurent';
+    emps['david'].initials = 'DL';
+  }
+  return emps;
+}
+
+const EMPLOYEES = generateEmployees();
+
+function generateAbsences(employees) {
+  const reqs = [];
+  const seed = (s) => { let h = 0; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) & 0x7fffffff; return h; };
+  const empIds = Object.keys(employees);
+
+  for (const empId of empIds) {
+    const h = seed(empId);
+    const numPTO = 2 + (h % 4);
+    const numSick = (h >> 4) % 2;
+
+    for (let j = 0; j < numPTO; j++) {
+      const month = (h + j * 37) % 12; // spread across Jan–Dec
+      const day = 1 + ((h + j * 13) % 20);
+      const start = new Date(2026, month, day);
+      start.setHours(0,0,0,0);
+      // Skip weekends
+      if (start.getDay() === 0) start.setDate(start.getDate() + 1);
+      if (start.getDay() === 6) start.setDate(start.getDate() + 2);
+      const dur = 1 + ((h + j * 7) % 5);
+      let end = new Date(start);
+      let counted = 1;
+      while (counted < dur) {
+        end = addDays(end, 1);
+        if (end.getDay() !== 0 && end.getDay() !== 6) counted++;
+      }
+      const fmtD = d => d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+      const isPending = j === 0 && ((h >> 8) % 4) === 0;
+      reqs.push({
+        id: `gen-${empId}-pto-${j}`,
+        employee: empId,
+        type: 'Time off',
+        startDate: fmtD(start),
+        endDate: fmtD(end),
+        days: dur,
+        status: isPending ? 'pending' : 'approved',
+        submittedAt: `${5 + (j % 3)} Jun`,
+        note: '',
+      });
+    }
+
+    if (numSick > 0) {
+      const sickDay = new Date(2026, (h + 97) % 12, 10 + (h % 15));
+      if (sickDay.getDay() === 0) sickDay.setDate(sickDay.getDate() + 1);
+      if (sickDay.getDay() === 6) sickDay.setDate(sickDay.getDate() + 2);
+      const fmtD = d => d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+      reqs.push({
+        id: `gen-${empId}-sick-0`,
+        employee: empId,
+        type: 'Sick leave',
+        startDate: fmtD(sickDay),
+        endDate: fmtD(sickDay),
+        days: 1,
+        status: 'approved',
+        submittedAt: fmtD(sickDay),
+        note: '',
+      });
+    }
+  }
+  return reqs;
+}
+
+const generatedRequests = generateAbsences(EMPLOYEES);
 
 // ── localStorage bridge ────────────────────────────────────────────────────
 const LS_KEY = 'payflip_hr_requests';
@@ -59,7 +207,7 @@ function readLS() {
   try { return JSON.parse(localStorage.getItem(LS_KEY) || '[]'); } catch { return []; }
 }
 function writeLS(reqs) {
-  try { localStorage.setItem(LS_KEY, JSON.stringify(reqs.filter(r => r.employee === 'david'))); } catch {}
+  try { localStorage.setItem(LS_KEY, JSON.stringify(reqs.filter(r => r.employee === 'david' && r.id.startsWith('req-')))); } catch {}
 }
 function mergeRequests(seed, live) {
   const merged = [...seed];
@@ -68,6 +216,38 @@ function mergeRequests(seed, live) {
   }
   return merged;
 }
+
+// ── Date helpers ───────────────────────────────────────────────────────────
+const _MONTHS = { Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11 };
+function parseDisplayDate(str) {
+  const m = str?.match(/(\d+)\s+(\w+)/);
+  if (!m || !_MONTHS.hasOwnProperty(m[2])) return null;
+  return new Date(2026, _MONTHS[m[2]], +m[1]);
+}
+function isoDate(d) {
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function weekStart(d) {
+  const day = d.getDay() || 7;
+  const out = new Date(d); out.setDate(d.getDate() - day + 1); out.setHours(0,0,0,0); return out;
+}
+function addDays(d, n) { const r = new Date(d); r.setDate(r.getDate() + n); return r; }
+function startOfMonth(d) {
+  const first = new Date(d.getFullYear(), d.getMonth(), 1);
+  return weekStart(first);
+}
+function daysInMonthView(d) {
+  const first = new Date(d.getFullYear(), d.getMonth(), 1);
+  const last  = new Date(d.getFullYear(), d.getMonth() + 1, 0);
+  const ws = weekStart(first);
+  const lastDay = last.getDay() || 7;
+  const we = addDays(last, 7 - lastDay);
+  const count = Math.round((we - ws) / 86400000);
+  return count;
+}
+
+const DAY_LABELS = ['MO','TU','WE','TH','FR','SA','SU'];
+const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
 // ── Avatar ─────────────────────────────────────────────────────────────────
 function Avatar({ employeeId, size = 28 }) {
@@ -93,23 +273,6 @@ function StatusDot({ status }) {
   );
 }
 
-// ── Calendar date helpers ──────────────────────────────────────────────────
-const _MONTHS = { Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11 };
-function parseDisplayDate(str) {
-  const m = str?.match(/(\d+)\s+(\w+)/);
-  if (!m || !_MONTHS.hasOwnProperty(m[2])) return null;
-  return new Date(2026, _MONTHS[m[2]], +m[1]);
-}
-function isoDate(d) {
-  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-}
-// Monday-aligned start of week
-function weekStart(d) {
-  const day = d.getDay() || 7; // Sun=7
-  const out = new Date(d); out.setDate(d.getDate() - day + 1); out.setHours(0,0,0,0); return out;
-}
-function addDays(d, n) { const r = new Date(d); r.setDate(r.getDate() + n); return r; }
-
 // ── Sidebar ────────────────────────────────────────────────────────────────
 function Sidebar({ active, onNav, pendingCount }) {
   const timeOffOpen = active === 'team-absences' || active === 'requests';
@@ -126,7 +289,6 @@ function Sidebar({ active, onNav, pendingCount }) {
       </div>
 
       <nav style={{ flex: 1, padding: '10px 8px', display: 'flex', flexDirection: 'column', gap: 1 }}>
-        {/* Time off parent */}
         <div style={{
           display: 'flex', alignItems: 'center', gap: 9,
           padding: '7px 10px', borderRadius: 7,
@@ -139,11 +301,10 @@ function Sidebar({ active, onNav, pendingCount }) {
           <Icon name="ChevronDown" size={12} color={P.inkFaint} />
         </div>
 
-        {/* Sub-items */}
         <div style={{ paddingLeft: 18, display: 'flex', flexDirection: 'column', gap: 1, marginBottom: 4 }}>
           {[
-            { id: 'team-absences', label: 'Team absences'    },
-            { id: 'requests',      label: 'Time off requests', badge: pendingCount },
+            { id: 'team-absences', label: 'Team absences' },
+            { id: 'requests', label: 'Time off requests', badge: pendingCount },
           ].map(({ id, label, badge }) => {
             const isActive = active === id;
             return (
@@ -171,7 +332,6 @@ function Sidebar({ active, onNav, pendingCount }) {
           })}
         </div>
 
-        {/* Settings */}
         {[{ id: 'settings', icon: 'Settings', label: 'Settings' }].map(item => {
           const isActive = active === item.id;
           return (
@@ -206,16 +366,23 @@ function Sidebar({ active, onNav, pendingCount }) {
 }
 
 // ── Action menu (···) ──────────────────────────────────────────────────────
-function ActionMenu({ onApprove, onDecline, onViewDetails }) {
+function ActionMenu({ req, onApprove, onDecline, onViewDetails, onEdit, onCancel }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
-
   useEffect(() => {
     if (!open) return;
     const close = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
     document.addEventListener('mousedown', close);
     return () => document.removeEventListener('mousedown', close);
   }, [open]);
+
+  const items = [
+    req?.status === 'pending' && { icon: 'CheckCircle', label: 'Approve', fn: onApprove, color: '#166534' },
+    req?.status === 'pending' && { icon: 'XCircle', label: 'Decline', fn: onDecline, color: '#b91c1c' },
+    { icon: 'Eye', label: 'View details', fn: onViewDetails, color: P.ink },
+    { icon: 'Pencil', label: 'Edit', fn: onEdit, color: P.ink },
+    req?.status === 'approved' && { icon: 'Trash2', label: 'Cancel absence', fn: onCancel, color: '#b91c1c' },
+  ].filter(Boolean);
 
   return (
     <div ref={ref} style={{ position: 'relative' }}>
@@ -231,13 +398,9 @@ function ActionMenu({ onApprove, onDecline, onViewDetails }) {
         <div style={{
           position: 'absolute', right: 0, top: 36, zIndex: 50,
           background: P.white, border: `1px solid ${P.border}`, borderRadius: 10,
-          boxShadow: '0 4px 20px rgba(0,0,0,0.10)', width: 152, overflow: 'hidden',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.10)', width: 164, overflow: 'hidden',
         }}>
-          {[
-            { icon: 'CheckCircle', label: 'Approve',      fn: onApprove,     color: '#166534' },
-            { icon: 'XCircle',     label: 'Decline',      fn: onDecline,     color: '#b91c1c' },
-            { icon: 'Eye',         label: 'View details', fn: onViewDetails, color: P.ink     },
-          ].map(({ icon, label, fn, color }) => (
+          {items.map(({ icon, label, fn, color }) => (
             <button key={label} onClick={(e) => { e.stopPropagation(); setOpen(false); fn(); }} style={{
               display: 'flex', alignItems: 'center', gap: 9,
               width: '100%', padding: '9px 12px', border: 'none', background: 'transparent',
@@ -246,7 +409,7 @@ function ActionMenu({ onApprove, onDecline, onViewDetails }) {
             onMouseEnter={e => e.currentTarget.style.background = P.bg}
             onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
               <Icon name={icon} size={14} color={color} strokeWidth={1.75} />
-              <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.ink }}>{label}</span>
+              <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: label === 'Cancel absence' ? '#b91c1c' : P.ink }}>{label}</span>
             </button>
           ))}
         </div>
@@ -255,18 +418,78 @@ function ActionMenu({ onApprove, onDecline, onViewDetails }) {
   );
 }
 
-// ── Detail modal ───────────────────────────────────────────────────────────
-function DetailModal({ req, requests, onClose, onApprove, onDecline }) {
-  const emp = EMPLOYEES[req.employee] || { name: req.employee, entitlement: 25 };
+// ── Reason modal (decline / cancel) ───────────────────────────────────────
+function ReasonModal({ title, description, confirmLabel, confirmColor = '#b91c1c', onConfirm, onClose }) {
+  const [reason, setReason] = useState('');
+  return (
+    <div onClick={onClose} style={{
+      position: 'fixed', inset: 0, zIndex: 300,
+      background: 'rgba(15,13,40,0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+    }}>
+      <div onClick={e => e.stopPropagation()} style={{
+        background: P.white, borderRadius: 14, width: 420,
+        boxShadow: '0 8px 40px rgba(15,13,40,0.2)',
+        display: 'flex', flexDirection: 'column',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 22px', borderBottom: `1px solid ${P.border}` }}>
+          <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 16, color: P.ink }}>{title}</span>
+          <button onClick={onClose} style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: 4, display: 'flex' }}>
+            <Icon name="X" size={18} color={P.inkSoft} />
+          </button>
+        </div>
+        <div style={{ padding: '18px 22px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+          {description && (
+            <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, lineHeight: 1.5 }}>{description}</p>
+          )}
+          <div>
+            <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, color: P.inkSoft, marginBottom: 5 }}>
+              Reason <span style={{ fontWeight: 400, color: P.inkFaint }}>(required)</span>
+            </label>
+            <textarea
+              autoFocus
+              value={reason}
+              onChange={e => setReason(e.target.value)}
+              rows={3}
+              placeholder="Explain why this absence is being declined or cancelled…"
+              style={{
+                width: '100%', padding: '8px 10px', borderRadius: 7,
+                border: `1px solid ${reason.trim() ? P.border : P.border}`,
+                fontFamily: 'var(--font-body)', fontSize: 13, color: P.ink,
+                outline: 'none', resize: 'none', lineHeight: 1.5,
+              }}
+            />
+          </div>
+        </div>
+        <div style={{ padding: '14px 22px', borderTop: `1px solid ${P.border}`, display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+          <button onClick={onClose} style={{
+            padding: '8px 18px', borderRadius: 8, border: `1px solid ${P.border}`, background: 'transparent',
+            color: P.ink, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13,
+          }}>Back</button>
+          <button
+            disabled={!reason.trim()}
+            onClick={() => { onConfirm(reason.trim()); onClose(); }}
+            style={{
+              padding: '8px 20px', borderRadius: 8, border: 'none',
+              background: reason.trim() ? confirmColor : P.border,
+              color: reason.trim() ? '#fff' : P.inkFaint,
+              cursor: reason.trim() ? 'pointer' : 'not-allowed',
+              fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13,
+            }}
+          >{confirmLabel}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
-  // Balance summary — days already used/booked by this employee (approved + other pending)
+// ── Detail modal ───────────────────────────────────────────────────────────
+function DetailModal({ req, requests, onClose, onApprove, onDecline, onCancel }) {
+  const emp = EMPLOYEES[req.employee] || { name: req.employee, entitlement: 25, department: '' };
   const usedDays = requests
     .filter(r => r.employee === req.employee && r.id !== req.id && (r.status === 'approved' || r.status === 'pending'))
     .reduce((s, r) => s + r.days, 0);
   const remaining = emp.entitlement - usedDays - req.days;
-
   const isPending = req.status === 'pending';
-
   return (
     <div onClick={onClose} style={{
       position: 'fixed', inset: 0, zIndex: 200,
@@ -277,41 +500,32 @@ function DetailModal({ req, requests, onClose, onApprove, onDecline }) {
         boxShadow: '0 8px 40px rgba(15,13,40,0.18)',
         display: 'flex', flexDirection: 'column', maxHeight: '90vh', overflow: 'hidden',
       }}>
-        {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 22px', borderBottom: `1px solid ${P.border}` }}>
           <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 16, color: P.ink }}>Time off details</span>
           <button onClick={onClose} style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: 4, display: 'flex' }}>
             <Icon name="X" size={18} color={P.inkSoft} />
           </button>
         </div>
-
-        {/* Body */}
         <div style={{ overflowY: 'auto', padding: '6px 0' }}>
           {[
-            { label: 'Status',       value: <StatusDot status={req.status} /> },
-            { label: 'Type',         value: req.type },
-            { label: 'When',         value: <span>{req.startDate === req.endDate ? req.startDate : `${req.startDate} – ${req.endDate}`}<br /><span style={{ color: P.inkSoft, fontSize: 12 }}>Total of {req.days} {req.days === 1 ? 'day' : 'days'}</span></span> },
-            { label: 'Notes',        value: req.note || '—' },
+            { label: 'Status', value: <StatusDot status={req.status} /> },
+            { label: 'Type', value: req.type },
+            { label: 'When', value: <span>{req.startDate === req.endDate ? req.startDate : `${req.startDate} – ${req.endDate}`}<br /><span style={{ color: P.inkSoft, fontSize: 12 }}>Total of {req.days} {req.days === 1 ? 'day' : 'days'}</span></span> },
+            { label: 'Notes', value: req.note || '—' },
             { label: 'Requested on', value: req.submittedAt },
             { label: 'Requested by', value: <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><Avatar employeeId={req.employee} size={22} /><span>{emp.name}</span><span style={{ color: P.inkFaint, fontSize: 12 }}>{emp.department}</span></div> },
           ].map(({ label, value }) => (
-            <div key={label} style={{
-              display: 'grid', gridTemplateColumns: '130px 1fr',
-              padding: '11px 22px', borderBottom: `1px solid ${P.border}`,
-              alignItems: 'start', gap: 12,
-            }}>
+            <div key={label} style={{ display: 'grid', gridTemplateColumns: '130px 1fr', padding: '11px 22px', borderBottom: `1px solid ${P.border}`, alignItems: 'start', gap: 12 }}>
               <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, paddingTop: 1 }}>{label}</span>
               <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.ink }}>{value}</span>
             </div>
           ))}
-
-          {/* Balance summary */}
           <div style={{ margin: '14px 22px', background: P.bg, borderRadius: 10, padding: '14px 16px' }}>
             <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 13, color: P.ink, marginBottom: 10 }}>Balance summary</div>
             {[
-              { label: 'Annual entitlement', value: `${emp.entitlement} days`, red: false },
-              { label: 'Used & booked',       value: `${usedDays} ${usedDays === 1 ? 'day' : 'days'}`, red: false },
-              { label: 'Requesting',           value: `${req.days} ${req.days === 1 ? 'day' : 'days'}`, red: false },
+              { label: 'Annual entitlement', value: `${emp.entitlement} days` },
+              { label: 'Used & booked', value: `${usedDays} ${usedDays === 1 ? 'day' : 'days'}` },
+              { label: 'Requesting', value: `${req.days} ${req.days === 1 ? 'day' : 'days'}` },
             ].map(({ label, value }) => (
               <div key={label} style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 0', borderBottom: `1px solid ${P.border}` }}>
                 <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>{label}</span>
@@ -321,28 +535,246 @@ function DetailModal({ req, requests, onClose, onApprove, onDecline }) {
             <div style={{ display: 'flex', justifyContent: 'space-between', padding: '7px 0 0' }}>
               <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 13, color: P.ink }}>Remaining after request</span>
               <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 13, color: remaining < 0 ? '#b91c1c' : '#166534' }}>
-                {remaining < 0 ? '' : ''}{remaining} {Math.abs(remaining) === 1 ? 'day' : 'days'}
+                {remaining} {Math.abs(remaining) === 1 ? 'day' : 'days'}
               </span>
             </div>
           </div>
         </div>
-
-        {/* Footer */}
-        {isPending && (
+        {(isPending || req.status === 'approved') && (
           <div style={{ padding: '14px 22px', borderTop: `1px solid ${P.border}`, display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
-            <button onClick={() => { onDecline(req.id); onClose(); }} style={{
-              padding: '8px 20px', borderRadius: 8,
-              border: `1px solid #fca5a5`, background: '#fef2f2',
-              color: '#b91c1c', cursor: 'pointer',
-              fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13,
-            }}>Decline</button>
-            <button onClick={() => { onApprove(req.id); onClose(); }} style={{
-              padding: '8px 20px', borderRadius: 8, border: 'none',
-              background: P.ink, color: '#fff', cursor: 'pointer',
-              fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13,
-            }}>Approve</button>
+            {isPending && <>
+              <button onClick={() => { onDecline(req.id); onClose(); }} style={{
+                padding: '8px 20px', borderRadius: 8, border: '1px solid #fca5a5', background: '#fef2f2',
+                color: '#b91c1c', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13,
+              }}>Decline</button>
+              <button onClick={() => { onApprove(req.id); onClose(); }} style={{
+                padding: '8px 20px', borderRadius: 8, border: 'none', background: P.ink, color: '#fff',
+                cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13,
+              }}>Approve</button>
+            </>}
+            {req.status === 'approved' && (
+              <button onClick={() => { onCancel(req.id); onClose(); }} style={{
+                padding: '8px 20px', borderRadius: 8, border: '1px solid #fca5a5', background: '#fef2f2',
+                color: '#b91c1c', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13,
+              }}>Cancel absence</button>
+            )}
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+// ── Select with chevron ────────────────────────────────────────────────────
+function SelectField({ value, onChange, children, style }) {
+  return (
+    <div style={{ position: 'relative' }}>
+      <select value={value} onChange={onChange} style={{ ...style, appearance: 'none', paddingRight: 30 }}>
+        {children}
+      </select>
+      <svg style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}
+        width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={P.inkFaint} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        <polyline points="6 9 12 15 18 9"/>
+      </svg>
+    </div>
+  );
+}
+
+// ── Add / Edit time off modal ──────────────────────────────────────────────
+function AddTimeOffModal({ existing, onClose, onSave }) {
+  const isEdit = !!existing;
+  const [empId, setEmpId]     = useState(existing?.employee || '');
+  const [type, setType]       = useState(existing?.type || 'Time off');
+  const [startDate, setStart] = useState(existing ? toISOInput(existing.startDate) : '');
+  const [endDate, setEnd]     = useState(existing ? toISOInput(existing.endDate || existing.startDate) : '');
+  const [note, setNote]       = useState(existing?.note || '');
+  const [attachment, setAttachment] = useState(null);
+  const [notifyEmployee, setNotifyEmployee] = useState(false);
+
+  useEffect(() => { setAttachment(null); setNotifyEmployee(false); }, [type]);
+
+  function toISOInput(displayStr) {
+    const d = parseDisplayDate(displayStr);
+    return d ? isoDate(d) : '';
+  }
+
+  function countWeekdays(from, to) {
+    let count = 0;
+    for (let d = new Date(from); d <= to; d = addDays(d, 1)) {
+      if (d.getDay() !== 0 && d.getDay() !== 6) count++;
+    }
+    return count;
+  }
+
+  const startD = startDate ? new Date(startDate + 'T00:00:00') : null;
+  const endD   = endDate   ? new Date(endDate   + 'T00:00:00') : startD;
+  const days   = startD && endD && endD >= startD ? countWeekdays(startD, endD) : 0;
+
+  const fmtDisplay = (d) => d ? d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }) : '';
+
+  const handleSave = () => {
+    if (!empId || !startDate || days === 0) return;
+    const req = {
+      id: existing?.id || `manual-${Date.now()}`,
+      employee: empId,
+      type,
+      startDate: fmtDisplay(startD),
+      endDate: fmtDisplay(endD),
+      days,
+      status: existing?.status || 'approved',
+      submittedAt: existing?.submittedAt || new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }),
+      note,
+    };
+    onSave(req);
+    onClose();
+  };
+
+  const empList = Object.entries(EMPLOYEES).sort((a, b) => a[1].name.localeCompare(b[1].name));
+
+  const inputStyle = {
+    width: '100%', padding: '8px 10px', borderRadius: 7, border: `1px solid ${P.border}`,
+    fontFamily: 'var(--font-body)', fontSize: 13, color: P.ink, outline: 'none', background: P.white,
+  };
+
+  return (
+    <div onClick={onClose} style={{
+      position: 'fixed', inset: 0, zIndex: 200,
+      background: 'rgba(15,13,40,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+    }}>
+      <div onClick={e => e.stopPropagation()} style={{
+        background: P.white, borderRadius: 14, width: 480,
+        boxShadow: '0 8px 40px rgba(15,13,40,0.18)',
+        display: 'flex', flexDirection: 'column',
+      }}>
+        {/* Header */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 22px', borderBottom: `1px solid ${P.border}` }}>
+          <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 16, color: P.ink }}>
+            {isEdit ? 'Edit absence' : 'Add absence'}
+          </span>
+          <button onClick={onClose} style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: 4, display: 'flex' }}>
+            <Icon name="X" size={18} color={P.inkSoft} />
+          </button>
+        </div>
+
+        {/* Form */}
+        <div style={{ padding: '18px 22px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+          {/* Employee */}
+          <div>
+            <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, color: P.inkSoft, marginBottom: 5 }}>Employee</label>
+            <SelectField value={empId} onChange={e => setEmpId(e.target.value)} style={inputStyle}>
+              <option value="">Select employee…</option>
+              {empList.map(([id, emp]) => (
+                <option key={id} value={id}>{emp.name} — {emp.department}</option>
+              ))}
+            </SelectField>
+          </div>
+
+          {/* Leave type */}
+          <div>
+            <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, color: P.inkSoft, marginBottom: 5 }}>Leave type</label>
+            <SelectField value={type} onChange={e => setType(e.target.value)} style={{ ...inputStyle, cursor: 'pointer' }}>
+              {ALL_LEAVE_TYPES.map(t => (
+                <option key={t} value={t}>{t}{ADMIN_ONLY_TYPES.has(t) ? ' (Admin)' : ''}</option>
+              ))}
+            </SelectField>
+          </div>
+
+          {/* Dates */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+            <div>
+              <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, color: P.inkSoft, marginBottom: 5 }}>From</label>
+              <input type="date" value={startDate} onChange={e => { setStart(e.target.value); if (!endDate || e.target.value > endDate) setEnd(e.target.value); }} style={inputStyle} />
+            </div>
+            <div>
+              <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, color: P.inkSoft, marginBottom: 5 }}>To</label>
+              <input type="date" value={endDate} min={startDate} onChange={e => setEnd(e.target.value)} style={inputStyle} />
+            </div>
+          </div>
+
+          {/* Duration preview */}
+          {days > 0 && (
+            <div style={{ background: P.bg, borderRadius: 7, padding: '8px 12px', fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <Icon name="CalendarDays" size={13} color={P.inkSoft} />
+              <span>{days} working {days === 1 ? 'day' : 'days'}</span>
+              {startD && endD && startD.getTime() !== endD.getTime() && (
+                <span style={{ color: P.inkFaint }}>· {fmtDisplay(startD)} – {fmtDisplay(endD)}</span>
+              )}
+            </div>
+          )}
+
+          {/* Note */}
+          <div>
+            <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, color: P.inkSoft, marginBottom: 5 }}>Notes <span style={{ fontWeight: 400 }}>(optional)</span></label>
+            <textarea value={note} onChange={e => setNote(e.target.value)} rows={2} placeholder="Reason or additional context…" style={{ ...inputStyle, resize: 'none', lineHeight: 1.5 }} />
+          </div>
+
+          {/* Document upload + notify toggle — non-blocking */}
+          {(() => {
+            const rule = ATTACHMENT_RULES[type];
+            if (!rule) return null;
+            if (type === 'Sick leave' && days <= 1) return null;
+            return (
+              <div>
+                <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, color: P.inkSoft, marginBottom: 3 }}>{rule.label}</label>
+                <p style={{ margin: '0 0 8px', fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkFaint }}>{rule.note}</p>
+                {attachment ? (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', borderRadius: 7, border: `1px solid ${P.border}`, background: P.bg }}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={P.inkSoft} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
+                    </svg>
+                    <span style={{ flex: 1, fontFamily: 'var(--font-body)', fontSize: 12, color: P.ink }}>{attachment}</span>
+                    <button onClick={() => setAttachment(null)} style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: 2, display: 'flex' }}>
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={P.inkFaint} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                      </svg>
+                    </button>
+                  </div>
+                ) : (
+                  <button onClick={() => setAttachment(`${rule.label.toLowerCase().replace(/ /g, '_')}.pdf`)} style={{
+                    width: '100%', padding: '11px 16px', borderRadius: 7,
+                    border: `1.5px dashed ${P.border}`, background: 'transparent', cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                    fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, color: P.inkSoft,
+                  }}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={P.inkSoft} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+                    </svg>
+                    Upload {rule.label}
+                  </button>
+                )}
+              </div>
+            );
+          })()}
+        </div>
+
+        {/* Footer */}
+        <div style={{ padding: '14px 22px', borderTop: `1px solid ${P.border}`, display: 'flex', alignItems: 'center', gap: 10 }}>
+          <button onClick={onClose} style={{
+            padding: '8px 18px', borderRadius: 8, border: `1px solid ${P.border}`, background: 'transparent',
+            color: P.ink, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13,
+          }}>Cancel</button>
+          <div style={{ flex: 1 }} />
+          {(() => {
+            const rule = ATTACHMENT_RULES[type];
+            const show = rule && !(type === 'Sick leave' && days <= 1) && !attachment;
+            if (!show) return null;
+            return (
+              <div onClick={() => setNotifyEmployee(v => !v)} style={{ display: 'flex', alignItems: 'center', gap: 7, cursor: 'pointer', userSelect: 'none' }}>
+                <div style={{ width: 28, height: 16, borderRadius: 8, flexShrink: 0, background: notifyEmployee ? P.ink : '#d1d5db', position: 'relative', transition: 'background 150ms' }}>
+                  <div style={{ position: 'absolute', top: 2, left: notifyEmployee ? 14 : 2, width: 12, height: 12, borderRadius: 6, background: '#fff', transition: 'left 150ms' }} />
+                </div>
+                <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, whiteSpace: 'nowrap' }}>Request {rule.label.toLowerCase()}</span>
+              </div>
+            );
+          })()}
+          <button onClick={handleSave} disabled={!empId || !startDate || days === 0} style={{
+            padding: '8px 20px', borderRadius: 8, border: 'none',
+            background: !empId || !startDate || days === 0 ? P.border : P.ink,
+            color: !empId || !startDate || days === 0 ? P.inkFaint : '#fff',
+            cursor: !empId || !startDate || days === 0 ? 'not-allowed' : 'pointer',
+            fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13,
+          }}>{isEdit ? 'Save changes' : 'Add absence'}</button>
+        </div>
       </div>
     </div>
   );
@@ -350,436 +782,766 @@ function DetailModal({ req, requests, onClose, onApprove, onDecline }) {
 
 // ── Table row ──────────────────────────────────────────────────────────────
 const TH = ({ children, style }) => (
-  <div style={{
-    fontFamily: 'var(--font-display)', fontWeight: 600,
-    fontSize: 11, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.06em',
-    ...style,
-  }}>{children}</div>
+  <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.06em', ...style }}>{children}</div>
 );
 
-function RequestRow({ req, requests, onApprove, onDecline, onDetail }) {
+function RequestRow({ req, requests, onApprove, onDecline, onDetail, onEdit, onCancel }) {
   const emp = EMPLOYEES[req.employee] || { name: req.employee, initials: '?', color: '#e5e7eb' };
   const [hover, setHover] = useState(false);
-
   return (
-    <div
-      onMouseEnter={() => setHover(true)}
-      onMouseLeave={() => setHover(false)}
-      onClick={() => onDetail(req)}
+    <div onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)} onClick={() => onDetail(req)}
       style={{
-        display: 'grid',
-        gridTemplateColumns: '32px 1.8fr 1fr 0.9fr 1fr 1fr 0.7fr 0.9fr 44px',
-        alignItems: 'center', gap: 12,
-        padding: '0 20px',
-        height: 52,
-        borderBottom: `1px solid ${P.border}`,
-        background: hover ? P.bg : P.white,
-        cursor: 'pointer',
-        transition: 'background 0.1s',
-      }}
-    >
-      {/* Checkbox */}
+        display: 'grid', gridTemplateColumns: '32px 1.8fr 1fr 0.9fr 1fr 1fr 0.7fr 0.9fr 44px',
+        alignItems: 'center', gap: 12, padding: '0 20px', height: 52,
+        borderBottom: `1px solid ${P.border}`, background: hover ? P.bg : P.white,
+        cursor: 'pointer', transition: 'background 0.1s',
+      }}>
       <input type="checkbox" onClick={e => e.stopPropagation()} style={{ cursor: 'pointer', accentColor: P.ink }} />
-
-      {/* Requested by */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 9, minWidth: 0 }}>
         <Avatar employeeId={req.employee} size={28} />
-        <span style={{
-          fontFamily: 'var(--font-body)', fontSize: 13, color: P.ink,
-          whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-        }}>{emp.name}</span>
+        <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.ink, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{emp.name}</span>
       </div>
-
-      {/* Status */}
       <StatusDot status={req.status} />
-
-      {/* Leave type */}
       <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.ink }}>{req.type}</span>
-
-      {/* Duration */}
-      <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.ink }}>
-        {req.days} {req.days === 1 ? 'day' : 'days'}
-      </span>
-
-      {/* Date from */}
+      <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.ink }}>{req.days} {req.days === 1 ? 'day' : 'days'}</span>
       <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.ink }}>{req.startDate}</span>
-
-      {/* Date to */}
       <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: req.startDate === req.endDate ? P.inkFaint : P.ink }}>
         {req.startDate === req.endDate ? '—' : req.endDate}
       </span>
-
-      {/* Added on */}
       <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>{req.submittedAt}</span>
-
-      {/* Actions */}
       <div onClick={e => e.stopPropagation()}>
-        <ActionMenu
-          onApprove={() => onApprove(req.id)}
-          onDecline={() => onDecline(req.id)}
-          onViewDetails={() => onDetail(req)}
-        />
+        <ActionMenu req={req} onApprove={() => onApprove(req.id)} onDecline={() => onDecline(req.id)} onViewDetails={() => onDetail(req)} onEdit={() => onEdit(req)} onCancel={() => onCancel(req.id)} />
       </div>
     </div>
   );
 }
 
 // ── Requests screen ────────────────────────────────────────────────────────
-function RequestsScreen({ requests, onApprove, onDecline }) {
-  const [tab, setTab]         = useState('pending');
-  const [detail, setDetail]   = useState(null);
-
+function RequestsScreen({ requests, onApprove, onDecline, onSave, onCancel }) {
+  const [tab, setTab] = useState('pending');
+  const [detail, setDetail] = useState(null);
+  const [editReq, setEditReq] = useState(null);
+  const [addOpen, setAddOpen] = useState(false);
   const filtered = tab === 'pending' ? requests.filter(r => r.status === 'pending')
-    : tab === 'approved' ? requests.filter(r => r.status === 'approved')
-    : requests;
-
+    : tab === 'approved' ? requests.filter(r => r.status === 'approved') : requests;
   const pendingCount = requests.filter(r => r.status === 'pending').length;
-
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-      {/* Page header */}
       <div style={{ padding: '22px 24px 0', background: P.white, borderBottom: `1px solid ${P.border}` }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 16 }}>
           <div>
-            <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 22, color: P.ink, margin: 0, letterSpacing: '-0.02em' }}>
-              Time off requests
-            </h1>
-            <p style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, margin: '3px 0 0' }}>
-              Manage your team's time off
-            </p>
+            <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 22, color: P.ink, margin: 0, letterSpacing: '-0.02em' }}>Time off requests</h1>
+            <p style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, margin: '3px 0 0' }}>Manage your team's time off</p>
           </div>
-          <button style={{
-            display: 'flex', alignItems: 'center', gap: 7,
-            padding: '9px 18px', borderRadius: 20, border: 'none',
-            background: P.ink, color: '#fff', cursor: 'pointer',
-            fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13,
-          }}>
-            <Icon name="Plus" size={14} color="#fff" strokeWidth={2.5} />
-            Add time off
+          <button onClick={() => setAddOpen(true)} style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '9px 18px', borderRadius: 20, border: 'none', background: P.ink, color: '#fff', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>
+            <Icon name="Plus" size={14} color="#fff" strokeWidth={2.5} /> Add time off
           </button>
         </div>
-
-        {/* Tabs */}
         <div style={{ display: 'flex', gap: 0 }}>
           {[['pending', 'All pending requests'], ['approved', 'Approved'], ['all', 'All requests']].map(([val, label]) => (
             <button key={val} onClick={() => setTab(val)} style={{
               padding: '9px 16px', border: 'none', background: 'transparent', cursor: 'pointer',
-              fontFamily: 'var(--font-display)', fontWeight: tab === val ? 700 : 500,
-              fontSize: 13, color: tab === val ? P.ink : P.inkSoft,
-              borderBottom: tab === val ? `2px solid ${P.ink}` : '2px solid transparent',
-              marginBottom: -1, transition: 'all 0.15s',
-            }}>
-              {label}{val === 'pending' && pendingCount > 0 ? ` (${pendingCount})` : ''}
-            </button>
+              fontFamily: 'var(--font-display)', fontWeight: tab === val ? 700 : 500, fontSize: 13, color: tab === val ? P.ink : P.inkSoft,
+              borderBottom: tab === val ? `2px solid ${P.ink}` : '2px solid transparent', marginBottom: -1,
+            }}>{label}{val === 'pending' && pendingCount > 0 ? ` (${pendingCount})` : ''}</button>
           ))}
         </div>
       </div>
-
-      {/* Search + filter bar */}
       <div style={{ padding: '12px 24px', background: P.white, borderBottom: `1px solid ${P.border}`, display: 'flex', gap: 10 }}>
-        <div style={{
-          display: 'flex', alignItems: 'center', gap: 8,
-          border: `1px solid ${P.border}`, borderRadius: 20, padding: '6px 14px',
-          background: P.white, width: 200,
-        }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, border: `1px solid ${P.border}`, borderRadius: 20, padding: '6px 14px', background: P.white, width: 200 }}>
           <Icon name="Search" size={13} color={P.inkFaint} />
-          <input placeholder="Search" style={{
-            border: 'none', outline: 'none', background: 'transparent',
-            fontFamily: 'var(--font-body)', fontSize: 13, color: P.ink, width: '100%',
-          }} />
+          <input placeholder="Search" style={{ border: 'none', outline: 'none', background: 'transparent', fontFamily: 'var(--font-body)', fontSize: 13, color: P.ink, width: '100%' }} />
         </div>
-        <button style={{
-          display: 'flex', alignItems: 'center', gap: 7,
-          padding: '6px 14px', borderRadius: 20,
-          border: `1px solid ${P.border}`, background: P.white,
-          cursor: 'pointer', fontFamily: 'var(--font-body)', fontSize: 13, color: P.ink,
-        }}>
-          <Icon name="SlidersHorizontal" size={13} color={P.inkSoft} />
-          Filter
+        <button style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '6px 14px', borderRadius: 20, border: `1px solid ${P.border}`, background: P.white, cursor: 'pointer', fontFamily: 'var(--font-body)', fontSize: 13, color: P.ink }}>
+          <Icon name="SlidersHorizontal" size={13} color={P.inkSoft} /> Filter
         </button>
       </div>
-
-      {/* Table */}
       <div style={{ flex: 1, overflowY: 'auto', background: P.white }}>
-        {/* Column headers */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: '32px 1.8fr 1fr 0.9fr 1fr 1fr 0.7fr 0.9fr 44px',
-          alignItems: 'center', gap: 12,
-          padding: '0 20px', height: 38,
-          borderBottom: `1px solid ${P.border}`,
-          background: P.bg, position: 'sticky', top: 0,
-        }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '32px 1.8fr 1fr 0.9fr 1fr 1fr 0.7fr 0.9fr 44px', alignItems: 'center', gap: 12, padding: '0 20px', height: 38, borderBottom: `1px solid ${P.border}`, background: P.bg, position: 'sticky', top: 0 }}>
           <input type="checkbox" style={{ cursor: 'pointer', accentColor: P.ink }} />
-          <TH>Requested by</TH>
-          <TH>Status</TH>
-          <TH>Leave type</TH>
-          <TH>Duration</TH>
-          <TH>Date from</TH>
-          <TH>Date to</TH>
-          <TH>Added on</TH>
-          <div />
+          <TH>Requested by</TH><TH>Status</TH><TH>Leave type</TH><TH>Duration</TH><TH>Date from</TH><TH>Date to</TH><TH>Added on</TH><div />
         </div>
-
         {filtered.length === 0 ? (
           <div style={{ padding: '60px 24px', textAlign: 'center' }}>
             <Icon name="Inbox" size={32} color={P.border} style={{ marginBottom: 12 }} />
-            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.inkFaint }}>
-              No {tab === 'pending' ? 'pending ' : tab === 'approved' ? 'approved ' : ''}requests
-            </div>
-            <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkFaint, marginTop: 4 }}>
-              {tab === 'pending' ? 'New requests from your team will appear here.' : ''}
-            </div>
+            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.inkFaint }}>No {tab === 'pending' ? 'pending ' : tab === 'approved' ? 'approved ' : ''}requests</div>
+            <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkFaint, marginTop: 4 }}>{tab === 'pending' ? 'New requests from your team will appear here.' : ''}</div>
           </div>
         ) : filtered.map(req => (
-          <RequestRow
-            key={req.id}
-            req={req}
-            requests={requests}
-            onApprove={onApprove}
-            onDecline={onDecline}
-            onDetail={setDetail}
-          />
+          <RequestRow key={req.id} req={req} requests={requests} onApprove={onApprove} onDecline={onDecline} onDetail={setDetail} onEdit={setEditReq} onCancel={onCancel} />
         ))}
-
         {filtered.length > 0 && (
-          <div style={{ padding: '10px 20px', fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkFaint }}>
-            {filtered.length} {filtered.length === 1 ? 'record' : 'records'}
-          </div>
+          <div style={{ padding: '10px 20px', fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkFaint }}>{filtered.length} {filtered.length === 1 ? 'record' : 'records'}</div>
         )}
       </div>
-
       {detail && (
-        <DetailModal
-          req={detail}
-          requests={requests}
-          onClose={() => setDetail(null)}
+        <DetailModal req={detail} requests={requests} onClose={() => setDetail(null)}
           onApprove={(id) => { onApprove(id); setDetail(prev => prev && prev.id === id ? { ...prev, status: 'approved' } : prev); }}
-          onDecline={(id) => { onDecline(id); setDetail(prev => prev && prev.id === id ? { ...prev, status: 'rejected' } : prev); }}
+          onDecline={(id) => onDecline(id)}
+          onCancel={(id) => { onCancel(id); setDetail(null); }}
+        />
+      )}
+      {(addOpen || editReq) && (
+        <AddTimeOffModal
+          existing={editReq || null}
+          onClose={() => { setAddOpen(false); setEditReq(null); }}
+          onSave={(req) => { onSave(req); setAddOpen(false); setEditReq(null); }}
         />
       )}
     </div>
   );
 }
 
-// ── Team absences screen ───────────────────────────────────────────────────
-const DAY_LABELS = ['MO','TU','WE','TH','FR','SA','SU'];
-const BE_HOLIDAYS_2026 = [
-  { date: '2026-07-21', label: 'Belgian National Day' },
-  { date: '2026-08-15', label: 'Assumption of Mary'   },
-  { date: '2026-11-01', label: "All Saints' Day"      },
-  { date: '2026-11-11', label: 'Armistice Day'        },
-  { date: '2026-12-25', label: 'Christmas Day'        },
-];
+// ═══════════════════════════════════════════════════════════════════════════
+// ── Team Absences Calendar ─────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════
 
-function TeamAbsencesScreen({ requests, pendingCount, onNav }) {
-  const today = new Date(); today.setHours(0,0,0,0);
-  const [windowStart, setWindowStart] = useState(() => weekStart(today));
-
-  const days = Array.from({ length: 14 }, (_, i) => addDays(windowStart, i));
-  const dayISOs = days.map(isoDate);
-
-  const monthLabel = (() => {
-    const s = days[0], e = days[13];
-    if (s.getMonth() === e.getMonth())
-      return s.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
-    return `${s.toLocaleDateString('en-GB',{month:'short'})} – ${e.toLocaleDateString('en-GB',{month:'short', year:'numeric'})}`;
-  })();
-
-  // Build a Set of ISO dates each employee is absent (approved)
-  const absenceMap = {};
-  for (const req of requests.filter(r => r.status === 'approved')) {
+function buildAbsenceMap(requests) {
+  const map = {};
+  for (const req of requests.filter(r => r.status === 'approved' || r.status === 'pending')) {
     const start = parseDisplayDate(req.startDate);
     const end   = parseDisplayDate(req.endDate) || start;
     if (!start) continue;
-    if (!absenceMap[req.employee]) absenceMap[req.employee] = new Set();
+    if (!map[req.employee]) map[req.employee] = {};
     for (let d = new Date(start); d <= end; d = addDays(d, 1)) {
-      absenceMap[req.employee].add(isoDate(d));
+      const iso = isoDate(d);
+      if (!map[req.employee][iso]) {
+        map[req.employee][iso] = { type: req.type, status: req.status, requestId: req.id };
+      }
     }
   }
+  return map;
+}
 
-  const upcomingHolidays = BE_HOLIDAYS_2026.filter(h => h.date >= isoDate(today)).slice(0, 3);
-  const pending = requests.filter(r => r.status === 'pending');
+// ── Month picker ───────────────────────────────────────────────────────────
+function MonthPicker({ currentDate, onSelect, onClose }) {
+  const [year, setYear] = useState(currentDate.getFullYear());
+  const ref = useRef(null);
+  useEffect(() => {
+    const close = (e) => { if (ref.current && !ref.current.contains(e.target)) onClose(); };
+    document.addEventListener('mousedown', close);
+    return () => document.removeEventListener('mousedown', close);
+  }, []);
+  return (
+    <div ref={ref} style={{
+      position: 'absolute', top: 48, left: 0, zIndex: 60,
+      background: P.white, border: `1px solid ${P.border}`, borderRadius: 12,
+      boxShadow: '0 8px 32px rgba(0,0,0,0.12)', padding: '14px', width: 280,
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+        <button onClick={() => setYear(y => y - 1)} style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: 4, display: 'flex' }}>
+          <Icon name="ChevronLeft" size={14} color={P.inkSoft} />
+        </button>
+        <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 14, color: P.ink }}>{year}</span>
+        <button onClick={() => setYear(y => y + 1)} style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: 4, display: 'flex' }}>
+          <Icon name="ChevronRight" size={14} color={P.inkSoft} />
+        </button>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 4 }}>
+        {MONTH_NAMES.map((name, i) => {
+          const isCurrent = year === currentDate.getFullYear() && i === currentDate.getMonth();
+          return (
+            <button key={i} onClick={() => { onSelect(new Date(year, i, 1)); onClose(); }}
+              style={{
+                padding: '7px 0', borderRadius: 6, border: 'none',
+                background: isCurrent ? P.ink : 'transparent',
+                color: isCurrent ? '#fff' : P.ink,
+                cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 12,
+              }}
+              onMouseEnter={e => { if (!isCurrent) e.currentTarget.style.background = P.bg; }}
+              onMouseLeave={e => { if (!isCurrent) e.currentTarget.style.background = 'transparent'; }}>
+              {name.slice(0, 3)}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ── View mode switcher ─────────────────────────────────────────────────────
+function ViewSwitcher({ mode, onChange }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+  const labels = { month: 'Month', '2week': '2 Weeks', week: 'Week' };
+
+  useEffect(() => {
+    if (!open) return;
+    const close = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    document.addEventListener('mousedown', close);
+    return () => document.removeEventListener('mousedown', close);
+  }, [open]);
 
   return (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, overflowY: 'auto' }}>
+    <div ref={ref} style={{ position: 'relative' }}>
+      <button onClick={() => setOpen(o => !o)} style={{
+        display: 'flex', alignItems: 'center', gap: 5,
+        padding: '5px 11px', border: `1px solid ${P.border}`, borderRadius: 7,
+        background: P.ink, color: '#fff', cursor: 'pointer',
+        fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12,
+      }}>
+        {labels[mode]}
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      {open && (
+        <div style={{
+          position: 'absolute', right: 0, top: 'calc(100% + 4px)',
+          background: P.white, border: `1px solid ${P.border}`, borderRadius: 8,
+          boxShadow: '0 4px 16px rgba(15,13,40,0.1)', zIndex: 100, minWidth: 120, overflow: 'hidden',
+        }}>
+          {Object.entries(labels).map(([val, label]) => (
+            <button key={val} onClick={() => { onChange(val); setOpen(false); }} style={{
+              display: 'block', width: '100%', textAlign: 'left',
+              padding: '8px 12px', border: 'none', cursor: 'pointer',
+              background: mode === val ? '#f4f5f7' : 'transparent',
+              fontFamily: 'var(--font-display)', fontWeight: mode === val ? 700 : 500,
+              fontSize: 13, color: P.ink,
+            }}>{label}</button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Filter toolbar ─────────────────────────────────────────────────────────
+const LEAVE_FILTER_OPTS = [['all', 'All types'], ['Time off', 'Time off'], ['Sick leave', 'Sick leave'], ['Special leave', 'Special leave']];
+
+function FilterToolbar({ searchText, onSearch, leaveFilter, onLeaveFilter }) {
+  const [leaveOpen, setLeaveOpen] = useState(false);
+  const leaveRef = useRef(null);
+  useEffect(() => {
+    if (!leaveOpen) return;
+    const close = (e) => { if (leaveRef.current && !leaveRef.current.contains(e.target)) setLeaveOpen(false); };
+    document.addEventListener('mousedown', close);
+    return () => document.removeEventListener('mousedown', close);
+  }, [leaveOpen]);
+
+  const activeLabel = LEAVE_FILTER_OPTS.find(([v]) => v === leaveFilter)?.[1] ?? 'All types';
+
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px', background: P.white, borderBottom: `1px solid ${P.border}` }}>
+      {/* Search */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 7, border: `1px solid ${P.border}`, borderRadius: 7, padding: '5px 12px', width: 240 }}>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={P.inkFaint} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input value={searchText} onChange={e => onSearch(e.target.value)} placeholder="Search employee" style={{
+          border: 'none', outline: 'none', background: 'transparent', fontFamily: 'var(--font-body)', fontSize: 12, color: P.ink, width: '100%',
+        }} />
+      </div>
+
+      {/* Leave type dropdown */}
+      <div ref={leaveRef} style={{ position: 'relative' }}>
+        <button onClick={() => setLeaveOpen(o => !o)} style={{
+          display: 'flex', alignItems: 'center', gap: 5,
+          padding: '5px 11px', borderRadius: 7, border: `1px solid ${P.border}`,
+          background: P.ink, color: '#fff', cursor: 'pointer',
+          fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12,
+        }}>
+          {activeLabel}
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        {leaveOpen && (
+          <div style={{
+            position: 'absolute', top: 'calc(100% + 4px)', left: 0, zIndex: 50,
+            background: P.white, border: `1px solid ${P.border}`, borderRadius: 8,
+            boxShadow: '0 4px 16px rgba(15,13,40,0.10)', minWidth: 140, overflow: 'hidden',
+          }}>
+            {LEAVE_FILTER_OPTS.map(([val, label]) => (
+              <button key={val} onClick={() => { onLeaveFilter(val); setLeaveOpen(false); }} style={{
+                display: 'block', width: '100%', textAlign: 'left',
+                padding: '8px 12px', border: 'none', cursor: 'pointer',
+                background: leaveFilter === val ? '#f4f5f7' : 'transparent',
+                fontFamily: 'var(--font-display)', fontWeight: leaveFilter === val ? 700 : 500,
+                fontSize: 13, color: P.ink,
+              }}>{label}</button>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── Team absences screen ───────────────────────────────────────────────────
+function TeamAbsencesScreen({ requests, pendingCount, onNav, onShowDetail, onSave }) {
+  const today = new Date(); today.setHours(0,0,0,0);
+  const todayISO = isoDate(today);
+
+  // State
+  const [viewMode, setViewMode] = useState('month');
+  const [refDate, setRefDate] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
+  const [monthPickerOpen, setMonthPickerOpen] = useState(false);
+  const [searchText, setSearchText] = useState('');
+  const [activeDepts, setActiveDepts] = useState(() => new Set(DEPARTMENTS));
+  const [leaveFilter, setLeaveFilter] = useState('all');
+  const [expandedDepts, setExpandedDepts] = useState(() => new Set(DEPARTMENTS));
+  const [tooltip, setTooltip] = useState(null);
+  const [addOpen, setAddOpen] = useState(false);
+  const tooltipTimerRef = useRef(null);
+  const tooltipReqIdRef = useRef(null);
+
+  // Compute days for current view
+  const days = useMemo(() => {
+    if (viewMode === 'week') {
+      const ws = weekStart(refDate);
+      return Array.from({ length: 7 }, (_, i) => addDays(ws, i));
+    }
+    if (viewMode === '2week') {
+      const ws = weekStart(refDate);
+      return Array.from({ length: 14 }, (_, i) => addDays(ws, i));
+    }
+    // month
+    const first = new Date(refDate.getFullYear(), refDate.getMonth(), 1);
+    const ws = weekStart(first);
+    const last = new Date(refDate.getFullYear(), refDate.getMonth() + 1, 0);
+    const lastDay = last.getDay() || 7;
+    const endDate = addDays(last, 7 - lastDay);
+    const count = Math.round((endDate - ws) / 86400000);
+    return Array.from({ length: count }, (_, i) => addDays(ws, i));
+  }, [viewMode, refDate]);
+
+  const dayISOs = useMemo(() => days.map(isoDate), [days]);
+
+  // Build enriched absence map
+  const absenceMap = useMemo(() => buildAbsenceMap(requests), [requests]);
+
+  // Month label
+  const monthLabel = useMemo(() => {
+    if (viewMode === 'month') return MONTH_NAMES[refDate.getMonth()] + ' ' + refDate.getFullYear();
+    const s = days[0], e = days[days.length - 1];
+    const sameMonth = s.getMonth() === e.getMonth() && s.getFullYear() === e.getFullYear();
+    if (sameMonth) return `${s.getDate()} – ${e.getDate()} ${s.toLocaleDateString('en-GB', { month: 'short' })} ${s.getFullYear()}`;
+    const sameYear = s.getFullYear() === e.getFullYear();
+    return `${s.getDate()} ${s.toLocaleDateString('en-GB', { month: 'short' })}${sameYear ? '' : ' ' + s.getFullYear()} – ${e.getDate()} ${e.toLocaleDateString('en-GB', { month: 'short' })} ${e.getFullYear()}`;
+  }, [viewMode, refDate, days]);
+
+  // Navigation step
+  const step = (dir) => {
+    setRefDate(d => {
+      if (viewMode === 'month') return new Date(d.getFullYear(), d.getMonth() + dir, 1);
+      if (viewMode === '2week') return addDays(d, dir * 14);
+      return addDays(d, dir * 7);
+    });
+  };
+  const goToday = () => setRefDate(new Date(today.getFullYear(), today.getMonth(), 1));
+
+  // Filter employees
+  const allDepartments = DEPARTMENTS;
+  const toggleDept = (dept) => {
+    setActiveDepts(prev => {
+      const next = new Set(prev);
+      next.has(dept) ? next.delete(dept) : next.add(dept);
+      return next;
+    });
+  };
+  const toggleExpand = (dept) => {
+    setExpandedDepts(prev => {
+      const next = new Set(prev);
+      next.has(dept) ? next.delete(dept) : next.add(dept);
+      return next;
+    });
+  };
+
+  const filteredEmployees = useMemo(() => {
+    const search = searchText.toLowerCase();
+    return Object.entries(EMPLOYEES).filter(([id, emp]) => {
+      if (!activeDepts.has(emp.department)) return false;
+      if (search && !emp.name.toLowerCase().includes(search)) return false;
+      return true;
+    });
+  }, [searchText, activeDepts]);
+
+  const grouped = useMemo(() => {
+    const groups = {};
+    for (const [id, emp] of filteredEmployees) {
+      if (!groups[emp.department]) groups[emp.department] = [];
+      groups[emp.department].push([id, emp]);
+    }
+    return groups;
+  }, [filteredEmployees]);
+
+  // Summary row — how many people off per day
+  const summary = useMemo(() => {
+    return dayISOs.map(iso => {
+      let out = 0;
+      for (const [empId] of filteredEmployees) {
+        const entry = absenceMap[empId]?.[iso];
+        if (entry && (leaveFilter === 'all' || entry.type === leaveFilter)) out++;
+      }
+      return out;
+    });
+  }, [dayISOs, filteredEmployees, absenceMap, leaveFilter]);
+
+  const totalFiltered = filteredEmployees.length;
+
+  const colCount = days.length;
+  const nameColW = viewMode === 'week' ? 200 : 170;
+  const gridCols = `${nameColW}px repeat(${colCount}, minmax(${viewMode === 'week' ? 80 : viewMode === '2week' ? 36 : 24}px, 1fr))`;
+
+  const pending = requests.filter(r => r.status === 'pending');
+
+  // Upcoming holidays
+  const upcomingHolidays = BELGIAN_HOLIDAYS_2026.filter(h => h >= todayISO).slice(0, 3);
+
+  return (
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, overflow: 'hidden' }}>
       {/* Page header */}
-      <div style={{ padding: '22px 24px 18px', background: P.white, borderBottom: `1px solid ${P.border}`, display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+      <div style={{ padding: '22px 24px 18px', background: P.white, borderBottom: `1px solid ${P.border}`, display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexShrink: 0 }}>
         <div>
           <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 22, color: P.ink, margin: 0, letterSpacing: '-0.02em' }}>Team absences</h1>
           <p style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, margin: '3px 0 0' }}>Track and plan team availability</p>
         </div>
-        <button style={{
-          display: 'flex', alignItems: 'center', gap: 7,
-          padding: '9px 18px', borderRadius: 20, border: 'none',
-          background: P.ink, color: '#fff', cursor: 'pointer',
-          fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13,
+        <button onClick={() => setAddOpen(true)} style={{
+          display: 'flex', alignItems: 'center', gap: 7, padding: '9px 18px', borderRadius: 20, border: 'none',
+          background: P.ink, color: '#fff', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13,
         }}>
-          <Icon name="Plus" size={14} color="#fff" strokeWidth={2.5} />
-          Add time off
+          <Icon name="Plus" size={14} color="#fff" strokeWidth={2.5} /> Add time off
         </button>
       </div>
 
-      <div style={{ flex: 1, display: 'flex', gap: 0 }}>
-        {/* Left: calendar + holidays */}
-        <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
+      {/* Filter toolbar — full width */}
+      <FilterToolbar
+        searchText={searchText} onSearch={setSearchText}
+        leaveFilter={leaveFilter} onLeaveFilter={setLeaveFilter}
+      />
+
+      <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
+        {/* Left: calendar area */}
+        <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+
           {/* Calendar card */}
-          <div style={{ margin: 20, background: P.white, border: `1px solid ${P.border}`, borderRadius: 12, overflow: 'hidden' }}>
+          <div style={{ flex: 1, margin: '16px 20px 20px', background: P.white, border: `1px solid ${P.border}`, borderRadius: 12, display: 'flex', flexDirection: 'column', overflow: 'hidden', position: 'relative' }}>
             {/* Calendar nav */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '14px 16px', borderBottom: `1px solid ${P.border}` }}>
-              <button onClick={() => setWindowStart(weekStart(today))} style={{
-                padding: '5px 12px', borderRadius: 20, border: `1px solid ${P.border}`,
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px', borderBottom: `1px solid ${P.border}`, flexShrink: 0, position: 'relative' }}>
+              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 14, color: P.ink }}>{monthLabel}</span>
+              <div style={{ flex: 1 }} />
+              <ViewSwitcher mode={viewMode} onChange={setViewMode} />
+              <button onClick={goToday} style={{
+                padding: '5px 11px', borderRadius: 7, border: `1px solid ${P.border}`,
                 background: 'transparent', cursor: 'pointer',
                 fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, color: P.ink,
               }}>Today</button>
-              <button onClick={() => setWindowStart(d => addDays(d, -14))} style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: 4, display: 'flex' }}>
-                <Icon name="ChevronLeft" size={16} color={P.inkSoft} />
+              <button onClick={() => step(-1)} style={{ border: `1px solid ${P.border}`, background: P.white, cursor: 'pointer', padding: '4px 7px', display: 'flex', alignItems: 'center', borderRadius: 6 }}>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={P.ink} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
               </button>
-              <button onClick={() => setWindowStart(d => addDays(d, 14))} style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: 4, display: 'flex' }}>
-                <Icon name="ChevronRight" size={16} color={P.inkSoft} />
+              <button onClick={() => step(1)} style={{ border: `1px solid ${P.border}`, background: P.white, cursor: 'pointer', padding: '4px 7px', display: 'flex', alignItems: 'center', borderRadius: 6 }}>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={P.ink} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
               </button>
-              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 14, color: P.ink, flex: 1 }}>{monthLabel}</span>
+              {monthPickerOpen && (
+                <MonthPicker currentDate={refDate} onSelect={d => { setRefDate(d); }} onClose={() => setMonthPickerOpen(false)} />
+              )}
             </div>
 
-            {/* Day headers */}
-            <div style={{ display: 'grid', gridTemplateColumns: '130px repeat(14, 1fr)', borderBottom: `1px solid ${P.border}` }}>
-              <div style={{ padding: '8px 16px' }} />
-              {days.map((d, i) => {
-                const isToday = isoDate(d) === isoDate(today);
-                const isWknd  = d.getDay() === 0 || d.getDay() === 6;
-                return (
-                  <div key={i} style={{
-                    padding: '8px 0', textAlign: 'center',
-                    background: isWknd ? '#fafafa' : 'transparent',
-                    borderLeft: `1px solid ${P.border}`,
-                  }}>
-                    <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 10, color: P.inkFaint, letterSpacing: '0.06em' }}>
-                      {DAY_LABELS[(d.getDay() + 6) % 7]}
+            {/* Scrollable grid */}
+            <div style={{ flex: 1, overflow: 'auto' }} className="hide-scrollbar">
+              {/* Day headers */}
+              <div style={{ display: 'grid', gridTemplateColumns: gridCols, position: 'sticky', top: 0, zIndex: 10, background: P.white, borderBottom: `1px solid ${P.border}` }}>
+                <div style={{ padding: '6px 12px', display: 'flex', alignItems: 'center' }}>
+                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 10, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                    {filteredEmployees.length} people
+                  </span>
+                </div>
+                {days.map((d, i) => {
+                  const iso = dayISOs[i];
+                  const isToday = iso === todayISO;
+                  const isWknd = d.getDay() === 0 || d.getDay() === 6;
+                  const isHoliday = _holidaySet.has(iso);
+                  const isCollective = _collectiveSet.has(iso);
+                  return (
+                    <div key={i} style={{
+                      padding: '6px 0', textAlign: 'center',
+                      background: isCollective ? '#faf6eb' : isHoliday ? '#f3f1fe' : isWknd ? '#fafafa' : 'transparent',
+                      borderLeft: `1px solid ${P.border}`,
+                    }} title={isHoliday ? BELGIAN_HOLIDAY_NAMES[iso] : isCollective ? 'Company closed' : ''}>
+                      <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 9, color: P.inkFaint, letterSpacing: '0.06em' }}>
+                        {DAY_LABELS[(d.getDay() + 6) % 7]}
+                      </div>
+                      <div style={{
+                        width: 22, height: 22, borderRadius: '50%', margin: '1px auto 0',
+                        background: isToday ? P.ink : 'transparent',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      }}>
+                        <span style={{ fontFamily: 'var(--font-display)', fontWeight: isToday ? 700 : 500, fontSize: 11, color: isToday ? '#fff' : isWknd ? P.inkFaint : P.ink }}>
+                          {d.getDate()}
+                        </span>
+                      </div>
+                      {(isHoliday || isCollective) && (
+                        <div style={{ fontSize: 8, color: isCollective ? '#92400e' : '#7c3aed', fontFamily: 'var(--font-display)', fontWeight: 600, marginTop: 1 }}>
+                          {isCollective ? 'Closed' : ''}
+                        </div>
+                      )}
                     </div>
-                    <div style={{
-                      width: 24, height: 24, borderRadius: '50%', margin: '2px auto 0',
-                      background: isToday ? P.ink : 'transparent',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  );
+                })}
+              </div>
+
+              {/* Summary row */}
+              <div style={{ display: 'grid', gridTemplateColumns: gridCols, borderBottom: `2px solid ${P.border}`, position: 'sticky', top: 52, zIndex: 9, background: P.bg }}>
+                <div style={{ padding: '4px 12px', display: 'flex', alignItems: 'center' }}>
+                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 10, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Off</span>
+                </div>
+                {summary.map((count, i) => {
+                  const d = days[i];
+                  const isWknd = d.getDay() === 0 || d.getDay() === 6;
+                  const pct = totalFiltered > 0 ? count / totalFiltered : 0;
+                  const color = isWknd ? 'transparent' : pct > 0.4 ? '#ef4444' : pct > 0.2 ? '#f59e0b' : count > 0 ? '#22c55e' : 'transparent';
+                  const isCollective = _collectiveSet.has(dayISOs[i]);
+                  const isHoliday = _holidaySet.has(dayISOs[i]);
+                  return (
+                    <div key={i} style={{
+                      borderLeft: `1px solid ${P.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      padding: '3px 0',
+                      background: isCollective ? '#faf6eb' : isHoliday ? '#f3f1fe' : isWknd ? '#fafafa' : 'transparent',
                     }}>
-                      <span style={{ fontFamily: 'var(--font-display)', fontWeight: isToday ? 700 : 500, fontSize: 12, color: isToday ? '#fff' : isWknd ? P.inkFaint : P.ink }}>
-                        {d.getDate()}
-                      </span>
+                      {!isWknd && !isCollective && !isHoliday && count > 0 && (
+                        <span style={{
+                          width: 18, height: 18, borderRadius: '50%',
+                          background: color + '18', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 9, color,
+                        }}>{count}</span>
+                      )}
                     </div>
+                  );
+                })}
+              </div>
+
+              {/* Department groups */}
+              {Object.keys(grouped).sort().map(dept => {
+                const employees = grouped[dept];
+                const isExpanded = expandedDepts.has(dept);
+                const deptOff = dayISOs.map(iso => {
+                  let c = 0;
+                  for (const [empId] of employees) {
+                    if (absenceMap[empId]?.[iso]) c++;
+                  }
+                  return c;
+                });
+                const todayOff = deptOff[dayISOs.indexOf(todayISO)] || 0;
+
+                return (
+                  <div key={dept}>
+                    {/* Department header */}
+                    <div onClick={() => toggleExpand(dept)} style={{
+                      display: 'grid', gridTemplateColumns: gridCols, cursor: 'pointer',
+                      borderBottom: `1px solid ${P.border}`, background: '#fafbfa',
+                    }}>
+                      <div style={{ padding: '8px 12px', display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <Icon name={isExpanded ? 'ChevronDown' : 'ChevronRight'} size={12} color={P.inkSoft} />
+                        <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 11, color: P.ink }}>{dept}</span>
+                        <span style={{ fontFamily: 'var(--font-body)', fontSize: 10, color: P.inkFaint }}>{employees.length}</span>
+                        {todayOff > 0 && (
+                          <span style={{ fontFamily: 'var(--font-body)', fontSize: 10, color: '#f59e0b', marginLeft: 'auto' }}>{todayOff} off today</span>
+                        )}
+                      </div>
+                      {dayISOs.map((iso, i) => {
+                        const d = days[i];
+                        const isWknd = d.getDay() === 0 || d.getDay() === 6;
+                        const isHoliday = _holidaySet.has(iso);
+                        const isCollective = _collectiveSet.has(iso);
+                        return (
+                          <div key={i} style={{
+                            borderLeft: `1px solid ${P.border}`,
+                            background: isCollective ? '#faf6eb' : isHoliday ? '#f3f1fe' : isWknd ? '#fafafa' : 'transparent',
+                          }} />
+                        );
+                      })}
+                    </div>
+
+                    {/* Employee rows */}
+                    {isExpanded && employees.map(([empId, emp]) => (
+                      <div key={empId} style={{ display: 'grid', gridTemplateColumns: gridCols, borderBottom: `1px solid ${P.border}`, height: 36 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '0 12px' }}>
+                          <Avatar employeeId={empId} size={20} />
+                          <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.ink, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            {viewMode === 'week' ? emp.name : emp.name.split(' ')[0]}
+                          </span>
+                        </div>
+                        {dayISOs.map((iso, i) => {
+                          const d = days[i];
+                          const isWknd = d.getDay() === 0 || d.getDay() === 6;
+                          const isHoliday = _holidaySet.has(iso);
+                          const isCollective = _collectiveSet.has(iso);
+                          const entry = absenceMap[empId]?.[iso];
+                          const show = entry && (leaveFilter === 'all' || entry.type === leaveFilter);
+                          const barColor = show ? (LEAVE_COLORS[entry.type] || '#2563eb') : null;
+                          const isPending = show && entry.status === 'pending';
+
+                          // Connected bar styling
+                          const prevEntry = absenceMap[empId]?.[dayISOs[i - 1]];
+                          const nextEntry = absenceMap[empId]?.[dayISOs[i + 1]];
+                          const isStart = show && (!prevEntry || prevEntry.requestId !== entry.requestId);
+                          const isEnd = show && (!nextEntry || nextEntry.requestId !== entry.requestId);
+
+                          return (
+                            <div key={iso} style={{
+                              borderLeft: `1px solid ${P.border}`,
+                              background: isCollective ? '#faf6eb' : isHoliday ? '#f3f1fe' : isWknd ? '#fafafa' : 'transparent',
+                              display: 'flex', alignItems: 'stretch',
+                              paddingTop: 3, paddingBottom: 3,
+                              paddingLeft: isStart ? 3 : 0,
+                              paddingRight: isEnd ? 3 : 0,
+                            }}>
+                              {show && (
+                                <div
+                                  onMouseEnter={(e) => {
+                                    clearTimeout(tooltipTimerRef.current);
+                                    if (tooltipReqIdRef.current !== entry.requestId) {
+                                      tooltipReqIdRef.current = entry.requestId;
+                                      const rect = e.currentTarget.getBoundingClientRect();
+                                      const req = requests.find(r => r.id === entry.requestId);
+                                      if (req) setTooltip({ req, x: rect.left + rect.width / 2, y: rect.top - 4 });
+                                    }
+                                  }}
+                                  onMouseLeave={() => {
+                                    tooltipTimerRef.current = setTimeout(() => {
+                                      tooltipReqIdRef.current = null;
+                                      setTooltip(null);
+                                    }, 80);
+                                  }}
+                                  onClick={() => {
+                                    const req = requests.find(r => r.id === entry.requestId);
+                                    if (req && onShowDetail) onShowDetail(req);
+                                  }}
+                                  style={{
+                                    width: '100%',
+                                    borderRadius: isStart && isEnd ? 3 : isStart ? '3px 0 0 3px' : isEnd ? '0 3px 3px 0' : 0,
+                                    background: isPending
+                                      ? `repeating-linear-gradient(45deg, ${barColor}, ${barColor} 3px, ${barColor}55 3px, ${barColor}55 6px)`
+                                      : barColor,
+                                    cursor: 'pointer',
+                                  }}
+                                />
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ))}
                   </div>
                 );
               })}
             </div>
 
-            {/* Employee rows */}
-            {Object.keys(EMPLOYEES).map(empId => {
-              const emp = EMPLOYEES[empId];
-              const absent = absenceMap[empId] || new Set();
-              return (
-                <div key={empId} style={{ display: 'grid', gridTemplateColumns: '130px repeat(14, 1fr)', borderBottom: `1px solid ${P.border}`, height: 44 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '0 16px' }}>
-                    <Avatar employeeId={empId} size={22} />
-                    <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.ink, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      {emp.name.split(' ')[0]}
-                    </span>
-                  </div>
-                  {dayISOs.map((iso, i) => {
-                    const isWknd = days[i].getDay() === 0 || days[i].getDay() === 6;
-                    const isAbsent = absent.has(iso);
-                    return (
-                      <div key={iso} style={{
-                        borderLeft: `1px solid ${P.border}`,
-                        background: isAbsent ? '#e0f2fe' : isWknd ? '#fafafa' : 'transparent',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      }}>
-                        {isAbsent && (
-                          <div style={{ width: '90%', height: 20, borderRadius: 4, background: '#0ea5e9', opacity: 0.85 }} />
-                        )}
-                      </div>
-                    );
-                  })}
+            {/* Tooltip */}
+            {tooltip && (
+              <div style={{
+                position: 'fixed', left: tooltip.x, top: tooltip.y - 8,
+                transform: 'translate(-50%, -100%)', zIndex: 100,
+                background: P.ink, color: '#fff', padding: '8px 12px', borderRadius: 8,
+                boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
+                fontFamily: 'var(--font-body)', fontSize: 11, lineHeight: 1.5,
+                pointerEvents: 'none', whiteSpace: 'nowrap',
+                animation: 'tooltipIn 0.1s ease-out',
+              }}>
+                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, marginBottom: 2 }}>
+                  {(EMPLOYEES[tooltip.req.employee] || {}).name || tooltip.req.employee}
                 </div>
-              );
-            })}
-          </div>
-
-          {/* Upcoming public holidays */}
-          <div style={{ margin: '0 20px 20px', background: P.white, border: `1px solid ${P.border}`, borderRadius: 12, overflow: 'hidden' }}>
-            <div style={{ padding: '14px 16px', borderBottom: `1px solid ${P.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 14, color: P.ink }}>Upcoming public holidays</span>
-            </div>
-            {upcomingHolidays.length === 0 ? (
-              <div style={{ padding: '24px 16px', textAlign: 'center', fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkFaint }}>
-                No public holidays in the next 60 days
+                <div>{tooltip.req.type} · {tooltip.req.days} {tooltip.req.days === 1 ? 'day' : 'days'}</div>
+                <div>{tooltip.req.startDate}{tooltip.req.startDate !== tooltip.req.endDate ? ` – ${tooltip.req.endDate}` : ''}</div>
+                <div style={{ color: tooltip.req.status === 'pending' ? '#fbbf24' : '#86efac' }}>
+                  {tooltip.req.status === 'pending' ? 'Pending approval' : 'Approved'}
+                </div>
               </div>
-            ) : upcomingHolidays.map(h => {
-              const d = new Date(h.date + 'T00:00:00');
-              return (
-                <div key={h.date} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '11px 16px', borderBottom: `1px solid ${P.border}` }}>
-                  <div style={{ width: 36, height: 36, borderRadius: 8, background: P.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    <Icon name="Flag" size={15} color={P.inkSoft} />
-                  </div>
-                  <div>
-                    <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.ink }}>{h.label}</div>
-                    <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, marginTop: 1 }}>
-                      {d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
+            )}
           </div>
         </div>
 
-        {/* Right: wellbeing + pending */}
-        <div style={{ width: 280, flexShrink: 0, padding: '20px 20px 20px 0', display: 'flex', flexDirection: 'column', gap: 14 }}>
-          {/* Team wellbeing */}
-          <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 12, padding: '16px' }}>
-            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 14, color: P.ink, marginBottom: 12 }}>Team wellbeing</div>
-            <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
-              <span style={{ fontSize: 20 }}>💚</span>
-              <div>
-                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.ink }}>Looks like your team is well rested</div>
-                <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, marginTop: 4, lineHeight: 1.5 }}>
-                  All team members are taking time off regularly. When someone goes 3 months without a break, we'll notify you here.
-                </div>
-              </div>
-            </div>
-          </div>
-
+        {/* Right panel */}
+        <div style={{ width: 260, flexShrink: 0, padding: '16px 16px 16px 0', display: 'flex', flexDirection: 'column', gap: 12, overflowY: 'auto' }}>
           {/* Pending requests */}
           <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 12, overflow: 'hidden' }}>
-            <div style={{ padding: '14px 16px', borderBottom: `1px solid ${P.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 14, color: P.ink }}>Pending requests</span>
+            <div style={{ padding: '12px 14px', borderBottom: `1px solid ${P.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 13, color: P.ink }}>Pending requests</span>
               {pending.length > 0 && (
-                <button onClick={() => onNav('requests')} style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, color: P.ink, display: 'flex', alignItems: 'center', gap: 3 }}>
-                  View all <Icon name="ChevronRight" size={12} color={P.ink} />
+                <button onClick={() => onNav('requests')} style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.ink, display: 'flex', alignItems: 'center', gap: 2 }}>
+                  View all <Icon name="ChevronRight" size={11} color={P.ink} />
                 </button>
               )}
             </div>
             {pending.length === 0 ? (
-              <div style={{ padding: '32px 16px', textAlign: 'center' }}>
-                <div style={{ width: 48, height: 48, borderRadius: 12, background: '#eff6ff', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
-                  <Icon name="CalendarCheck" size={22} color='#93c5fd' />
+              <div style={{ padding: '28px 14px', textAlign: 'center' }}>
+                <div style={{ width: 40, height: 40, borderRadius: 10, background: '#eff6ff', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 10px' }}>
+                  <Icon name="CalendarCheck" size={18} color="#93c5fd" />
                 </div>
-                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.ink }}>No time off requests</div>
-                <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, marginTop: 4, lineHeight: 1.5 }}>We'll let you know when someone asks for time off.</div>
+                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, color: P.ink }}>No time off requests</div>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkSoft, marginTop: 3, lineHeight: 1.5 }}>We'll let you know when someone asks for time off.</div>
               </div>
-            ) : pending.map(req => {
+            ) : pending.slice(0, 5).map(req => {
               const emp = EMPLOYEES[req.employee] || { name: req.employee };
               return (
-                <div key={req.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', borderBottom: `1px solid ${P.border}` }}>
-                  <Avatar employeeId={req.employee} size={28} />
+                <div key={req.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', borderBottom: `1px solid ${P.border}` }}>
+                  <Avatar employeeId={req.employee} size={24} />
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, color: P.ink, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{emp.name}</div>
-                    <div style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkSoft }}>{req.days}d · {req.type}</div>
+                    <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.ink, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{emp.name}</div>
+                    <div style={{ fontFamily: 'var(--font-body)', fontSize: 10, color: P.inkSoft }}>{req.days}d · {req.type}</div>
                   </div>
-                  <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#f59e0b', flexShrink: 0 }} />
+                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#f59e0b', flexShrink: 0 }} />
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Legend */}
+          <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 12, padding: '12px 14px' }}>
+            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 13, color: P.ink, marginBottom: 10 }}>Legend</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
+              {[
+                { color: LEAVE_COLORS['Time off'],        label: 'Time off' },
+                { color: LEAVE_COLORS['Sick leave'],      label: 'Sick leave' },
+                { color: LEAVE_COLORS['Special leave'],   label: 'Special leave' },
+                { color: LEAVE_COLORS['Paternity leave'], label: 'Paternity / Maternity' },
+                { color: LEAVE_COLORS['Paid absence'],    label: 'Paid absence' },
+                { color: LEAVE_COLORS['Unpaid absence'],  label: 'Unpaid absence' },
+                { color: null, label: 'Pending approval', stripe: true },
+              ].map(({ color, label, stripe }) => (
+                <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{
+                    width: 22, height: 10, borderRadius: 2, flexShrink: 0, display: 'inline-block',
+                    background: stripe
+                      ? `repeating-linear-gradient(45deg, ${LEAVE_COLORS['Time off']}, ${LEAVE_COLORS['Time off']} 2px, ${LEAVE_COLORS['Time off']}44 2px, ${LEAVE_COLORS['Time off']}44 4px)`
+                      : color,
+                    opacity: stripe ? 0.8 : 0.85,
+                  }} />
+                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkSoft }}>{label}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Upcoming public holidays */}
+          <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 12, overflow: 'hidden' }}>
+            <div style={{ padding: '12px 14px', borderBottom: `1px solid ${P.border}` }}>
+              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 13, color: P.ink }}>Public holidays</span>
+            </div>
+            {upcomingHolidays.length === 0 ? (
+              <div style={{ padding: '20px 14px', textAlign: 'center', fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkFaint }}>No upcoming holidays</div>
+            ) : upcomingHolidays.map(iso => {
+              const d = new Date(iso + 'T00:00:00');
+              const name = BELGIAN_HOLIDAY_NAMES[iso] || 'Holiday';
+              const iconDef = HOLIDAY_ICON[name] || { lucide: 'Flag' };
+              return (
+                <div key={iso} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 14px', borderBottom: `1px solid ${P.border}` }}>
+                  <div style={{ width: 30, height: 30, borderRadius: 7, background: P.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    {iconDef.emoji
+                      ? <span style={{ fontSize: 16, lineHeight: 1 }}>{iconDef.emoji}</span>
+                      : <Icon name={iconDef.lucide} size={13} color={P.inkSoft} />
+                    }
+                  </div>
+                  <div>
+                    <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, color: P.ink }}>{name}</div>
+                    <div style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkSoft }}>{d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })}</div>
+                  </div>
                 </div>
               );
             })}
           </div>
         </div>
       </div>
+      {addOpen && (
+        <AddTimeOffModal existing={null} onClose={() => setAddOpen(false)} onSave={(req) => { onSave(req); setAddOpen(false); }} />
+      )}
     </div>
   );
 }
@@ -837,9 +1599,11 @@ function Toast({ message, onDone }) {
 
 // ── Root App ───────────────────────────────────────────────────────────────
 function App() {
-  const [screen, setScreen]   = useState('team-absences');
-  const [requests, setRequests] = useState(() => mergeRequests(initialRequests, readLS()));
-  const [toast, setToast]     = useState(null);
+  const [screen, setScreen] = useState('team-absences');
+  const [requests, setRequests] = useState(() => mergeRequests(generatedRequests, readLS()));
+  const [toast, setToast] = useState(null);
+  const [calDetail, setCalDetail] = useState(null);
+  const [pendingAction, setPendingAction] = useState(null); // { type: 'decline'|'cancel', id, empName }
 
   useEffect(() => {
     const onStorage = (e) => {
@@ -866,14 +1630,42 @@ function App() {
     if (req) setToast(`${(EMPLOYEES[req.employee] || { name: req.employee }).name.split(' ')[0]}'s request approved`);
   };
 
-  const decline = (id) => {
+  const decline = (id, reason) => {
     setRequests(prev => {
-      const next = prev.map(r => r.id === id ? { ...r, status: 'rejected' } : r);
+      const next = prev.map(r => r.id === id ? { ...r, status: 'rejected', declineReason: reason } : r);
       writeLS(next);
       return next;
     });
     const req = requests.find(r => r.id === id);
     if (req) setToast(`${(EMPLOYEES[req.employee] || { name: req.employee }).name.split(' ')[0]}'s request declined`);
+  };
+
+  // Interceptors — show ReasonModal before acting
+  const requestDecline = (id) => {
+    const req = requests.find(r => r.id === id);
+    const empName = (EMPLOYEES[req?.employee] || { name: req?.employee || '' }).name;
+    setPendingAction({ type: 'decline', id, empName });
+  };
+  const requestCancel = (id) => {
+    const req = requests.find(r => r.id === id);
+    const empName = (EMPLOYEES[req?.employee] || { name: req?.employee || '' }).name;
+    setPendingAction({ type: 'cancel', id, empName });
+  };
+
+  const saveRequest = (req) => {
+    setRequests(prev => {
+      const existing = prev.findIndex(r => r.id === req.id);
+      const next = existing >= 0
+        ? prev.map(r => r.id === req.id ? req : r)
+        : [req, ...prev];
+      return next;
+    });
+    setToast(req.id.startsWith('manual-') ? 'Absence added' : 'Absence updated');
+  };
+
+  const cancelRequest = (id, reason) => {
+    setRequests(prev => prev.filter(r => r.id !== id));
+    setToast('Absence cancelled');
   };
 
   const pendingCount = requests.filter(r => r.status === 'pending').length;
@@ -885,16 +1677,51 @@ function App() {
           from { opacity: 0; transform: translateX(-50%) translateY(8px); }
           to   { opacity: 1; transform: translateX(-50%) translateY(0); }
         }
+        @keyframes tooltipIn {
+          from { opacity: 0; transform: translate(-50%, -94%); }
+          to   { opacity: 1; transform: translate(-50%, -100%); }
+        }
         * { box-sizing: border-box; }
       `}</style>
 
       <Sidebar active={screen} onNav={setScreen} pendingCount={pendingCount} />
 
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, overflowY: 'auto' }}>
-        {screen === 'team-absences' && <TeamAbsencesScreen requests={requests} pendingCount={pendingCount} onNav={setScreen} />}
-        {screen === 'requests'      && <RequestsScreen requests={requests} onApprove={approve} onDecline={decline} />}
-        {screen === 'settings'      && <SettingsScreen />}
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, overflow: 'hidden' }}>
+        {screen === 'team-absences' && <TeamAbsencesScreen requests={requests} pendingCount={pendingCount} onNav={setScreen} onShowDetail={setCalDetail} onSave={saveRequest} />}
+        {screen === 'requests' && <RequestsScreen requests={requests} onApprove={approve} onDecline={requestDecline} onSave={saveRequest} onCancel={requestCancel} />}
+        {screen === 'settings' && <SettingsScreen />}
       </div>
+
+      {calDetail && (
+        <DetailModal req={calDetail} requests={requests} onClose={() => setCalDetail(null)}
+          onApprove={(id) => { approve(id); setCalDetail(prev => prev && prev.id === id ? { ...prev, status: 'approved' } : prev); }}
+          onDecline={(id) => requestDecline(id)}
+          onCancel={(id) => requestCancel(id)}
+        />
+      )}
+
+      {pendingAction && (
+        <ReasonModal
+          title={pendingAction.type === 'decline' ? 'Decline request' : 'Cancel absence'}
+          description={
+            pendingAction.type === 'decline'
+              ? `You're declining ${pendingAction.empName}'s time off request. The employee will be notified.`
+              : `You're cancelling ${pendingAction.empName}'s absence. This cannot be undone.`
+          }
+          confirmLabel={pendingAction.type === 'decline' ? 'Decline request' : 'Cancel absence'}
+          onClose={() => setPendingAction(null)}
+          onConfirm={(reason) => {
+            if (pendingAction.type === 'decline') {
+              decline(pendingAction.id, reason);
+              setCalDetail(prev => prev && prev.id === pendingAction.id ? { ...prev, status: 'rejected' } : prev);
+            } else {
+              cancelRequest(pendingAction.id, reason);
+              setCalDetail(prev => prev && prev.id === pendingAction.id ? null : prev);
+            }
+            setPendingAction(null);
+          }}
+        />
+      )}
 
       <AppSwitcher />
       {toast && <Toast message={toast} onDone={() => setToast(null)} />}
