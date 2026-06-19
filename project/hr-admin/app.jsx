@@ -93,13 +93,26 @@ function StatusDot({ status }) {
   );
 }
 
+// ── Calendar date helpers ──────────────────────────────────────────────────
+const _MONTHS = { Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11 };
+function parseDisplayDate(str) {
+  const m = str?.match(/(\d+)\s+(\w+)/);
+  if (!m || !_MONTHS.hasOwnProperty(m[2])) return null;
+  return new Date(2026, _MONTHS[m[2]], +m[1]);
+}
+function isoDate(d) {
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+// Monday-aligned start of week
+function weekStart(d) {
+  const day = d.getDay() || 7; // Sun=7
+  const out = new Date(d); out.setDate(d.getDate() - day + 1); out.setHours(0,0,0,0); return out;
+}
+function addDays(d, n) { const r = new Date(d); r.setDate(r.getDate() + n); return r; }
+
 // ── Sidebar ────────────────────────────────────────────────────────────────
 function Sidebar({ active, onNav, pendingCount }) {
-  const items = [
-    { id: 'requests', icon: 'Clock',    label: 'Time off'  },
-    { id: 'team',     icon: 'Users',    label: 'Team'      },
-    { id: 'settings', icon: 'Settings', label: 'Settings'  },
-  ];
+  const timeOffOpen = active === 'team-absences' || active === 'requests';
   return (
     <div style={{
       width: 216, flexShrink: 0, background: P.white,
@@ -111,8 +124,55 @@ function Sidebar({ active, onNav, pendingCount }) {
         <div style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 17, color: P.ink, letterSpacing: '-0.02em' }}>payflip</div>
         <div style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkFaint, marginTop: 2 }}>HR Admin</div>
       </div>
-      <nav style={{ flex: 1, padding: '10px 8px', display: 'flex', flexDirection: 'column', gap: 2 }}>
-        {items.map(item => {
+
+      <nav style={{ flex: 1, padding: '10px 8px', display: 'flex', flexDirection: 'column', gap: 1 }}>
+        {/* Time off parent */}
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 9,
+          padding: '7px 10px', borderRadius: 7,
+          background: timeOffOpen ? P.bg : 'transparent',
+        }}>
+          <Icon name="CalendarDays" size={15} color={timeOffOpen ? P.ink : P.inkSoft} strokeWidth={timeOffOpen ? 2.25 : 1.75} />
+          <span style={{ fontFamily: 'var(--font-display)', fontWeight: timeOffOpen ? 700 : 500, fontSize: 13, color: timeOffOpen ? P.ink : P.inkSoft, flex: 1 }}>
+            Time off
+          </span>
+          <Icon name="ChevronDown" size={12} color={P.inkFaint} />
+        </div>
+
+        {/* Sub-items */}
+        <div style={{ paddingLeft: 18, display: 'flex', flexDirection: 'column', gap: 1, marginBottom: 4 }}>
+          {[
+            { id: 'team-absences', label: 'Team absences'    },
+            { id: 'requests',      label: 'Time off requests', badge: pendingCount },
+          ].map(({ id, label, badge }) => {
+            const isActive = active === id;
+            return (
+              <button key={id} onClick={() => onNav(id)} style={{
+                display: 'flex', alignItems: 'center', gap: 0,
+                padding: '6px 10px', borderRadius: 6,
+                border: 'none', background: 'transparent',
+                cursor: 'pointer', width: '100%', textAlign: 'left',
+                borderLeft: isActive ? `2px solid ${P.ink}` : '2px solid transparent',
+              }}>
+                <span style={{
+                  fontFamily: 'var(--font-display)', fontWeight: isActive ? 700 : 400,
+                  fontSize: 13, color: isActive ? P.ink : P.inkSoft, flex: 1,
+                }}>{label}</span>
+                {badge > 0 && (
+                  <span style={{
+                    minWidth: 17, height: 17, borderRadius: 9, padding: '0 4px',
+                    background: P.ink, color: '#fff',
+                    fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 10,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  }}>{badge}</span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Settings */}
+        {[{ id: 'settings', icon: 'Settings', label: 'Settings' }].map(item => {
           const isActive = active === item.id;
           return (
             <button key={item.id} onClick={() => onNav(item.id)} style={{
@@ -122,22 +182,14 @@ function Sidebar({ active, onNav, pendingCount }) {
               cursor: 'pointer', width: '100%', textAlign: 'left',
             }}>
               <Icon name={item.icon} size={15} color={isActive ? P.ink : P.inkSoft} strokeWidth={isActive ? 2.25 : 1.75} />
-              <span style={{
-                fontFamily: 'var(--font-display)', fontWeight: isActive ? 700 : 500,
-                fontSize: 13, color: isActive ? P.ink : P.inkSoft, flex: 1,
-              }}>{item.label}</span>
-              {item.id === 'requests' && pendingCount > 0 && (
-                <span style={{
-                  minWidth: 18, height: 18, borderRadius: 9, padding: '0 5px',
-                  background: P.ink, color: '#fff',
-                  fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 10,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                }}>{pendingCount}</span>
-              )}
+              <span style={{ fontFamily: 'var(--font-display)', fontWeight: isActive ? 700 : 500, fontSize: 13, color: isActive ? P.ink : P.inkSoft }}>
+                {item.label}
+              </span>
             </button>
           );
         })}
       </nav>
+
       <div style={{ padding: '10px 12px', borderTop: `1px solid ${P.border}`, display: 'flex', alignItems: 'center', gap: 9 }}>
         <div style={{
           width: 28, height: 28, borderRadius: '50%', background: '#c7d2fe',
@@ -510,35 +562,223 @@ function RequestsScreen({ requests, onApprove, onDecline }) {
   );
 }
 
-// ── Team screen ────────────────────────────────────────────────────────────
-function TeamScreen({ requests }) {
-  const approved = requests.filter(r => r.status === 'approved');
+// ── Team absences screen ───────────────────────────────────────────────────
+const DAY_LABELS = ['MO','TU','WE','TH','FR','SA','SU'];
+const BE_HOLIDAYS_2026 = [
+  { date: '2026-07-21', label: 'Belgian National Day' },
+  { date: '2026-08-15', label: 'Assumption of Mary'   },
+  { date: '2026-11-01', label: "All Saints' Day"      },
+  { date: '2026-11-11', label: 'Armistice Day'        },
+  { date: '2026-12-25', label: 'Christmas Day'        },
+];
+
+function TeamAbsencesScreen({ requests, pendingCount, onNav }) {
+  const today = new Date(); today.setHours(0,0,0,0);
+  const [windowStart, setWindowStart] = useState(() => weekStart(today));
+
+  const days = Array.from({ length: 14 }, (_, i) => addDays(windowStart, i));
+  const dayISOs = days.map(isoDate);
+
+  const monthLabel = (() => {
+    const s = days[0], e = days[13];
+    if (s.getMonth() === e.getMonth())
+      return s.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
+    return `${s.toLocaleDateString('en-GB',{month:'short'})} – ${e.toLocaleDateString('en-GB',{month:'short', year:'numeric'})}`;
+  })();
+
+  // Build a Set of ISO dates each employee is absent (approved)
+  const absenceMap = {};
+  for (const req of requests.filter(r => r.status === 'approved')) {
+    const start = parseDisplayDate(req.startDate);
+    const end   = parseDisplayDate(req.endDate) || start;
+    if (!start) continue;
+    if (!absenceMap[req.employee]) absenceMap[req.employee] = new Set();
+    for (let d = new Date(start); d <= end; d = addDays(d, 1)) {
+      absenceMap[req.employee].add(isoDate(d));
+    }
+  }
+
+  const upcomingHolidays = BE_HOLIDAYS_2026.filter(h => h.date >= isoDate(today)).slice(0, 3);
+  const pending = requests.filter(r => r.status === 'pending');
+
   return (
-    <div style={{ flex: 1, padding: 24 }}>
-      <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 22, color: P.ink, margin: '0 0 4px', letterSpacing: '-0.02em' }}>Team</h1>
-      <p style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, margin: '0 0 20px' }}>Upcoming and current absences</p>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxWidth: 600 }}>
-        {approved.length === 0 ? (
-          <div style={{ color: P.inkFaint, fontFamily: 'var(--font-body)', fontSize: 13 }}>No upcoming approved leave</div>
-        ) : approved.map(req => {
-          const emp = EMPLOYEES[req.employee] || { name: req.employee, initials: '?', color: '#e5e7eb' };
-          return (
-            <div key={req.id} style={{
-              display: 'flex', alignItems: 'center', gap: 12,
-              padding: '12px 16px', borderRadius: 10,
-              background: P.white, border: `1px solid ${P.border}`,
-            }}>
-              <Avatar employeeId={req.employee} size={32} />
-              <div style={{ flex: 1 }}>
-                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.ink }}>{emp.name}</div>
-                <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, marginTop: 2 }}>
-                  {req.startDate === req.endDate ? req.startDate : `${req.startDate} – ${req.endDate}`} · {req.days} {req.days === 1 ? 'day' : 'days'}
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, overflowY: 'auto' }}>
+      {/* Page header */}
+      <div style={{ padding: '22px 24px 18px', background: P.white, borderBottom: `1px solid ${P.border}`, display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+        <div>
+          <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 22, color: P.ink, margin: 0, letterSpacing: '-0.02em' }}>Team absences</h1>
+          <p style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, margin: '3px 0 0' }}>Track and plan team availability</p>
+        </div>
+        <button style={{
+          display: 'flex', alignItems: 'center', gap: 7,
+          padding: '9px 18px', borderRadius: 20, border: 'none',
+          background: P.ink, color: '#fff', cursor: 'pointer',
+          fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13,
+        }}>
+          <Icon name="Plus" size={14} color="#fff" strokeWidth={2.5} />
+          Add time off
+        </button>
+      </div>
+
+      <div style={{ flex: 1, display: 'flex', gap: 0 }}>
+        {/* Left: calendar + holidays */}
+        <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
+          {/* Calendar card */}
+          <div style={{ margin: 20, background: P.white, border: `1px solid ${P.border}`, borderRadius: 12, overflow: 'hidden' }}>
+            {/* Calendar nav */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '14px 16px', borderBottom: `1px solid ${P.border}` }}>
+              <button onClick={() => setWindowStart(weekStart(today))} style={{
+                padding: '5px 12px', borderRadius: 20, border: `1px solid ${P.border}`,
+                background: 'transparent', cursor: 'pointer',
+                fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, color: P.ink,
+              }}>Today</button>
+              <button onClick={() => setWindowStart(d => addDays(d, -14))} style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: 4, display: 'flex' }}>
+                <Icon name="ChevronLeft" size={16} color={P.inkSoft} />
+              </button>
+              <button onClick={() => setWindowStart(d => addDays(d, 14))} style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: 4, display: 'flex' }}>
+                <Icon name="ChevronRight" size={16} color={P.inkSoft} />
+              </button>
+              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 14, color: P.ink, flex: 1 }}>{monthLabel}</span>
+            </div>
+
+            {/* Day headers */}
+            <div style={{ display: 'grid', gridTemplateColumns: '130px repeat(14, 1fr)', borderBottom: `1px solid ${P.border}` }}>
+              <div style={{ padding: '8px 16px' }} />
+              {days.map((d, i) => {
+                const isToday = isoDate(d) === isoDate(today);
+                const isWknd  = d.getDay() === 0 || d.getDay() === 6;
+                return (
+                  <div key={i} style={{
+                    padding: '8px 0', textAlign: 'center',
+                    background: isWknd ? '#fafafa' : 'transparent',
+                    borderLeft: `1px solid ${P.border}`,
+                  }}>
+                    <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 10, color: P.inkFaint, letterSpacing: '0.06em' }}>
+                      {DAY_LABELS[(d.getDay() + 6) % 7]}
+                    </div>
+                    <div style={{
+                      width: 24, height: 24, borderRadius: '50%', margin: '2px auto 0',
+                      background: isToday ? P.ink : 'transparent',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    }}>
+                      <span style={{ fontFamily: 'var(--font-display)', fontWeight: isToday ? 700 : 500, fontSize: 12, color: isToday ? '#fff' : isWknd ? P.inkFaint : P.ink }}>
+                        {d.getDate()}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Employee rows */}
+            {Object.keys(EMPLOYEES).map(empId => {
+              const emp = EMPLOYEES[empId];
+              const absent = absenceMap[empId] || new Set();
+              return (
+                <div key={empId} style={{ display: 'grid', gridTemplateColumns: '130px repeat(14, 1fr)', borderBottom: `1px solid ${P.border}`, height: 44 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '0 16px' }}>
+                    <Avatar employeeId={empId} size={22} />
+                    <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.ink, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {emp.name.split(' ')[0]}
+                    </span>
+                  </div>
+                  {dayISOs.map((iso, i) => {
+                    const isWknd = days[i].getDay() === 0 || days[i].getDay() === 6;
+                    const isAbsent = absent.has(iso);
+                    return (
+                      <div key={iso} style={{
+                        borderLeft: `1px solid ${P.border}`,
+                        background: isAbsent ? '#e0f2fe' : isWknd ? '#fafafa' : 'transparent',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      }}>
+                        {isAbsent && (
+                          <div style={{ width: '90%', height: 20, borderRadius: 4, background: '#0ea5e9', opacity: 0.85 }} />
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Upcoming public holidays */}
+          <div style={{ margin: '0 20px 20px', background: P.white, border: `1px solid ${P.border}`, borderRadius: 12, overflow: 'hidden' }}>
+            <div style={{ padding: '14px 16px', borderBottom: `1px solid ${P.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 14, color: P.ink }}>Upcoming public holidays</span>
+            </div>
+            {upcomingHolidays.length === 0 ? (
+              <div style={{ padding: '24px 16px', textAlign: 'center', fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkFaint }}>
+                No public holidays in the next 60 days
+              </div>
+            ) : upcomingHolidays.map(h => {
+              const d = new Date(h.date + 'T00:00:00');
+              return (
+                <div key={h.date} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '11px 16px', borderBottom: `1px solid ${P.border}` }}>
+                  <div style={{ width: 36, height: 36, borderRadius: 8, background: P.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <Icon name="Flag" size={15} color={P.inkSoft} />
+                  </div>
+                  <div>
+                    <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.ink }}>{h.label}</div>
+                    <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, marginTop: 1 }}>
+                      {d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Right: wellbeing + pending */}
+        <div style={{ width: 280, flexShrink: 0, padding: '20px 20px 20px 0', display: 'flex', flexDirection: 'column', gap: 14 }}>
+          {/* Team wellbeing */}
+          <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 12, padding: '16px' }}>
+            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 14, color: P.ink, marginBottom: 12 }}>Team wellbeing</div>
+            <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+              <span style={{ fontSize: 20 }}>💚</span>
+              <div>
+                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.ink }}>Looks like your team is well rested</div>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, marginTop: 4, lineHeight: 1.5 }}>
+                  All team members are taking time off regularly. When someone goes 3 months without a break, we'll notify you here.
                 </div>
               </div>
-              <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>{req.type}</span>
             </div>
-          );
-        })}
+          </div>
+
+          {/* Pending requests */}
+          <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 12, overflow: 'hidden' }}>
+            <div style={{ padding: '14px 16px', borderBottom: `1px solid ${P.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 14, color: P.ink }}>Pending requests</span>
+              {pending.length > 0 && (
+                <button onClick={() => onNav('requests')} style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, color: P.ink, display: 'flex', alignItems: 'center', gap: 3 }}>
+                  View all <Icon name="ChevronRight" size={12} color={P.ink} />
+                </button>
+              )}
+            </div>
+            {pending.length === 0 ? (
+              <div style={{ padding: '32px 16px', textAlign: 'center' }}>
+                <div style={{ width: 48, height: 48, borderRadius: 12, background: '#eff6ff', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
+                  <Icon name="CalendarCheck" size={22} color='#93c5fd' />
+                </div>
+                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.ink }}>No time off requests</div>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, marginTop: 4, lineHeight: 1.5 }}>We'll let you know when someone asks for time off.</div>
+              </div>
+            ) : pending.map(req => {
+              const emp = EMPLOYEES[req.employee] || { name: req.employee };
+              return (
+                <div key={req.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', borderBottom: `1px solid ${P.border}` }}>
+                  <Avatar employeeId={req.employee} size={28} />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, color: P.ink, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{emp.name}</div>
+                    <div style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkSoft }}>{req.days}d · {req.type}</div>
+                  </div>
+                  <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#f59e0b', flexShrink: 0 }} />
+                </div>
+              );
+            })}
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -597,7 +837,7 @@ function Toast({ message, onDone }) {
 
 // ── Root App ───────────────────────────────────────────────────────────────
 function App() {
-  const [screen, setScreen]   = useState('requests');
+  const [screen, setScreen]   = useState('team-absences');
   const [requests, setRequests] = useState(() => mergeRequests(initialRequests, readLS()));
   const [toast, setToast]     = useState(null);
 
@@ -651,9 +891,9 @@ function App() {
       <Sidebar active={screen} onNav={setScreen} pendingCount={pendingCount} />
 
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, overflowY: 'auto' }}>
-        {screen === 'requests' && <RequestsScreen requests={requests} onApprove={approve} onDecline={decline} />}
-        {screen === 'team'     && <TeamScreen requests={requests} />}
-        {screen === 'settings' && <SettingsScreen />}
+        {screen === 'team-absences' && <TeamAbsencesScreen requests={requests} pendingCount={pendingCount} onNav={setScreen} />}
+        {screen === 'requests'      && <RequestsScreen requests={requests} onApprove={approve} onDecline={decline} />}
+        {screen === 'settings'      && <SettingsScreen />}
       </div>
 
       <AppSwitcher />
