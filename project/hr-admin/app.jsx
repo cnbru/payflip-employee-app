@@ -437,21 +437,65 @@ function Toast({ message, onDone }) {
 }
 
 // ── Root App ───────────────────────────────────────────────────────────────
+// ── localStorage bridge ────────────────────────────────────────────────────
+const LS_KEY = 'payflip_hr_requests';
+function readLS() {
+  try { return JSON.parse(localStorage.getItem(LS_KEY) || '[]'); } catch { return []; }
+}
+function writeLS(requests) {
+  try { localStorage.setItem(LS_KEY, JSON.stringify(requests)); } catch {}
+}
+function mergeRequests(seed, live) {
+  const merged = [...seed];
+  for (const r of live) {
+    if (!merged.find(m => m.id === r.id)) merged.unshift(r);
+  }
+  return merged;
+}
+
 function App() {
   const [screen, setScreen] = useState('requests');
-  const [requests, setRequests] = useState(initialRequests);
+  const [requests, setRequests] = useState(() => mergeRequests(initialRequests, readLS()));
   const [toast, setToast] = useState(null);
+  const [newBadge, setNewBadge] = useState(false);
+
+  // Live-sync: pick up requests submitted from the employee app in another tab
+  useEffect(() => {
+    const onStorage = (e) => {
+      if (e.key !== LS_KEY) return;
+      const live = readLS();
+      setRequests(prev => {
+        const merged = mergeRequests(prev, live);
+        // Flash badge if a genuinely new pending request appeared
+        if (merged.some(r => r.status === 'pending' && !prev.find(p => p.id === r.id))) {
+          setNewBadge(true);
+          setTimeout(() => setNewBadge(false), 3000);
+        }
+        return merged;
+      });
+    };
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
+  }, []);
 
   const showToast = (msg) => { setToast(msg); };
 
   const approve = (id) => {
-    setRequests(prev => prev.map(r => r.id === id ? { ...r, status: 'approved' } : r));
+    setRequests(prev => {
+      const next = prev.map(r => r.id === id ? { ...r, status: 'approved' } : r);
+      writeLS(next.filter(r => r.employee === 'david')); // persist employee-submitted ones
+      return next;
+    });
     const req = requests.find(r => r.id === id);
     showToast(`${EMPLOYEES[req.employee].name.split(' ')[0]}'s request approved`);
   };
 
   const reject = (id) => {
-    setRequests(prev => prev.map(r => r.id === id ? { ...r, status: 'rejected' } : r));
+    setRequests(prev => {
+      const next = prev.map(r => r.id === id ? { ...r, status: 'rejected' } : r);
+      writeLS(next.filter(r => r.employee === 'david'));
+      return next;
+    });
     const req = requests.find(r => r.id === id);
     showToast(`${EMPLOYEES[req.employee].name.split(' ')[0]}'s request rejected`);
   };

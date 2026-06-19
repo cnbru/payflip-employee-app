@@ -1190,6 +1190,22 @@ const WEDDING_OPTIONS = [
   { id: 'special-wedding-family', label: 'Child, sibling, or parent', entitledDays: 1 },
 ];
 
+// ── localStorage bridge → HR Admin ────────────────────────────────────────
+const _HR_KEY = 'payflip_hr_requests';
+function _hrType(reason) {
+  if (!reason || reason === 'timeoff') return 'Time off';
+  if (reason === 'sick') return 'Sick leave';
+  if (reason?.startsWith('special-funeral')) return 'Funeral leave';
+  return 'Special leave';
+}
+function _pushToHR(item) {
+  try {
+    const stored = JSON.parse(localStorage.getItem(_HR_KEY) || '[]');
+    const idx = stored.findIndex(r => r.id === item.id);
+    if (idx >= 0) stored[idx] = item; else stored.push(item);
+    localStorage.setItem(_HR_KEY, JSON.stringify(stored));
+  } catch (e) {}
+}
 
 // ── Main Request Screen ──
 function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
@@ -1427,6 +1443,13 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
         }
         window.__timeOffItems = [...items, newItem];
       }
+      // Sync to HR Admin via localStorage
+      const _fmt = d => d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+      _pushToHR({
+        id: newItem.id, employee: 'david', type: _hrType(leaveReason),
+        startDate: _fmt(startDate), endDate: _fmt(endDate),
+        days: totalDays, status: 'pending', submittedAt: 'Just now', note: notes || '',
+      });
       setSubmitting(false);
       setStep(1);
     }, 1200);
@@ -2805,6 +2828,16 @@ function ReportIllnessScreen({ sourceItem }) {
           return i;
         });
         window.__timeOffItems.push(sickItem);
+        // Sync to HR Admin via localStorage
+        const _sortedISO = [...selectedDays].sort();
+        const _sStart = new Date(_sortedISO[0] + 'T00:00:00');
+        const _sEnd   = new Date(_sortedISO[_sortedISO.length - 1] + 'T00:00:00');
+        const _sfmt = d => d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+        _pushToHR({
+          id: sickItem.id, employee: 'david', type: 'Sick leave',
+          startDate: _sfmt(_sStart), endDate: _sfmt(_sEnd),
+          days: sickItem.days, status: 'pending', submittedAt: 'Just now', note: sickItem._notes || '',
+        });
       }
       setSubmitting(false);
       setStep(1);
