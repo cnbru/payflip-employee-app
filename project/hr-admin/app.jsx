@@ -10,7 +10,6 @@ const P = {
   border:   '#eaeeeb',
   bg:       '#f7f8f7',
   white:    '#ffffff',
-  blue:     '#3b5bdb',
 };
 
 const StatusMeta = {
@@ -170,11 +169,11 @@ function ActionMenu({ onApprove, onDecline, onViewDetails }) {
     <div ref={ref} style={{ position: 'relative' }}>
       <button onClick={(e) => { e.stopPropagation(); setOpen(o => !o); }} style={{
         width: 30, height: 30, borderRadius: 6,
-        border: `1px solid ${open ? P.blue : P.border}`,
+        border: `1px solid ${open ? P.ink : P.border}`,
         background: open ? '#eff3ff' : 'transparent',
         cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
       }}>
-        <Icon name="Ellipsis" size={14} color={open ? P.blue : P.inkSoft} />
+        <Icon name="Ellipsis" size={14} color={open ? P.ink : P.inkSoft} />
       </button>
       {open && (
         <div style={{
@@ -287,7 +286,7 @@ function DetailModal({ req, requests, onClose, onApprove, onDecline }) {
             }}>Decline</button>
             <button onClick={() => { onApprove(req.id); onClose(); }} style={{
               padding: '8px 20px', borderRadius: 8, border: 'none',
-              background: P.blue, color: '#fff', cursor: 'pointer',
+              background: P.ink, color: '#fff', cursor: 'pointer',
               fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13,
             }}>Approve</button>
           </div>
@@ -328,7 +327,7 @@ function RequestRow({ req, requests, onApprove, onDecline, onDetail }) {
       }}
     >
       {/* Checkbox */}
-      <input type="checkbox" onClick={e => e.stopPropagation()} style={{ cursor: 'pointer', accentColor: P.blue }} />
+      <input type="checkbox" onClick={e => e.stopPropagation()} style={{ cursor: 'pointer', accentColor: P.ink }} />
 
       {/* Requested by */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 9, minWidth: 0 }}>
@@ -400,7 +399,7 @@ function RequestsScreen({ requests, onApprove, onDecline }) {
           <button style={{
             display: 'flex', alignItems: 'center', gap: 7,
             padding: '9px 18px', borderRadius: 20, border: 'none',
-            background: P.blue, color: '#fff', cursor: 'pointer',
+            background: P.ink, color: '#fff', cursor: 'pointer',
             fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13,
           }}>
             <Icon name="Plus" size={14} color="#fff" strokeWidth={2.5} />
@@ -414,8 +413,8 @@ function RequestsScreen({ requests, onApprove, onDecline }) {
             <button key={val} onClick={() => setTab(val)} style={{
               padding: '9px 16px', border: 'none', background: 'transparent', cursor: 'pointer',
               fontFamily: 'var(--font-display)', fontWeight: tab === val ? 700 : 500,
-              fontSize: 13, color: tab === val ? P.blue : P.inkSoft,
-              borderBottom: tab === val ? `2px solid ${P.blue}` : '2px solid transparent',
+              fontSize: 13, color: tab === val ? P.ink : P.inkSoft,
+              borderBottom: tab === val ? `2px solid ${P.ink}` : '2px solid transparent',
               marginBottom: -1, transition: 'all 0.15s',
             }}>
               {label}{val === 'pending' && pendingCount > 0 ? ` (${pendingCount})` : ''}
@@ -459,7 +458,7 @@ function RequestsScreen({ requests, onApprove, onDecline }) {
           borderBottom: `1px solid ${P.border}`,
           background: P.bg, position: 'sticky', top: 0,
         }}>
-          <input type="checkbox" style={{ cursor: 'pointer', accentColor: P.blue }} />
+          <input type="checkbox" style={{ cursor: 'pointer', accentColor: P.ink }} />
           <TH>Requested by</TH>
           <TH>Status</TH>
           <TH>Leave type</TH>
