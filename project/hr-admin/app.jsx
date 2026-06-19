@@ -58,14 +58,7 @@ const EMPLOYEES = {
   'nicolas': { name: 'Nicolas Peeters', initials: 'NP', color: '#fed7aa' },
 };
 
-const initialRequests = [
-  { id: 1, employee: 'sarah',   type: 'Time off',      startDate: 'Mon 3 Aug', endDate: 'Fri 7 Aug',   days: 5, status: 'pending',  submittedAt: 'Today, 9:14',    note: 'Summer holidays with family.' },
-  { id: 2, employee: 'thomas',  type: 'Sick leave',    startDate: 'Mon 22 Jun', endDate: 'Tue 23 Jun', days: 2, status: 'pending',  submittedAt: 'Today, 8:02',    note: '' },
-  { id: 3, employee: 'emma',    type: 'Special leave', startDate: 'Sat 4 Jul',  endDate: 'Sat 4 Jul',  days: 1, status: 'pending',  submittedAt: 'Yesterday',      note: "Sister's wedding." },
-  { id: 4, employee: 'julie',   type: 'Time off',      startDate: 'Mon 29 Jun', endDate: 'Fri 3 Jul',  days: 4, status: 'pending',  submittedAt: 'Yesterday',      note: '' },
-  { id: 5, employee: 'david',   type: 'Time off',      startDate: 'Tue 14 Jul', endDate: 'Tue 14 Jul', days: 1, status: 'approved', submittedAt: '16 Jun',         note: '' },
-  { id: 6, employee: 'nicolas', type: 'Sick leave',    startDate: 'Wed 10 Jun', endDate: 'Fri 12 Jun', days: 3, status: 'approved', submittedAt: '9 Jun',          note: 'Doctor certificate attached.' },
-];
+const initialRequests = [];
 
 // ── Avatar ─────────────────────────────────────────────────────────────────
 function Avatar({ employeeId, size = 32 }) {
