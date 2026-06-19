@@ -177,6 +177,17 @@ function App() {
           <AppShell />
         </NavProvider>
       </IOSDevice>
+      <a href="/hr-admin/" style={{
+        position: 'fixed', bottom: 20, right: 20,
+        display: 'inline-flex', alignItems: 'center', gap: 7,
+        padding: '8px 14px', borderRadius: 20,
+        background: 'rgb(15,13,40)', color: '#fff', textDecoration: 'none',
+        fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12,
+        boxShadow: '0 2px 12px rgba(15,13,40,0.2)',
+      }}>
+        <LucideIcon name="Monitor" size={13} color="#fff" strokeWidth={2} />
+        HR Admin
+      </a>
     </div>
   );
 }
