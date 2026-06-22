@@ -580,6 +580,99 @@ function SelectField({ value, onChange, children, style }) {
   );
 }
 
+// ── Inline calendar for date range picking ────────────────────────────────
+function ModalCalendar({ startDate, endDate, focusedField, onDateTap }) {
+  const today = new Date(); today.setHours(0,0,0,0);
+  const initial = startDate || today;
+  const [month, setMonth] = useState(initial.getMonth());
+  const [year, setYear]   = useState(initial.getFullYear());
+
+  const dayNames = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
+  const first = new Date(year, month, 1);
+  let startCol = first.getDay() - 1;
+  if (startCol < 0) startCol = 6;
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const cells = [];
+  for (let i = 0; i < startCol; i++) cells.push(null);
+  for (let d = 1; d <= daysInMonth; d++) cells.push(new Date(year, month, d));
+
+  const sameDay = (a, b) => a && b && isoDate(a) === isoDate(b);
+  const isWeekend = (d) => d.getDay() === 0 || d.getDay() === 6;
+  const isHoliday = (d) => _holidaySet.has(isoDate(d));
+  const isCollective = (d) => _collectiveSet.has(isoDate(d));
+  const isDisabled = (d) => isWeekend(d) || isHoliday(d) || isCollective(d);
+  const isInRange = (d) => startDate && endDate && d > startDate && d < endDate;
+  const isStart = (d) => sameDay(d, startDate);
+  const isEnd = (d) => sameDay(d, endDate);
+  const isToday = (d) => sameDay(d, today);
+
+  const prevMonth = () => { setMonth(m => m === 0 ? (setYear(y => y - 1), 11) : m - 1); };
+  const nextMonth = () => { setMonth(m => m === 11 ? (setYear(y => y + 1), 0) : m + 1); };
+
+  return (
+    <div style={{ borderRadius: 8, border: `1px solid ${P.border}`, padding: '12px 14px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', marginBottom: 10 }}>
+        <button onClick={prevMonth} style={{ width: 28, height: 28, border: 'none', background: 'transparent', borderRadius: 6, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={P.ink} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <span style={{ flex: 1, textAlign: 'center', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 13, color: P.ink }}>
+          {MONTH_NAMES[month]} {year}
+        </span>
+        <button onClick={nextMonth} style={{ width: 28, height: 28, border: 'none', background: 'transparent', borderRadius: 6, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={P.ink} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', marginBottom: 4 }}>
+        {dayNames.map(dn => (
+          <div key={dn} style={{ textAlign: 'center', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 10, color: P.inkFaint, padding: '3px 0', textTransform: 'uppercase' }}>{dn}</div>
+        ))}
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)' }}>
+        {cells.map((d, i) => {
+          if (!d) return <div key={`e${i}`} />;
+          const disabled = isDisabled(d);
+          const selStart = isStart(d);
+          const selEnd = isEnd(d);
+          const sel = selStart || selEnd;
+          const inRange = isInRange(d) && !sel;
+          const hasRange = startDate && endDate && !sameDay(startDate, endDate);
+          const rangeBg = '#eef1fb';
+
+          let btnBg = 'transparent';
+          let color = P.ink;
+          let fontWeight = 500;
+          if (sel) { btnBg = P.ink; color = '#fff'; fontWeight = 700; }
+          else if (disabled) { color = '#c5c9d0'; }
+          else if (inRange) { fontWeight = 600; }
+
+          let wrapBg = 'transparent';
+          if (inRange) wrapBg = rangeBg;
+          else if (selStart && hasRange) wrapBg = `linear-gradient(to right, transparent 50%, ${rangeBg} 50%)`;
+          else if (selEnd && hasRange) wrapBg = `linear-gradient(to left, transparent 50%, ${rangeBg} 50%)`;
+
+          return (
+            <div key={isoDate(d)} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', background: wrapBg }}>
+              <button onClick={() => !disabled && onDateTap(d)} style={{
+                width: 32, height: 32, border: 'none', background: btnBg,
+                borderRadius: sel ? '50%' : 6, cursor: disabled ? 'default' : 'pointer',
+                fontFamily: 'var(--font-display)', fontWeight, fontSize: 12, color,
+                display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                position: 'relative',
+                boxShadow: isToday(d) && !sel ? `inset 0 0 0 1.5px ${P.ink}` : 'none',
+              }}>
+                {d.getDate()}
+                {isHoliday(d) && !sel && (
+                  <span style={{ position: 'absolute', bottom: 2, left: '50%', transform: 'translateX(-50%)', width: 4, height: 4, borderRadius: 2, background: '#e89a3c' }} />
+                )}
+              </button>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 // ── Add / Edit time off modal ──────────────────────────────────────────────
 function AddTimeOffModal({ existing, onClose, onSave }) {
   const isEdit = !!existing;
@@ -588,10 +681,28 @@ function AddTimeOffModal({ existing, onClose, onSave }) {
   const [startDate, setStart] = useState(existing ? toISOInput(existing.startDate) : '');
   const [endDate, setEnd]     = useState(existing ? toISOInput(existing.endDate || existing.startDate) : '');
   const [note, setNote]       = useState(existing?.note || '');
+  const [focusedField, setFocusedField] = useState('start');
   const [attachment, setAttachment] = useState(null);
   const [notifyEmployee, setNotifyEmployee] = useState(false);
 
   useEffect(() => { setAttachment(null); setNotifyEmployee(false); }, [type]);
+
+  const handleDateTap = (d) => {
+    const iso = isoDate(d);
+    if (focusedField === 'start') {
+      setStart(iso);
+      if (!endDate || iso > endDate) setEnd(iso);
+      setFocusedField('end');
+    } else {
+      if (iso < startDate) {
+        setStart(iso);
+        setEnd(startDate);
+      } else {
+        setEnd(iso);
+      }
+      setFocusedField('start');
+    }
+  };
 
   function toISOInput(displayStr) {
     const d = parseDisplayDate(displayStr);
@@ -679,17 +790,38 @@ function AddTimeOffModal({ existing, onClose, onSave }) {
             </SelectField>
           </div>
 
-          {/* Dates */}
+          {/* Date range pills */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-            <div>
-              <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, color: P.inkSoft, marginBottom: 5 }}>From</label>
-              <input type="date" value={startDate} onChange={e => { setStart(e.target.value); if (!endDate || e.target.value > endDate) setEnd(e.target.value); }} style={inputStyle} />
-            </div>
-            <div>
-              <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, color: P.inkSoft, marginBottom: 5 }}>To</label>
-              <input type="date" value={endDate} min={startDate} onChange={e => setEnd(e.target.value)} style={inputStyle} />
-            </div>
+            <button onClick={() => setFocusedField('start')} style={{
+              ...inputStyle, cursor: 'pointer', textAlign: 'left',
+              borderColor: focusedField === 'start' ? P.ink : P.border,
+              display: 'flex', alignItems: 'center', gap: 7,
+            }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={focusedField === 'start' ? P.ink : P.inkFaint} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+              </svg>
+              <div>
+                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 10, color: P.inkFaint, marginBottom: 1 }}>From</div>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: startD ? P.ink : P.inkFaint }}>{startD ? fmtDisplay(startD) : 'Select date'}</div>
+              </div>
+            </button>
+            <button onClick={() => setFocusedField('end')} style={{
+              ...inputStyle, cursor: 'pointer', textAlign: 'left',
+              borderColor: focusedField === 'end' ? P.ink : P.border,
+              display: 'flex', alignItems: 'center', gap: 7,
+            }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={focusedField === 'end' ? P.ink : P.inkFaint} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+              </svg>
+              <div>
+                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 10, color: P.inkFaint, marginBottom: 1 }}>To</div>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: endD ? P.ink : P.inkFaint }}>{endD ? fmtDisplay(endD) : 'Select date'}</div>
+              </div>
+            </button>
           </div>
+
+          {/* Inline calendar */}
+          <ModalCalendar startDate={startD} endDate={endD} focusedField={focusedField} onDateTap={handleDateTap} />
 
           {/* Duration preview */}
           {days > 0 && (
