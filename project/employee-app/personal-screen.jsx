@@ -292,12 +292,12 @@ function TimeOffHubScreen() {
                 onClick={() => { setShowBalanceInfo(true); setBalanceSheetAnimating(true); requestAnimationFrame(() => requestAnimationFrame(() => { setBalanceSheetOpen(true); setTimeout(() => setBalanceSheetAnimating(false), 340); })); }}
                 style={{
                   appearance: 'none', cursor: 'pointer',
-                  border: `1px solid ${P.border}`, borderRadius: 10,
-                  background: 'white', padding: '8px 16px',
+                  border: 'none', borderRadius: 10,
+                  background: '#F7F7F8', padding: '8px 16px',
                   fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.inkSoft,
                   width: '100%', display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
                 }}>
-                View all entitlements
+                View time off balance
               </button>
             </div>
           );
