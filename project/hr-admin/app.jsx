@@ -1211,6 +1211,7 @@ function TeamAbsencesScreen({ requests, pendingCount, onNav, onShowDetail, onSav
   const [expandedDepts, setExpandedDepts] = useState(() => new Set(DEPARTMENTS));
   const [tooltip, setTooltip] = useState(null);
   const [addOpen, setAddOpen] = useState(false);
+  const [absencesOnly, setAbsencesOnly] = useState(false);
   const tooltipTimerRef = useRef(null);
   const tooltipReqIdRef = useRef(null);
 
@@ -1281,9 +1282,16 @@ function TeamAbsencesScreen({ requests, pendingCount, onNav, onShowDetail, onSav
     return Object.entries(EMPLOYEES).filter(([id, emp]) => {
       if (!activeDepts.has(emp.department)) return false;
       if (search && !emp.name.toLowerCase().includes(search)) return false;
+      if (absencesOnly) {
+        const hasAbsence = dayISOs.some(iso => {
+          const entry = absenceMap[id]?.[iso];
+          return entry && (leaveFilter === 'all' || entry.type === leaveFilter);
+        });
+        if (!hasAbsence) return false;
+      }
       return true;
     });
-  }, [searchText, activeDepts]);
+  }, [searchText, activeDepts, absencesOnly, dayISOs, absenceMap, leaveFilter]);
 
   const grouped = useMemo(() => {
     const groups = {};
@@ -1347,20 +1355,50 @@ function TeamAbsencesScreen({ requests, pendingCount, onNav, onShowDetail, onSav
           <div style={{ flex: 1, margin: '16px 20px 20px', background: P.white, border: `1px solid ${P.border}`, borderRadius: 12, display: 'flex', flexDirection: 'column', overflow: 'hidden', position: 'relative' }}>
             {/* Calendar nav */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px', borderBottom: `1px solid ${P.border}`, flexShrink: 0, position: 'relative' }}>
-              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 14, color: P.ink }}>{monthLabel}</span>
-              <div style={{ flex: 1 }} />
-              <ViewSwitcher mode={viewMode} onChange={setViewMode} />
+              {/* Left group: Today, nav arrows, date label, Week/Month */}
               <button onClick={goToday} style={{
-                padding: '5px 11px', borderRadius: 7, border: `1px solid ${P.border}`,
+                padding: '6px 14px', borderRadius: 7, border: `1px solid ${P.border}`,
                 background: 'transparent', cursor: 'pointer',
-                fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, color: P.ink,
+                fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.inkSoft,
               }}>Today</button>
-              <button onClick={() => step(-1)} style={{ border: `1px solid ${P.border}`, background: P.white, cursor: 'pointer', padding: '4px 7px', display: 'flex', alignItems: 'center', borderRadius: 6 }}>
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={P.ink} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+              <button onClick={() => step(-1)} style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: 4, display: 'flex', alignItems: 'center' }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={P.ink} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
               </button>
-              <button onClick={() => step(1)} style={{ border: `1px solid ${P.border}`, background: P.white, cursor: 'pointer', padding: '4px 7px', display: 'flex', alignItems: 'center', borderRadius: 6 }}>
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={P.ink} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 15, color: P.ink }}>{monthLabel}</span>
+              <button onClick={() => step(1)} style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: 4, display: 'flex', alignItems: 'center' }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={P.ink} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
               </button>
+              <div style={{ display: 'flex', border: `1px solid ${P.border}`, borderRadius: 8, overflow: 'hidden', marginLeft: 4 }}>
+                {[['week', 'Week'], ['month', 'Month']].map(([val, label]) => (
+                  <button key={val} onClick={() => setViewMode(val)} style={{
+                    padding: '6px 14px', border: 'none', cursor: 'pointer',
+                    background: viewMode === val ? '#e8eaed' : 'transparent',
+                    fontFamily: 'var(--font-display)', fontWeight: viewMode === val ? 700 : 500,
+                    fontSize: 13, color: P.ink,
+                  }}>{label}</button>
+                ))}
+              </div>
+
+              <div style={{ flex: 1 }} />
+
+              {/* Right: Absences only toggle */}
+              <label style={{ display: 'flex', alignItems: 'center', gap: 7, cursor: 'pointer' }}>
+                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 12, color: P.inkSoft }}>Absences only</span>
+                <div onClick={() => setAbsencesOnly(v => !v)} style={{
+                  width: 34, height: 20, borderRadius: 10, padding: 2,
+                  background: absencesOnly ? P.ink : '#d1d5db',
+                  cursor: 'pointer', transition: 'background 150ms ease',
+                  display: 'flex', alignItems: 'center',
+                }}>
+                  <div style={{
+                    width: 16, height: 16, borderRadius: '50%', background: '#fff',
+                    transform: absencesOnly ? 'translateX(14px)' : 'translateX(0)',
+                    transition: 'transform 150ms ease',
+                    boxShadow: '0 1px 2px rgba(0,0,0,0.15)',
+                  }} />
+                </div>
+              </label>
+
               {monthPickerOpen && (
                 <MonthPicker currentDate={refDate} onSelect={d => { setRefDate(d); }} onClose={() => setMonthPickerOpen(false)} />
               )}
@@ -1815,8 +1853,6 @@ function App() {
         }
         * { box-sizing: border-box; }
       `}</style>
-
-      <Sidebar active={screen} onNav={setScreen} pendingCount={pendingCount} />
 
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, overflow: 'hidden' }}>
         {screen === 'team-absences' && <TeamAbsencesScreen requests={requests} pendingCount={pendingCount} onNav={setScreen} onShowDetail={setCalDetail} onSave={saveRequest} />}

@@ -177,7 +177,7 @@ function App() {
           <AppShell />
         </NavProvider>
       </IOSDevice>
-      <a href="/hr-admin/" style={{
+      <a href="http://localhost:8082/hr-admin/" target="_blank" rel="noreferrer" style={{
         position: 'fixed', bottom: 20, right: 20,
         display: 'inline-flex', alignItems: 'center', gap: 7,
         padding: '8px 14px', borderRadius: 20,
