@@ -516,18 +516,29 @@ function TimeOffHubScreen() {
             return new Date(2026, mo, eDay);
           };
           const _dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+          const _moNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+          const _moAbbr = { Jan:0, Feb:1, Mar:2, Apr:3, May:4, Jun:5, Jul:6, Aug:7, Sep:8, Oct:9, Nov:10, Dec:11 };
           const _formatDate = (item) => {
             const mo = _mMap[item.month];
             if (mo == null) return item.date;
-            const dm = item.date.match(/(\d+)(?:\s*[–-]\s*(\d+))?/);
-            if (!dm) return item.date;
-            const startDay = parseInt(dm[1]);
-            const startDow = _dayNames[new Date(2026, mo, startDay).getDay()];
-            if (!dm[2]) return `${startDow}, ${item.date}`;
-            const endDay = parseInt(dm[2]);
-            const endMo = item.date.includes('Dec') ? 11 : mo;
-            const endDow = _dayNames[new Date(2026, endMo, endDay).getDay()];
-            return `${startDow}–${endDow}, ${item.date}`;
+            // Parse cross-month ranges like "Mar 30–Apr 3" or simple "Aug 3–7" or "Aug 21"
+            const cm = item.date.match(/([A-Z][a-z]{2})\s*(\d+)\s*[–-]\s*([A-Z][a-z]{2})\s*(\d+)/);
+            const sm = item.date.match(/(\d+)\s*[–-]\s*(\d+)/);
+            const sdow = (d, m) => _dayNames[new Date(2026, m, d).getDay()];
+            const fmt = (d, m) => `${sdow(d, m)} ${d} ${_moNames[m]}`;
+            if (cm) {
+              const startMo = _moAbbr[cm[1]] ?? mo;
+              const endMo   = _moAbbr[cm[3]] ?? mo;
+              const startDay = parseInt(cm[2]), endDay = parseInt(cm[4]);
+              return <>{fmt(startDay, startMo)} <LucideIcon name="MoveRight" size={13} color="currentColor" strokeWidth={2} style={{display:'inline',verticalAlign:'middle',position:'relative',top:-1}} /> {fmt(endDay, endMo)}</>;
+            } else if (sm) {
+              const startDay = parseInt(sm[1]), endDay = parseInt(sm[2]);
+              return <>{fmt(startDay, mo)} <LucideIcon name="MoveRight" size={13} color="currentColor" strokeWidth={2} style={{display:'inline',verticalAlign:'middle',position:'relative',top:-1}} /> {fmt(endDay, mo)}</>;
+            } else {
+              const dm = item.date.match(/(\d+)/);
+              if (!dm) return item.date;
+              return <>{fmt(parseInt(dm[1]), mo)}</>;
+            }
           };
           const allApproved = ALL.filter(i => i.status === 'approved');
           const upcoming = allApproved.filter(i => { const d = _itemEndDate(i); return d && d >= _today; });
@@ -804,7 +815,7 @@ function TimeOffHubScreen() {
                     return (
                       <div key={lt.name} style={{ padding: '11px 0', borderBottom: isLast ? 'none' : `1px solid ${P.border}` }}>
                         <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8 }}>
-                          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 400, fontSize: 15, color: P.ink }}>
+                          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 15, color: P.ink }}>
                             {lt.name}
                           </div>
                           <div style={{ fontFamily: 'var(--font-display)', fontSize: 14, flexShrink: 0, whiteSpace: 'nowrap' }}>
@@ -872,6 +883,8 @@ function TimeOffHistoryScreen() {
 
   const _mMap = { January:0, February:1, March:2, April:3, May:4, June:5, July:6, August:7, September:8, October:9, November:10, December:11 };
   const _dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const _moNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const _moAbbr = { Jan:0, Feb:1, Mar:2, Apr:3, May:4, Jun:5, Jul:6, Aug:7, Sep:8, Oct:9, Nov:10, Dec:11 };
   const _today = new Date(); _today.setHours(0,0,0,0);
   const _currentYear = _today.getFullYear();
 
@@ -890,15 +903,23 @@ function TimeOffHistoryScreen() {
   const _formatDate = (item) => {
     const mo = _mMap[item.month];
     if (mo == null) return item.date;
-    const dm = item.date.match(/(\d+)(?:\s*[–-]\s*(\d+))?/);
-    if (!dm) return item.date;
-    const startDay = parseInt(dm[1]);
-    const startDow = _dayNames[new Date(2026, mo, startDay).getDay()];
-    if (!dm[2]) return `${startDow}, ${item.date}`;
-    const endDay = parseInt(dm[2]);
-    const endMo = item.date.includes('Dec') ? 11 : mo;
-    const endDow = _dayNames[new Date(2026, endMo, endDay).getDay()];
-    return `${startDow}–${endDow}, ${item.date}`;
+    const cm = item.date.match(/([A-Z][a-z]{2})\s*(\d+)\s*[–-]\s*([A-Z][a-z]{2})\s*(\d+)/);
+    const sm = item.date.match(/(\d+)\s*[–-]\s*(\d+)/);
+    const sdow = (d, m) => _dayNames[new Date(2026, m, d).getDay()];
+    const fmt = (d, m) => `${sdow(d, m)} ${d} ${_moNames[m]}`;
+    if (cm) {
+      const startMo = _moAbbr[cm[1]] ?? mo;
+      const endMo   = _moAbbr[cm[3]] ?? mo;
+      const startDay = parseInt(cm[2]), endDay = parseInt(cm[4]);
+      return <>{fmt(startDay, startMo)} <LucideIcon name="MoveRight" size={13} color="currentColor" strokeWidth={2} style={{display:'inline',verticalAlign:'middle',position:'relative',top:-1}} /> {fmt(endDay, endMo)}</>;
+    } else if (sm) {
+      const startDay = parseInt(sm[1]), endDay = parseInt(sm[2]);
+      return <>{fmt(startDay, mo)} <LucideIcon name="MoveRight" size={13} color="currentColor" strokeWidth={2} style={{display:'inline',verticalAlign:'middle',position:'relative',top:-1}} /> {fmt(endDay, mo)}</>;
+    } else {
+      const dm = item.date.match(/(\d+)/);
+      if (!dm) return item.date;
+      return <>{fmt(parseInt(dm[1]), mo)}</>;
+    }
   };
 
   const past = ALL.filter(i => i.status === 'approved').filter(i => {
