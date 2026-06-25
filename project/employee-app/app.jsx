@@ -28,6 +28,13 @@ function LucideIcon({ name, size = 24, color = 'currentColor', strokeWidth = 1.7
 window.LucideIcon = LucideIcon;
 
 // ─────────────────────────────────────────────────────────────
+// View mode context — 'mobile' | 'desktop'
+// Exposed on window so personal-screen.jsx can consume it.
+// ─────────────────────────────────────────────────────────────
+const ViewModeContext = React.createContext('mobile');
+window.ViewModeContext = ViewModeContext;
+
+// ─────────────────────────────────────────────────────────────
 // Tab-bar icons. Home uses the Payflip mark as a CSS mask so it
 // inherits currentColor like the Lucide icons.
 // ─────────────────────────────────────────────────────────────
@@ -101,6 +108,134 @@ function TabBar() {
 }
 
 // ─────────────────────────────────────────────────────────────
+// Desktop shell components
+// ─────────────────────────────────────────────────────────────
+const DESKTOP_NAV = [
+  { id: 'home',     label: 'Home'     },
+  { id: 'personal', label: 'Time off' },
+  { id: 'budgets',  label: 'Salary'   },
+  { id: 'benefits', label: 'Budget'   },
+];
+
+function DesktopTopBar() {
+  const { activeTab, navigate } = useNav();
+  return (
+    <div style={{
+      height: 56, display: 'flex', alignItems: 'center',
+      padding: '0 24px', background: 'white',
+      borderBottom: '1px solid #e5e7eb',
+      flexShrink: 0, zIndex: 10,
+    }}>
+      {/* Logo */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 120 }}>
+        <HomeIcon size={20} />
+        <span style={{
+          fontFamily: 'var(--font-display)', fontWeight: 700,
+          fontSize: 16, color: 'rgb(15,13,40)',
+        }}>Payflip</span>
+      </div>
+
+      {/* Center nav */}
+      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+        {DESKTOP_NAV.map(({ id, label }) => {
+          const isActive = activeTab === id;
+          return (
+            <button key={id}
+              onClick={() => id === 'personal' ? navigate('personal', 'time-off-hub') : navigate(id, id)}
+              style={{
+                border: 'none', background: 'transparent', cursor: 'pointer',
+                padding: '6px 14px', borderRadius: 8,
+                fontFamily: 'var(--font-display)', fontWeight: isActive ? 700 : 500,
+                fontSize: 14, color: isActive ? 'rgb(15,13,40)' : '#6b7280',
+                borderBottom: isActive ? '2px solid rgb(15,13,40)' : '2px solid transparent',
+                borderRadius: 0,
+                transition: 'color 150ms ease-out',
+              }}>
+              {label}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Avatar */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 120, justifyContent: 'flex-end' }}>
+        <div style={{
+          width: 32, height: 32, borderRadius: '50%',
+          background: 'rgb(15,13,40)', color: 'white',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 12,
+        }}>PT</div>
+      </div>
+    </div>
+  );
+}
+
+function DesktopSidebar() {
+  const { activeTab, switchTab } = useNav();
+  return (
+    <div style={{
+      width: 220, background: 'white', borderRight: '1px solid #e5e7eb',
+      display: 'flex', flexDirection: 'column', gap: 2,
+      padding: '12px 10px', flexShrink: 0, overflowY: 'auto',
+    }}>
+      {TABS.map((t) => {
+        const isActive = activeTab === t.id;
+        return (
+          <button key={t.id} onClick={() => switchTab(t.id)}
+            aria-current={isActive ? 'page' : undefined}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 10,
+              padding: '10px 14px', borderRadius: 10, border: 'none',
+              background: isActive ? 'rgb(15,13,40)' : 'transparent',
+              color: isActive ? 'white' : '#374151',
+              cursor: 'pointer', width: '100%', textAlign: 'left',
+              fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14,
+              transition: 'background 150ms ease-out, color 150ms ease-out',
+            }}>
+            <t.Icon size={20} />
+            {t.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+const DESKTOP_HIDE_NAV_SCREENS = ['request-time-off', 'report-illness'];
+
+function DesktopAppShell() {
+  const { navigate, current } = useNav();
+  const hideNav = DESKTOP_HIDE_NAV_SCREENS.includes(current.name);
+
+  React.useEffect(() => {
+    navigate('personal', 'time-off-hub');
+  }, []);
+
+  return (
+    <div style={{
+      height: '100vh', display: 'flex', flexDirection: 'column',
+      background: 'white',
+    }}>
+      {!hideNav && <DesktopTopBar />}
+      {/* Content area — transform: translateZ(0) contains fixed-position overlays */}
+      <div
+        data-app-shell
+        style={{
+          flex: 1, overflowY: 'auto', position: 'relative',
+          transform: 'translateZ(0)',
+        }}>
+        <div style={{
+          maxWidth: 1088, margin: '0 auto',
+          minHeight: '100%',
+        }}>
+          <ScreenRenderer />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
 // App shell
 // ─────────────────────────────────────────────────────────────
 const FULLSCREEN_SCREENS = ['withdraw-cash', 'simulate-cash-out', 'pension-detail', 'edit-active-benefit', 'sign-addendum', 'bike-lease', 'pension-savings-detail', 'pension-savings-choice', 'time-off-hub', 'time-off-detail', 'time-off-history', 'request-time-off', 'report-illness'];
@@ -164,31 +299,82 @@ function SplashScreen({ onDone }) {
 
 function App() {
   const [splashDone, setSplashDone] = React.useState(false);
+  const [viewMode, setViewMode] = React.useState(
+    () => localStorage.getItem('payflip-view-mode') || 'mobile'
+  );
+  const switchMode = (mode) => {
+    setViewMode(mode);
+    localStorage.setItem('payflip-view-mode', mode);
+  };
+
+  const btnBase = {
+    display: 'inline-flex', alignItems: 'center', gap: 6,
+    padding: '7px 14px', border: 'none', cursor: 'pointer',
+    fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12,
+    transition: 'background 150ms ease-out, color 150ms ease-out',
+  };
+
   return (
-    <div style={{
-      minHeight: '100vh',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      background: 'var(--gray-100)',
-      padding: 24,
-    }}>
-      <IOSDevice width={402} height={874}>
-        {!splashDone && <SplashScreen onDone={() => setSplashDone(true)} />}
+    <ViewModeContext.Provider value={viewMode}>
+      {viewMode === 'mobile' ? (
+        <div style={{
+          minHeight: '100vh',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          background: 'var(--gray-100)', padding: 24,
+        }}>
+          <IOSDevice width={402} height={874}>
+            {!splashDone && <SplashScreen onDone={() => setSplashDone(true)} />}
+            <NavProvider>
+              <AppShell />
+            </NavProvider>
+          </IOSDevice>
+        </div>
+      ) : (
         <NavProvider>
-          <AppShell />
+          <DesktopAppShell />
         </NavProvider>
-      </IOSDevice>
-      <a href="http://localhost:8082/hr-admin/" target="_blank" rel="noreferrer" style={{
-        position: 'fixed', bottom: 20, right: 20,
-        display: 'inline-flex', alignItems: 'center', gap: 7,
-        padding: '8px 14px', borderRadius: 20,
-        background: 'rgb(15,13,40)', color: '#fff', textDecoration: 'none',
-        fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12,
-        boxShadow: '0 2px 12px rgba(15,13,40,0.2)',
+      )}
+
+      {/* View mode toggle + HR Admin link */}
+      <div style={{
+        position: 'fixed', bottom: 20, right: 20, zIndex: 9999,
+        display: 'flex', alignItems: 'center', gap: 8,
       }}>
-        <LucideIcon name="Monitor" size={13} color="#fff" strokeWidth={2} />
-        HR Admin
-      </a>
-    </div>
+        <div style={{
+          display: 'flex', borderRadius: 20, overflow: 'hidden',
+          border: '1px solid #d1d5db', background: 'white',
+          boxShadow: '0 2px 12px rgba(0,0,0,0.1)',
+        }}>
+          <button onClick={() => switchMode('mobile')} style={{
+            ...btnBase,
+            background: viewMode === 'mobile' ? 'rgb(15,13,40)' : 'white',
+            color: viewMode === 'mobile' ? 'white' : '#6b7280',
+          }}>
+            <LucideIcon name="Smartphone" size={13} color={viewMode === 'mobile' ? 'white' : '#6b7280'} strokeWidth={2} />
+            Mobile
+          </button>
+          <button onClick={() => switchMode('desktop')} style={{
+            ...btnBase,
+            borderLeft: '1px solid #d1d5db',
+            background: viewMode === 'desktop' ? 'rgb(15,13,40)' : 'white',
+            color: viewMode === 'desktop' ? 'white' : '#6b7280',
+          }}>
+            <LucideIcon name="Monitor" size={13} color={viewMode === 'desktop' ? 'white' : '#6b7280'} strokeWidth={2} />
+            Desktop
+          </button>
+        </div>
+        <a href="http://localhost:8082/hr-admin/" target="_blank" rel="noreferrer" style={{
+          display: 'inline-flex', alignItems: 'center', gap: 7,
+          padding: '8px 14px', borderRadius: 20,
+          background: 'rgb(15,13,40)', color: '#fff', textDecoration: 'none',
+          fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12,
+          boxShadow: '0 2px 12px rgba(15,13,40,0.2)',
+        }}>
+          <LucideIcon name="Users" size={13} color="#fff" strokeWidth={2} />
+          HR Admin
+        </a>
+      </div>
+    </ViewModeContext.Provider>
   );
 }
 

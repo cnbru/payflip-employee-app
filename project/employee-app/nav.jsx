@@ -92,10 +92,16 @@ function NavProvider({ children }) {
     }
   }, [activeTab, reset]);
 
+  // Atomically switch tab and push a screen — avoids stale closure from calling switchTab + push separately.
+  const navigate = React.useCallback((tab, screen, params) => {
+    setActiveTab(tab);
+    setStacks(s => ({ ...s, [tab]: [{ name: tab }, { name: screen, params }] }));
+  }, []);
+
   const current = stacks[activeTab][stacks[activeTab].length - 1];
   const canGoBack = stacks[activeTab].length > 1;
 
-  const value = { activeTab, switchTab, push, pop, reset, current, canGoBack, stacks };
+  const value = { activeTab, switchTab, push, pop, reset, navigate, current, canGoBack, stacks };
   return <NavContext.Provider value={value}>{children}</NavContext.Provider>;
 }
 
@@ -113,6 +119,8 @@ function registerScreen(name, Component) { SCREENS[name] = Component; }
 
 function ScreenRenderer() {
   const { current, stacks, activeTab } = useNav();
+  const viewMode = React.useContext(window.ViewModeContext);
+  const isDesktop = viewMode === 'desktop';
   const stackLen = stacks[activeTab].length;
 
   const [scene, setScene] = React.useState({ from: null, to: current, direction: 'forward' });
@@ -134,6 +142,12 @@ function ScreenRenderer() {
     const isBack = stackLen < prev.stackLen;
     const fromScreen = prev.screen;
     prevRef.current = { screen: current, stackLen, tab: activeTab };
+
+    if (isDesktop) {
+      setScene({ from: null, to: current, direction: 'forward' });
+      return;
+    }
+
     setScene({ from: fromScreen, to: current, direction: isBack ? 'back' : 'forward' });
 
     const timer = setTimeout(() => setScene(s => ({ ...s, from: null })), 300);
