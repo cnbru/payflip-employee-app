@@ -2442,7 +2442,7 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
               const _plannableTotal = LEAVE_BALANCES.filter(b => !b.urgent || b.remaining > 0).reduce((s, b) => s + b.remaining, 0);
               const isAnySpecial = leaveReason?.startsWith('special-');
               const specialSelected = isAnySpecial ? SPECIAL_LEAVE_OPTIONS.find(o => o.id === leaveReason) || BEREAVEMENT_OPTIONS.find(o => o.id === leaveReason) || WEDDING_OPTIONS.find(o => o.id === leaveReason) : null;
-              const DropRow = ({ id, label, icon, sub, onClick: onClickOverride }) => (
+              const DropRow = ({ id, label, icon, sub, hasArrow, onClick: onClickOverride }) => (
                 <button
                   onClick={onClickOverride || (() => { setLeaveReason(id); setShowReasonSheet(false); })}
                   style={{
@@ -2464,7 +2464,7 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
                     <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 15, color: P.ink, lineHeight: '20px' }}>{label}</div>
                     {sub && <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, marginTop: 1 }}>{sub}</div>}
                   </div>
-                  <LucideIcon name="ChevronRight" size={18} color={P.inkSoft} strokeWidth={2.5} style={{ flexShrink: 0 }} />
+                  {hasArrow && <LucideIcon name="ChevronRight" size={18} color={P.inkSoft} strokeWidth={2.5} style={{ flexShrink: 0 }} />}
                 </button>
               );
               return (
@@ -2482,6 +2482,7 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
                   <DropRow
                     id="_special" label="Special leave" icon="Gift"
                     sub={specialSelected ? specialSelected.label : 'Wedding, funeral, moving…'}
+                    hasArrow
                     onClick={isDesktop
                       ? () => { setLeaveReason('special-'); setShowReasonSheet(false); }
                       : () => { setShowReasonSheet(false); setTimeout(() => setShowSpecialSheet(true), 80); }}
@@ -3031,7 +3032,7 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
         </div>
 
         {/* Sticky CTA — only visible once leave type is chosen (skip when editing) */}
-        {(editItem || leaveReason) && (
+        {(editItem || (leaveReason && leaveReason !== 'special-' && leaveReason !== 'special-wedding' && leaveReason !== 'special-funeral')) && (
         <div style={{ position: 'sticky', bottom: 0, padding: '12px 16px 32px', background: 'white', borderTop: `1px solid ${P.border}`, ...(editItem ? {} : { animation: 'revealDown 0.35s ease-out 0.1s both' }) }}>
           <Button variant="primary" size="large" fullWidth disabled={!canSubmit} onClick={handleSubmit}>
             {submitting ? (editItem ? 'Updating…' : 'Submitting…') : (editItem ? 'Update request' : 'Submit request')}
