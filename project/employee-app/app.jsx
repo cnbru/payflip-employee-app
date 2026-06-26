@@ -363,7 +363,7 @@ function App() {
             Desktop
           </button>
         </div>
-        <a href={new URL('hr-admin/', window.location.href).href} target="_blank" rel="noreferrer" style={{
+        <a href="hr-admin/" target="_blank" rel="noreferrer" style={{
           display: 'inline-flex', alignItems: 'center', gap: 7,
           padding: '8px 14px', borderRadius: 20,
           background: 'rgb(15,13,40)', color: '#fff', textDecoration: 'none',
