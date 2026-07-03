@@ -232,7 +232,11 @@ function SidebarItem({ label, isActive, onClick, badgeDot, chevron, chevronOpen 
         {label}
       </span>
       {badgeDot && <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#e84d8a', flexShrink: 0 }} />}
-      {chevron && <Icon name={chevronOpen ? 'ChevronUp' : 'ChevronDown'} size={12} color={P.inkFaint} />}
+      {chevron && (
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={P.ink} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+          {chevronOpen ? <polyline points="18 15 12 9 6 15" /> : <polyline points="6 9 12 15 18 9" />}
+        </svg>
+      )}
     </button>
   );
 }
@@ -263,7 +267,9 @@ function SidebarSub({ items, active, onNav }) {
 function Sidebar({ active, onNav, pendingCount }) {
   const [companyOpen, setCompanyOpen] = useState(false);
   const [payrollOpen, setPayrollOpen] = useState(false);
-  const teamMgmtOpen = active === 'team-absences' || active === 'requests' || active === 'employees' || active.startsWith('employee-detail:');
+  const [todoOpen, setTodoOpen] = useState(false);
+  const isTeamScreen = active === 'team-absences' || active === 'requests' || active === 'employees' || active.startsWith('employee-detail:');
+  const [teamOpen, setTeamOpen] = useState(isTeamScreen);
 
   return (
     <div style={{
@@ -272,8 +278,30 @@ function Sidebar({ active, onNav, pendingCount }) {
       display: 'flex', flexDirection: 'column',
       height: '100vh', position: 'sticky', top: 0,
     }}>
-      {/* Entity header */}
-      <div style={{ padding: '14px 18px', borderBottom: `1px solid ${P.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      {/* Global top section */}
+      <div style={{ padding: '14px 18px 10px', borderBottom: `1px solid ${P.border}` }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+          <div style={{ width: 28, height: 28, borderRadius: 8, background: '#6D17CF', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 14, color: '#fff' }}>P</span>
+          </div>
+          <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 15, color: P.ink }}>payflip</span>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+          {[['Companies', 'Building2'], ['Reporting', 'BarChart2'], ['Dashboard', 'LayoutDashboard']].map(([label, icon]) => (
+            <button key={label} style={{
+              display: 'flex', alignItems: 'center', gap: 9,
+              padding: '6px 8px', borderRadius: 6, border: 'none',
+              background: 'transparent', cursor: 'pointer', width: '100%', textAlign: 'left',
+            }}>
+              <Icon name={icon} size={14} color={P.inkSoft} />
+              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 13, color: P.inkSoft }}>{label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Entity selector */}
+      <div style={{ padding: '10px 18px', borderBottom: `1px solid ${P.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div>
           <div style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkFaint }}>Entity view for</div>
           <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 14, color: '#6366f1', letterSpacing: '-0.01em' }}>Payflip</div>
@@ -282,10 +310,15 @@ function Sidebar({ active, onNav, pendingCount }) {
       </div>
 
       <nav style={{ flex: 1, padding: '10px 8px', display: 'flex', flexDirection: 'column', gap: 1, overflow: 'auto' }}>
-        <SidebarItem label="Home" onClick={() => onNav('home')} />
-        <SidebarItem label="To do" onClick={() => {}} badgeDot chevron />
+        <SidebarItem label="Home" isActive={active === 'home'} onClick={() => onNav('home')} />
 
-        <SidebarItem label="Company" isActive={companyOpen} onClick={() => setCompanyOpen(o => !o)} chevron chevronOpen={companyOpen} />
+        <SidebarItem label="To do" onClick={() => setTodoOpen(o => !o)} badgeDot chevron chevronOpen={todoOpen} />
+        {todoOpen && <SidebarSub active={active} onNav={onNav} items={[
+          { id: 'todo-review', label: 'Review choices' },
+          { id: 'todo-relaunch', label: 'Assign relaunch admin' },
+        ]} />}
+
+        <SidebarItem label="Company" onClick={() => setCompanyOpen(o => !o)} chevron chevronOpen={companyOpen} />
         {companyOpen && <SidebarSub active={active} onNav={onNav} items={[
           { id: 'company-budgets', label: 'Budgets' },
           { id: 'company-benefits', label: 'Benefits' },
@@ -296,23 +329,31 @@ function Sidebar({ active, onNav, pendingCount }) {
           { id: 'company-reporting', label: 'Reporting' },
         ]} />}
 
-        <SidebarItem label="Payroll" isActive={payrollOpen} onClick={() => setPayrollOpen(o => !o)} chevron chevronOpen={payrollOpen} />
+        <SidebarItem label="Payroll" onClick={() => setPayrollOpen(o => !o)} chevron chevronOpen={payrollOpen} />
         {payrollOpen && <SidebarSub active={active} onNav={onNav} items={[
           { id: 'payroll-overview', label: 'Overview' },
           { id: 'payroll-settings', label: 'Settings' },
           { id: 'payroll-wagecodes', label: 'Wage codes' },
         ]} />}
 
-        <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em', padding: '12px 10px 4px' }}>Team management</div>
-        <SidebarSub active={active} onNav={onNav} items={[
+        <SidebarItem label="Team management" onClick={() => setTeamOpen(o => !o)} chevron chevronOpen={teamOpen} />
+        {teamOpen && <SidebarSub active={active} onNav={onNav} items={[
           { id: 'employees', label: 'Employees' },
           { id: 'team-absences', label: 'Team absences' },
           { id: 'requests', label: 'Time off requests', badge: pendingCount },
-        ]} />
+        ]} />}
 
         <div style={{ height: 1, background: P.border, margin: '6px 0' }} />
 
-        <SidebarItem label="Billing" onClick={() => {}} />
+        <button onClick={() => {}} style={{
+          display: 'flex', alignItems: 'center', gap: 9,
+          padding: '7px 10px', borderRadius: 7,
+          border: 'none', background: 'transparent',
+          cursor: 'pointer', width: '100%', textAlign: 'left',
+        }}>
+          <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 13, color: P.inkSoft, flex: 1 }}>Billing</span>
+          <Icon name="ExternalLink" size={12} color={P.inkFaint} />
+        </button>
       </nav>
 
       {/* Footer */}
@@ -469,7 +510,9 @@ function DetailModal({ req, requests, onClose, onApprove, onDecline, onCancel })
           {[
             { label: 'Status', value: <StatusDot status={req.status} /> },
             { label: 'Type', value: req.type },
-            { label: 'When', value: <span>{req.startDate === req.endDate ? req.startDate : `${req.startDate} – ${req.endDate}`}<br /><span style={{ color: P.inkSoft, fontSize: 12 }}>Total of {req.days} {req.days === 1 ? 'day' : 'days'}</span></span> },
+            { label: 'When', value: <span>{req._selectedDates && req._selectedDates.length > 1
+              ? req._selectedDates.map(iso => { const p = iso.split('-'); return new Date(+p[0], +p[1]-1, +p[2]).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }); }).join(', ')
+              : req.startDate === req.endDate ? req.startDate : `${req.startDate} – ${req.endDate}`}<br /><span style={{ color: P.inkSoft, fontSize: 12 }}>Total of {req.days} {req.days === 1 ? 'day' : 'days'}</span></span> },
             { label: 'Notes', value: req.note || '—' },
             { label: 'Requested on', value: req.submittedAt },
             { label: 'Requested by', value: <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><span>{emp.name}</span><span style={{ color: P.inkFaint, fontSize: 12 }}>{emp.department}</span></div> },
@@ -539,12 +582,37 @@ function SelectField({ value, onChange, children, style }) {
   );
 }
 
+// ── Half-day segmented picker ─────────────────────────────────────────────
+const ADMIN_HALF_OPTS = ['full', 'am', 'pm'];
+const ADMIN_HALF_LABELS = { full: 'Full', am: 'AM', pm: 'PM' };
+function HalfDayPickerAdmin({ value, onChange }) {
+  return (
+    <div style={{ display: 'inline-flex', alignItems: 'center', padding: 3, background: '#EBEBED', borderRadius: 14, gap: 2 }}>
+      {ADMIN_HALF_OPTS.map(opt => {
+        const active = value === opt;
+        return (
+          <button key={opt} onClick={() => onChange(opt)} style={{
+            padding: '3px 10px', borderRadius: 11, border: 'none',
+            background: active ? '#fff' : 'transparent',
+            boxShadow: active ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+            fontFamily: 'var(--font-display)', fontWeight: active ? 700 : 500,
+            fontSize: 11, color: active ? P.ink : P.inkSoft,
+            cursor: 'pointer',
+          }}>{ADMIN_HALF_LABELS[opt]}</button>
+        );
+      })}
+    </div>
+  );
+}
+
 // ── Inline calendar for date range picking ────────────────────────────────
-function ModalCalendar({ startDate, endDate, focusedField, onDateTap }) {
+function ModalCalendar({ startDate, endDate, focusedField, onDateTap, pickedDates, selectionMode, halfDay }) {
   const today = new Date(); today.setHours(0,0,0,0);
   const initial = startDate || today;
   const [month, setMonth] = useState(initial.getMonth());
   const [year, setYear]   = useState(initial.getFullYear());
+  const isPick = selectionMode === 'pick';
+  const rangeBg = '#EAD6F7';
 
   const dayNames = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
   const first = new Date(year, month, 1);
@@ -560,10 +628,19 @@ function ModalCalendar({ startDate, endDate, focusedField, onDateTap }) {
   const isHoliday = (d) => _holidaySet.has(isoDate(d));
   const isCollective = (d) => _collectiveSet.has(isoDate(d));
   const isDisabled = (d) => isWeekend(d) || isHoliday(d) || isCollective(d);
-  const isInRange = (d) => startDate && endDate && d > startDate && d < endDate;
-  const isStart = (d) => sameDay(d, startDate);
-  const isEnd = (d) => sameDay(d, endDate);
+  const isInRange = (d) => !isPick && startDate && endDate && d > startDate && d < endDate;
+  const isStart = (d) => !isPick && sameDay(d, startDate);
+  const isEnd = (d) => !isPick && sameDay(d, endDate);
+  const isPicked = (d) => isPick && pickedDates && pickedDates.has(isoDate(d));
   const isToday = (d) => sameDay(d, today);
+
+  const findWork = (d, dir) => {
+    for (let step = 1; step <= 4; step++) {
+      const nd = new Date(d.getFullYear(), d.getMonth(), d.getDate() + dir * step);
+      if (!isWeekend(nd) && !isHoliday(nd) && !isCollective(nd)) return isoDate(nd);
+    }
+    return null;
+  };
 
   const prevMonth = () => { setMonth(m => m === 0 ? (setYear(y => y - 1), 11) : m - 1); };
   const nextMonth = () => { setMonth(m => m === 11 ? (setYear(y => y + 1), 0) : m + 1); };
@@ -590,30 +667,67 @@ function ModalCalendar({ startDate, endDate, focusedField, onDateTap }) {
         {cells.map((d, i) => {
           if (!d) return <div key={`e${i}`} />;
           const disabled = isDisabled(d);
+          const picked = isPicked(d);
           const selStart = isStart(d);
           const selEnd = isEnd(d);
-          const sel = selStart || selEnd;
+          const sel = picked || selStart || selEnd;
           const inRange = isInRange(d) && !sel;
-          const hasRange = startDate && endDate && !sameDay(startDate, endDate);
-          const rangeBg = '#eef1fb';
+          const hasRange = !isPick && startDate && endDate && !sameDay(startDate, endDate);
+
+          // Pick mode: adjacency + weekend bridging for range highlight
+          let prevAdj = false, nextAdj = false, bridged = false;
+          if (isPick) {
+            const prevIso = isoDate(new Date(d.getFullYear(), d.getMonth(), d.getDate() - 1));
+            const nextIso = isoDate(new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1));
+            if (picked) {
+              const pw = findWork(d, -1);
+              const nw = findWork(d, 1);
+              prevAdj = !!(pickedDates.has(prevIso) || (pw && pw !== prevIso && pickedDates.has(pw)));
+              nextAdj = !!(pickedDates.has(nextIso) || (nw && nw !== nextIso && pickedDates.has(nw)));
+            }
+            if (disabled && pickedDates) {
+              const pw = findWork(d, -1);
+              const nw = findWork(d, 1);
+              bridged = !!(pw && nw && pickedDates.has(pw) && pickedDates.has(nw));
+            }
+          }
+          const isMidRange = isPick && picked && prevAdj && nextAdj;
+
+          const halfDayVal = isPick && picked && halfDay ? halfDay[isoDate(d)] : null;
 
           let btnBg = 'transparent';
           let color = P.ink;
           let fontWeight = 500;
-          if (sel) { btnBg = P.ink; color = '#fff'; fontWeight = 700; }
+          if (halfDayVal === 'am') {
+            btnBg = `linear-gradient(to bottom, ${P.ink} 50%, rgba(15,13,40,0.45) 50%)`;
+            color = '#fff'; fontWeight = 700;
+          } else if (halfDayVal === 'pm') {
+            btnBg = `linear-gradient(to bottom, rgba(15,13,40,0.45) 50%, ${P.ink} 50%)`;
+            color = '#fff'; fontWeight = 700;
+          } else if (isMidRange) { fontWeight = 700; }
+          else if (sel) { btnBg = P.ink; color = '#fff'; fontWeight = 700; }
           else if (disabled) { color = '#c5c9d0'; }
           else if (inRange) { fontWeight = 600; }
 
           let wrapBg = 'transparent';
-          if (inRange) wrapBg = rangeBg;
-          else if (selStart && hasRange) wrapBg = `linear-gradient(to right, transparent 50%, ${rangeBg} 50%)`;
-          else if (selEnd && hasRange) wrapBg = `linear-gradient(to left, transparent 50%, ${rangeBg} 50%)`;
+          if (isPick) {
+            if (bridged) wrapBg = rangeBg;
+            else if (picked) {
+              if (prevAdj && nextAdj) wrapBg = rangeBg;
+              else if (!prevAdj && nextAdj) wrapBg = `linear-gradient(to right, transparent 50%, ${rangeBg} 50%)`;
+              else if (prevAdj && !nextAdj) wrapBg = `linear-gradient(to left, transparent 50%, ${rangeBg} 50%)`;
+            }
+          } else {
+            if (inRange) wrapBg = rangeBg;
+            else if (selStart && hasRange) wrapBg = `linear-gradient(to right, transparent 50%, ${rangeBg} 50%)`;
+            else if (selEnd && hasRange) wrapBg = `linear-gradient(to left, transparent 50%, ${rangeBg} 50%)`;
+          }
 
           return (
             <div key={isoDate(d)} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', background: wrapBg }}>
               <button onClick={() => !disabled && onDateTap(d)} style={{
                 width: 32, height: 32, border: 'none', background: btnBg,
-                borderRadius: sel ? '50%' : 6, cursor: disabled ? 'default' : 'pointer',
+                borderRadius: (sel && !isMidRange) || halfDayVal ? '50%' : 6, cursor: disabled ? 'default' : 'pointer',
                 fontFamily: 'var(--font-display)', fontWeight, fontSize: 12, color,
                 display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
                 position: 'relative',
@@ -643,28 +757,38 @@ function AddTimeOffModal({ existing, onClose, onSave }) {
   const [note, setNote]       = useState(existing?.note || '');
   const [holidayName, setHolidayName] = useState('');
   const [errors, setErrors] = useState({});
-  const [focusedField, setFocusedField] = useState('start');
+  const [halfDay, setHalfDay] = useState(existing?._halfDay || {});
+  const [showEditSelection, setShowEditSelection] = useState(false);
   const [attachment, setAttachment] = useState(null);
   const [notifyEmployee, setNotifyEmployee] = useState(false);
   const [scope, setScope] = useState(lockEmployee ? 'one' : 'one'); // 'one' | 'collective'
+  const [pickedDates, setPickedDates] = useState(() => {
+    if (existing?._selectedDates) return new Set(existing._selectedDates);
+    if (existing?.startDate) {
+      const start = parseDisplayDate(existing.startDate);
+      const end = parseDisplayDate(existing.endDate || existing.startDate);
+      if (!start || !end) return new Set();
+      const dates = new Set();
+      for (let d = new Date(start); d <= end; d = addDays(d, 1)) {
+        if (d.getDay() !== 0 && d.getDay() !== 6 && !_holidaySet.has(isoDate(d)) && !_collectiveSet.has(isoDate(d))) {
+          dates.add(isoDate(d));
+        }
+      }
+      return dates;
+    }
+    return new Set();
+  });
   const allEmployees = scope === 'collective';
 
   useEffect(() => { setAttachment(null); setNotifyEmployee(false); }, [type]);
 
   const handleDateTap = (d) => {
     const iso = isoDate(d);
-    if (focusedField === 'start') {
-      setStart(iso);
-      if (!endDate || iso > endDate) setEnd(iso);
-      setFocusedField('end');
+    if (pickedDates.has(iso)) {
+      setPickedDates(prev => { const n = new Set(prev); n.delete(iso); return n; });
+      setHalfDay(hd => { const c = { ...hd }; delete c[iso]; return c; });
     } else {
-      if (iso < startDate) {
-        setStart(iso);
-        setEnd(startDate);
-      } else {
-        setEnd(iso);
-      }
-      setFocusedField('start');
+      setPickedDates(prev => new Set([...prev, iso]));
     }
   };
 
@@ -681,16 +805,18 @@ function AddTimeOffModal({ existing, onClose, onSave }) {
     return count;
   }
 
-  const startD = startDate ? new Date(startDate + 'T00:00:00') : null;
-  const endD   = endDate   ? new Date(endDate   + 'T00:00:00') : startD;
-  const days   = startD && endD && endD >= startD ? countWeekdays(startD, endD) : 0;
+  const sortedPicked = [...pickedDates].sort();
+  const startD = sortedPicked.length > 0 ? new Date(sortedPicked[0] + 'T00:00:00') : null;
+  const endD = sortedPicked.length > 0 ? new Date(sortedPicked[sortedPicked.length - 1] + 'T00:00:00') : null;
+  const halfDayDeduction = Object.entries(halfDay).filter(([iso, v]) => pickedDates.has(iso) && (v === 'am' || v === 'pm')).length * 0.5;
+  const days = pickedDates.size - halfDayDeduction;
 
   const fmtDisplay = (d) => d ? d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }) : '';
 
   const handleSave = () => {
     const errs = {};
     if (!allEmployees && !empId) errs.employee = 'Please select an employee';
-    if (!startDate || days === 0) errs.dates = 'Please select a date range';
+    if (pickedDates.size === 0) errs.dates = 'Please select dates';
     if (Object.keys(errs).length) { setErrors(errs); return; }
     setErrors({});
     const base = {
@@ -701,6 +827,8 @@ function AddTimeOffModal({ existing, onClose, onSave }) {
       status: existing?.status || 'approved',
       submittedAt: existing?.submittedAt || new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }),
       note,
+      ...(sortedPicked.length > 0 ? { _selectedDates: sortedPicked } : {}),
+      ...(Object.keys(halfDay).length > 0 ? { _halfDay: halfDay } : {}),
     };
     if (allEmployees) {
       Object.keys(EMPLOYEES).forEach((eid, i) => {
@@ -796,58 +924,64 @@ function AddTimeOffModal({ existing, onClose, onSave }) {
             {errors.employee && <div style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: '#dc2626', marginTop: 4 }}>{errors.employee}</div>}
           </div>
 
-          {/* Leave type */}
-          <div>
-            <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, color: P.inkSoft, marginBottom: 5 }}>Leave type</label>
-            <SelectField value={type} onChange={e => setType(e.target.value)} style={{ ...inputStyle, cursor: 'pointer' }}>
-              {ALL_LEAVE_TYPES.map(t => (
-                <option key={t} value={t}>{t}{ADMIN_ONLY_TYPES.has(t) ? ' (Admin)' : ''}</option>
-              ))}
-              {scope === 'collective' && <option value="Replacement">Replacement</option>}
-            </SelectField>
-          </div>
+          {/* Leave type — hidden for collective holidays */}
+          {!allEmployees && (
+            <div>
+              <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, color: P.inkSoft, marginBottom: 5 }}>Leave type</label>
+              <SelectField value={type} onChange={e => setType(e.target.value)} style={{ ...inputStyle, cursor: 'pointer' }}>
+                {ALL_LEAVE_TYPES.map(t => (
+                  <option key={t} value={t}>{t}{ADMIN_ONLY_TYPES.has(t) ? ' (Admin)' : ''}</option>
+                ))}
+              </SelectField>
+            </div>
+          )}
 
-          {/* Date range pills */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-            <button onClick={() => setFocusedField('start')} style={{
-              ...inputStyle, cursor: 'pointer', textAlign: 'left',
-              borderColor: focusedField === 'start' ? P.ink : P.border,
-              display: 'flex', alignItems: 'center', gap: 7,
-            }}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={focusedField === 'start' ? P.ink : P.inkFaint} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
-                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
-              </svg>
-              <div>
-                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 10, color: P.inkFaint, marginBottom: 1 }}>From</div>
-                <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: startD ? P.ink : P.inkFaint }}>{startD ? fmtDisplay(startD) : 'Select date'}</div>
-              </div>
-            </button>
-            <button onClick={() => setFocusedField('end')} style={{
-              ...inputStyle, cursor: 'pointer', textAlign: 'left',
-              borderColor: focusedField === 'end' ? P.ink : P.border,
-              display: 'flex', alignItems: 'center', gap: 7,
-            }}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={focusedField === 'end' ? P.ink : P.inkFaint} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
-                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
-              </svg>
-              <div>
-                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 10, color: P.inkFaint, marginBottom: 1 }}>To</div>
-                <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: endD ? P.ink : P.inkFaint }}>{endD ? fmtDisplay(endD) : 'Select date'}</div>
-              </div>
-            </button>
-          </div>
 
           {/* Inline calendar */}
-          <ModalCalendar startDate={startD} endDate={endD} focusedField={focusedField} onDateTap={(d) => { handleDateTap(d); setErrors(p => ({...p, dates: null})); }} />
+          <ModalCalendar onDateTap={(d) => { handleDateTap(d); setErrors(p => ({...p, dates: null})); }} pickedDates={pickedDates} selectionMode="pick" halfDay={halfDay} />
           {errors.dates && <div style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: '#dc2626', marginTop: -8 }}>{errors.dates}</div>}
 
-          {/* Duration preview */}
-          {days > 0 && (
-            <div style={{ background: P.bg, borderRadius: 7, padding: '8px 12px', fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, display: 'flex', alignItems: 'center', gap: 6 }}>
-              <Icon name="CalendarDays" size={13} color={P.inkSoft} />
-              <span>{days} working {days === 1 ? 'day' : 'days'}</span>
-              {startD && endD && startD.getTime() !== endD.getTime() && (
-                <span style={{ color: P.inkFaint }}>· {fmtDisplay(startD)} – {fmtDisplay(endD)}</span>
+          {/* Duration preview + Edit selection */}
+          {pickedDates.size > 0 && (
+            <div style={{ borderRadius: 8, overflow: 'hidden', background: P.bg, border: `1px solid ${P.border}` }}>
+              <div style={{ padding: '8px 12px', display: 'flex', alignItems: 'center', gap: 6 }}>
+                <Icon name="CalendarDays" size={13} color={P.inkSoft} />
+                <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, flex: 1 }}>
+                  {days === 0.5 ? '½ working day' : days === 1 ? '1 working day' : `${days} working days`}
+                  {startD && endD && startD.getTime() !== endD.getTime() && (
+                    <span style={{ color: P.inkFaint }}> · {fmtDisplay(startD)} – {fmtDisplay(endD)}</span>
+                  )}
+                </span>
+                <button onClick={() => setShowEditSelection(v => !v)} style={{
+                  border: 'none', background: 'transparent', cursor: 'pointer', padding: 0,
+                  fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, color: P.ink,
+                  textDecoration: 'underline', textUnderlineOffset: 2,
+                }}>
+                  {showEditSelection ? 'Done' : 'Edit selection'}
+                </button>
+              </div>
+              {showEditSelection && (
+                <div style={{ borderTop: `1px solid ${P.border}`, padding: '4px 12px 8px' }}>
+                  {sortedPicked.map(iso => {
+                    const p = iso.split('-');
+                    const d = new Date(+p[0], +p[1]-1, +p[2]);
+                    const label = d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+                    const hv = halfDay[iso] || 'full';
+                    return (
+                      <div key={iso} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0', borderBottom: `1px solid ${P.border}` }}>
+                        <span style={{ flex: 1, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, color: P.ink }}>{label}</span>
+                        <HalfDayPickerAdmin value={hv} onChange={(v) => setHalfDay(hd => {
+                          const c = { ...hd };
+                          if (v === 'full') delete c[iso]; else c[iso] = v;
+                          return c;
+                        })} />
+                        <button onClick={() => handleDateTap(d)} style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: 4, display: 'flex', lineHeight: 1 }}>
+                          <Icon name="X" size={13} color={P.inkSoft} />
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
               )}
             </div>
           )}
@@ -862,7 +996,6 @@ function AddTimeOffModal({ existing, onClose, onSave }) {
           {(() => {
             const rule = ATTACHMENT_RULES[type];
             if (!rule) return null;
-            if (type === 'Sick leave' && days <= 1) return null;
             return (
               <div>
                 <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, color: P.inkSoft, marginBottom: 3 }}>{rule.label}</label>
@@ -906,7 +1039,7 @@ function AddTimeOffModal({ existing, onClose, onSave }) {
           <div style={{ flex: 1 }} />
           {(() => {
             const rule = ATTACHMENT_RULES[type];
-            const show = rule && !(type === 'Sick leave' && days <= 1) && !attachment;
+            const show = rule && !attachment;
             if (!show) return null;
             return (
               <div onClick={() => setNotifyEmployee(v => !v)} style={{ display: 'flex', alignItems: 'center', gap: 7, cursor: 'pointer', userSelect: 'none' }}>
@@ -1046,14 +1179,22 @@ function RequestsScreen({ requests, onApprove, onDecline, onSave, onCancel }) {
 function buildAbsenceMap(requests) {
   const map = {};
   for (const req of requests.filter(r => r.status === 'approved' || r.status === 'pending')) {
-    const start = parseDisplayDate(req.startDate);
-    const end   = parseDisplayDate(req.endDate) || start;
-    if (!start) continue;
     if (!map[req.employee]) map[req.employee] = {};
-    for (let d = new Date(start); d <= end; d = addDays(d, 1)) {
-      const iso = isoDate(d);
-      if (!map[req.employee][iso]) {
-        map[req.employee][iso] = { type: req.type, status: req.status, requestId: req.id };
+    if (req._selectedDates && req._selectedDates.length > 0) {
+      for (const iso of req._selectedDates) {
+        if (!map[req.employee][iso]) {
+          map[req.employee][iso] = { type: req.type, status: req.status, requestId: req.id };
+        }
+      }
+    } else {
+      const start = parseDisplayDate(req.startDate);
+      const end   = parseDisplayDate(req.endDate) || start;
+      if (!start) continue;
+      for (let d = new Date(start); d <= end; d = addDays(d, 1)) {
+        const iso = isoDate(d);
+        if (!map[req.employee][iso]) {
+          map[req.employee][iso] = { type: req.type, status: req.status, requestId: req.id };
+        }
       }
     }
   }

@@ -221,8 +221,9 @@ function DesktopAppShell() {
       <div
         data-app-shell
         style={{
-          flex: 1, overflowY: 'auto', position: 'relative',
+          flex: 1, overflowY: 'auto', overflowX: 'hidden', position: 'relative',
           transform: 'translateZ(0)',
+          background: '#fbfafd',
         }}>
         <div style={{
           maxWidth: 1088, margin: '0 auto',
