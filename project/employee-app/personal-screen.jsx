@@ -2555,19 +2555,6 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
                 <h1 style={{ flex: 1, margin: 0, fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 28, letterSpacing: '-0.04em', color: P.ink }}>
                   {editItem ? 'Edit request' : 'Request time off'}
                 </h1>
-                {(editItem || (leaveReason && leaveReason !== 'special-' && leaveReason !== 'special-wedding' && leaveReason !== 'special-funeral')) && (
-                  <button
-                    disabled={!canSubmit} onClick={handleSubmit}
-                    style={{
-                      display: 'inline-flex', alignItems: 'center', gap: 8,
-                      padding: '10px 20px', borderRadius: 10,
-                      border: 'none', background: P.ink, cursor: canSubmit ? 'pointer' : 'not-allowed',
-                      fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: 'white',
-                      opacity: canSubmit ? 1 : 0.5, flexShrink: 0,
-                    }}>
-                    {submitting ? (editItem ? 'Updating…' : 'Submitting…') : (editItem ? 'Update request' : 'Submit request')}
-                  </button>
-                )}
               </div>
             </div>
             <div style={{ borderBottom: `1px solid ${P.border}`, width: '100vw', marginLeft: 'calc((100% - 100vw) / 2)' }} />
@@ -3169,7 +3156,24 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
           )}
         </div>
 
-        {/* Sticky CTA — mobile only; desktop shows the submit button in the header */}
+        {/* Desktop CTA — right-aligned below the form */}
+        {isDesktop && (editItem || (leaveReason && leaveReason !== 'special-' && leaveReason !== 'special-wedding' && leaveReason !== 'special-funeral')) && (
+          <div style={{ maxWidth: 864, margin: '0 auto', width: '100%', padding: '0 24px 24px', display: 'flex', justifyContent: 'flex-end' }}>
+            <button
+              disabled={!canSubmit} onClick={handleSubmit}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 8,
+                padding: '10px 20px', borderRadius: 10,
+                border: 'none', background: P.ink, cursor: canSubmit ? 'pointer' : 'not-allowed',
+                fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: 'white',
+                opacity: canSubmit ? 1 : 0.5,
+              }}>
+              {submitting ? (editItem ? 'Updating…' : 'Submitting…') : (editItem ? 'Update request' : 'Submit request')}
+            </button>
+          </div>
+        )}
+
+        {/* Sticky CTA — mobile only */}
         {!isDesktop && (editItem || (leaveReason && leaveReason !== 'special-' && leaveReason !== 'special-wedding' && leaveReason !== 'special-funeral')) && (
         <div style={{ position: 'sticky', bottom: 0, padding: '12px 16px 32px', background: 'white', borderTop: `1px solid ${P.border}`, ...(editItem ? {} : { animation: 'revealDown 0.35s ease-out 0.1s both' }) }}>
           <Button variant="primary" size="large" fullWidth disabled={!canSubmit} onClick={handleSubmit}>
@@ -3450,7 +3454,7 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
                   <div key={_toISO(first)} role="listitem" aria-label={ariaLabel} style={{
                     display: 'flex', alignItems: 'center', gap: 8,
                     padding: '12px 4px',
-                    borderTop: ri > 0 ? `1px solid ${P.border}` : 'none',
+                    borderTop: 'none',
                   }}>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 15, color: P.ink, lineHeight: '20px' }}>

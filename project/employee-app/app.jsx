@@ -298,6 +298,80 @@ function SplashScreen({ onDone }) {
   );
 }
 
+function ProtoSwitcher({ viewMode, switchMode }) {
+  const [open, setOpen] = React.useState(false);
+  const ref = React.useRef(null);
+
+  React.useEffect(() => {
+    if (!open) return;
+    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [open]);
+
+  const ink = 'rgb(15,13,40)';
+  const options = [
+    { id: 'mobile',  label: 'Mobile',   icon: 'Smartphone' },
+    { id: 'desktop', label: 'Desktop',  icon: 'Monitor'    },
+  ];
+
+  return (
+    <div ref={ref} style={{ position: 'fixed', bottom: 20, right: 20, zIndex: 9999 }}>
+      {/* Popover menu */}
+      {open && (
+        <div style={{
+          position: 'absolute', bottom: 52, right: 0,
+          background: '#fff', borderRadius: 12,
+          border: '1px solid #e5e7eb',
+          boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+          padding: 6, minWidth: 160,
+          display: 'flex', flexDirection: 'column', gap: 2,
+        }}>
+          {options.map(({ id, label, icon }) => {
+            const active = viewMode === id;
+            return (
+              <button key={id} onClick={() => { switchMode(id); setOpen(false); }} style={{
+                display: 'flex', alignItems: 'center', gap: 9,
+                padding: '8px 12px', borderRadius: 8, border: 'none', cursor: 'pointer',
+                background: active ? ink : 'transparent',
+                color: active ? '#fff' : ink,
+                fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13,
+                textAlign: 'left',
+              }}>
+                <LucideIcon name={icon} size={14} color={active ? '#fff' : ink} strokeWidth={2} />
+                {label}
+                {active && <span style={{ marginLeft: 'auto', width: 6, height: 6, borderRadius: '50%', background: '#6D17CF' }} />}
+              </button>
+            );
+          })}
+          <div style={{ height: 1, background: '#f0f0f0', margin: '4px 0' }} />
+          <a href="hr-admin/" target="_blank" rel="noreferrer" onClick={() => setOpen(false)} style={{
+            display: 'flex', alignItems: 'center', gap: 9,
+            padding: '8px 12px', borderRadius: 8,
+            color: ink, textDecoration: 'none',
+            fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13,
+          }}>
+            <LucideIcon name="Users" size={14} color={ink} strokeWidth={2} />
+            HR Admin
+            <LucideIcon name="ExternalLink" size={11} color="#9ca3af" strokeWidth={2} style={{ marginLeft: 'auto' }} />
+          </a>
+        </div>
+      )}
+
+      {/* FAB */}
+      <button onClick={() => setOpen(o => !o)} style={{
+        width: 40, height: 40, borderRadius: '50%', border: 'none', cursor: 'pointer',
+        background: ink, color: '#fff',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        boxShadow: '0 4px 14px rgba(15,13,40,0.35)',
+        transition: 'transform 150ms',
+      }}>
+        <LucideIcon name={open ? 'X' : 'Layers'} size={16} color="#fff" strokeWidth={2} />
+      </button>
+    </div>
+  );
+}
+
 function App() {
   const [splashDone, setSplashDone] = React.useState(false);
   const [viewMode, setViewMode] = React.useState(
@@ -336,45 +410,8 @@ function App() {
         </NavProvider>
       )}
 
-      {/* View mode toggle + HR Admin link */}
-      <div style={{
-        position: 'fixed', bottom: 20, right: 20, zIndex: 9999,
-        display: 'flex', alignItems: 'center', gap: 8,
-      }}>
-        <div style={{
-          display: 'flex', borderRadius: 20, overflow: 'hidden',
-          border: '1px solid #d1d5db', background: 'white',
-          boxShadow: '0 2px 12px rgba(0,0,0,0.1)',
-        }}>
-          <button onClick={() => switchMode('mobile')} style={{
-            ...btnBase,
-            background: viewMode === 'mobile' ? 'rgb(15,13,40)' : 'white',
-            color: viewMode === 'mobile' ? 'white' : '#6b7280',
-          }}>
-            <LucideIcon name="Smartphone" size={13} color={viewMode === 'mobile' ? 'white' : '#6b7280'} strokeWidth={2} />
-            Mobile
-          </button>
-          <button onClick={() => switchMode('desktop')} style={{
-            ...btnBase,
-            borderLeft: '1px solid #d1d5db',
-            background: viewMode === 'desktop' ? 'rgb(15,13,40)' : 'white',
-            color: viewMode === 'desktop' ? 'white' : '#6b7280',
-          }}>
-            <LucideIcon name="Monitor" size={13} color={viewMode === 'desktop' ? 'white' : '#6b7280'} strokeWidth={2} />
-            Desktop
-          </button>
-        </div>
-        <a href="hr-admin/" target="_blank" rel="noreferrer" style={{
-          display: 'inline-flex', alignItems: 'center', gap: 7,
-          padding: '8px 14px', borderRadius: 20,
-          background: 'rgb(15,13,40)', color: '#fff', textDecoration: 'none',
-          fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12,
-          boxShadow: '0 2px 12px rgba(15,13,40,0.2)',
-        }}>
-          <LucideIcon name="Users" size={13} color="#fff" strokeWidth={2} />
-          HR Admin
-        </a>
-      </div>
+      {/* Prototype switcher — floating icon button */}
+      <ProtoSwitcher viewMode={viewMode} switchMode={switchMode} />
     </ViewModeContext.Provider>
   );
 }
