@@ -35,6 +35,15 @@ const ViewModeContext = React.createContext('mobile');
 window.ViewModeContext = ViewModeContext;
 
 // ─────────────────────────────────────────────────────────────
+// Proto data context — 'full' | 'empty'
+// Switches the time-off hub between a returning-user state and
+// an empty state (no requests). Exposed on window so
+// personal-screen.jsx can consume it without an import.
+// ─────────────────────────────────────────────────────────────
+const ProtoDataContext = React.createContext('full');
+window.ProtoDataContext = ProtoDataContext;
+
+// ─────────────────────────────────────────────────────────────
 // Tab-bar icons. Home uses the Payflip mark as a CSS mask so it
 // inherits currentColor like the Lucide icons.
 // ─────────────────────────────────────────────────────────────
@@ -223,7 +232,7 @@ function DesktopAppShell() {
         style={{
           flex: 1, overflowY: 'auto', overflowX: 'hidden', position: 'relative',
           transform: 'translateZ(0)',
-          background: '#fbfafd',
+          background: '#F2F2F2',
         }}>
         <div style={{
           maxWidth: 1088, margin: '0 auto',
@@ -249,7 +258,7 @@ function AppShell() {
       data-app-shell
       style={{
         height: '100%', display: 'flex', flexDirection: 'column',
-        background: 'var(--bg-default)',
+        background: '#F2F2F2',
         position: 'relative',
       }}>
       <div style={{
@@ -298,7 +307,7 @@ function SplashScreen({ onDone }) {
   );
 }
 
-function ProtoSwitcher({ viewMode, switchMode }) {
+function ProtoSwitcher({ viewMode, switchMode, protoData, setProtoData }) {
   const [open, setOpen] = React.useState(false);
   const ref = React.useRef(null);
 
@@ -310,10 +319,32 @@ function ProtoSwitcher({ viewMode, switchMode }) {
   }, [open]);
 
   const ink = 'rgb(15,13,40)';
-  const options = [
+  const viewOptions = [
     { id: 'mobile',  label: 'Mobile',   icon: 'Smartphone' },
     { id: 'desktop', label: 'Desktop',  icon: 'Monitor'    },
   ];
+  const dataOptions = [
+    { id: 'full',  label: 'With requests', icon: 'CalendarDays' },
+    { id: 'empty', label: 'Empty state',   icon: 'CalendarOff'  },
+  ];
+
+  const menuBtn = (active, onClick, icon, label, extra) => (
+    <button onClick={onClick} style={{
+      display: 'flex', alignItems: 'center', gap: 9,
+      padding: '8px 12px', borderRadius: 8, border: 'none', cursor: 'pointer',
+      background: active ? ink : 'transparent',
+      color: active ? '#fff' : ink,
+      fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13,
+      textAlign: 'left', width: '100%',
+    }}>
+      <LucideIcon name={icon} size={14} color={active ? '#fff' : ink} strokeWidth={2} />
+      {label}
+      {extra}
+      {active && <span style={{ marginLeft: 'auto', width: 6, height: 6, borderRadius: '50%', background: '#6D17CF' }} />}
+    </button>
+  );
+
+  const divider = <div style={{ height: 1, background: '#f0f0f0', margin: '4px 0' }} />;
 
   return (
     <div ref={ref} style={{ position: 'fixed', bottom: 20, right: 20, zIndex: 9999 }}>
@@ -324,27 +355,17 @@ function ProtoSwitcher({ viewMode, switchMode }) {
           background: '#fff', borderRadius: 12,
           border: '1px solid #e5e7eb',
           boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
-          padding: 6, minWidth: 160,
+          padding: 6, minWidth: 180,
           display: 'flex', flexDirection: 'column', gap: 2,
         }}>
-          {options.map(({ id, label, icon }) => {
-            const active = viewMode === id;
-            return (
-              <button key={id} onClick={() => { switchMode(id); setOpen(false); }} style={{
-                display: 'flex', alignItems: 'center', gap: 9,
-                padding: '8px 12px', borderRadius: 8, border: 'none', cursor: 'pointer',
-                background: active ? ink : 'transparent',
-                color: active ? '#fff' : ink,
-                fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13,
-                textAlign: 'left',
-              }}>
-                <LucideIcon name={icon} size={14} color={active ? '#fff' : ink} strokeWidth={2} />
-                {label}
-                {active && <span style={{ marginLeft: 'auto', width: 6, height: 6, borderRadius: '50%', background: '#6D17CF' }} />}
-              </button>
-            );
-          })}
-          <div style={{ height: 1, background: '#f0f0f0', margin: '4px 0' }} />
+          {viewOptions.map(({ id, label, icon }) =>
+            menuBtn(viewMode === id, () => { switchMode(id); setOpen(false); }, icon, label, null)
+          )}
+          {divider}
+          {dataOptions.map(({ id, label, icon }) =>
+            menuBtn(protoData === id, () => { setProtoData(id); setOpen(false); }, icon, label, null)
+          )}
+          {divider}
           <a href="hr-admin/" target="_blank" rel="noreferrer" onClick={() => setOpen(false)} style={{
             display: 'flex', alignItems: 'center', gap: 9,
             padding: '8px 12px', borderRadius: 8,
@@ -381,6 +402,7 @@ function App() {
     setViewMode(mode);
     localStorage.setItem('payflip-view-mode', mode);
   };
+  const [protoData, setProtoData] = React.useState('full');
 
   const btnBase = {
     display: 'inline-flex', alignItems: 'center', gap: 6,
@@ -391,6 +413,7 @@ function App() {
 
   return (
     <ViewModeContext.Provider value={viewMode}>
+    <ProtoDataContext.Provider value={protoData}>
       {viewMode === 'mobile' ? (
         <div style={{
           minHeight: '100vh',
@@ -411,7 +434,8 @@ function App() {
       )}
 
       {/* Prototype switcher — floating icon button */}
-      <ProtoSwitcher viewMode={viewMode} switchMode={switchMode} />
+      <ProtoSwitcher viewMode={viewMode} switchMode={switchMode} protoData={protoData} setProtoData={setProtoData} />
+    </ProtoDataContext.Provider>
     </ViewModeContext.Provider>
   );
 }

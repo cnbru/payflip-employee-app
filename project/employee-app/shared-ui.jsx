@@ -84,21 +84,21 @@ function Button({
   fullWidth = false, leftIcon, style, disabled,
 }) {
   const palette = {
-    primary:   { bg: 'rgb(15,13,40)', color: '#fff',  border: 'transparent' },
-    outline:   { bg: '#fff',           color: PFC.ink, border: PFC.borderHard },
-    ghost:     { bg: 'transparent',    color: PFC.ink, border: 'transparent' },
-    purple:    { bg: PFC.purpleTile,   color: PFC.ink, border: 'transparent' },
+    primary:   { bg: 'rgb(15,13,40)', color: '#fff',  border: 'transparent', fw: 600 },
+    outline:   { bg: '#fff',           color: PFC.ink, border: PFC.borderHard, fw: 500 },
+    ghost:     { bg: 'transparent',    color: PFC.ink, border: 'transparent', fw: 500 },
+    purple:    { bg: PFC.purpleTile,   color: PFC.ink, border: 'transparent', fw: 600 },
   }[variant];
   const sz = {
     sm:      { fs: 14, lh: '20px', pad: '6px 12px', radius: 8 },
     regular: { fs: 16, lh: '24px', pad: '8px 16px', radius: 10 },
-    large:   { fs: 16, lh: '24px', pad: '12px 20px', radius: 12 },
+    large:   { fs: 14, lh: '20px', pad: '10px 20px', radius: 10 },
   }[size === 'large' ? 'large' : size === 'sm' ? 'sm' : 'regular'];
   return (
     <button onClick={disabled ? undefined : onClick} disabled={disabled} style={{
       appearance: 'none', border: `1px solid ${palette.border}`,
       background: palette.bg, color: palette.color,
-      fontFamily: _font, fontWeight: 700,
+      fontFamily: _font, fontWeight: palette.fw,
       fontSize: sz.fs, lineHeight: sz.lh, padding: sz.pad,
       borderRadius: sz.radius,
       cursor: disabled ? 'not-allowed' : 'pointer',
