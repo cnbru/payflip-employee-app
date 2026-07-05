@@ -726,7 +726,7 @@ function DesktopTimeOffHub() {
     return null;
   };
 
-  const pending = items.filter(i => i.status === 'pending');
+  const pending = items.filter(i => i.status === 'pending' && !i._illnessReport);
   const needsAttention = pending.filter(i => !i._adminRecorded);
   const approvedItems = items.filter(i => i.status === 'approved');
   const upcoming = approvedItems.filter(i => { const d = _itemEndDate(i); return d && d >= today; });
@@ -1359,7 +1359,7 @@ function TimeOffHubScreen() {
         {(() => {
           const ALL = protoData === 'empty' ? [] : (window.__timeOffItems || []);
 
-          const pending  = ALL.filter(i => i.status === 'pending');
+          const pending  = ALL.filter(i => i.status === 'pending' && !i._illnessReport);
           const denied   = ALL.filter(i => i.status === 'denied');
 
           // Split approved into upcoming (future) vs past
@@ -1818,19 +1818,25 @@ function TimeOffHistoryScreen() {
       <div key={item.id}
         role="button" tabIndex={0}
         aria-label={`${_label}, ${item.days === 1 ? '1 day' : item.days + ' days'}, ${item.date}`}
-        onClick={() => isDesktop ? setDetailItem(item) : (nav && nav.push('time-off-detail', { item }))}
-        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); isDesktop ? setDetailItem(item) : (nav && nav.push('time-off-detail', { item })); } }}
-        style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '16px 0', cursor: 'pointer' }}>
-        <div style={{ width: 48, height: 48, borderRadius: 14, background: '#eeeff0', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-          <LucideIcon name={_icon} size={22} color={P.inkSoft} strokeWidth={1.75} />
+        onClick={() => isDesktop ? setDetailItem(item) : nav && nav.push('time-off-detail', { item })}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); isDesktop ? setDetailItem(item) : nav && nav.push('time-off-detail', { item }); } }}
+        style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 0', cursor: 'pointer' }}>
+        <div style={{ width: 44, height: 44, borderRadius: 12, background: '#eeeff0', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <LucideIcon name={_icon} size={20} color={P.inkSoft} strokeWidth={1.75} />
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.ink, lineHeight: '22px' }}>
+          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.ink, lineHeight: '20px' }}>
             {_formatDate(item)}
             <span style={{ fontWeight: 400, color: P.inkSoft }}>{' · '}{item.days === 1 ? '1 day' : `${item.days} days`}</span>
           </div>
           <div style={{ fontFamily: 'var(--font-display)', fontWeight: 400, fontSize: 13, color: P.inkSoft, marginTop: 2 }}>{_label}</div>
         </div>
+        {item._sickConverted != null && (
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#fce7f3', color: '#be185d', padding: '5px 12px', borderRadius: 20, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, flexShrink: 0, whiteSpace: 'nowrap' }}>
+            <span style={{ fontSize: 8, lineHeight: 1 }}>●</span>
+            Illness reported
+          </div>
+        )}
         <LucideIcon name="ChevronRight" size={18} color="#9ca3af" strokeWidth={2} />
       </div>
     );
@@ -1897,7 +1903,7 @@ function TimeOffHistoryScreen() {
       ) : (
         /* Mobile header */
         <>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 16px', background: 'white', borderBottom: `1px solid ${P.border}`, flexShrink: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 16px', borderBottom: `1px solid ${P.border}`, flexShrink: 0 }}>
             <button onClick={() => nav && nav.pop()} aria-label="Back"
               style={{ width: 36, height: 36, borderRadius: 10, border: 'none', background: 'transparent', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
               <LucideIcon name="ArrowLeft" size={22} color={P.ink} strokeWidth={1.75} />
@@ -1938,7 +1944,13 @@ function TimeOffHistoryScreen() {
                     ))}
                   </div>
                 ) : (
-                  items.map(item => <ItemRow key={item.id} item={item} />)
+                  <div style={{ background: 'white', border: '1px solid #EAEAEB', borderRadius: 16, overflow: 'hidden' }}>
+                    {items.map((item, i) => (
+                      <div key={item.id} style={{ padding: '0 12px', borderBottom: i < items.length - 1 ? '1px solid #EAEAEB' : 'none' }}>
+                        <ItemRow item={item} />
+                      </div>
+                    ))}
+                  </div>
                 )}
               </div>
             ))
@@ -3999,6 +4011,14 @@ function TimeOffDetailScreen({ item, onClose }) {
   const [detailToast, setDetailToast] = React.useState(null);
   const [desktopAnim, setDesktopAnim] = React.useState('t-modal-enter');
   const [sheetAnim, setSheetAnim] = React.useState('');
+  // Illness form — inline in desktop modal, bottom sheet on mobile
+  const [illnessStep, setIllnessStep] = React.useState(null); // null | 'form' | 'success'
+  const [illnessSelectedDays, setIllnessSelectedDays] = React.useState(new Set());
+  const [illnessDaysExpanded, setIllnessDaysExpanded] = React.useState(false);
+  const [illnessAttachments, setIllnessAttachments] = React.useState([]);
+  const [illnessSubmitting, setIllnessSubmitting] = React.useState(false);
+  const [showIllnessSheet, setShowIllnessSheet] = React.useState(false);
+  const [illnessSheetAnim, setIllnessSheetAnim] = React.useState('');
   const doClose = () => {
     if (isDesktop) {
       setDesktopAnim('t-modal-leave');
@@ -4013,6 +4033,38 @@ function TimeOffDetailScreen({ item, onClose }) {
 
   const _detailToday = new Date(); _detailToday.setHours(0, 0, 0, 0);
   const _dtMMap = { January:0, February:1, March:2, April:3, May:4, June:5, July:6, August:7, September:8, October:9, November:10, December:11 };
+
+  // Illness form helpers — past working days within this leave
+  const _toISO2 = d => d.toISOString().slice(0, 10);
+  const _illnessPastDays = (() => {
+    const mo = _dtMMap[item.month]; if (mo == null) return [];
+    const match = (item.date || '').match(/(\d+)(?:\s*[–\-→]\s*(\d+))?/); if (!match) return [];
+    const sDay = parseInt(match[1]), eDay = match[2] ? parseInt(match[2]) : sDay;
+    const days = [];
+    for (let d = sDay; d <= eDay; d++) {
+      const dt = new Date(2026, mo, d);
+      if (!_isWeekend(dt) && !_isHoliday(dt) && dt <= _detailToday) days.push(dt);
+    }
+    return days;
+  })();
+  const _startIllnessForm = () => {
+    setIllnessSelectedDays(new Set(_illnessPastDays.map(_toISO2)));
+    setIllnessDaysExpanded(false);
+    setIllnessAttachments([]);
+    setIllnessSubmitting(false);
+    if (isDesktop) {
+      setIllnessStep('form');
+    } else {
+      setShowIllnessSheet(true);
+      requestAnimationFrame(() => requestAnimationFrame(() => setIllnessSheetAnim('is-open')));
+    }
+  };
+  const _closeIllnessSheet = () => {
+    setIllnessSheetAnim('is-closing');
+    setTimeout(() => { setShowIllnessSheet(false); setIllnessSheetAnim(''); }, 200);
+  };
+  const _illnessDayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const _illnessMthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const isPastItem = (() => {
     const isoRef = item._endISO || item._startISO;
     if (isoRef) { const [y, m, d] = isoRef.split('-').map(Number); return new Date(y, m - 1, d) < _detailToday; }
@@ -4085,14 +4137,148 @@ function TimeOffDetailScreen({ item, onClose }) {
         borderRadius: 20, overflow: 'hidden',
         boxShadow: '0 20px 60px rgba(0,0,0,0.2)',
       } : {
-        display: 'flex', flexDirection: 'column', minHeight: '100%', background: '#F2F2F2',
+        display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, background: '#F2F2F2',
       }}>
 
       {isDesktop ? (
-        /* ── Desktop compact modal layout ── */
+        illnessStep === 'success' ? (
+          /* ── Illness success view ── */
+          <>
+            <div style={{ padding: '16px 24px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', borderBottom: `1px solid ${P.border}` }}>
+              <button onClick={() => doClose()} style={{ width: 32, height: 32, borderRadius: 8, background: P.surface, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <LucideIcon name="X" size={18} color={P.ink} strokeWidth={2} />
+              </button>
+            </div>
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '32px 24px', textAlign: 'center' }}>
+              <SuccessCheck iconName="CircleCheck" iconColor={PFC.successText} iconBg={PFC.successBg} />
+              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 20, color: P.ink, marginBottom: 8, animation: 'fadeSlideIn 0.5s ease-out 0.15s both' }}>Illness reported</div>
+              <div style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, lineHeight: '20px', maxWidth: 280, animation: 'fadeSlideIn 0.5s ease-out 0.25s both' }}>
+                {illnessSelectedDays.size} sick day{illnessSelectedDays.size !== 1 ? 's' : ''} {illnessSelectedDays.size !== 1 ? 'have' : 'has'} been submitted for HR review and will be converted back to vacation once approved.
+              </div>
+            </div>
+            <div style={{ padding: '16px 24px 24px', borderTop: `1px solid ${P.border}` }}>
+              <Button variant="primary" size="large" fullWidth onClick={() => { doClose(); setTimeout(() => { window.__refreshTimeOff && window.__refreshTimeOff(); window.__showTimeOffToast && window.__showTimeOffToast('Illness reported'); }, 50); }}>Back to time off</Button>
+            </div>
+          </>
+        ) : illnessStep === 'form' ? (
+          /* ── Illness report form view ── */
+          <>
+            {/* Header: back + title + close */}
+            <div style={{ padding: '14px 20px', display: 'flex', alignItems: 'center', gap: 10, borderBottom: `1px solid ${P.border}`, flexShrink: 0 }}>
+              <button onClick={() => setIllnessStep(null)} style={{ width: 32, height: 32, borderRadius: 8, background: P.surface, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <LucideIcon name="ArrowLeft" size={18} color={P.ink} strokeWidth={2} />
+              </button>
+              <div style={{ flex: 1, fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 16, color: P.ink }}>Report illness</div>
+              <button onClick={() => doClose()} style={{ width: 32, height: 32, borderRadius: 8, background: P.surface, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <LucideIcon name="X" size={18} color={P.ink} strokeWidth={2} />
+              </button>
+            </div>
+            {/* Scrollable form body */}
+            <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px 0' }}>
+              {/* Belgian law note */}
+              <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start', marginBottom: 20, background: '#eff6ff', borderRadius: 10, padding: '10px 14px' }}>
+                <LucideIcon name="Info" size={14} color="#2563eb" style={{ flexShrink: 0, marginTop: 1 }} />
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: '#1e40af', lineHeight: '17px' }}>
+                  Under Belgian law (2024), sick days during planned vacation are converted back to annual leave after HR approval.
+                </div>
+              </div>
+              {/* Context card */}
+              <div style={{ background: P.surface, borderRadius: 12, padding: '12px 16px', marginBottom: 20 }}>
+                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.ink }}>{item.label}</div>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, marginTop: 2 }}>{item.date} · {item.days} day{item.days !== 1 ? 's' : ''}</div>
+              </div>
+              {/* Day selector */}
+              {_illnessPastDays.length > 1 && (
+                <div style={{ marginBottom: 20 }}>
+                  <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.inkSoft, marginBottom: 10 }}>
+                    Which days were you sick?
+                  </div>
+                  {_illnessPastDays.length > 5 && !illnessDaysExpanded ? (
+                    /* Collapsed: all selected summary */
+                    <button onClick={() => setIllnessDaysExpanded(true)} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', border: `1.5px solid #db2777`, borderRadius: 12, background: '#fdf2f8', cursor: 'pointer', textAlign: 'left' }}>
+                      <div>
+                        <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: '#9d174d' }}>
+                          {illnessSelectedDays.size === _illnessPastDays.length ? `All ${_illnessPastDays.length} days selected` : `${illnessSelectedDays.size} of ${_illnessPastDays.length} days selected`}
+                        </div>
+                        <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: '#be185d', marginTop: 2 }}>Tap to deselect exceptions</div>
+                      </div>
+                      <LucideIcon name="ChevronDown" size={18} color="#db2777" />
+                    </button>
+                  ) : (
+                    /* Expanded or ≤5 days: individual checkboxes */
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                      {_illnessPastDays.map(dt => {
+                        const iso = _toISO2(dt);
+                        const isOn = illnessSelectedDays.has(iso);
+                        return (
+                          <button key={iso} onClick={() => setIllnessSelectedDays(prev => { const n = new Set(prev); isOn ? n.delete(iso) : n.add(iso); return n; })} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', border: `1.5px solid ${isOn ? '#db2777' : P.border}`, borderRadius: 12, background: isOn ? '#fdf2f8' : 'white', cursor: 'pointer', transition: 'all 150ms ease' }}>
+                            <div style={{ width: 20, height: 20, borderRadius: 6, border: `2px solid ${isOn ? '#db2777' : '#d1d5db'}`, background: isOn ? '#db2777' : 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all 150ms ease' }}>
+                              {isOn && <LucideIcon name="Check" size={12} color="white" strokeWidth={3} />}
+                            </div>
+                            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.ink }}>
+                              {_illnessDayNames[dt.getDay()]} {dt.getDate()} {_illnessMthNames[dt.getMonth()]}
+                            </div>
+                          </button>
+                        );
+                      })}
+                      {_illnessPastDays.length > 5 && (
+                        <button onClick={() => { setIllnessDaysExpanded(false); setIllnessSelectedDays(new Set(_illnessPastDays.map(_toISO2))); }} style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, background: 'none', border: 'none', cursor: 'pointer', padding: '4px 0', textDecoration: 'underline', textAlign: 'left' }}>
+                          Reset — select all days
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+              {/* Certificate upload */}
+              <div style={{ marginBottom: 24 }}>
+                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.inkSoft, marginBottom: 8 }}>
+                  Medical certificate <span style={{ color: PFC.errorText }}>*</span>
+                </div>
+                {illnessAttachments.length > 0 && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 8 }}>
+                    {illnessAttachments.map((a, i) => (
+                      <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', background: P.surface, borderRadius: 10 }}>
+                        <LucideIcon name="FileText" size={14} color={P.inkSoft} />
+                        <span style={{ flex: 1, fontFamily: 'var(--font-body)', fontSize: 13, color: P.ink, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a}</span>
+                        <button onClick={() => setIllnessAttachments(p => p.filter((_, j) => j !== i))} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 2 }}>
+                          <LucideIcon name="X" size={13} color={P.inkSoft} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <button onClick={() => setIllnessAttachments(p => [...p, 'certificate-' + (p.length + 1) + '.pdf'])} style={{ width: '100%', padding: '14px', border: `1.5px dashed ${P.border}`, borderRadius: 12, background: '#fafafa', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.inkSoft }}>
+                  <LucideIcon name="Upload" size={15} color={P.inkSoft} />
+                  Upload certificate
+                </button>
+              </div>
+            </div>
+            {/* Submit */}
+            <div style={{ padding: '14px 24px 24px', borderTop: `1px solid ${P.border}`, flexShrink: 0 }}>
+              <Button variant="primary" size="large" fullWidth disabled={illnessSubmitting || illnessSelectedDays.size === 0} onClick={() => {
+                if (illnessAttachments.length === 0) { alert('Please upload a medical certificate'); return; }
+                setIllnessSubmitting(true);
+                setTimeout(() => {
+                  if (window.__timeOffItems) {
+                    const mo = _dtMMap[item.month] ?? 0;
+                    const sickItem = { id: 'sick-' + Date.now(), label: 'Sick leave', date: [...illnessSelectedDays].sort().map(iso => { const p = iso.split('-'); return +p[2]; }).join(', ') + ' ' + _illnessMthNames[mo], month: item.month, days: illnessSelectedDays.size, status: 'pending', _leaveReason: 'sick', _illnessReport: true };
+                    window.__timeOffItems = window.__timeOffItems.map(i2 => i2.id === item.id ? { ...i2, _sickConverted: illnessSelectedDays.size } : i2);
+                    window.__timeOffItems.push(sickItem);
+                  }
+                  setIllnessSubmitting(false);
+                  setIllnessStep('success');
+                }, 1000);
+              }}>
+                {illnessSubmitting ? 'Submitting…' : `Report ${illnessSelectedDays.size} sick day${illnessSelectedDays.size !== 1 ? 's' : ''}`}
+              </Button>
+            </div>
+          </>
+        ) : (
+        /* ── Desktop detail view ── */
         <>
-          {/* Status pill + close button */}
-          <div style={{ padding: '20px 24px 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          {/* Status pill(s) + close button */}
+          <div style={{ padding: '20px 24px 0', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
             {(() => {
               const pills = {
                 approved: { bg: '#dcfce7', color: '#15803d' },
@@ -4101,15 +4287,35 @@ function TimeOffDetailScreen({ item, onClose }) {
               };
               const pill = pills[item.status] || { bg: P.surface, color: P.inkSoft };
               const label = item._adminRecorded ? 'Recorded' : ({ approved: 'Approved', pending: 'Pending', denied: 'Denied' }[item.status] || item.status);
+              const illnessStatus = item._sickIllnessStatus || 'pending';
+              const illnessPill = illnessStatus === 'approved'
+                ? { bg: '#dcfce7', color: '#15803d', label: 'Illness approved' }
+                : illnessStatus === 'rejected'
+                ? { bg: '#fee2e2', color: '#b91c1c', label: 'Illness rejected' }
+                : { bg: '#fce7f3', color: '#be185d', label: 'Illness reported' };
               return (
-                <div style={{
-                  display: 'inline-flex', alignItems: 'center', gap: 6,
-                  background: pill.bg, color: pill.color,
-                  padding: '5px 12px', borderRadius: 20,
-                  fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13,
-                }}>
-                  <span style={{ fontSize: 8, lineHeight: 1 }}>●</span>
-                  {label}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  {item._sickConverted != null ? (
+                    <div style={{
+                      display: 'inline-flex', alignItems: 'center', gap: 6,
+                      background: illnessPill.bg, color: illnessPill.color,
+                      padding: '5px 12px', borderRadius: 20,
+                      fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13,
+                    }}>
+                      <span style={{ fontSize: 8, lineHeight: 1 }}>●</span>
+                      {illnessPill.label}
+                    </div>
+                  ) : (
+                    <div style={{
+                      display: 'inline-flex', alignItems: 'center', gap: 6,
+                      background: pill.bg, color: pill.color,
+                      padding: '5px 12px', borderRadius: 20,
+                      fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13,
+                    }}>
+                      <span style={{ fontSize: 8, lineHeight: 1 }}>●</span>
+                      {label}
+                    </div>
+                  )}
                 </div>
               );
             })()}
@@ -4190,6 +4396,59 @@ function TimeOffDetailScreen({ item, onClose }) {
               <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft }}>Submitted</span>
               <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 15, color: P.ink }}>16 Nov 2025</span>
             </div>
+
+            {/* Timeline */}
+            {(() => {
+              const statusColor = { approved: '#16a34a', pending: '#d97706', denied: '#dc2626' };
+              const steps = [
+                {
+                  label: 'Requested',
+                  detail: '16 Nov 2025',
+                  state: 'done',
+                  color: '#6b7280',
+                },
+                item.status === 'approved'
+                  ? { label: 'Approved', detail: 'Sophie L.', state: 'done', color: '#16a34a' }
+                  : item.status === 'denied'
+                  ? { label: 'Denied', detail: 'Sophie L.', state: 'error', color: '#dc2626' }
+                  : { label: 'Pending review', detail: 'Waiting for Sophie L.', state: 'pending', color: '#d97706' },
+              ];
+              if (item._sickConverted != null) {
+                const illnessState = item._sickIllnessStatus || 'pending';
+                steps.push(illnessState === 'approved'
+                  ? { label: 'Illness approved', detail: `${item._sickConverted} day${item._sickConverted !== 1 ? 's' : ''} restored`, state: 'done', color: '#16a34a' }
+                  : illnessState === 'rejected'
+                  ? { label: 'Illness rejected', detail: 'HR did not approve the conversion', state: 'error', color: '#dc2626' }
+                  : { label: 'Illness reported', detail: `${item._sickConverted} day${item._sickConverted !== 1 ? 's' : ''} · Waiting for HR approval`, state: 'pending', color: '#db2777' }
+                );
+              }
+              return (
+                <div style={{ borderTop: `1px solid ${P.border}`, paddingTop: 20, paddingBottom: 28, marginTop: 4, marginLeft: -24, marginRight: -24, paddingLeft: 24, paddingRight: 24 }}>
+                  <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.inkSoft, letterSpacing: '0.07em', textTransform: 'uppercase', marginBottom: 16 }}>Timeline</div>
+                  {steps.map((step, i) => (
+                    <div key={i} style={{ display: 'flex', gap: 14 }}>
+                      {/* Dot + connector */}
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: 16, flexShrink: 0 }}>
+                        <div style={{
+                          width: 12, height: 12, borderRadius: '50%', flexShrink: 0, marginTop: 2,
+                          background: step.state === 'pending' ? 'white' : step.color,
+                          border: `2px solid ${step.state === 'pending' ? '#d1d5db' : step.color}`,
+                          boxSizing: 'border-box',
+                        }} />
+                        {i < steps.length - 1 && (
+                          <div style={{ width: 1.5, flex: 1, minHeight: 16, background: P.border, margin: '3px 0' }} />
+                        )}
+                      </div>
+                      {/* Content */}
+                      <div style={{ flex: 1, paddingBottom: i < steps.length - 1 ? 14 : 0 }}>
+                        <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: step.state === 'pending' ? P.inkSoft : P.ink, lineHeight: '18px' }}>{step.label}</div>
+                        {step.detail && <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, marginTop: 1 }}>{step.detail}</div>}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              );
+            })()}
           </div>
 
           {/* Divider */}
@@ -4219,7 +4478,43 @@ function TimeOffDetailScreen({ item, onClose }) {
               )}
             </div>
           )}
+
+          {/* Cancel illness report — only when pending HR review */}
+          {item._sickConverted != null && (!item._sickIllnessStatus || item._sickIllnessStatus === 'pending') && (
+            <div style={{ padding: '12px 24px 20px' }}>
+              <Button variant="outline" size="large" fullWidth onClick={() => {
+                window.__timeOffItems = (window.__timeOffItems || []).map(i2 => i2.id === item.id ? { ...i2, _sickConverted: undefined } : i2);
+                doClose();
+              }}>Cancel illness report</Button>
+            </div>
+          )}
+
+          {/* Report illness banner — only when illness not yet reported */}
+          {item._sickConverted == null && (() => {
+            if (item.status !== 'approved') return false;
+            if (item._leaveReason === 'sick' || (item.label || '').toLowerCase().includes('sick')) return false;
+            const mMap = { January:0, February:1, March:2, April:3, May:4, June:5, July:6, August:7, September:8, October:9, November:10, December:11 };
+            const mo = mMap[item.month];
+            if (mo == null) return false;
+            const dm = item.date.match(/(\d+)/);
+            if (!dm) return false;
+            const leaveStart = new Date(2026, mo, parseInt(dm[1]));
+            leaveStart.setHours(0,0,0,0);
+            const today = new Date(); today.setHours(0,0,0,0);
+            return leaveStart <= today;
+          })() && (
+            <div style={{ margin: '16px 24px 20px', background: '#fce7f3', border: '1px solid #fbcfe8', borderRadius: 14, padding: '14px 16px', display: 'flex', gap: 12, alignItems: 'center' }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: '#9d174d' }}>Got sick during this leave?</div>
+                <div style={{ fontFamily: 'var(--font-body)', fontWeight: 400, fontSize: 12, color: '#9d174d', opacity: 0.8, lineHeight: '16px', marginTop: 2 }}>Report illness to recover your vacation days.</div>
+              </div>
+              <button onClick={() => _startIllnessForm()} style={{ background: '#db2777', color: 'white', border: 'none', borderRadius: 10, padding: '8px 16px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, cursor: 'pointer', flexShrink: 0, whiteSpace: 'nowrap' }}>
+                Report
+              </button>
+            </div>
+          )}
         </>
+        ) /* closes illnessStep === null detail view */
       ) : (
         /* ── Mobile layout (unchanged) ── */
         <>
@@ -4235,7 +4530,7 @@ function TimeOffDetailScreen({ item, onClose }) {
             color: P.ink, letterSpacing: '-0.003em', pointerEvents: 'none',
             margin: 0, whiteSpace: 'nowrap',
           }}>Time off details</h1>
-          <IconBtn name="CircleHelp" ariaLabel="Help" size={36} />
+          <div style={{ width: 36 }} />
         </div>
 
         {/* Scrollable body */}
@@ -4244,18 +4539,19 @@ function TimeOffDetailScreen({ item, onClose }) {
           {/* Status pill + hero — matching desktop */}
           {(() => {
             const pills = { approved: { bg: '#dcfce7', color: '#15803d' }, pending: { bg: '#fef9c3', color: '#92400e' }, denied: { bg: '#fee2e2', color: '#b91c1c' } };
-            const pill = pills[item.status] || { bg: P.surface, color: P.inkSoft };
-            const pillLabel = item._adminRecorded ? 'Recorded' : ({ approved: 'Approved', pending: 'Pending', denied: 'Denied' }[item.status] || item.status);
+            const useIllnessPill = item._sickConverted != null;
+            const pill = useIllnessPill ? { bg: '#fce7f3', color: '#be185d' } : (pills[item.status] || { bg: P.surface, color: P.inkSoft });
+            const pillLabel = useIllnessPill ? 'Illness reported' : (item._adminRecorded ? 'Recorded' : ({ approved: 'Approved', pending: 'Pending', denied: 'Denied' }[item.status] || item.status));
             return (
               <>
-                <div style={{ padding: '20px 24px 0', display: 'flex' }}>
+                <div style={{ padding: '20px 16px 0', display: 'flex' }}>
                   <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: pill.bg, color: pill.color, padding: '5px 12px', borderRadius: 20, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>
                     <span style={{ fontSize: 8, lineHeight: 1 }}>●</span>
                     {pillLabel}
                   </div>
                 </div>
-                <div style={{ padding: '16px 24px 20px' }}>
-                  <div style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 40, letterSpacing: '-0.04em', color: P.ink, lineHeight: '46px', marginBottom: 6 }}>
+                <div style={{ padding: '16px 16px 20px' }}>
+                  <div style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 28, letterSpacing: '-0.03em', color: P.ink, lineHeight: '34px', marginBottom: 6 }}>
                     {(() => {
                       const _dN = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
                       const _mN = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -4291,23 +4587,22 @@ function TimeOffDetailScreen({ item, onClose }) {
                     {item.days === 1 ? '1 day' : `${item.days} days`}
                   </div>
                 </div>
-                <div style={{ borderTop: `1px solid ${P.border}` }} />
               </>
             );
           })()}
 
-          {/* Details — horizontal rows matching desktop layout */}
+          {/* Details — card with KV rows */}
           {(() => {
             const hasNotes = !!item._notes;
             const hasAttachments = item._attachments && item._attachments.length > 0;
             const hasHalfDay = item._halfDay && Object.keys(item._halfDay).length > 0;
             const payInfo = _payInfoMap[item.label];
-            const rowStyle = { display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, padding: '18px 24px', borderBottom: `1px solid ${P.border}` };
+            const rowStyle = { display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, padding: '16px', borderTop: `1px solid ${P.border}` };
             const labelStyle = { fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, flexShrink: 0 };
             const valueStyle = { fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 15, color: P.ink, textAlign: 'right' };
             return (
-              <>
-                <div style={rowStyle}>
+              <div style={{ margin: '0 16px 16px', background: 'white', borderRadius: 14, border: `1px solid ${P.border}`, overflow: 'hidden' }}>
+                <div style={{ ...rowStyle, borderTop: 'none' }}>
                   <span style={labelStyle}>Leave type</span>
                   <span style={valueStyle}>{item.label}</span>
                 </div>
@@ -4373,15 +4668,53 @@ function TimeOffDetailScreen({ item, onClose }) {
                   <span style={labelStyle}>Submitted</span>
                   <span style={valueStyle}>16 Nov 2025</span>
                 </div>
-              </>
+              </div>
             );
           })()}
 
 
-          {/* Report illness banner */}
-          {(() => {
+          {/* Timeline — only when a state change has occurred */}
+          {(item.status !== 'pending' || item._sickConverted != null) && (() => {
+            const steps = [
+              { label: 'Requested', detail: '16 Nov 2025', state: 'done', color: '#6b7280' },
+              item.status === 'approved'
+                ? { label: 'Approved', detail: 'Sophie L.', state: 'done', color: '#16a34a' }
+                : item.status === 'denied'
+                ? { label: 'Denied', detail: 'Sophie L.', state: 'error', color: '#dc2626' }
+                : { label: 'Pending review', detail: 'Waiting for Sophie L.', state: 'pending', color: '#d97706' },
+            ];
+            if (item._sickConverted != null) {
+              const illnessState = item._sickIllnessStatus || 'pending';
+              steps.push(illnessState === 'approved'
+                ? { label: 'Illness approved', detail: `${item._sickConverted} day${item._sickConverted !== 1 ? 's' : ''} restored`, state: 'done', color: '#16a34a' }
+                : illnessState === 'rejected'
+                ? { label: 'Illness rejected', detail: 'HR did not approve the conversion', state: 'error', color: '#dc2626' }
+                : { label: 'Illness reported', detail: `${item._sickConverted} day${item._sickConverted !== 1 ? 's' : ''} · Waiting for HR approval`, state: 'pending', color: '#db2777' }
+              );
+            }
+            return (
+              <div style={{ margin: '0 16px 16px', background: 'white', borderRadius: 14, border: `1px solid ${P.border}`, overflow: 'hidden', padding: '16px' }}>
+                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.inkSoft, letterSpacing: '0.07em', textTransform: 'uppercase', marginBottom: 16 }}>Timeline</div>
+                {steps.map((step, i) => (
+                  <div key={i} style={{ display: 'flex', gap: 14 }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: 16, flexShrink: 0 }}>
+                      <div style={{ width: 12, height: 12, borderRadius: '50%', flexShrink: 0, marginTop: 2, background: step.state === 'pending' ? 'white' : step.color, border: `2px solid ${step.state === 'pending' ? '#d1d5db' : step.color}`, boxSizing: 'border-box' }} />
+                      {i < steps.length - 1 && <div style={{ width: 1.5, flex: 1, minHeight: 16, background: P.border, margin: '3px 0' }} />}
+                    </div>
+                    <div style={{ flex: 1, paddingBottom: i < steps.length - 1 ? 14 : 0 }}>
+                      <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: step.state === 'pending' ? P.inkSoft : P.ink, lineHeight: '18px' }}>{step.label}</div>
+                      {step.detail && <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, marginTop: 1 }}>{step.detail}</div>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            );
+          })()}
+
+          {/* Report illness banner — only when illness not yet reported */}
+          {item._sickConverted == null && (() => {
             if (item.status !== 'approved') return false;
-            if (item._leaveReason === 'sick') return false;
+            if (item._leaveReason === 'sick' || (item.label || '').toLowerCase().includes('sick')) return false;
             const mMap = { January:0, February:1, March:2, April:3, May:4, June:5, July:6, August:7, September:8, October:9, November:10, December:11 };
             const mo = mMap[item.month];
             if (mo == null) return false;
@@ -4393,14 +4726,11 @@ function TimeOffDetailScreen({ item, onClose }) {
             return leaveStart <= today;
           })() && (
             <div style={{ margin: '16px 24px', background: '#fce7f3', border: '1px solid #fbcfe8', borderRadius: 14, padding: '16px 16px', display: 'flex', gap: 12, alignItems: 'center' }}>
-              <div style={{ width: 36, height: 36, borderRadius: 10, background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                <LucideIcon name="Heart" size={18} color="#db2777" />
-              </div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: '#9d174d' }}>Got sick during this leave?</div>
                 <div style={{ fontFamily: 'var(--font-body)', fontWeight: 400, fontSize: 12, color: '#9d174d', opacity: 0.8, lineHeight: '16px', marginTop: 2 }}>Report illness to recover your vacation days.</div>
               </div>
-              <button onClick={() => nav && nav.push('report-illness', { sourceItem: item })} style={{ background: '#db2777', color: 'white', border: 'none', borderRadius: 10, padding: '8px 16px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, cursor: 'pointer', flexShrink: 0, whiteSpace: 'nowrap' }}>
+              <button onClick={() => _startIllnessForm()} style={{ background: '#db2777', color: 'white', border: 'none', borderRadius: 10, padding: '8px 16px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, cursor: 'pointer', flexShrink: 0, whiteSpace: 'nowrap' }}>
                 Report
               </button>
             </div>
@@ -4423,7 +4753,7 @@ function TimeOffDetailScreen({ item, onClose }) {
               })()}
             </div>
           ) : (
-            <div style={{ display: 'flex', gap: 12, padding: '16px 24px 40px', borderTop: `1px solid ${P.border}`, background: '#F2F2F2' }}>
+            <div style={{ display: 'flex', gap: 12, padding: '16px 24px 40px', borderTop: `1px solid ${P.border}`, background: 'white' }}>
               <Button variant="outline" size="large" style={{ flex: 1, color: PFC.errorText, borderColor: PFC.errorBorder }} onClick={() => openSheet()}>
                 Cancel request
               </Button>
@@ -4432,6 +4762,16 @@ function TimeOffDetailScreen({ item, onClose }) {
               </Button>
             </div>
           )
+        )}
+
+        {/* Cancel illness report — only when pending HR review */}
+        {item._sickConverted != null && (!item._sickIllnessStatus || item._sickIllnessStatus === 'pending') && (
+          <div style={{ padding: '12px 24px 20px', borderTop: `1px solid ${P.border}`, background: 'white' }}>
+            <Button variant="outline" size="large" fullWidth onClick={() => {
+              window.__timeOffItems = (window.__timeOffItems || []).map(i2 => i2.id === item.id ? { ...i2, _sickConverted: undefined } : i2);
+              doClose();
+            }}>Cancel illness report</Button>
+          </div>
         )}
 
         {/* Detail toast */}
@@ -4450,6 +4790,162 @@ function TimeOffDetailScreen({ item, onClose }) {
         )}
         </>
       )}
+
+      {/* Illness report bottom sheet */}
+      {showIllnessSheet && (() => {
+        const appShell = document.querySelector('[data-app-shell]');
+        if (!appShell) return null;
+        const doSubmitIllness = () => {
+          if (illnessAttachments.length === 0) { alert('Please upload a medical certificate'); return; }
+          setIllnessSubmitting(true);
+          setTimeout(() => {
+            if (window.__timeOffItems) {
+              const mo = _dtMMap[item.month] ?? 0;
+              const sickItem = { id: 'sick-' + Date.now(), label: 'Sick leave', date: [...illnessSelectedDays].sort().map(iso => { const p = iso.split('-'); return +p[2]; }).join(', ') + ' ' + _illnessMthNames[mo], month: item.month, days: illnessSelectedDays.size, status: 'pending', _leaveReason: 'sick', _illnessReport: true };
+              window.__timeOffItems = window.__timeOffItems.map(i2 => i2.id === item.id ? { ...i2, _sickConverted: illnessSelectedDays.size } : i2);
+              window.__timeOffItems.push(sickItem);
+            }
+            setIllnessSubmitting(false);
+            if (isDesktop) {
+              setIllnessStep('success');
+              window.__refreshTimeOff && window.__refreshTimeOff();
+            } else {
+              _closeIllnessSheet();
+              setTimeout(() => {
+                doClose();
+                window.__refreshTimeOff && window.__refreshTimeOff();
+                window.__showTimeOffToast && window.__showTimeOffToast('Illness reported');
+              }, 220);
+            }
+          }, 1000);
+        };
+        return ReactDOM.createPortal(
+          <div
+            style={{ position: 'absolute', inset: 0, zIndex: 400, background: 'rgba(15,13,40,0.45)', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}
+            onClick={(e) => { if (e.target === e.currentTarget) _closeIllnessSheet(); }}
+          >
+            <div
+              role="dialog"
+              aria-modal="true"
+              aria-label="Report illness"
+              className={`t-sheet ${illnessSheetAnim}`}
+              style={{ background: 'white', borderRadius: '20px 20px 0 0', display: 'flex', flexDirection: 'column', maxHeight: '90%' }}
+            >
+              {/* Handle */}
+              <div aria-hidden="true" style={{ width: 36, height: 4, borderRadius: 2, background: P.border, margin: '12px auto 0' }} />
+              {illnessStep === 'success' ? (
+                /* Success state */
+                <div style={{ padding: '32px 24px 40px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0 }}>
+                  <div style={{ width: 64, height: 64, borderRadius: '50%', background: PFC.successBg, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
+                    <LucideIcon name="Check" size={28} color={PFC.successText} strokeWidth={2.5} />
+                  </div>
+                  <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 20, color: P.ink, marginBottom: 8, textAlign: 'center' }}>Illness reported</div>
+                  <div style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, lineHeight: '20px', textAlign: 'center', marginBottom: 32 }}>
+                    {illnessSelectedDays.size} sick day{illnessSelectedDays.size !== 1 ? 's' : ''} submitted for HR review. Your vacation days will be restored once approved.
+                  </div>
+                  <Button variant="primary" size="large" fullWidth onClick={() => { setIllnessStep(null); _closeIllnessSheet(); doClose(); }}>
+                    Back to time off
+                  </Button>
+                </div>
+              ) : (
+              <>
+              {/* Header */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 20px', borderBottom: `1px solid ${P.border}`, flexShrink: 0 }}>
+                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 17, color: P.ink }}>Report illness</div>
+                <button onClick={_closeIllnessSheet} style={{ width: 32, height: 32, borderRadius: 8, background: P.surface, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <LucideIcon name="X" size={18} color={P.ink} strokeWidth={2} />
+                </button>
+              </div>
+              {/* Scrollable body */}
+              <div style={{ flex: 1, overflowY: 'auto', padding: '20px 20px 0' }}>
+                {/* Belgian law note */}
+                <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start', marginBottom: 20, background: '#eff6ff', borderRadius: 10, padding: '10px 14px' }}>
+                  <LucideIcon name="Info" size={14} color="#2563eb" style={{ flexShrink: 0, marginTop: 1 }} />
+                  <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: '#1e40af', lineHeight: '17px' }}>
+                    Under Belgian law (2024), sick days during planned vacation are converted back to annual leave after HR approval.
+                  </div>
+                </div>
+                {/* Context card */}
+                <div style={{ background: P.surface, borderRadius: 12, padding: '12px 16px', marginBottom: 20 }}>
+                  <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.ink }}>{item.label}</div>
+                  <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, marginTop: 2 }}>{item.date} · {item.days} day{item.days !== 1 ? 's' : ''}</div>
+                </div>
+                {/* Day selector */}
+                {_illnessPastDays.length > 1 && (
+                  <div style={{ marginBottom: 20 }}>
+                    <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.inkSoft, marginBottom: 10 }}>Which days were you sick?</div>
+                    {_illnessPastDays.length > 5 && !illnessDaysExpanded ? (
+                      <button onClick={() => setIllnessDaysExpanded(true)} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', border: '1.5px solid #db2777', borderRadius: 12, background: '#fdf2f8', cursor: 'pointer', textAlign: 'left' }}>
+                        <div>
+                          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: '#9d174d' }}>
+                            {illnessSelectedDays.size === _illnessPastDays.length ? `All ${_illnessPastDays.length} days selected` : `${illnessSelectedDays.size} of ${_illnessPastDays.length} days selected`}
+                          </div>
+                          <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: '#be185d', marginTop: 2 }}>Tap to deselect exceptions</div>
+                        </div>
+                        <LucideIcon name="ChevronDown" size={18} color="#db2777" />
+                      </button>
+                    ) : (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                        {_illnessPastDays.map(dt => {
+                          const iso = _toISO2(dt);
+                          const isOn = illnessSelectedDays.has(iso);
+                          return (
+                            <button key={iso} onClick={() => setIllnessSelectedDays(prev => { const n = new Set(prev); isOn ? n.delete(iso) : n.add(iso); return n; })} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', border: `1.5px solid ${isOn ? '#db2777' : P.border}`, borderRadius: 12, background: isOn ? '#fdf2f8' : 'white', cursor: 'pointer', transition: 'all 150ms ease' }}>
+                              <div style={{ width: 20, height: 20, borderRadius: 6, border: `2px solid ${isOn ? '#db2777' : '#d1d5db'}`, background: isOn ? '#db2777' : 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all 150ms ease' }}>
+                                {isOn && <LucideIcon name="Check" size={12} color="white" strokeWidth={3} />}
+                              </div>
+                              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.ink }}>
+                                {_illnessDayNames[dt.getDay()]} {dt.getDate()} {_illnessMthNames[dt.getMonth()]}
+                              </div>
+                            </button>
+                          );
+                        })}
+                        {_illnessPastDays.length > 5 && (
+                          <button onClick={() => { setIllnessDaysExpanded(false); setIllnessSelectedDays(new Set(_illnessPastDays.map(_toISO2))); }} style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, background: 'none', border: 'none', cursor: 'pointer', padding: '4px 0', textDecoration: 'underline', textAlign: 'left' }}>
+                            Reset — select all days
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+                {/* Certificate upload */}
+                <div style={{ marginBottom: 24 }}>
+                  <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.inkSoft, marginBottom: 8 }}>
+                    Medical certificate <span style={{ color: PFC.errorText }}>*</span>
+                  </div>
+                  {illnessAttachments.length > 0 && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 8 }}>
+                      {illnessAttachments.map((a, i) => (
+                        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', background: P.surface, borderRadius: 10 }}>
+                          <LucideIcon name="FileText" size={14} color={P.inkSoft} />
+                          <span style={{ flex: 1, fontFamily: 'var(--font-body)', fontSize: 13, color: P.ink, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a}</span>
+                          <button onClick={() => setIllnessAttachments(p => p.filter((_, j) => j !== i))} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 2 }}>
+                            <LucideIcon name="X" size={13} color={P.inkSoft} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  <button onClick={() => setIllnessAttachments(p => [...p, 'certificate-' + (p.length + 1) + '.pdf'])} style={{ width: '100%', padding: '14px', border: `1.5px dashed ${P.border}`, borderRadius: 12, background: '#fafafa', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.inkSoft }}>
+                    <LucideIcon name="Upload" size={15} color={P.inkSoft} />
+                    Upload certificate
+                  </button>
+                </div>
+              </div>
+              {/* Submit */}
+              <div style={{ padding: '14px 20px 40px', borderTop: `1px solid ${P.border}`, flexShrink: 0 }}>
+                <Button variant="primary" size="large" fullWidth disabled={illnessSubmitting || illnessSelectedDays.size === 0} onClick={doSubmitIllness}>
+                  {illnessSubmitting ? 'Submitting…' : `Report ${illnessSelectedDays.size} sick day${illnessSelectedDays.size !== 1 ? 's' : ''}`}
+                </Button>
+              </div>
+              </>
+              )} {/* closes success ternary */}
+            </div>
+          </div>,
+          appShell
+        );
+      })()}
 
       {/* Cancel confirmation sheet — inline portal, no inner component */}
       {showConfirm && (() => {
@@ -4529,6 +5025,9 @@ window.registerScreen('time-off-detail', TimeOffDetailScreen);
 // ════════════════════════════════════════════════════════════════
 function ReportIllnessScreen({ sourceItem }) {
   const nav = window.useNav ? window.useNav() : null;
+  const isDesktop = window.ViewModeContext ? React.useContext(window.ViewModeContext) === 'desktop' : false;
+  const modalRef = React.useRef(null);
+  const [_mountAnim] = React.useState(isDesktop ? 't-modal-enter' : '');
 
   if (!sourceItem) return <div style={{ padding: 40 }}>No item selected.</div>;
 
@@ -4552,7 +5051,9 @@ function ReportIllnessScreen({ sourceItem }) {
   const pastDays = leaveDays.filter(dt => dt <= today);
   const futureDays = leaveDays.filter(dt => dt > today);
 
-  const [selectedDays, setSelectedDays] = React.useState(new Set());
+  const [selectedDays, setSelectedDays] = React.useState(() =>
+    pastDays.length === 1 ? new Set([_toISO(pastDays[0])]) : new Set()
+  );
   const [attachments, setAttachments] = React.useState([]);
   const [submitting, setSubmitting] = React.useState(false);
   const [step, setStep] = React.useState(0); // 0 = form, 1 = success
@@ -4630,64 +5131,89 @@ function ReportIllnessScreen({ sourceItem }) {
     }, 1200);
   };
 
+  const wrapDesktop = (content) => {
+    if (!isDesktop) return content;
+    return (
+      <div ref={modalRef} className={_mountAnim} style={{ width: '100%', minHeight: '100%' }}>
+        {content}
+      </div>
+    );
+  };
+
+  const _desktopHeader = (
+    <>
+      <div style={{ maxWidth: 864, margin: '0 auto', width: '100%', padding: '20px 24px 0' }}>
+        <PageBackButton onClick={() => nav && nav.pop()} />
+        <h1 style={{ margin: '12px 0 32px', fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 28, letterSpacing: '-0.04em', color: P.ink }}>
+          Report illness
+        </h1>
+      </div>
+      <div style={{ borderBottom: `1px solid ${P.border}`, width: '100vw', marginLeft: 'calc((100% - 100vw) / 2)' }} />
+    </>
+  );
+
   const appShell = document.querySelector('[data-app-shell]');
 
   // ── Success screen ──
   if (step === 1) {
-    return (
-      <div style={{
-        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-        minHeight: '100%', padding: '40px 32px', textAlign: 'center',
-      }}>
-        <div style={{
-          width: 72, height: 72, borderRadius: '50%',
-          background: '#fce7f3',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          marginBottom: 24,
-          animation: 'popIn 0.4s cubic-bezier(0.34,1.56,0.64,1) both',
-        }}>
-          <LucideIcon name="Heart" size={32} color="#db2777" />
+    const onDone = () => {
+      nav && nav.pop();
+      nav && nav.pop();
+      setTimeout(() => {
+        window.__refreshTimeOff && window.__refreshTimeOff();
+        window.__showTimeOffToast && window.__showTimeOffToast('Illness reported');
+      }, 50);
+    };
+    return wrapDesktop(
+      <div style={{ display: 'flex', flexDirection: 'column', minHeight: isDesktop ? 0 : '100%', height: isDesktop ? 'auto' : '100%', background: isDesktop ? 'transparent' : '#F2F2F2' }}>
+        {isDesktop ? _desktopHeader : <NavBar title="Report illness" />}
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '48px 32px 0', textAlign: 'center' }}>
+          <SuccessCheck iconName="CircleCheck" iconColor={PFC.successText} iconBg={PFC.successBg} />
+          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 22, color: P.ink, marginBottom: 8, animation: 'fadeSlideIn 0.5s ease-out 0.15s both' }}>
+            Illness reported
+          </div>
+          <div style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, lineHeight: '20px', maxWidth: 280, animation: 'fadeSlideIn 0.5s ease-out 0.25s both' }}>
+            {selectedDays.size} sick day{selectedDays.size > 1 ? 's' : ''} {selectedDays.size > 1 ? 'have' : 'has'} been submitted for HR review. {selectedDays.size > 1 ? 'Those days' : 'That day'} will be converted back to vacation once approved.
+          </div>
         </div>
-        <div style={{
-          fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 22,
-          color: P.ink, marginBottom: 8,
-        }}>Wishing you a speedy recovery</div>
-        <div style={{
-          fontFamily: 'var(--font-body)', fontWeight: 400, fontSize: 15,
-          color: P.inkSoft, lineHeight: '22px', marginBottom: 8,
-        }}>
-          {selectedDays.size} sick day{selectedDays.size > 1 ? 's' : ''} reported. {selectedDays.size > 1 ? 'Those days' : 'That day'} will be converted back to vacation after HR approval.
+        <div style={{ padding: '24px 20px 32px', ...(isDesktop ? { maxWidth: 864, margin: '0 auto', width: '100%' } : {}) }}>
+          <Button variant="primary" size="large" fullWidth onClick={onDone}>Back to time off</Button>
         </div>
-        <div style={{
-          fontFamily: 'var(--font-body)', fontWeight: 400, fontSize: 13,
-          color: P.inkSoft, opacity: 0.7, marginBottom: 32, lineHeight: '18px',
-        }}>Your manager has been notified.</div>
-        <Button variant="primary" size="large" fullWidth onClick={() => {
-          nav && nav.pop();
-          nav && nav.pop(); // pop back to hub from detail
-          setTimeout(() => {
-            window.__refreshTimeOff && window.__refreshTimeOff();
-            window.__showTimeOffToast && window.__showTimeOffToast('Illness reported');
-          }, 50);
-        }}>
-          Back to time off
-        </Button>
       </div>
     );
   }
 
   // ── Form ──
-  return (
+  return wrapDesktop(
     <div style={{
-      display: 'flex', flexDirection: 'column', height: '100%',
-      background: '#F2F2F2',
+      display: 'flex', flexDirection: 'column', minHeight: isDesktop ? 0 : '100%', height: isDesktop ? 'auto' : '100%',
+      background: isDesktop ? 'transparent' : '#F2F2F2',
     }}>
       {/* Header */}
-      <NavBar title="Report illness" />
+      {isDesktop ? (
+        <>
+          <div style={{ maxWidth: 864, margin: '0 auto', width: '100%', padding: '20px 24px 0' }}>
+            <PageBackButton onClick={() => nav && nav.pop()} />
+            <h1 style={{ margin: '12px 0 16px', fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 28, letterSpacing: '-0.04em', color: P.ink }}>
+              Report illness
+            </h1>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start', marginBottom: 24, background: '#eff6ff', borderRadius: 10, padding: '12px 14px' }}>
+              <LucideIcon name="Info" size={15} color="#2563eb" style={{ flexShrink: 0, marginTop: 1 }} />
+              <div style={{ fontFamily: 'var(--font-body)', fontWeight: 400, fontSize: 13, color: '#1e40af', lineHeight: '18px' }}>
+                Under Belgian law (2024), sick days during planned vacation are converted back to annual leave. Your vacation balance will be restored after HR approval.
+              </div>
+            </div>
+          </div>
+          <div style={{ borderBottom: `1px solid ${P.border}`, width: '100vw', marginLeft: 'calc((100% - 100vw) / 2)' }} />
+        </>
+      ) : <NavBar title="Report illness" />}
 
       {/* Scrollable content */}
       <div style={{
-        flex: 1, overflowY: 'auto', padding: '0 20px 20px',
+        flex: 1, overflowY: isDesktop ? 'visible' : 'auto',
+        maxWidth: isDesktop ? 864 : undefined, margin: isDesktop ? '0 auto' : undefined,
+        width: isDesktop ? '100%' : undefined,
+        padding: isDesktop ? '32px 24px 8px' : '0 20px 20px',
       }}>
         {/* Context card */}
         <div style={{
@@ -4724,8 +5250,8 @@ function ReportIllnessScreen({ sourceItem }) {
           })()}</div>
         </div>
 
-        {/* Day picker */}
-        <div style={{ marginBottom: 24 }}>
+        {/* Day picker — only shown when leave spans multiple days */}
+        {pastDays.length > 1 && <div style={{ marginBottom: 24 }}>
           <div style={{
             fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13,
             color: P.inkSoft, marginBottom: 8,
@@ -4812,7 +5338,7 @@ function ReportIllnessScreen({ sourceItem }) {
               {selectedDays.size} sick day{selectedDays.size > 1 ? 's' : ''} selected → {selectedDays.size} vacation day{selectedDays.size > 1 ? 's' : ''} returned
             </div>
           )}
-        </div>
+        </div>}
 
         {/* Attachments — medical certificate required */}
         <div id="ri-attachments" style={{ marginBottom: 24 }}>
@@ -4864,33 +5390,48 @@ function ReportIllnessScreen({ sourceItem }) {
           </button>
         </div>
 
-        {/* Info note */}
-        <div style={{
-          background: '#eff6ff', borderRadius: 10, padding: '16px 16px',
-          display: 'flex', gap: 8, alignItems: 'flex-start',
-        }}>
-          <LucideIcon name="Info" size={15} color="#2563eb" style={{ flexShrink: 0, marginTop: 1 }} />
+        {/* Info note — mobile only; desktop shows this in the page header */}
+        {!isDesktop && (
           <div style={{
-            fontFamily: 'var(--font-body)', fontWeight: 400, fontSize: 12,
-            color: '#1e40af', lineHeight: '17px',
+            background: '#eff6ff', borderRadius: 10, padding: '16px 16px',
+            display: 'flex', gap: 8, alignItems: 'flex-start',
           }}>
-            Under Belgian law (2024), sick days during planned vacation are converted back to annual leave. Your vacation balance will be restored after HR approval.
+            <LucideIcon name="Info" size={15} color="#2563eb" style={{ flexShrink: 0, marginTop: 1 }} />
+            <div style={{
+              fontFamily: 'var(--font-body)', fontWeight: 400, fontSize: 12,
+              color: '#1e40af', lineHeight: '17px',
+            }}>
+              Under Belgian law (2024), sick days during planned vacation are converted back to annual leave. Your vacation balance will be restored after HR approval.
+            </div>
           </div>
-        </div>
+        )}
+
+        {/* Desktop inline submit — inside scrollable content div */}
+        {isDesktop && (
+          <div style={{ padding: '24px 0 40px' }}>
+            <Button variant="primary" size="large" fullWidth
+              onClick={handleSubmit}
+              disabled={submitting}>
+              {submitting ? 'Submitting…' : `Report ${selectedDays.size || ''} sick day${selectedDays.size !== 1 ? 's' : ''}`}
+            </Button>
+          </div>
+        )}
       </div>
 
-      {/* Sticky submit */}
-      <div style={{
-        padding: '16px 24px 40px',
-        borderTop: `1px solid ${P.border}`,
-        background: 'white',
-      }}>
-        <Button variant="primary" size="large" fullWidth
-          onClick={handleSubmit}
-          disabled={submitting}>
-          {submitting ? 'Submitting…' : `Report ${selectedDays.size || ''} sick day${selectedDays.size !== 1 ? 's' : ''}`}
-        </Button>
-      </div>
+      {/* Mobile sticky submit */}
+      {!isDesktop && (
+        <div style={{
+          padding: '16px 24px 40px',
+          borderTop: `1px solid ${P.border}`,
+          background: 'white',
+        }}>
+          <Button variant="primary" size="large" fullWidth
+            onClick={handleSubmit}
+            disabled={submitting}>
+            {submitting ? 'Submitting…' : `Report ${selectedDays.size || ''} sick day${selectedDays.size !== 1 ? 's' : ''}`}
+          </Button>
+        </div>
+      )}
 
       {/* Error toast */}
       {errorToast && appShell && ReactDOM.createPortal(
