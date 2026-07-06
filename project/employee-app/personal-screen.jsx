@@ -4518,7 +4518,7 @@ function TimeOffDetailScreen({ item, onClose }) {
             return leaveStart <= today;
           })() && (
             <div style={{ margin: '16px 24px 20px' }}>
-              <button onClick={() => _startIllnessForm()} style={{ width: '100%', background: '#db2777', color: 'white', border: 'none', borderRadius: 12, padding: '14px 16px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 15, cursor: 'pointer' }}>
+              <button onClick={() => _startIllnessForm()} style={{ width: '100%', background: P.ink, color: 'white', border: 'none', borderRadius: 12, padding: '14px 16px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 15, cursor: 'pointer' }}>
                 Report illness during this leave
               </button>
             </div>
@@ -4736,7 +4736,7 @@ function TimeOffDetailScreen({ item, onClose }) {
             return leaveStart <= today;
           })() && (
             <div style={{ margin: '16px 24px' }}>
-              <button onClick={() => _startIllnessForm()} style={{ width: '100%', background: '#db2777', color: 'white', border: 'none', borderRadius: 12, padding: '14px 16px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 15, cursor: 'pointer' }}>
+              <button onClick={() => _startIllnessForm()} style={{ width: '100%', background: P.ink, color: 'white', border: 'none', borderRadius: 12, padding: '14px 16px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 15, cursor: 'pointer' }}>
                 Report illness during this leave
               </button>
             </div>
