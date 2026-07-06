@@ -3434,7 +3434,6 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
                 opacity: canSubmit ? 1 : 0.5,
               }}>
               {submitting ? (editItem ? 'Updating…' : 'Submitting…') : (editItem ? 'Update request' : 'Submit request')}
-              <LucideIcon name="ChevronRight" size={18} color="white" strokeWidth={2.5} />
             </button>
           </div>
         )}
