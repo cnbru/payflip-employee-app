@@ -4426,10 +4426,10 @@ function TimeOffDetailScreen({ item, onClose }) {
                   color: '#6b7280',
                 },
                 item.status === 'approved'
-                  ? { label: 'Approved', detail: 'Sophie L.', state: 'done', color: '#16a34a' }
+                  ? { label: 'Approved', detail: item._approvedDate || '18 Nov 2025', state: 'done', color: '#16a34a' }
                   : item.status === 'denied'
-                  ? { label: 'Denied', detail: 'Sophie L.', state: 'error', color: '#dc2626' }
-                  : { label: 'Pending review', detail: 'Waiting for Sophie L.', state: 'pending', color: '#d97706' },
+                  ? { label: 'Denied', detail: item._deniedDate || '18 Nov 2025', state: 'error', color: '#dc2626' }
+                  : { label: 'Pending review', detail: 'Waiting for approval', state: 'pending', color: '#d97706' },
               ];
               if (item._sickConverted != null) {
                 const illnessState = item._sickIllnessStatus || 'pending';
