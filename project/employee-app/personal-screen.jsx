@@ -845,7 +845,7 @@ function DesktopTimeOffHub() {
   return (
     <div style={{ minHeight: '100%', background: 'transparent' }}>
       {/* Header */}
-      <div style={{ maxWidth: 864, margin: '0 auto', width: '100%', padding: '20px 24px 0' }}>
+      <div style={{ maxWidth: 864, margin: '0 auto', width: '100%', padding: '40px 24px 0' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
           <h1 style={{
             fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 36,
@@ -1886,7 +1886,7 @@ function TimeOffHistoryScreen() {
       {isDesktop ? (
         /* Desktop header — matches Time off page style */
         <div style={{ flexShrink: 0 }}>
-          <div style={{ maxWidth: 864, margin: '0 auto', width: '100%', padding: '20px 24px 0' }}>
+          <div style={{ maxWidth: 864, margin: '0 auto', width: '100%', padding: '40px 24px 0' }}>
             <PageBackButton onClick={() => nav && nav.pop()} />
             <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 6 }}>
               <h1 style={{ margin: 0, fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 28, letterSpacing: '-0.04em', color: P.ink }}>
@@ -2835,7 +2835,7 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
         {/* Header */}
         {isDesktop ? (
           <>
-            <div style={{ maxWidth: 864, margin: '0 auto', width: '100%', padding: '20px 24px 0' }}>
+            <div style={{ maxWidth: 864, margin: '0 auto', width: '100%', padding: '40px 24px 0' }}>
               <PageBackButton onClick={() => nav && nav.pop()} />
               <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 32 }}>
                 <div style={{ flex: 1 }}>
@@ -5148,7 +5148,7 @@ function ReportIllnessScreen({ sourceItem }) {
 
   const _desktopHeader = (
     <>
-      <div style={{ maxWidth: 864, margin: '0 auto', width: '100%', padding: '20px 24px 0' }}>
+      <div style={{ maxWidth: 864, margin: '0 auto', width: '100%', padding: '40px 24px 0' }}>
         <PageBackButton onClick={() => nav && nav.pop()} />
         <h1 style={{ margin: '12px 0 32px', fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 28, letterSpacing: '-0.04em', color: P.ink }}>
           Report illness
@@ -5198,7 +5198,7 @@ function ReportIllnessScreen({ sourceItem }) {
       {/* Header */}
       {isDesktop ? (
         <>
-          <div style={{ maxWidth: 864, margin: '0 auto', width: '100%', padding: '20px 24px 0' }}>
+          <div style={{ maxWidth: 864, margin: '0 auto', width: '100%', padding: '40px 24px 0' }}>
             <PageBackButton onClick={() => nav && nav.pop()} />
             <h1 style={{ margin: '12px 0 16px', fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 28, letterSpacing: '-0.04em', color: P.ink }}>
               Report illness
