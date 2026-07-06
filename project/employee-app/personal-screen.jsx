@@ -4193,16 +4193,11 @@ function TimeOffDetailScreen({ item, onClose }) {
             </div>
             {/* Scrollable form body */}
             <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px 0' }}>
-              {/* Context */}
-              <div style={{ marginBottom: 20 }}>
-                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.ink }}>{item.label}</div>
-                <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, marginTop: 2 }}>{item.date} · {item.days} day{item.days !== 1 ? 's' : ''}</div>
-              </div>
               {/* Day selector */}
               {_illnessPastDays.length > 1 && (
                 <div style={{ marginBottom: 20 }}>
-                  <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.inkSoft, marginBottom: 10 }}>
-                    Which days were you sick?
+                  <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 15, color: P.ink, marginBottom: 14 }}>
+                    Which days were you sick between {item.date}?
                   </div>
                   {_illnessPastDays.length > 5 && !illnessDaysExpanded ? (
                     /* Collapsed: all selected summary */
