@@ -4415,12 +4415,11 @@ function TimeOffDetailScreen({ item, onClose }) {
               <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 15, color: P.ink }}>16 Nov 2025</span>
             </div>
 
-            {/* Timeline */}
-            {(() => {
-              const statusColor = { approved: '#16a34a', pending: '#d97706', denied: '#dc2626' };
+            {/* Timeline — only shown when illness was reported */}
+            {item._sickConverted != null && (() => {
               const steps = [
                 {
-                  label: 'Requested',
+                  label: 'Submitted',
                   detail: '16 Nov 2025',
                   state: 'done',
                   color: '#6b7280',
@@ -4431,15 +4430,13 @@ function TimeOffDetailScreen({ item, onClose }) {
                   ? { label: 'Denied', detail: item._deniedDate || '18 Nov 2025', state: 'error', color: '#dc2626' }
                   : { label: 'Pending review', detail: 'Waiting for approval', state: 'pending', color: '#d97706' },
               ];
-              if (item._sickConverted != null) {
-                const illnessState = item._sickIllnessStatus || 'pending';
-                steps.push(illnessState === 'approved'
-                  ? { label: 'Illness approved', detail: `${item._sickConverted} day${item._sickConverted !== 1 ? 's' : ''} restored`, state: 'done', color: '#16a34a' }
-                  : illnessState === 'rejected'
-                  ? { label: 'Illness rejected', detail: 'HR did not approve the conversion', state: 'error', color: '#dc2626' }
-                  : { label: 'Illness reported', detail: `${item._sickConverted} day${item._sickConverted !== 1 ? 's' : ''} · Waiting for HR approval`, state: 'pending', color: '#db2777' }
-                );
-              }
+              const illnessState = item._sickIllnessStatus || 'pending';
+              steps.push(illnessState === 'approved'
+                ? { label: 'Illness approved', detail: `${item._sickConverted} day${item._sickConverted !== 1 ? 's' : ''} restored`, state: 'done', color: '#16a34a' }
+                : illnessState === 'rejected'
+                ? { label: 'Illness rejected', detail: 'HR did not approve the conversion', state: 'error', color: '#dc2626' }
+                : { label: 'Illness reported', detail: `${item._sickConverted} day${item._sickConverted !== 1 ? 's' : ''} · Waiting for HR approval`, state: 'pending', color: '#db2777' }
+              );
               return (
                 <div style={{ borderTop: `1px solid ${P.border}`, paddingTop: 20, paddingBottom: 28, marginTop: 4, marginLeft: -24, marginRight: -24, paddingLeft: 24, paddingRight: 24 }}>
                   <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.inkSoft, letterSpacing: '0.07em', textTransform: 'uppercase', marginBottom: 16 }}>Timeline</div>
