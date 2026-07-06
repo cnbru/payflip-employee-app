@@ -4196,7 +4196,7 @@ function TimeOffDetailScreen({ item, onClose }) {
               {/* Day selector */}
               {_illnessPastDays.length > 1 && (
                 <div style={{ marginBottom: 20 }}>
-                  <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 15, color: P.ink, marginBottom: 14 }}>
+                  <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.inkSoft, marginBottom: 8 }}>
                     Which days were you sick between {item.date}?
                   </div>
                   {_illnessPastDays.length > 5 && !illnessDaysExpanded ? (
