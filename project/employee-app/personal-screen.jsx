@@ -4229,8 +4229,8 @@ function TimeOffDetailScreen({ item, onClose }) {
                         const iso = _toISO2(dt);
                         const isOn = illnessSelectedDays.has(iso);
                         return (
-                          <button key={iso} onClick={() => setIllnessSelectedDays(prev => { const n = new Set(prev); isOn ? n.delete(iso) : n.add(iso); return n; })} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', border: `1.5px solid ${isOn ? '#db2777' : P.border}`, borderRadius: 12, background: isOn ? '#fdf2f8' : 'white', cursor: 'pointer', transition: 'all 150ms ease' }}>
-                            <div style={{ width: 20, height: 20, borderRadius: 6, border: `2px solid ${isOn ? '#db2777' : '#d1d5db'}`, background: isOn ? '#db2777' : 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all 150ms ease' }}>
+                          <button key={iso} onClick={() => setIllnessSelectedDays(prev => { const n = new Set(prev); isOn ? n.delete(iso) : n.add(iso); return n; })} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', border: `1.5px solid ${P.border}`, borderRadius: 12, background: isOn ? P.surface : 'white', cursor: 'pointer', transition: 'all 150ms ease' }}>
+                            <div style={{ width: 20, height: 20, borderRadius: 6, border: `2px solid ${isOn ? P.ink : '#d1d5db'}`, background: isOn ? P.ink : 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all 150ms ease' }}>
                               {isOn && <LucideIcon name="Check" size={12} color="white" strokeWidth={3} />}
                             </div>
                             <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.ink }}>
