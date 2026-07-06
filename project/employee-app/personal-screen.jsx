@@ -2152,6 +2152,7 @@ function MiniCalendar({ month, year, onMonthChange, selectedDates, onDateTap, on
         {cells.map((d, i) => {
           if (!d) return <div key={`e${i}`} />;
           const disabled = isDisabled(d);
+          const existing = hasExisting(d);
           const iso = _toISO(d);
           const isConfirmed = selectedDates && selectedDates.has(iso);
           const sel = isConfirmed;
@@ -2212,6 +2213,7 @@ function MiniCalendar({ month, year, onMonthChange, selectedDates, onDateTap, on
             color = '#fff'; fontWeight = 700;
           } else if (isMidRange) { fontWeight = 700; }
           else if (isConfirmed) { btnBg = P.ink; color = '#fff'; fontWeight = 700; }
+          else if (existing) { color = P.inkSoft; }
           else if (disabled) { color = '#b0b4bc'; }
           else if (dateStatus) { btnBg = _statusColors[dateStatus] || 'transparent'; fontWeight = 600; }
           else if (inRange) { fontWeight = 600; }
@@ -2254,14 +2256,14 @@ function MiniCalendar({ month, year, onMonthChange, selectedDates, onDateTap, on
           return (
             <div key={iso} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', background: wrapBg, ...wrapRad }}>
               <button
-                aria-disabled={disabled || undefined}
-                onClick={() => disabled ? (onDisabledTap && onDisabledTap(d)) : (onDateTap && onDateTap(d))}
+                aria-disabled={(disabled || existing) || undefined}
+                onClick={() => (disabled || existing) ? (onDisabledTap && onDisabledTap(d)) : (onDateTap && onDateTap(d))}
                 className={`cal-day-btn${sel ? ' cal-day-selected' : ''}`}
                 style={{
                   width: cellSize, height: cellSize,
                   border, background: btnBg,
                   borderRadius: (sel && !isMidRange) ? '50%' : 8,
-                  cursor: disabled ? 'default' : 'pointer',
+                  cursor: (disabled || existing) ? 'default' : 'pointer',
                   fontFamily: 'var(--font-display)', fontWeight, fontSize: 16, color,
                   display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
                   position: 'relative',
