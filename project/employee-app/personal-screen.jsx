@@ -2834,9 +2834,20 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
             <div style={{ maxWidth: 864, margin: '0 auto', width: '100%', padding: '20px 24px 0' }}>
               <PageBackButton onClick={() => nav && nav.pop()} />
               <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 32 }}>
-                <h1 style={{ flex: 1, margin: 0, fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 28, letterSpacing: '-0.04em', color: P.ink }}>
-                  {editItem ? 'Edit request' : 'Request time off'}
-                </h1>
+                <div style={{ flex: 1 }}>
+                  <h1 style={{ margin: 0, fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 28, letterSpacing: '-0.04em', color: P.ink }}>
+                    {editItem ? 'Edit request' : 'Request time off'}
+                  </h1>
+                  {editItem && (
+                    <p style={{ margin: '6px 0 0', fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <span>{editItem.date}</span>
+                      <span style={{ opacity: 0.4 }}>·</span>
+                      <span>{editItem.days} day{editItem.days !== 1 ? 's' : ''}</span>
+                      <span style={{ opacity: 0.4 }}>·</span>
+                      <span>{editItem.label}</span>
+                    </p>
+                  )}
+                </div>
               </div>
             </div>
             <div style={{ borderBottom: `1px solid ${P.border}`, width: '100vw', marginLeft: 'calc((100% - 100vw) / 2)' }} />
