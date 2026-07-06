@@ -4229,7 +4229,7 @@ function TimeOffDetailScreen({ item, onClose }) {
                         const iso = _toISO2(dt);
                         const isOn = illnessSelectedDays.has(iso);
                         return (
-                          <button key={iso} onClick={() => setIllnessSelectedDays(prev => { const n = new Set(prev); isOn ? n.delete(iso) : n.add(iso); return n; })} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 4px', border: 'none', borderRadius: 0, background: 'transparent', cursor: 'pointer' }}>
+                          <button key={iso} onClick={() => setIllnessSelectedDays(prev => { const n = new Set(prev); isOn ? n.delete(iso) : n.add(iso); return n; })} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 4px 8px 0', border: 'none', borderRadius: 0, background: 'transparent', cursor: 'pointer' }}>
                             <div style={{ width: 20, height: 20, borderRadius: 6, border: `2px solid ${isOn ? P.ink : '#d1d5db'}`, background: isOn ? P.ink : 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all 150ms ease' }}>
                               {isOn && <LucideIcon name="Check" size={12} color="white" strokeWidth={3} />}
                             </div>
