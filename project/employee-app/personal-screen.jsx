@@ -4193,15 +4193,8 @@ function TimeOffDetailScreen({ item, onClose }) {
             </div>
             {/* Scrollable form body */}
             <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px 0' }}>
-              {/* Belgian law note */}
-              <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start', marginBottom: 20, background: '#eff6ff', borderRadius: 10, padding: '10px 14px' }}>
-                <LucideIcon name="Info" size={14} color="#2563eb" style={{ flexShrink: 0, marginTop: 1 }} />
-                <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: '#1e40af', lineHeight: '17px' }}>
-                  Under Belgian law (2024), sick days during planned vacation are converted back to annual leave after HR approval.
-                </div>
-              </div>
-              {/* Context card */}
-              <div style={{ background: P.surface, borderRadius: 12, padding: '12px 16px', marginBottom: 20 }}>
+              {/* Context */}
+              <div style={{ marginBottom: 20 }}>
                 <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.ink }}>{item.label}</div>
                 <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, marginTop: 2 }}>{item.date} · {item.days} day{item.days !== 1 ? 's' : ''}</div>
               </div>
@@ -4274,6 +4267,13 @@ function TimeOffDetailScreen({ item, onClose }) {
             </div>
             {/* Submit */}
             <div style={{ padding: '14px 24px 24px', borderTop: `1px solid ${P.border}`, flexShrink: 0 }}>
+              {/* Belgian law note */}
+              <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start', marginBottom: 14, background: '#eff6ff', borderRadius: 10, padding: '10px 14px' }}>
+                <LucideIcon name="Info" size={14} color="#2563eb" style={{ flexShrink: 0, marginTop: 1 }} />
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: '#1e40af', lineHeight: '17px' }}>
+                  Under Belgian law (2024), sick days during planned vacation are converted back to annual leave after HR approval.
+                </div>
+              </div>
               <Button variant="primary" size="large" fullWidth disabled={illnessSubmitting || illnessSelectedDays.size === 0} onClick={() => {
                 if (illnessAttachments.length === 0) { alert('Please upload a medical certificate'); return; }
                 setIllnessSubmitting(true);
