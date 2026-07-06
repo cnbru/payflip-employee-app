@@ -2498,7 +2498,9 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
     const msg = _isCollectiveHoliday(d) ? _collectiveHolidayRange()
       : _isNonWorkingDay(d) ? 'This is your day off (4/5 schedule)'
       : _isHoliday(d) ? 'Public holiday'
-      : _isWeekend(d) ? 'Weekend' : null;
+      : _isWeekend(d) ? 'Weekend'
+      : (existingDates && existingDates.has(_toISO(d))) ? 'You already have leave on this day'
+      : null;
     if (msg) {
       setShowHalfDayTip(false);
       setCalToast(msg);
