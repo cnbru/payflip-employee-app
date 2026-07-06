@@ -2400,7 +2400,15 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
   const [step, setStep] = React.useState(0);
   const [selectedDates, setSelectedDates] = React.useState(() => {
     if (editItem?._selectedDates) return new Set(editItem._selectedDates);
-    if (_editParsed.start && _editParsed.end) return new Set(getWorkingDaysInRange(_editParsed.start, _editParsed.end).map(d => _toISO(d)));
+    if (_editParsed.start && _editParsed.end) {
+      // When pre-filling for an edit, include all weekdays in the range (don't filter
+      // collective holidays — the original request was approved for those days).
+      const s = new Set();
+      const cur = new Date(_editParsed.start); cur.setHours(0,0,0,0);
+      const last = new Date(_editParsed.end); last.setHours(0,0,0,0);
+      while (cur <= last) { if (!_isWeekend(cur)) s.add(_toISO(new Date(cur))); cur.setDate(cur.getDate() + 1); }
+      return s;
+    }
     return new Set();
   });
 
