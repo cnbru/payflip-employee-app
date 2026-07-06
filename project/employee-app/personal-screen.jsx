@@ -1908,7 +1908,7 @@ function TimeOffHistoryScreen() {
               style={{ width: 36, height: 36, borderRadius: 10, border: 'none', background: 'transparent', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
               <LucideIcon name="ArrowLeft" size={22} color={P.ink} strokeWidth={1.75} />
             </button>
-            <span style={{ flex: 1, fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 17, color: P.ink }}>Leave history</span>
+            <span style={{ flex: 1, fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18, color: P.ink }}>Leave history</span>
             {yearPicker}
           </div>
           <div style={{ padding: '12px 16px', borderBottom: `1px solid ${P.border}`, flexShrink: 0 }}>
@@ -3484,7 +3484,7 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
             >
               <div style={{ padding: '20px 24px 12px' }}>
                 <div aria-hidden="true" style={{ width: 36, height: 4, borderRadius: 2, background: P.border, margin: '0 auto 16px' }} />
-                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 17, color: P.ink }}>
+                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18, color: P.ink }}>
                   What type of leave?
                 </div>
               </div>
@@ -3561,7 +3561,7 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
                   >
                     <LucideIcon name="ChevronLeft" size={20} color={P.ink} strokeWidth={2.5} />
                   </button>
-                  <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 17, color: P.ink }}>Special leave</div>
+                  <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18, color: P.ink }}>Special leave</div>
                 </div>
               </div>
               <div style={{ padding: '0 24px 40px' }}>
@@ -3615,7 +3615,7 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
             >
               <div style={{ padding: '20px 24px 12px' }}>
                 <div aria-hidden="true" style={{ width: 36, height: 4, borderRadius: 2, background: P.border, margin: '0 auto 16px' }} />
-                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 17, color: P.ink }}>
+                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18, color: P.ink }}>
                   {(leaveReason === 'special-wedding' || isWeddingSub) ? 'Whose wedding?' : 'What is your relationship to the person?'}
                 </div>
                 <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, marginTop: 4, lineHeight: '18px' }}>
@@ -3945,7 +3945,7 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                         <h2 style={{
                           flex: 1, margin: 0,
-                          fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 17,
+                          fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18,
                           color: P.ink,
                         }}>{rangeTitle}</h2>
                         <button
@@ -4190,7 +4190,7 @@ function TimeOffDetailScreen({ item, onClose }) {
               <button onClick={() => setIllnessStep(null)} style={{ width: 32, height: 32, borderRadius: 8, background: P.surface, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                 <LucideIcon name="ArrowLeft" size={18} color={P.ink} strokeWidth={2} />
               </button>
-              <div style={{ flex: 1, fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 16, color: P.ink }}>Report illness</div>
+              <div style={{ flex: 1, fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18, color: P.ink }}>Report illness</div>
               <button onClick={() => doClose()} style={{ width: 32, height: 32, borderRadius: 8, background: P.surface, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                 <LucideIcon name="X" size={18} color={P.ink} strokeWidth={2} />
               </button>
@@ -4536,7 +4536,7 @@ function TimeOffDetailScreen({ item, onClose }) {
           <IconBtn name="ChevronLeft" onClick={() => doClose()} ariaLabel="Back" size={36} color={P.ink} />
           <h1 style={{
             position: 'absolute', left: '50%', transform: 'translateX(-50%)',
-            fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 17,
+            fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18,
             color: P.ink, letterSpacing: '-0.003em', pointerEvents: 'none',
             margin: 0, whiteSpace: 'nowrap',
           }}>Time off details</h1>
@@ -4857,7 +4857,7 @@ function TimeOffDetailScreen({ item, onClose }) {
               <>
               {/* Header */}
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 20px', borderBottom: `1px solid ${P.border}`, flexShrink: 0 }}>
-                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 17, color: P.ink }}>Report illness</div>
+                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18, color: P.ink }}>Report illness</div>
                 <button onClick={_closeIllnessSheet} style={{ width: 32, height: 32, borderRadius: 8, background: P.surface, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <LucideIcon name="X" size={18} color={P.ink} strokeWidth={2} />
                 </button>
