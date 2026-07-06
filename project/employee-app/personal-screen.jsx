@@ -4517,13 +4517,9 @@ function TimeOffDetailScreen({ item, onClose }) {
             const today = new Date(); today.setHours(0,0,0,0);
             return leaveStart <= today;
           })() && (
-            <div style={{ margin: '16px 24px 20px', background: '#fce7f3', border: '1px solid #fbcfe8', borderRadius: 14, padding: '14px 16px', display: 'flex', gap: 12, alignItems: 'center' }}>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: '#9d174d' }}>Got sick during this leave?</div>
-                <div style={{ fontFamily: 'var(--font-body)', fontWeight: 400, fontSize: 12, color: '#9d174d', opacity: 0.8, lineHeight: '16px', marginTop: 2 }}>Report illness to recover your vacation days.</div>
-              </div>
-              <button onClick={() => _startIllnessForm()} style={{ background: '#db2777', color: 'white', border: 'none', borderRadius: 10, padding: '8px 16px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, cursor: 'pointer', flexShrink: 0, whiteSpace: 'nowrap' }}>
-                Report
+            <div style={{ margin: '16px 24px 20px' }}>
+              <button onClick={() => _startIllnessForm()} style={{ width: '100%', background: '#db2777', color: 'white', border: 'none', borderRadius: 12, padding: '14px 16px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 15, cursor: 'pointer' }}>
+                Report illness during this leave
               </button>
             </div>
           )}
@@ -4739,13 +4735,9 @@ function TimeOffDetailScreen({ item, onClose }) {
             const today = new Date(); today.setHours(0,0,0,0);
             return leaveStart <= today;
           })() && (
-            <div style={{ margin: '16px 24px', background: '#fce7f3', border: '1px solid #fbcfe8', borderRadius: 14, padding: '16px 16px', display: 'flex', gap: 12, alignItems: 'center' }}>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: '#9d174d' }}>Got sick during this leave?</div>
-                <div style={{ fontFamily: 'var(--font-body)', fontWeight: 400, fontSize: 12, color: '#9d174d', opacity: 0.8, lineHeight: '16px', marginTop: 2 }}>Report illness to recover your vacation days.</div>
-              </div>
-              <button onClick={() => _startIllnessForm()} style={{ background: '#db2777', color: 'white', border: 'none', borderRadius: 10, padding: '8px 16px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, cursor: 'pointer', flexShrink: 0, whiteSpace: 'nowrap' }}>
-                Report
+            <div style={{ margin: '16px 24px' }}>
+              <button onClick={() => _startIllnessForm()} style={{ width: '100%', background: '#db2777', color: 'white', border: 'none', borderRadius: 12, padding: '14px 16px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 15, cursor: 'pointer' }}>
+                Report illness during this leave
               </button>
             </div>
           )}
