@@ -4197,8 +4197,8 @@ function TimeOffDetailScreen({ item, onClose }) {
             </div>
             {/* Scrollable form body */}
             <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px 0' }}>
-              {/* Day selector */}
-              {_illnessPastDays.length >= 1 && (
+              {/* Day selector — only shown when there are multiple days to choose from */}
+              {_illnessPastDays.length > 1 && (
                 <div style={{ marginBottom: 20 }}>
                   <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.inkSoft, marginBottom: 8 }}>
                     Which days were you sick between {item.date}?
