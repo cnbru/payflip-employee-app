@@ -1144,7 +1144,7 @@ function AddTimeOffModal({ existing, onClose, onSave, requests = [] }) {
                 </div>
 
                 {reasonObj?.hasWho && (
-                  <div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                     <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.inkSoft, marginBottom: 6 }}>
                       {specialReason === 'wedding' ? 'Wedding type' : 'Relationship to deceased'}
                     </label>
@@ -1154,10 +1154,16 @@ function AddTimeOffModal({ existing, onClose, onSave, requests = [] }) {
                         <option key={w.id} value={w.id}>{w.label}</option>
                       ))}
                     </SelectField>
+                    {entitlementNote && (
+                      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 7, padding: '8px 10px', borderRadius: 7, background: P.bg, border: `1px solid ${P.border}` }}>
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={P.inkSoft} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginTop: 1, flexShrink: 0 }}><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                        <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, lineHeight: 1.4 }}>{entitlementNote}</span>
+                      </div>
+                    )}
                   </div>
                 )}
 
-                {entitlementNote && (
+                {!reasonObj?.hasWho && entitlementNote && (
                   <div style={{ display: 'flex', alignItems: 'flex-start', gap: 7, padding: '8px 10px', borderRadius: 7, background: P.bg, border: `1px solid ${P.border}` }}>
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={P.inkSoft} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginTop: 1, flexShrink: 0 }}><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
                     <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, lineHeight: 1.4 }}>{entitlementNote}</span>
