@@ -48,6 +48,25 @@ const ALL_LEAVE_TYPES = [
 
 const ADMIN_ONLY_TYPES = new Set(['Paternity leave', 'Maternity leave', 'Paid absence', 'Unpaid absence']);
 
+const SPECIAL_LEAVE_REASONS = [
+  { id: 'wedding',   label: 'Wedding',      hasWho: true,  entitlement: null },
+  { id: 'moving',    label: 'Moving',        hasWho: false, entitlement: '1 day' },
+  { id: 'funeral',   label: 'Funeral leave', hasWho: true,  entitlement: null },
+  { id: 'ceremony',  label: 'Ceremony',      hasWho: false, entitlement: '1 day' },
+  { id: 'civic',     label: 'Civic duty',    hasWho: false, entitlement: 'Up to 5 days' },
+];
+const SPECIAL_WEDDING_WHO = [
+  { id: 'own',    label: 'Your own wedding',              days: 2 },
+  { id: 'family', label: 'Child, sibling, or parent',     days: 1 },
+];
+const SPECIAL_FUNERAL_WHO = [
+  { id: 'partner',  label: 'Partner or spouse',           days: 10, note: '3 around the funeral, 7 more within the year' },
+  { id: 'child',    label: 'Child',                       days: 10, note: '3 around the funeral, 7 more within the year' },
+  { id: 'parent',   label: 'Parent or parent-in-law',     days: 3  },
+  { id: 'sibling',  label: 'Sibling or grandparent',      days: 2  },
+  { id: 'other',    label: 'Other family member',         days: 1  },
+];
+
 const ATTACHMENT_RULES = {
   'Sick leave':      { label: 'Medical certificate', note: 'Required for absences of 2 or more consecutive days' },
   'Special leave':   { label: 'Supporting document', note: 'Marriage/birth certificate or official event proof' },
@@ -889,6 +908,8 @@ function AddTimeOffModal({ existing, onClose, onSave, requests = [] }) {
   const lockEmployee = existing?._lockEmployee;
   const [empId, setEmpId]     = useState(existing?.employee || '');
   const [type, setType]       = useState(existing?.type || 'Time off');
+  const [specialReason, setSpecialReason] = useState(existing?._specialReason || '');
+  const [specialWho, setSpecialWho]       = useState(existing?._specialWho || '');
   const [note, setNote]       = useState(existing?.note || '');
   const [holidayName, setHolidayName] = useState('');
   const [errors, setErrors] = useState({});
@@ -917,7 +938,13 @@ function AddTimeOffModal({ existing, onClose, onSave, requests = [] }) {
   });
   const allEmployees = scope === 'collective';
 
-  useEffect(() => { setAttachment(null); setNotifyEmployee(false); }, [type]);
+  useEffect(() => {
+    setAttachment(null);
+    setNotifyEmployee(false);
+    if (type !== 'Special leave') { setSpecialReason(''); setSpecialWho(''); }
+  }, [type]);
+
+  useEffect(() => { setSpecialWho(''); }, [specialReason]);
 
   useEffect(() => {
     if (!rangeFrom || !rangeTo) return;
@@ -981,6 +1008,8 @@ function AddTimeOffModal({ existing, onClose, onSave, requests = [] }) {
       note,
       ...(sortedPicked.length > 0 ? { _selectedDates: sortedPicked } : {}),
       ...(Object.keys(halfDay).length > 0 ? { _halfDay: halfDay } : {}),
+      ...(type === 'Special leave' && specialReason ? { _specialReason: specialReason } : {}),
+      ...(type === 'Special leave' && specialWho ? { _specialWho: specialWho } : {}),
     };
     if (allEmployees) {
       Object.keys(EMPLOYEES).forEach((eid, i) => {
@@ -1028,34 +1057,26 @@ function AddTimeOffModal({ existing, onClose, onSave, requests = [] }) {
         </div>
 
         {/* Form — scrollable */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 24 }}>
           {/* Scope selector */}
           {!lockEmployee && !isEdit && (
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-              {[['one', 'One employee', 'User'], ['collective', 'All employees', 'Users']].map(([val, label, icon]) => {
+              {[
+                ['one', 'One employee', 'User', 'Choose a specific person'],
+                ['collective', 'All employees', 'Users', 'Apply to your entire team'],
+              ].map(([val, label, icon, sublabel]) => {
                 const active = scope === val;
                 return (
                   <button key={val} onClick={() => setScope(val)} style={{
-                    display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 6,
+                    display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 4,
                     padding: '10px 12px', borderRadius: 8, cursor: 'pointer',
-                    border: `1.5px solid ${active ? '#6D17CF' : P.border}`,
-                    background: active ? '#F1E7FD' : P.white,
+                    border: `1.5px solid ${active ? P.ink : P.border}`,
+                    background: active ? P.bg : P.white,
                     transition: 'border-color 120ms, background 120ms',
-                    position: 'relative',
                   }}>
-                    {/* Radio dot */}
-                    <div style={{
-                      position: 'absolute', top: 8, right: 8,
-                      width: 14, height: 14, borderRadius: '50%',
-                      border: `1.5px solid ${active ? '#6D17CF' : P.border}`,
-                      background: active ? '#fff' : 'transparent',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      flexShrink: 0,
-                    }}>
-                      {active && <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#6D17CF' }} />}
-                    </div>
-                    <Icon name={icon} size={14} color={active ? '#6D17CF' : P.inkSoft} strokeWidth={2} />
-                    <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, color: P.ink }}>{label}</span>
+                    <Icon name={icon} size={14} color={active ? P.ink : P.inkSoft} strokeWidth={2} />
+                    <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.ink }}>{label}</span>
+                    <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkSoft, lineHeight: 1.3 }}>{sublabel}</span>
                   </button>
                 );
               })}
@@ -1096,6 +1117,55 @@ function AddTimeOffModal({ existing, onClose, onSave, requests = [] }) {
               </SelectField>
             </div>
           )}
+
+          {/* Special leave cascading selects */}
+          {!allEmployees && type === 'Special leave' && (() => {
+            const reasonObj = SPECIAL_LEAVE_REASONS.find(r => r.id === specialReason);
+            const whoList = specialReason === 'wedding' ? SPECIAL_WEDDING_WHO : specialReason === 'funeral' ? SPECIAL_FUNERAL_WHO : [];
+            const whoObj = whoList.find(w => w.id === specialWho);
+
+            // Compute entitlement note
+            let entitlementNote = null;
+            if (reasonObj && !reasonObj.hasWho) entitlementNote = `Legal entitlement: ${reasonObj.entitlement}`;
+            else if (whoObj) {
+              entitlementNote = `Legal entitlement: ${whoObj.days} day${whoObj.days !== 1 ? 's' : ''}${whoObj.note ? ` — ${whoObj.note}` : ''}`;
+            }
+
+            return (
+              <>
+                <div>
+                  <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.inkSoft, marginBottom: 6 }}>Reason</label>
+                  <SelectField value={specialReason} onChange={e => setSpecialReason(e.target.value)} style={{ ...inputStyle, cursor: 'pointer' }}>
+                    <option value="">Select a reason…</option>
+                    {SPECIAL_LEAVE_REASONS.map(r => (
+                      <option key={r.id} value={r.id}>{r.label}</option>
+                    ))}
+                  </SelectField>
+                </div>
+
+                {reasonObj?.hasWho && (
+                  <div>
+                    <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.inkSoft, marginBottom: 6 }}>
+                      {specialReason === 'wedding' ? 'Whose wedding' : 'Relationship to deceased'}
+                    </label>
+                    <SelectField value={specialWho} onChange={e => setSpecialWho(e.target.value)} style={{ ...inputStyle, cursor: 'pointer' }}>
+                      <option value="">Select…</option>
+                      {whoList.map(w => (
+                        <option key={w.id} value={w.id}>{w.label}</option>
+                      ))}
+                    </SelectField>
+                  </div>
+                )}
+
+                {entitlementNote && (
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: 7, padding: '8px 10px', borderRadius: 7, background: P.bg, border: `1px solid ${P.border}` }}>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={P.inkSoft} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginTop: 1, flexShrink: 0 }}><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                    <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, lineHeight: 1.4 }}>{entitlementNote}</span>
+                  </div>
+                )}
+              </>
+            );
+          })()}
 
 
           {/* Date range inputs */}
