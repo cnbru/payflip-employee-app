@@ -20,15 +20,26 @@ const StatusMeta = {
 };
 
 const LEAVE_COLORS = {
-  'Time off':        '#7eb5fa',
-  'Sick leave':      '#f4a0c5',
-  'Special leave':   '#a8b4c0',
-  'Funeral leave':   '#a8b4c0',
-  'Paternity leave': '#bbaef5',
-  'Maternity leave': '#bbaef5',
-  'Paid absence':    '#6dd5e0',
-  'Unpaid absence':  '#c5cfd8',
+  'Time off':        '#c5dcfd',
+  'Sick leave':      '#fbd0e4',
+  'Special leave':   '#fde9c8',
+  'Funeral leave':   '#d8d3e3',
+  'Paternity leave': '#ddd8fb',
+  'Maternity leave': '#ddd8fb',
+  'Paid absence':    '#c0eef3',
+  'Unpaid absence':  '#e2e8ec',
 };
+const LEAVE_BORDER_COLORS = {
+  'Time off':        '#7aafe8',
+  'Sick leave':      '#e698b8',
+  'Special leave':   '#e0b97a',
+  'Funeral leave':   '#a99dba',
+  'Paternity leave': '#a9a0e0',
+  'Maternity leave': '#a9a0e0',
+  'Paid absence':    '#7ac8d1',
+  'Unpaid absence':  '#a8b4be',
+};
+
 
 const ALL_LEAVE_TYPES = [
   'Time off', 'Sick leave', 'Special leave',
@@ -68,6 +79,20 @@ function Icon({ name, size = 16, color = P.inkSoft, strokeWidth = 1.75, style })
   return <span ref={ref} style={{ display: 'inline-flex', alignItems: 'center', ...style }} />;
 }
 
+function WeekCard({ entry, requestId, requests, isPending }) {
+  const req = requests.find(function(rr) { return rr.id === requestId; });
+  return (
+    <React.Fragment>
+      <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 11, color: P.ink, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', lineHeight: 1.3 }}>
+        {entry.type}
+      </span>
+      <span style={{ fontFamily: 'var(--font-body)', fontSize: 10, color: P.inkSoft, whiteSpace: 'nowrap', lineHeight: 1.3 }}>
+        {isPending ? 'Pending' : req ? (req.days + ' ' + (req.days === 1 ? 'day' : 'days')) : ''}
+      </span>
+    </React.Fragment>
+  );
+}
+
 // ── Belgian calendar constants (ported from employee app) ──────────────────
 const BELGIAN_HOLIDAYS_2026 = [
   '2026-01-01','2026-04-06','2026-05-01','2026-05-14',
@@ -101,50 +126,49 @@ const HOLIDAY_ICON = {
   'Christmas Day':     { emoji: '🎄' },
 };
 
-// ── Employee data generation ───────────────────────────────────────────────
-const FIRST_NAMES = ['David','Sarah','Thomas','Emma','Julie','Nicolas','Lotte','Pieter','Elise','Bram','Marie','Jonas','Laura','Wout','Charlotte','Stijn','Noor','Kevin','Ines','Thibault','Sofie','Mathias','Leen','Dieter','Jana','Ruben','Hanne','Joris','Fien','Sander'];
-const LAST_NAMES = ['Laurent','Dubois','Lejeune','Claes','Martens','Peeters','Janssens','Wouters','De Smedt','Verhoeven','Maes','Willems','Goossens','De Backer','Van Damme','Hendrickx','Mertens','Stevens','Lambert','Van den Berg'];
-const DEPARTMENTS = ['Engineering','Marketing','Sales','Design','Finance','Operations'];
+// ── Employee data ──────────────────────────────────────────────────────────
+const DEPARTMENTS = ['Design','Engineering','Finance','Marketing','Operations','Sales'];
 const AVATAR_COLORS = ['#bfdbfe','#ddd6fe','#fde68a','#a7f3d0','#fecdd3','#fed7aa','#c7d2fe','#fca5a5','#d9f99d','#99f6e4'];
 
-function generateEmployees() {
-  const emps = {};
-  const used = new Set();
-  for (let i = 0; i < 25; i++) {
-    let fn, ln, full;
-    do {
-      fn = FIRST_NAMES[i % FIRST_NAMES.length];
-      ln = LAST_NAMES[(i * 7 + i) % LAST_NAMES.length];
-      full = fn + ' ' + ln;
-    } while (used.has(full) && (ln = LAST_NAMES[(i * 3 + 5) % LAST_NAMES.length], full = fn + ' ' + ln, false));
-    used.add(full);
-    const id = (fn + '-' + ln).toLowerCase().replace(/\s+/g, '-');
-    emps[id] = {
-      name: full,
-      initials: fn[0] + ln[0],
-      color: AVATAR_COLORS[i % AVATAR_COLORS.length],
-      entitlement: 20 + (i % 4) * 3,
-      department: DEPARTMENTS[i % DEPARTMENTS.length],
-    };
-  }
-  // Ensure 'david' key exists for localStorage bridge
-  if (!emps['david']) {
-    emps['david'] = emps[Object.keys(emps)[0]];
-    delete emps[Object.keys(emps)[0]];
-    emps['david'].name = 'David Laurent';
-    emps['david'].initials = 'DL';
-  }
-  return emps;
-}
-
-const EMPLOYEES = generateEmployees();
+const EMPLOYEES = {
+  // Design
+  'bram-goossens':     { name: 'Bram Goossens',     initials: 'BG', color: '#bfdbfe', entitlement: 23, department: 'Design',       email: 'bram.goossens@payflip.be',     entity: 'Payflip', budget: 3750,  role: 'Employee', status: 'Active' },
+  'emma-martens':      { name: 'Emma Martens',       initials: 'EM', color: '#ddd6fe', entitlement: 29, department: 'Design',       email: 'emma.martens@payflip.be',      entity: 'Payflip', budget: 0,     role: 'Employee', status: 'Active' },
+  'mathias-de-smedt':  { name: 'Mathias De Smedt',  initials: 'MD', color: '#fde68a', entitlement: 23, department: 'Design',       email: 'mathias.de-smedt@payflip.be', entity: 'Payflip', budget: 6250,  role: 'Employee', status: 'Active' },
+  'stijn-laurent':     { name: 'Stijn Laurent',      initials: 'SL', color: '#a7f3d0', entitlement: 29, department: 'Design',       email: 'stijn.laurent@payflip.be',     entity: 'Payflip', budget: 1500,  role: 'Employee', status: 'Active' },
+  // Engineering
+  'david':             { name: 'David Laurent',      initials: 'DL', color: '#fecdd3', entitlement: 20, department: 'Engineering', email: 'david.laurent@payflip.be',     entity: 'Payflip', budget: 4500,  role: 'Employee', status: 'Active' },
+  'ines-martens':      { name: 'Ines Martens',       initials: 'IM', color: '#fed7aa', entitlement: 26, department: 'Engineering', email: 'ines.martens@payflip.be',      entity: 'Payflip', budget: 0,     role: 'Employee', status: 'Active' },
+  'jana-goossens':     { name: 'Jana Goossens',      initials: 'JG', color: '#c7d2fe', entitlement: 20, department: 'Engineering', email: 'jana.goossens@payflip.be',     entity: 'Payflip', budget: 2000,  role: 'Employee', status: 'Active' },
+  'laura-mertens':     { name: 'Laura Mertens',      initials: 'LM', color: '#fca5a5', entitlement: 20, department: 'Engineering', email: 'laura.mertens@payflip.be',     entity: 'Payflip', budget: 750,   role: 'Employee', status: 'Active' },
+  'lotte-de-smedt':    { name: 'Lotte De Smedt',     initials: 'LD', color: '#d9f99d', entitlement: 26, department: 'Engineering', email: 'lotte.de-smedt@payflip.be',   entity: 'Payflip', budget: 3200,  role: 'Employee', status: 'Active' },
+  // Finance
+  'julie-goossens':    { name: 'Julie Goossens',     initials: 'JG', color: '#99f6e4', entitlement: 20, department: 'Finance',     email: 'julie.goossens@payflip.be',    entity: 'Payflip', budget: 5000,  role: 'Manager',  status: 'Active' },
+  'leen-mertens':      { name: 'Leen Mertens',       initials: 'LM', color: '#bfdbfe', entitlement: 26, department: 'Finance',     email: 'leen.mertens@payflip.be',      entity: 'Payflip', budget: 0,     role: 'Employee', status: 'Active' },
+  'marie-laurent':     { name: 'Marie Laurent',      initials: 'ML', color: '#ddd6fe', entitlement: 26, department: 'Finance',     email: 'marie.laurent@payflip.be',     entity: 'Payflip', budget: 1250,  role: 'Employee', status: 'Active' },
+  'noor-de-smedt':     { name: 'Noor De Smedt',      initials: 'ND', color: '#fde68a', entitlement: 20, department: 'Finance',     email: 'noor.de-smedt@payflip.be',    entity: 'Payflip', budget: 0,     role: 'Employee', status: 'Active' },
+  // Marketing
+  'pieter-mertens':    { name: 'Pieter Mertens',     initials: 'PM', color: '#a7f3d0', entitlement: 29, department: 'Marketing',   email: 'pieter.mertens@payflip.be',    entity: 'Payflip', budget: 8500,  role: 'Manager',  status: 'Active' },
+  'sarah-de-smedt':    { name: 'Sarah De Smedt',     initials: 'SD', color: '#fecdd3', entitlement: 23, department: 'Marketing',   email: 'sarah.de-smedt@payflip.be',   entity: 'Payflip', budget: 2750,  role: 'Employee', status: 'Active' },
+  'thibault-goossens': { name: 'Thibault Goossens',  initials: 'TG', color: '#fed7aa', entitlement: 29, department: 'Marketing',   email: 'thibault.goossens@payflip.be', entity: 'Payflip', budget: 0,     role: 'Employee', status: 'Active' },
+  'wout-martens':      { name: 'Wout Martens',        initials: 'WM', color: '#c7d2fe', entitlement: 23, department: 'Marketing',   email: 'wout.martens@payflip.be',      entity: 'Payflip', budget: 1800,  role: 'Employee', status: 'Active' },
+  // Operations
+  'dieter-martens':    { name: 'Dieter Martens',     initials: 'DM', color: '#fca5a5', entitlement: 29, department: 'Operations',  email: 'dieter.martens@payflip.be',    entity: 'Payflip', budget: 0,     role: 'Employee', status: 'Active' },
+  'jonas-de-smedt':    { name: 'Jonas De Smedt',     initials: 'JD', color: '#d9f99d', entitlement: 29, department: 'Operations',  email: 'jonas.de-smedt@payflip.be',   entity: 'Payflip', budget: 4100,  role: 'Employee', status: 'Active' },
+  'kevin-mertens':     { name: 'Kevin Mertens',      initials: 'KM', color: '#99f6e4', entitlement: 23, department: 'Operations',  email: 'kevin.mertens@payflip.be',     entity: 'Payflip', budget: 600,   role: 'Employee', status: 'Active' },
+  'nicolas-laurent':   { name: 'Nicolas Laurent',    initials: 'NL', color: '#bfdbfe', entitlement: 23, department: 'Operations',  email: 'nicolas.laurent@payflip.be',   entity: 'Payflip', budget: 2300,  role: 'Employee', status: 'Active' },
+  // Sales
+  'charlotte-goossens':{ name: 'Charlotte Goossens', initials: 'CG', color: '#ddd6fe', entitlement: 26, department: 'Sales',       email: 'charlotte.goossens@payflip.be',entity: 'Payflip', budget: 9750,  role: 'Manager',  status: 'Active' },
+  'elise-martens':     { name: 'Elise Martens',      initials: 'EM', color: '#fde68a', entitlement: 20, department: 'Sales',       email: 'elise.martens@payflip.be',     entity: 'Payflip', budget: 3300,  role: 'Employee', status: 'Active' },
+  'ruben-peeters':     { name: 'Ruben Peeters',      initials: 'RP', color: '#a7f3d0', entitlement: 26, department: 'Sales',       email: 'ruben.peeters@payflip.be',     entity: 'Payflip', budget: 0,     role: 'Employee', status: 'Active' },
+  'hanne-willems':     { name: 'Hanne Willems',      initials: 'HW', color: '#fecdd3', entitlement: 23, department: 'Sales',       email: 'hanne.willems@payflip.be',     entity: 'Payflip', budget: 5600,  role: 'Employee', status: 'Active' },
+};
 
 const generatedRequests = [
-  { id: 'gen-1', employee: 'david', type: 'Time off', startDate: 'Mon 3 Aug', endDate: 'Fri 7 Aug', days: 5, status: 'pending', submittedAt: '18 Jun', note: 'Summer holiday' },
-  { id: 'gen-2', employee: 'emma-martens', type: 'Time off', startDate: 'Mon 14 Jul', endDate: 'Fri 18 Jul', days: 5, status: 'pending', submittedAt: '20 Jun', note: '' },
-  { id: 'gen-3', employee: 'lotte-de-smedt', type: 'Sick leave', startDate: 'Thu 26 Jun', endDate: 'Thu 26 Jun', days: 1, status: 'pending', submittedAt: '26 Jun', note: '' },
-  { id: 'gen-4', employee: 'mathias-de-smedt', type: 'Time off', startDate: 'Mon 21 Jul', endDate: 'Mon 21 Jul', days: 1, status: 'approved', submittedAt: '10 Jun', note: '' },
-  { id: 'gen-5', employee: 'stijn-laurent', type: 'Special leave', startDate: 'Fri 4 Jul', endDate: 'Fri 4 Jul', days: 1, status: 'approved', submittedAt: '25 Jun', note: 'Wedding' },
+  { id: 'gen-1', employee: 'david', type: 'Time off', startDate: 'Mon 1 Jun', endDate: 'Thu 11 Jun', days: 9, status: 'approved', submittedAt: '12 May', note: 'Summer holiday' },
+  { id: 'gen-2', employee: 'emma-martens', type: 'Time off', startDate: 'Mon 13 Jul', endDate: 'Fri 17 Jul', days: 5, status: 'pending', submittedAt: '20 Jun', note: '' },
+  { id: 'gen-3', employee: 'mathias-de-smedt', type: 'Time off', startDate: 'Wed 8 Jul', endDate: 'Wed 8 Jul', days: 1, status: 'approved', submittedAt: '10 Jun', note: '' },
+  { id: 'gen-4', employee: 'stijn-laurent', type: 'Special leave', startDate: 'Fri 3 Jul', endDate: 'Fri 3 Jul', days: 1, status: 'approved', submittedAt: '25 Jun', note: 'Wedding' },
 ];
 
 // ── localStorage bridge ────────────────────────────────────────────────────
@@ -231,7 +255,7 @@ function SidebarItem({ label, isActive, onClick, badgeDot, chevron, chevronOpen 
       <span style={{ fontFamily: 'var(--font-display)', fontWeight: isActive ? 700 : 500, fontSize: 13, color: isActive ? P.ink : P.inkSoft, flex: 1 }}>
         {label}
       </span>
-      {badgeDot && <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#e84d8a', flexShrink: 0 }} />}
+      {badgeDot && <span style={{ minWidth: 17, height: 17, borderRadius: 9, padding: '0 4px', background: P.ink, color: '#fff', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 10, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{typeof badgeDot === 'number' ? badgeDot : '!'}</span>}
       {chevron && (
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={P.ink} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
           {chevronOpen ? <polyline points="18 15 12 9 6 15" /> : <polyline points="6 9 12 15 18 9" />}
@@ -287,16 +311,20 @@ function Sidebar({ active, onNav, pendingCount }) {
           <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 15, color: P.ink }}>payflip</span>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-          {[['Companies', 'Building2'], ['Reporting', 'BarChart2'], ['Dashboard', 'LayoutDashboard']].map(([label, icon]) => (
-            <button key={label} style={{
-              display: 'flex', alignItems: 'center', gap: 9,
-              padding: '6px 8px', borderRadius: 6, border: 'none',
-              background: 'transparent', cursor: 'pointer', width: '100%', textAlign: 'left',
-            }}>
-              <Icon name={icon} size={14} color={P.inkSoft} />
-              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 13, color: P.inkSoft }}>{label}</span>
-            </button>
-          ))}
+          {[['Companies', 'Building2', null], ['Reporting', 'BarChart2', null], ['Dashboard', 'LayoutDashboard', 'dashboard']].map(([label, icon, navId]) => {
+            const isDash = navId === 'dashboard';
+            const isActive = isDash && active === 'dashboard';
+            return (
+              <button key={label} onClick={() => navId && onNav(navId)} style={{
+                display: 'flex', alignItems: 'center', gap: 9,
+                padding: '6px 8px', borderRadius: 6, border: 'none',
+                background: isActive ? P.bg : 'transparent', cursor: navId ? 'pointer' : 'default', width: '100%', textAlign: 'left',
+              }}>
+                <Icon name={icon} size={14} color={isActive ? P.ink : P.inkSoft} />
+                <span style={{ fontFamily: 'var(--font-display)', fontWeight: isActive ? 700 : 500, fontSize: 13, color: isActive ? P.ink : P.inkSoft }}>{label}</span>
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -312,7 +340,7 @@ function Sidebar({ active, onNav, pendingCount }) {
       <nav style={{ flex: 1, padding: '10px 8px', display: 'flex', flexDirection: 'column', gap: 1, overflow: 'auto' }}>
         <SidebarItem label="Home" isActive={active === 'home'} onClick={() => onNav('home')} />
 
-        <SidebarItem label="To do" onClick={() => setTodoOpen(o => !o)} badgeDot chevron chevronOpen={todoOpen} />
+        <SidebarItem label="To do" onClick={() => setTodoOpen(o => !o)} badgeDot={2} chevron chevronOpen={todoOpen} />
         {todoOpen && <SidebarSub active={active} onNav={onNav} items={[
           { id: 'todo-review', label: 'Review choices' },
           { id: 'todo-relaunch', label: 'Assign relaunch admin' },
@@ -442,7 +470,7 @@ function ReasonModal({ title, description, confirmLabel, confirmColor = '#b91c1c
             <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, lineHeight: 1.5 }}>{description}</p>
           )}
           <div>
-            <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, color: P.inkSoft, marginBottom: 5 }}>
+            <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.inkSoft, marginBottom: 6 }}>
               Reason <span style={{ fontWeight: 400, color: P.inkFaint }}>(required)</span>
             </label>
             <textarea
@@ -578,6 +606,120 @@ function SelectField({ value, onChange, children, style }) {
         width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={P.inkFaint} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
         <polyline points="6 9 12 15 18 9"/>
       </svg>
+    </div>
+  );
+}
+
+function EmployeeCombobox({ value, onChange, employees, error, autoFocus }) {
+  const [query, setQuery] = useState('');
+  const [open, setOpen] = useState(false);
+  const [highlighted, setHighlighted] = useState(0);
+  const inputRef = React.useRef(null);
+  const listRef = React.useRef(null);
+
+  const selectedEmp = employees.find(([id]) => id === value)?.[1];
+
+  const filtered = React.useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return employees;
+    return employees.filter(([, emp]) =>
+      emp.name.toLowerCase().includes(q) || emp.department.toLowerCase().includes(q)
+    );
+  }, [query, employees]);
+
+  React.useEffect(() => {
+    if (!listRef.current) return;
+    const items = listRef.current.children;
+    if (items[highlighted]) items[highlighted].scrollIntoView({ block: 'nearest' });
+  }, [highlighted]);
+
+  const handleSelect = (id) => { onChange(id); setQuery(''); setOpen(false); };
+  const handleFocus = () => { setQuery(''); setOpen(true); setHighlighted(0); };
+  const handleBlur = () => { setTimeout(() => { setOpen(false); setQuery(''); }, 150); };
+  const handleKeyDown = (e) => {
+    if (!open) { setOpen(true); return; }
+    if (e.key === 'ArrowDown') { e.preventDefault(); setHighlighted(h => Math.min(h + 1, filtered.length - 1)); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); setHighlighted(h => Math.max(h - 1, 0)); }
+    else if (e.key === 'Enter') { e.preventDefault(); if (filtered[highlighted]) handleSelect(filtered[highlighted][0]); }
+    else if (e.key === 'Escape') { setOpen(false); setQuery(''); }
+  };
+
+  return (
+    <div style={{ position: 'relative' }}>
+      <div style={{
+        display: 'flex', alignItems: 'center', gap: 7, padding: '8px 10px', borderRadius: 7,
+        border: `1px solid ${error ? '#dc2626' : open ? P.borderStrong : P.border}`,
+        background: P.white, boxSizing: 'border-box',
+      }}>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={P.inkFaint} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input
+          ref={inputRef} autoFocus={autoFocus}
+          value={open ? query : (selectedEmp?.name || '')}
+          onChange={e => { setQuery(e.target.value); setHighlighted(0); if (!open) setOpen(true); if (!e.target.value) onChange(''); }}
+          onFocus={handleFocus} onBlur={handleBlur} onKeyDown={handleKeyDown}
+          placeholder="Search by name or department…"
+          style={{ flex: 1, border: 'none', outline: 'none', padding: 0, fontFamily: 'var(--font-body)', fontSize: 13, color: P.ink, background: 'transparent', minWidth: 0 }}
+        />
+        {value && !open ? (
+          <button onMouseDown={e => { e.preventDefault(); onChange(''); inputRef.current?.focus(); }}
+            style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: 0, display: 'flex', flexShrink: 0 }}>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={P.inkFaint} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        ) : (
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={P.inkFaint} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+            <polyline points="6 9 12 15 18 9"/>
+          </svg>
+        )}
+      </div>
+      {open && (
+        <div ref={listRef} style={{
+          position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0, zIndex: 400,
+          background: P.white, borderRadius: 8, border: `1px solid ${P.border}`,
+          boxShadow: '0 4px 20px rgba(15,13,40,0.12)', maxHeight: 220, overflowY: 'auto',
+        }}>
+          {filtered.length > 0 ? filtered.map(([id, emp], idx) => (
+            <div key={id} onMouseDown={() => handleSelect(id)} onMouseEnter={() => setHighlighted(idx)}
+              style={{ padding: '8px 12px', cursor: 'pointer', background: idx === highlighted ? P.bg : 'transparent', display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.ink, flex: 1 }}>{emp.name}</span>
+              <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkFaint, flexShrink: 0 }}>{emp.department}</span>
+            </div>
+          )) : (
+            <div style={{ padding: '14px 12px', fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkFaint, textAlign: 'center' }}>No employees found</div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function DateInput({ value, onChange, min, placeholder = 'Select date', borderColor }) {
+  const ref = React.useRef(null);
+  const fmt = (iso) => {
+    if (!iso) return '';
+    const [y, m, d] = iso.split('-');
+    return new Date(+y, +m - 1, +d).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+  };
+  const open = () => { try { ref.current?.showPicker(); } catch(e) { ref.current?.focus(); } };
+  return (
+    <div onClick={open} style={{
+      position: 'relative', display: 'flex', alignItems: 'center', gap: 7,
+      padding: '8px 10px', borderRadius: 7, border: `1px solid ${borderColor || P.border}`,
+      background: P.white, cursor: 'pointer', userSelect: 'none', minHeight: 36,
+    }}>
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={value ? P.inkSoft : P.inkFaint} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+      </svg>
+      <span style={{ flex: 1, fontFamily: 'var(--font-body)', fontSize: 13, color: P.ink, lineHeight: 1 }}>
+        {value ? fmt(value) : placeholder}
+      </span>
+      <input
+        ref={ref} type="date" value={value} min={min} onChange={onChange}
+        style={{ position: 'absolute', width: 0, height: 0, opacity: 0, border: 'none', padding: 0, pointerEvents: 'none' }}
+      />
     </div>
   );
 }
@@ -747,13 +889,11 @@ function ModalCalendar({ startDate, endDate, focusedField, onDateTap, pickedDate
 }
 
 // ── Add / Edit time off modal ──────────────────────────────────────────────
-function AddTimeOffModal({ existing, onClose, onSave }) {
+function AddTimeOffModal({ existing, onClose, onSave, requests = [] }) {
   const isEdit = !!existing?.id;
   const lockEmployee = existing?._lockEmployee;
   const [empId, setEmpId]     = useState(existing?.employee || '');
   const [type, setType]       = useState(existing?.type || 'Time off');
-  const [startDate, setStart] = useState(existing ? toISOInput(existing.startDate) : '');
-  const [endDate, setEnd]     = useState(existing ? toISOInput(existing.endDate || existing.startDate) : '');
   const [note, setNote]       = useState(existing?.note || '');
   const [holidayName, setHolidayName] = useState('');
   const [errors, setErrors] = useState({});
@@ -762,6 +902,8 @@ function AddTimeOffModal({ existing, onClose, onSave }) {
   const [attachment, setAttachment] = useState(null);
   const [notifyEmployee, setNotifyEmployee] = useState(false);
   const [scope, setScope] = useState(lockEmployee ? 'one' : 'one'); // 'one' | 'collective'
+  const [rangeFrom, setRangeFrom] = useState(() => existing?.startDate ? (toISOInput(existing.startDate) || '') : '');
+  const [rangeTo, setRangeTo]     = useState(() => existing ? (toISOInput(existing.endDate || existing.startDate) || '') : '');
   const [pickedDates, setPickedDates] = useState(() => {
     if (existing?._selectedDates) return new Set(existing._selectedDates);
     if (existing?.startDate) {
@@ -781,6 +923,21 @@ function AddTimeOffModal({ existing, onClose, onSave }) {
   const allEmployees = scope === 'collective';
 
   useEffect(() => { setAttachment(null); setNotifyEmployee(false); }, [type]);
+
+  useEffect(() => {
+    if (!rangeFrom || !rangeTo) return;
+    const from = new Date(rangeFrom + 'T00:00:00');
+    const to   = new Date(rangeTo   + 'T00:00:00');
+    if (from > to) return;
+    const dates = new Set();
+    for (let d = new Date(from); d <= to; d = addDays(d, 1)) {
+      if (d.getDay() !== 0 && d.getDay() !== 6 && !_holidaySet.has(isoDate(d)) && !_collectiveSet.has(isoDate(d))) {
+        dates.add(isoDate(d));
+      }
+    }
+    setPickedDates(dates);
+    setErrors(p => ({ ...p, dates: null }));
+  }, [rangeFrom, rangeTo]);
 
   const handleDateTap = (d) => {
     const iso = isoDate(d);
@@ -847,32 +1004,40 @@ function AddTimeOffModal({ existing, onClose, onSave }) {
     fontFamily: 'var(--font-body)', fontSize: 13, color: P.ink, outline: 'none', background: P.white,
   };
 
+  React.useEffect(() => {
+    const handler = (e) => { if (e.key === 'Escape') onClose(); };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, [onClose]);
+
   return (
     <div onClick={onClose} style={{
       position: 'fixed', inset: 0, zIndex: 200,
-      background: 'rgba(15,13,40,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+      background: 'rgba(15,13,40,0.25)',
     }}>
       <div onClick={e => e.stopPropagation()} style={{
-        background: P.white, borderRadius: 14, width: 480,
-        boxShadow: '0 8px 40px rgba(15,13,40,0.18)',
+        position: 'absolute', top: 0, right: 0, height: '100%', width: 480,
+        background: P.white,
+        boxShadow: '-8px 0 40px rgba(15,13,40,0.15)',
         display: 'flex', flexDirection: 'column',
+        animation: 'slideInRight 220ms cubic-bezier(0.22, 1, 0.36, 1)',
       }}>
         {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 22px', borderBottom: `1px solid ${P.border}` }}>
-          <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 16, color: P.ink }}>
+        <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 24px', borderBottom: `1px solid ${P.border}` }}>
+          <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18, color: P.ink }}>
             {isEdit ? 'Edit time off' : 'Add time off'}
           </span>
-          <button onClick={onClose} style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: 4, display: 'flex' }}>
+          <button onClick={onClose} style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: 6, display: 'flex', borderRadius: 6 }}>
             <Icon name="X" size={18} color={P.inkSoft} />
           </button>
         </div>
 
-        {/* Form */}
-        <div style={{ padding: '18px 22px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+        {/* Form — scrollable */}
+        <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 16 }}>
           {/* Scope selector */}
           {!lockEmployee && !isEdit && (
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-              {[['one', 'One employee', 'User'], ['collective', 'Collective holiday', 'Users']].map(([val, label, icon]) => {
+              {[['one', 'One employee', 'User'], ['collective', 'All employees', 'Users']].map(([val, label, icon]) => {
                 const active = scope === val;
                 return (
                   <button key={val} onClick={() => setScope(val)} style={{
@@ -904,7 +1069,7 @@ function AddTimeOffModal({ existing, onClose, onSave }) {
 
           {/* Employee / Holiday name — same slot, same height, no jump */}
           <div>
-            <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, color: P.inkSoft, marginBottom: 5 }}>
+            <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.inkSoft, marginBottom: 6 }}>
               {scope === 'collective' ? 'Reason' : 'Employee'}
             </label>
             {scope === 'collective' ? (
@@ -914,12 +1079,13 @@ function AddTimeOffModal({ existing, onClose, onSave }) {
                 {EMPLOYEES[empId]?.name || empId}
               </div>
             ) : (
-              <SelectField value={empId} onChange={e => { setEmpId(e.target.value); setErrors(p => ({...p, employee: null})); }} style={{ ...inputStyle, borderColor: errors.employee ? '#dc2626' : P.border }}>
-                <option value="">Select employee…</option>
-                {empList.map(([id, emp]) => (
-                  <option key={id} value={id}>{emp.name} — {emp.department}</option>
-                ))}
-              </SelectField>
+              <EmployeeCombobox
+                value={empId}
+                onChange={(id) => { setEmpId(id); setErrors(p => ({...p, employee: null})); }}
+                employees={empList}
+                error={errors.employee}
+                autoFocus={false}
+              />
             )}
             {errors.employee && <div style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: '#dc2626', marginTop: 4 }}>{errors.employee}</div>}
           </div>
@@ -927,7 +1093,7 @@ function AddTimeOffModal({ existing, onClose, onSave }) {
           {/* Leave type — hidden for collective holidays */}
           {!allEmployees && (
             <div>
-              <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, color: P.inkSoft, marginBottom: 5 }}>Leave type</label>
+              <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.inkSoft, marginBottom: 6 }}>Leave type</label>
               <SelectField value={type} onChange={e => setType(e.target.value)} style={{ ...inputStyle, cursor: 'pointer' }}>
                 {ALL_LEAVE_TYPES.map(t => (
                   <option key={t} value={t}>{t}{ADMIN_ONLY_TYPES.has(t) ? ' (Admin)' : ''}</option>
@@ -937,11 +1103,23 @@ function AddTimeOffModal({ existing, onClose, onSave }) {
           )}
 
 
-          {/* Inline calendar */}
-          <ModalCalendar onDateTap={(d) => { handleDateTap(d); setErrors(p => ({...p, dates: null})); }} pickedDates={pickedDates} selectionMode="pick" halfDay={halfDay} />
-          {errors.dates && <div style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: '#dc2626', marginTop: -8 }}>{errors.dates}</div>}
+          {/* Date range inputs */}
+          <div>
+            <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.inkSoft, marginBottom: 6 }}>Dates</label>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+              <div>
+                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.inkFaint, marginBottom: 3, textTransform: 'uppercase', letterSpacing: '0.04em' }}>From</div>
+                <DateInput value={rangeFrom} placeholder="Start date" borderColor={errors.dates ? '#dc2626' : P.border} onChange={e => { setRangeFrom(e.target.value); if (rangeTo && e.target.value > rangeTo) setRangeTo(e.target.value); }} />
+              </div>
+              <div>
+                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.inkFaint, marginBottom: 3, textTransform: 'uppercase', letterSpacing: '0.04em' }}>To</div>
+                <DateInput value={rangeTo} placeholder="End date" min={rangeFrom || undefined} borderColor={errors.dates ? '#dc2626' : P.border} onChange={e => { setRangeTo(e.target.value); }} />
+              </div>
+            </div>
+            {errors.dates && <div style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: '#dc2626', marginTop: 4 }}>{errors.dates}</div>}
+          </div>
 
-          {/* Duration preview + Edit selection */}
+          {/* Duration + edit selection */}
           {pickedDates.size > 0 && (
             <div style={{ borderRadius: 8, overflow: 'hidden', background: P.bg, border: `1px solid ${P.border}` }}>
               <div style={{ padding: '8px 12px', display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -957,18 +1135,19 @@ function AddTimeOffModal({ existing, onClose, onSave }) {
                   fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, color: P.ink,
                   textDecoration: 'underline', textUnderlineOffset: 2,
                 }}>
-                  {showEditSelection ? 'Done' : 'Edit selection'}
+                  {showEditSelection ? 'Done' : 'Edit days'}
                 </button>
               </div>
               {showEditSelection && (
-                <div style={{ borderTop: `1px solid ${P.border}`, padding: '4px 12px 8px' }}>
-                  {sortedPicked.map(iso => {
+                <div style={{ borderTop: `1px solid ${P.border}`, padding: '0 12px' }}>
+                  {sortedPicked.map((iso, idx) => {
                     const p = iso.split('-');
                     const d = new Date(+p[0], +p[1]-1, +p[2]);
                     const label = d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
                     const hv = halfDay[iso] || 'full';
+                    const isLast = idx === sortedPicked.length - 1;
                     return (
-                      <div key={iso} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0', borderBottom: `1px solid ${P.border}` }}>
+                      <div key={iso} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 0', borderBottom: isLast ? 'none' : `1px solid ${P.border}` }}>
                         <span style={{ flex: 1, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, color: P.ink }}>{label}</span>
                         <HalfDayPickerAdmin value={hv} onChange={(v) => setHalfDay(hd => {
                           const c = { ...hd };
@@ -976,7 +1155,7 @@ function AddTimeOffModal({ existing, onClose, onSave }) {
                           return c;
                         })} />
                         <button onClick={() => handleDateTap(d)} style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: 4, display: 'flex', lineHeight: 1 }}>
-                          <Icon name="X" size={13} color={P.inkSoft} />
+                          <Icon name="Trash2" size={13} color={P.inkSoft} />
                         </button>
                       </div>
                     );
@@ -988,7 +1167,7 @@ function AddTimeOffModal({ existing, onClose, onSave }) {
 
           {/* Note — always shown */}
           <div>
-            <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, color: P.inkSoft, marginBottom: 5 }}>Notes <span style={{ fontWeight: 400 }}>(optional)</span></label>
+            <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.inkSoft, marginBottom: 6 }}>Notes <span style={{ fontWeight: 400 }}>(optional)</span></label>
             <textarea value={note} onChange={e => setNote(e.target.value)} rows={2} placeholder={scope === 'collective' ? 'e.g. Replacement for Christmas Day which fell on a Sunday…' : 'Reason or additional context…'} style={{ ...inputStyle, resize: 'none', lineHeight: 1.5 }} />
           </div>
 
@@ -998,7 +1177,7 @@ function AddTimeOffModal({ existing, onClose, onSave }) {
             if (!rule) return null;
             return (
               <div>
-                <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, color: P.inkSoft, marginBottom: 3 }}>{rule.label}</label>
+                <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.inkSoft, marginBottom: 6 }}>{rule.label}</label>
                 <p style={{ margin: '0 0 8px', fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkFaint }}>{rule.note}</p>
                 {attachment ? (
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', borderRadius: 7, border: `1px solid ${P.border}`, background: P.bg }}>
@@ -1025,36 +1204,31 @@ function AddTimeOffModal({ existing, onClose, onSave }) {
                     Upload {rule.label}
                   </button>
                 )}
+                {!attachment && (
+                  <div onClick={() => setNotifyEmployee(v => !v)} style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 8, padding: '10px 12px', borderRadius: 8, border: `1px solid ${P.border}`, background: P.bg, cursor: 'pointer', userSelect: 'none' }}>
+                    <div style={{ width: 28, height: 16, borderRadius: 8, flexShrink: 0, background: notifyEmployee ? P.ink : '#d1d5db', position: 'relative', transition: 'background 150ms' }}>
+                      <div style={{ position: 'absolute', top: 2, left: notifyEmployee ? 14 : 2, width: 12, height: 12, borderRadius: 6, background: '#fff', transition: 'left 150ms' }} />
+                    </div>
+                    <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, flex: 1 }}>Request {rule.label.toLowerCase()} from employee</span>
+                  </div>
+                )}
               </div>
             );
           })()}
         </div>
 
-        {/* Footer */}
-        <div style={{ padding: '14px 22px', borderTop: `1px solid ${P.border}`, display: 'flex', alignItems: 'center', gap: 10 }}>
+        {/* Footer — pinned */}
+        <div style={{ flexShrink: 0, padding: '14px 24px', borderTop: `1px solid ${P.border}`, display: 'flex', alignItems: 'center', gap: 10 }}>
           <button onClick={onClose} style={{
-            padding: '8px 18px', borderRadius: 8, border: `1px solid ${P.border}`, background: 'transparent',
+            padding: '8px 18px', borderRadius: 8, border: `1px solid ${P.borderStrong}`, background: 'transparent',
             color: P.ink, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13,
           }}>Cancel</button>
           <div style={{ flex: 1 }} />
-          {(() => {
-            const rule = ATTACHMENT_RULES[type];
-            const show = rule && !attachment;
-            if (!show) return null;
-            return (
-              <div onClick={() => setNotifyEmployee(v => !v)} style={{ display: 'flex', alignItems: 'center', gap: 7, cursor: 'pointer', userSelect: 'none' }}>
-                <div style={{ width: 28, height: 16, borderRadius: 8, flexShrink: 0, background: notifyEmployee ? P.ink : '#d1d5db', position: 'relative', transition: 'background 150ms' }}>
-                  <div style={{ position: 'absolute', top: 2, left: notifyEmployee ? 14 : 2, width: 12, height: 12, borderRadius: 6, background: '#fff', transition: 'left 150ms' }} />
-                </div>
-                <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, whiteSpace: 'nowrap' }}>Request {rule.label.toLowerCase()}</span>
-              </div>
-            );
-          })()}
           <button onClick={handleSave} style={{
             padding: '8px 20px', borderRadius: 8, border: 'none',
             background: P.ink, color: '#fff', cursor: 'pointer',
             fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13,
-          }}>{isEdit ? 'Save changes' : 'Add time off'}</button>
+          }}>{isEdit ? 'Save changes' : 'Confirm absence'}</button>
         </div>
       </div>
     </div>
@@ -1066,18 +1240,22 @@ const TH = ({ children, style }) => (
   <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.06em', ...style }}>{children}</div>
 );
 
-function RequestRow({ req, requests, onApprove, onDecline, onDetail, onEdit, onCancel }) {
-  const emp = EMPLOYEES[req.employee] || { name: req.employee, initials: '?', color: '#e5e7eb' };
+function RequestRow({ req, requests, onApprove, onDecline, onDetail, onEdit, onCancel, selected, onToggle }) {
+  const emp = EMPLOYEES[req.employee] || { name: req.employee, initials: '?', color: '#e5e7eb', entitlement: 20 };
   const [hover, setHover] = useState(false);
+  const usedDays = requests
+    .filter(r => r.employee === req.employee && r.id !== req.id && (r.status === 'approved' || r.status === 'pending'))
+    .reduce((s, r) => s + r.days, 0);
+  const remaining = emp.entitlement - usedDays - req.days;
   return (
     <div onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)} onClick={() => onDetail(req)}
       style={{
-        display: 'grid', gridTemplateColumns: '32px 1.8fr 1fr 0.9fr 1fr 1fr 0.7fr 0.9fr 44px',
+        display: 'grid', gridTemplateColumns: '32px 1.8fr 1fr 0.9fr 0.7fr 0.7fr 1fr 0.7fr 0.9fr 44px',
         alignItems: 'center', gap: 12, padding: '0 20px', height: 52,
-        borderBottom: `1px solid ${P.border}`, background: hover ? P.bg : P.white,
+        borderBottom: `1px solid ${P.border}`, background: selected ? '#f5f3ff' : hover ? P.bg : P.white,
         cursor: 'pointer', transition: 'background 0.1s',
       }}>
-      <input type="checkbox" onClick={e => e.stopPropagation()} style={{ cursor: 'pointer', accentColor: P.ink }} />
+      <input type="checkbox" checked={selected} onClick={e => e.stopPropagation()} onChange={() => onToggle(req.id)} style={{ cursor: 'pointer', accentColor: P.ink }} />
       <div style={{ display: 'flex', alignItems: 'center', minWidth: 0 }}>
         <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{emp.name}</span>
       </div>
@@ -1087,6 +1265,12 @@ function RequestRow({ req, requests, onApprove, onDecline, onDetail, onEdit, onC
       <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink }}>{req.startDate}</span>
       <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: req.startDate === req.endDate ? P.inkFaint : P.ink }}>
         {req.startDate === req.endDate ? '—' : req.endDate}
+      </span>
+      <span style={{
+        fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, textAlign: 'center',
+        color: remaining < 0 ? '#b91c1c' : remaining <= 3 ? '#f59e0b' : '#166534',
+      }}>
+        {remaining}d
       </span>
       <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft }}>{req.submittedAt}</span>
       <div onClick={e => e.stopPropagation()}>
@@ -1102,9 +1286,17 @@ function RequestsScreen({ requests, onApprove, onDecline, onSave, onCancel }) {
   const [detail, setDetail] = useState(null);
   const [editReq, setEditReq] = useState(null);
   const [addOpen, setAddOpen] = useState(false);
+  const [selected, setSelected] = useState(new Set());
   const filtered = tab === 'pending' ? requests.filter(r => r.status === 'pending')
     : tab === 'approved' ? requests.filter(r => r.status === 'approved') : requests;
   const pendingCount = requests.filter(r => r.status === 'pending').length;
+  const toggleSelect = (id) => setSelected(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
+  const allSelected = filtered.length > 0 && filtered.every(r => selected.has(r.id));
+  const toggleAll = () => {
+    if (allSelected) setSelected(new Set());
+    else setSelected(new Set(filtered.map(r => r.id)));
+  };
+  const selectedPending = [...selected].filter(id => requests.find(r => r.id === id)?.status === 'pending');
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
       <div style={{ padding: '28px 28px 0', background: P.white, borderBottom: `1px solid ${P.border}` }}>
@@ -1119,7 +1311,7 @@ function RequestsScreen({ requests, onApprove, onDecline, onSave, onCancel }) {
         </div>
         <div style={{ display: 'flex', gap: 0 }}>
           {[['pending', 'All pending requests'], ['approved', 'Approved'], ['all', 'All requests']].map(([val, label]) => (
-            <button key={val} onClick={() => setTab(val)} style={{
+            <button key={val} onClick={() => { setTab(val); setSelected(new Set()); }} style={{
               padding: '9px 16px', border: 'none', background: 'transparent', cursor: 'pointer',
               fontFamily: 'var(--font-display)', fontWeight: tab === val ? 700 : 500, fontSize: 13, color: tab === val ? P.ink : P.inkSoft,
               borderBottom: tab === val ? `2px solid ${P.ink}` : '2px solid transparent', marginBottom: -1,
@@ -1136,10 +1328,10 @@ function RequestsScreen({ requests, onApprove, onDecline, onSave, onCancel }) {
           <Icon name="SlidersHorizontal" size={13} color={P.inkSoft} /> Filter
         </button>
       </div>
-      <div style={{ flex: 1, overflowY: 'auto', background: P.white }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '32px 1.8fr 1fr 0.9fr 1fr 1fr 0.7fr 0.9fr 44px', alignItems: 'center', gap: 12, padding: '0 20px', height: 38, borderBottom: `1px solid ${P.border}`, background: P.bg, position: 'sticky', top: 0 }}>
-          <input type="checkbox" style={{ cursor: 'pointer', accentColor: P.ink }} />
-          <TH>Requested by</TH><TH>Status</TH><TH>Leave type</TH><TH>Duration</TH><TH>Date from</TH><TH>Date to</TH><TH>Added on</TH><div />
+      <div style={{ flex: 1, overflowY: 'auto', background: P.white, position: 'relative' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '32px 1.8fr 1fr 0.9fr 0.7fr 0.7fr 1fr 0.7fr 0.9fr 44px', alignItems: 'center', gap: 12, padding: '0 20px', height: 38, borderBottom: `1px solid ${P.border}`, background: P.bg, position: 'sticky', top: 0, zIndex: 5 }}>
+          <input type="checkbox" checked={allSelected} onChange={toggleAll} style={{ cursor: 'pointer', accentColor: P.ink }} />
+          <TH>Requested by</TH><TH>Status</TH><TH>Leave type</TH><TH>Duration</TH><TH>Date from</TH><TH>Date to</TH><TH style={{ textAlign: 'center' }}>Balance</TH><TH>Added on</TH><div />
         </div>
         {filtered.length === 0 ? (
           <div style={{ padding: '60px 24px', textAlign: 'center' }}>
@@ -1148,10 +1340,42 @@ function RequestsScreen({ requests, onApprove, onDecline, onSave, onCancel }) {
             <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkFaint, marginTop: 4 }}>{tab === 'pending' ? 'New requests from your team will appear here.' : ''}</div>
           </div>
         ) : filtered.map(req => (
-          <RequestRow key={req.id} req={req} requests={requests} onApprove={onApprove} onDecline={onDecline} onDetail={setDetail} onEdit={setEditReq} onCancel={onCancel} />
+          <RequestRow key={req.id} req={req} requests={requests} onApprove={onApprove} onDecline={onDecline} onDetail={setDetail} onEdit={setEditReq} onCancel={onCancel} selected={selected.has(req.id)} onToggle={toggleSelect} />
         ))}
         {filtered.length > 0 && (
           <div style={{ padding: '10px 20px', fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkFaint }}>{filtered.length} {filtered.length === 1 ? 'record' : 'records'}</div>
+        )}
+        {/* Bulk action bar */}
+        {selected.size > 0 && (
+          <div style={{
+            position: 'sticky', bottom: 16, left: 0, right: 0,
+            margin: '0 20px',
+            background: P.ink, borderRadius: 12, padding: '10px 16px',
+            display: 'flex', alignItems: 'center', gap: 12,
+            boxShadow: '0 8px 32px rgba(15,13,40,0.25)',
+            animation: 'fadeUp 0.15s ease-out',
+          }}>
+            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: '#fff' }}>
+              {selected.size} selected
+            </span>
+            <div style={{ flex: 1 }} />
+            {selectedPending.length > 0 && (
+              <button onClick={() => { selectedPending.forEach(id => onApprove(id)); setSelected(new Set()); }} style={{
+                display: 'flex', alignItems: 'center', gap: 6,
+                padding: '7px 16px', borderRadius: 8, border: 'none',
+                background: '#22c55e', color: '#fff', cursor: 'pointer',
+                fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12,
+              }}>
+                <Icon name="CheckCircle" size={13} color="#fff" strokeWidth={2} />
+                Approve {selectedPending.length > 1 ? `all ${selectedPending.length}` : ''}
+              </button>
+            )}
+            <button onClick={() => setSelected(new Set())} style={{
+              padding: '7px 14px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.25)',
+              background: 'transparent', color: '#fff', cursor: 'pointer',
+              fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12,
+            }}>Cancel</button>
+          </div>
         )}
       </div>
       {detail && (
@@ -1164,6 +1388,7 @@ function RequestsScreen({ requests, onApprove, onDecline, onSave, onCancel }) {
       {(addOpen || editReq) && (
         <AddTimeOffModal
           existing={editReq || null}
+          requests={requests}
           onClose={() => { setAddOpen(false); setEditReq(null); }}
           onSave={(req) => { onSave(req); setAddOpen(false); setEditReq(null); }}
         />
@@ -1293,24 +1518,58 @@ function ViewSwitcher({ mode, onChange }) {
 }
 
 // ── Filter toolbar ─────────────────────────────────────────────────────────
-const LEAVE_FILTER_OPTS = [['all', 'All types'], ['Time off', 'Time off'], ['Sick leave', 'Sick leave'], ['Special leave', 'Special leave']];
+const LEAVE_FILTER_OPTS = [['all', 'All time-off types'], ['Time off', 'Time off'], ['Sick leave', 'Sick leave'], ['Special leave', 'Special leave']];
 
-function FilterToolbar({ searchText, onSearch, leaveFilter, onLeaveFilter }) {
-  const [leaveOpen, setLeaveOpen] = useState(false);
-  const leaveRef = useRef(null);
+function FilterDropdown({ label, active, opts, onSelect, minWidth }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
   useEffect(() => {
-    if (!leaveOpen) return;
-    const close = (e) => { if (leaveRef.current && !leaveRef.current.contains(e.target)) setLeaveOpen(false); };
+    if (!open) return;
+    const close = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
     document.addEventListener('mousedown', close);
     return () => document.removeEventListener('mousedown', close);
-  }, [leaveOpen]);
-
-  const activeLabel = LEAVE_FILTER_OPTS.find(([v]) => v === leaveFilter)?.[1] ?? 'All types';
-
+  }, [open]);
+  const isFiltered = active !== opts[0][0];
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px', background: P.white, borderBottom: `1px solid ${P.border}` }}>
+    <div ref={ref} style={{ position: 'relative' }}>
+      <button onClick={() => setOpen(o => !o)} style={{
+        display: 'flex', alignItems: 'center', gap: 5,
+        padding: '8px 11px', borderRadius: 7,
+        border: `1px solid ${isFiltered ? P.ink : P.border}`,
+        background: P.white, color: P.ink,
+        cursor: 'pointer', fontFamily: 'var(--font-display)',
+        fontWeight: isFiltered ? 700 : 500, fontSize: 12,
+      }}>
+        {opts.find(([v]) => v === active)?.[1] ?? label}
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      {open && (
+        <div style={{
+          position: 'absolute', top: 'calc(100% + 4px)', left: 0, zIndex: 50,
+          background: P.white, border: `1px solid ${P.border}`, borderRadius: 8,
+          boxShadow: '0 4px 16px rgba(15,13,40,0.10)', minWidth: minWidth || 160, overflow: 'hidden',
+        }}>
+          {opts.map(([val, lbl]) => (
+            <button key={val} onClick={() => { onSelect(val); setOpen(false); }} style={{
+              display: 'block', width: '100%', textAlign: 'left',
+              padding: '8px 12px', border: 'none', cursor: 'pointer',
+              background: active === val ? '#f4f5f7' : 'transparent',
+              fontFamily: 'var(--font-display)', fontWeight: active === val ? 700 : 500,
+              fontSize: 13, color: P.ink,
+            }}>{lbl}</button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function FilterToolbar({ searchText, onSearch, leaveFilter, onLeaveFilter, deptFilter, onDeptFilter }) {
+  const deptOpts = [['all', 'All departments'], ...DEPARTMENTS.map(d => [d, d])];
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '14px 20px' }}>
       {/* Search */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 7, border: `1px solid ${P.border}`, borderRadius: 7, padding: '5px 12px', width: 240 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 7, border: `1px solid ${P.border}`, borderRadius: 7, padding: '8px 12px', width: 240, background: P.white }}>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={P.inkFaint} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
           <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
         </svg>
@@ -1318,36 +1577,8 @@ function FilterToolbar({ searchText, onSearch, leaveFilter, onLeaveFilter }) {
           border: 'none', outline: 'none', background: 'transparent', fontFamily: 'var(--font-body)', fontSize: 12, color: P.ink, width: '100%',
         }} />
       </div>
-
-      {/* Leave type dropdown */}
-      <div ref={leaveRef} style={{ position: 'relative' }}>
-        <button onClick={() => setLeaveOpen(o => !o)} style={{
-          display: 'flex', alignItems: 'center', gap: 5,
-          padding: '5px 11px', borderRadius: 7, border: `1px solid ${P.border}`,
-          background: P.ink, color: '#fff', cursor: 'pointer',
-          fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12,
-        }}>
-          {activeLabel}
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-        </button>
-        {leaveOpen && (
-          <div style={{
-            position: 'absolute', top: 'calc(100% + 4px)', left: 0, zIndex: 50,
-            background: P.white, border: `1px solid ${P.border}`, borderRadius: 8,
-            boxShadow: '0 4px 16px rgba(15,13,40,0.10)', minWidth: 140, overflow: 'hidden',
-          }}>
-            {LEAVE_FILTER_OPTS.map(([val, label]) => (
-              <button key={val} onClick={() => { onLeaveFilter(val); setLeaveOpen(false); }} style={{
-                display: 'block', width: '100%', textAlign: 'left',
-                padding: '8px 12px', border: 'none', cursor: 'pointer',
-                background: leaveFilter === val ? '#f4f5f7' : 'transparent',
-                fontFamily: 'var(--font-display)', fontWeight: leaveFilter === val ? 700 : 500,
-                fontSize: 13, color: P.ink,
-              }}>{label}</button>
-            ))}
-          </div>
-        )}
-      </div>
+      <FilterDropdown label="All time-off types" active={leaveFilter} opts={LEAVE_FILTER_OPTS} onSelect={onLeaveFilter} minWidth={170} />
+      <FilterDropdown label="All departments" active={deptFilter} opts={deptOpts} onSelect={onDeptFilter} minWidth={160} />
     </div>
   );
 }
@@ -1364,10 +1595,11 @@ function TeamAbsencesScreen({ requests, pendingCount, onNav, onShowDetail, onSav
   const [searchText, setSearchText] = useState('');
   const [activeDepts, setActiveDepts] = useState(() => new Set(DEPARTMENTS));
   const [leaveFilter, setLeaveFilter] = useState('all');
+  const [deptFilter, setDeptFilter] = useState('all');
   const [expandedDepts, setExpandedDepts] = useState(() => new Set(DEPARTMENTS));
   const [tooltip, setTooltip] = useState(null);
   const [addOpen, setAddOpen] = useState(false);
-  const [absencesOnly, setAbsencesOnly] = useState(false);
+  const [absencesOnly, setAbsencesOnly] = useState(true);
   const tooltipTimerRef = useRef(null);
   const tooltipReqIdRef = useRef(null);
 
@@ -1437,6 +1669,7 @@ function TeamAbsencesScreen({ requests, pendingCount, onNav, onShowDetail, onSav
     const search = searchText.toLowerCase();
     return Object.entries(EMPLOYEES).filter(([id, emp]) => {
       if (!activeDepts.has(emp.department)) return false;
+      if (deptFilter !== 'all' && emp.department !== deptFilter) return false;
       if (search && !emp.name.toLowerCase().includes(search)) return false;
       if (absencesOnly) {
         const hasAbsence = dayISOs.some(iso => {
@@ -1447,7 +1680,7 @@ function TeamAbsencesScreen({ requests, pendingCount, onNav, onShowDetail, onSav
       }
       return true;
     });
-  }, [searchText, activeDepts, absencesOnly, dayISOs, absenceMap, leaveFilter]);
+  }, [searchText, activeDepts, deptFilter, absencesOnly, dayISOs, absenceMap, leaveFilter]);
 
   const grouped = useMemo(() => {
     const groups = {};
@@ -1484,13 +1717,13 @@ function TeamAbsencesScreen({ requests, pendingCount, onNav, onShowDetail, onSav
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, overflow: 'hidden' }}>
       {/* Page header */}
-      <div style={{ padding: '28px 28px 18px', background: P.white, borderBottom: `1px solid ${P.border}`, display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexShrink: 0 }}>
+      <div style={{ padding: '40px 28px', background: P.white, borderBottom: `1px solid ${P.border}`, display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexShrink: 0 }}>
         <div>
           <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 28, color: P.ink, margin: 0, letterSpacing: '-0.02em' }}>Team absences</h1>
           <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, margin: '4px 0 0' }}>Track and plan team availability</p>
         </div>
         <button onClick={() => setAddOpen(true)} style={{
-          display: 'flex', alignItems: 'center', gap: 7, padding: '9px 18px', borderRadius: 20, border: 'none',
+          display: 'flex', alignItems: 'center', gap: 7, padding: '9px 18px', borderRadius: 8, border: 'none',
           background: P.ink, color: '#fff', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13,
         }}>
           <Icon name="Plus" size={14} color="#fff" strokeWidth={2.5} /> Add time off
@@ -1501,16 +1734,17 @@ function TeamAbsencesScreen({ requests, pendingCount, onNav, onShowDetail, onSav
       <FilterToolbar
         searchText={searchText} onSearch={setSearchText}
         leaveFilter={leaveFilter} onLeaveFilter={setLeaveFilter}
+        deptFilter={deptFilter} onDeptFilter={setDeptFilter}
       />
 
-      <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
+      <div style={{ flex: 1, display: 'flex', overflow: 'hidden', alignItems: 'flex-start' }}>
         {/* Left: calendar area */}
-        <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
 
           {/* Calendar card */}
-          <div style={{ flex: 1, margin: '16px 20px 20px', background: P.white, border: `1px solid ${P.border}`, borderRadius: 12, display: 'flex', flexDirection: 'column', overflow: 'hidden', position: 'relative' }}>
+          <div style={{ maxHeight: 'calc(100vh - 200px)', margin: '0 20px 20px', background: P.white, border: `1px solid ${P.border}`, borderRadius: 12, display: 'flex', flexDirection: 'column', overflow: 'hidden', position: 'relative' }}>
             {/* Calendar nav */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px', borderBottom: `1px solid ${P.border}`, flexShrink: 0, position: 'relative' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '12px 16px', borderBottom: `1px solid ${P.border}`, flexShrink: 0, position: 'relative' }}>
               {/* Left group: Today, nav arrows, date label, Week/Month */}
               <button onClick={goToday} style={{
                 padding: '6px 14px', borderRadius: 7, border: `1px solid ${P.border}`,
@@ -1605,54 +1839,18 @@ function TeamAbsencesScreen({ requests, pendingCount, onNav, onShowDetail, onSav
 
 
               {/* Department groups */}
-              {Object.keys(grouped).sort().map(dept => {
-                const employees = grouped[dept];
-                const isExpanded = expandedDepts.has(dept);
-                const deptOff = dayISOs.map(iso => {
-                  let c = 0;
-                  for (const [empId] of employees) {
-                    if (absenceMap[empId]?.[iso]) c++;
-                  }
-                  return c;
-                });
-                const todayOff = deptOff[dayISOs.indexOf(todayISO)] || 0;
-
+              {filteredEmployees.map(([empId, emp], empIdx) => {
+                const employees = [[empId, emp]];
                 return (
-                  <div key={dept}>
-                    {/* Department header */}
-                    <div onClick={() => toggleExpand(dept)} style={{
-                      display: 'grid', gridTemplateColumns: gridCols, cursor: 'pointer',
-                      borderBottom: `1px solid ${P.border}`, background: '#fafbfa',
-                    }}>
-                      <div style={{ padding: '8px 12px', display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <Icon name={isExpanded ? 'ChevronDown' : 'ChevronRight'} size={12} color={P.inkSoft} />
-                        <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 11, color: P.ink }}>{dept}</span>
-                        <span style={{ fontFamily: 'var(--font-body)', fontSize: 10, color: P.inkFaint }}>{employees.length}</span>
-                        {todayOff > 0 && (
-                          <span style={{ fontFamily: 'var(--font-body)', fontSize: 10, color: '#f59e0b', marginLeft: 'auto' }}>{todayOff} off today</span>
-                        )}
-                      </div>
-                      {dayISOs.map((iso, i) => {
-                        const d = days[i];
-                        const isWknd = d.getDay() === 0 || d.getDay() === 6;
-                        const isHoliday = _holidaySet.has(iso);
-                        const isCollective = _collectiveSet.has(iso);
-                        return (
-                          <div key={i} style={{
-                            borderLeft: `1px solid ${P.border}`,
-                            background: isCollective ? '#faf6eb' : isHoliday ? '#f3f1fe' : isWknd ? '#fafafa' : 'transparent',
-                          }} />
-                        );
-                      })}
-                    </div>
-
-                    {/* Employee rows */}
-                    {isExpanded && employees.map(([empId, emp]) => (
-                      <div key={empId} style={{ display: 'grid', gridTemplateColumns: gridCols, borderBottom: `1px solid ${P.border}`, height: 36 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', padding: '0 12px' }}>
-                          <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.ink, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                            {viewMode === 'week' ? emp.name : emp.name.split(' ')[0]}
-                          </span>
+                  <React.Fragment key={empId}>
+                    {employees.map(([empId, emp], empIdx) => (
+                      <div key={empId} style={{ display: 'grid', gridTemplateColumns: gridCols, borderBottom: `1px solid ${P.border}`, height: viewMode === 'week' ? 64 : 36 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', padding: '0 12px', gap: 8, overflow: 'hidden' }}>
+                          <div style={{ overflow: 'hidden' }}>
+                            <div style={{ fontFamily: 'var(--font-body)', fontSize: viewMode === 'week' ? 12 : 11, fontWeight: viewMode === 'week' ? 500 : 400, color: P.ink, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                              {viewMode === 'week' ? emp.name : emp.name.split(' ')[0]}
+                            </div>
+                          </div>
                         </div>
                         {dayISOs.map((iso, i) => {
                           const d = days[i];
@@ -1669,15 +1867,18 @@ function TeamAbsencesScreen({ requests, pendingCount, onNav, onShowDetail, onSav
                           const nextEntry = absenceMap[empId]?.[dayISOs[i + 1]];
                           const isStart = show && (!prevEntry || prevEntry.requestId !== entry.requestId);
                           const isEnd = show && (!nextEntry || nextEntry.requestId !== entry.requestId);
+                          const isWeekCard = viewMode === 'week' && isStart;
+                          const pt = viewMode === 'week' ? 8 : 3;
+                          const pad = viewMode === 'week' ? 6 : 3;
 
                           return (
                             <div key={iso} style={{
                               borderLeft: `1px solid ${P.border}`,
                               background: isCollective ? '#faf6eb' : isHoliday ? '#f3f1fe' : isWknd ? '#fafafa' : 'transparent',
                               display: 'flex', alignItems: 'stretch',
-                              paddingTop: 3, paddingBottom: 3,
-                              paddingLeft: isStart ? 3 : 0,
-                              paddingRight: isEnd ? 3 : 0,
+                              paddingTop: pt, paddingBottom: pt,
+                              paddingLeft: isStart ? pad : 0,
+                              paddingRight: isEnd ? pad : 0,
                             }}>
                               {show && (
                                 <div
@@ -1686,8 +1887,8 @@ function TeamAbsencesScreen({ requests, pendingCount, onNav, onShowDetail, onSav
                                     if (tooltipReqIdRef.current !== entry.requestId) {
                                       tooltipReqIdRef.current = entry.requestId;
                                       const rect = e.currentTarget.getBoundingClientRect();
-                                      const req = requests.find(r => r.id === entry.requestId);
-                                      if (req) setTooltip({ req, x: rect.left + rect.width / 2, y: rect.top - 4 });
+                                      const found = requests.find(function(rr) { return rr.id === entry.requestId; });
+                                      if (found) setTooltip({ req: found, x: rect.left + rect.width / 2, y: rect.top - 4 });
                                     }
                                   }}
                                   onMouseLeave={() => {
@@ -1697,25 +1898,37 @@ function TeamAbsencesScreen({ requests, pendingCount, onNav, onShowDetail, onSav
                                     }, 80);
                                   }}
                                   onClick={() => {
-                                    const req = requests.find(r => r.id === entry.requestId);
-                                    if (req && onShowDetail) onShowDetail(req);
+                                    const found = requests.find(function(rr) { return rr.id === entry.requestId; });
+                                    if (found && onShowDetail) onShowDetail(found);
                                   }}
                                   style={{
                                     width: '100%',
-                                    borderRadius: isStart && isEnd ? 3 : isStart ? '3px 0 0 3px' : isEnd ? '0 3px 3px 0' : 0,
-                                    background: isPending
-                                      ? `repeating-linear-gradient(45deg, ${barColor}, ${barColor} 3px, ${barColor}55 3px, ${barColor}55 6px)`
-                                      : barColor,
+                                    borderRadius: isStart && isEnd ? 5 : isStart ? '5px 0 0 5px' : isEnd ? '0 5px 5px 0' : 0,
+                                    background: barColor,
+                                    borderTop: isPending ? `1.5px dashed ${LEAVE_BORDER_COLORS[entry.type] || '#999'}` : 'none',
+                                    borderBottom: isPending ? `1.5px dashed ${LEAVE_BORDER_COLORS[entry.type] || '#999'}` : 'none',
+                                    borderLeft: isPending && isStart ? `1.5px dashed ${LEAVE_BORDER_COLORS[entry.type] || '#999'}` : 'none',
+                                    borderRight: isPending && isEnd ? `1.5px dashed ${LEAVE_BORDER_COLORS[entry.type] || '#999'}` : 'none',
                                     cursor: 'pointer',
+                                    padding: isWeekCard ? '5px 8px' : 0,
+                                    display: isWeekCard ? 'flex' : 'block',
+                                    flexDirection: isWeekCard ? 'column' : undefined,
+                                    justifyContent: isWeekCard ? 'center' : undefined,
+                                    gap: isWeekCard ? 2 : undefined,
+                                    overflow: isWeekCard ? 'hidden' : undefined,
                                   }}
-                                />
+                                >
+                                  {isWeekCard && (
+                                    <WeekCard entry={entry} requestId={entry.requestId} requests={requests} isPending={isPending} />
+                                  )}
+                                </div>
                               )}
                             </div>
                           );
                         })}
                       </div>
                     ))}
-                  </div>
+                  </React.Fragment>
                 );
               })}
             </div>
@@ -1746,7 +1959,7 @@ function TeamAbsencesScreen({ requests, pendingCount, onNav, onShowDetail, onSav
 
       </div>
       {addOpen && (
-        <AddTimeOffModal existing={null} onClose={() => setAddOpen(false)} onSave={(req) => { onSave(req); setAddOpen(false); }} />
+        <AddTimeOffModal existing={null} requests={requests} onClose={() => setAddOpen(false)} onSave={(req) => { onSave(req); setAddOpen(false); }} />
       )}
     </div>
   );
@@ -1755,54 +1968,66 @@ function TeamAbsencesScreen({ requests, pendingCount, onNav, onShowDetail, onSav
 // ── Employees screen ──────────────────────────────────────────────────────
 function EmployeesScreen({ requests, onNav }) {
   const [search, setSearch] = useState('');
-  const [deptFilter, setDeptFilter] = useState('All');
+  const [roleFilter, setRoleFilter] = useState('All');
+  const [statusFilter, setStatusFilter] = useState('Active');
 
   const empList = useMemo(() => {
-    return Object.entries(EMPLOYEES).map(([id, emp]) => {
-      const empReqs = requests.filter(r => r.employee === id && r.status !== 'rejected');
-      const usedPTO = empReqs.filter(r => r.type === 'Time off').reduce((s, r) => s + (r.days || 1), 0);
-      return { id, ...emp, usedPTO, remaining: emp.entitlement - usedPTO };
-    }).sort((a, b) => a.department.localeCompare(b.department) || a.name.localeCompare(b.name));
-  }, [requests]);
-
-  const departments = useMemo(() => ['All', ...new Set(empList.map(e => e.department))], [empList]);
+    return Object.entries(EMPLOYEES).map(([id, emp]) => ({ id, ...emp }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }, []);
 
   const filtered = useMemo(() => {
     return empList.filter(e => {
-      if (deptFilter !== 'All' && e.department !== deptFilter) return false;
-      if (search && !e.name.toLowerCase().includes(search.toLowerCase())) return false;
+      if (roleFilter !== 'All' && e.role !== roleFilter) return false;
+      if (statusFilter !== 'All' && e.status !== statusFilter) return false;
+      if (search && !e.name.toLowerCase().includes(search.toLowerCase()) && !e.email.toLowerCase().includes(search.toLowerCase())) return false;
       return true;
     });
-  }, [empList, search, deptFilter]);
+  }, [empList, search, roleFilter, statusFilter]);
 
-  const grouped = useMemo(() => {
-    const g = {};
-    for (const e of filtered) {
-      if (!g[e.department]) g[e.department] = [];
-      g[e.department].push(e);
-    }
-    return g;
-  }, [filtered]);
+  const selectStyle = { padding: '7px 28px 7px 10px', border: `1px solid ${P.border}`, borderRadius: 8, fontFamily: 'var(--font-body)', fontSize: 13, color: P.ink, background: P.white, cursor: 'pointer', outline: 'none', appearance: 'none', backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 8px center' };
+
+  function fmtBudget(n) {
+    return n.toLocaleString('fr-BE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' EUR';
+  }
 
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'auto' }}>
       <div style={{ padding: '28px 28px 0' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 20 }}>
           <div>
             <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 28, color: P.ink, margin: 0, letterSpacing: '-0.02em' }}>Employees</h1>
-            <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, margin: '4px 0 0' }}>{empList.length} employees across {departments.length - 1} departments</p>
+            <p style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkFaint, margin: '3px 0 0', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>Overview</p>
+          </div>
+          <div style={{ display: 'flex', gap: 8, paddingTop: 4 }}>
+            <button style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', border: `1px solid ${P.ink}`, borderRadius: 8, background: P.white, color: P.ink, fontFamily: 'var(--font-body)', fontSize: 13, fontWeight: 500, cursor: 'pointer' }}>
+              <Icon name="Mail" size={14} /> Invite users
+            </button>
+            <button style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', border: `1px solid ${P.ink}`, borderRadius: 8, background: P.white, color: P.ink, fontFamily: 'var(--font-body)', fontSize: 13, fontWeight: 500, cursor: 'pointer' }}>
+              <Icon name="Settings2" size={14} /> Bulk actions
+            </button>
+            <button style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', border: 'none', borderRadius: 8, background: P.ink, color: P.white, fontFamily: 'var(--font-body)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+              <Icon name="Plus" size={14} /> Add a user
+            </button>
           </div>
         </div>
 
         <div style={{ display: 'flex', gap: 10, marginBottom: 16 }}>
-          <div style={{ position: 'relative', flex: 1, maxWidth: 280 }}>
+          <div style={{ position: 'relative', flex: 1, maxWidth: 220 }}>
             <Icon name="Search" size={14} color={P.inkFaint} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)' }} />
-            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search employee…"
-              style={{ width: '100%', padding: '8px 10px 8px 32px', border: `1px solid ${P.border}`, borderRadius: 8, fontFamily: 'var(--font-body)', fontSize: 13, color: P.ink, outline: 'none', background: P.white }} />
+            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Name"
+              style={{ width: '100%', padding: '7px 10px 7px 32px', border: `1px solid ${P.border}`, borderRadius: 8, fontFamily: 'var(--font-body)', fontSize: 13, color: P.ink, outline: 'none', background: P.white }} />
           </div>
-          <select value={deptFilter} onChange={e => setDeptFilter(e.target.value)}
-            style={{ padding: '8px 28px 8px 10px', border: `1px solid ${P.border}`, borderRadius: 8, fontFamily: 'var(--font-body)', fontSize: 13, color: P.ink, background: P.white, cursor: 'pointer', outline: 'none', appearance: 'none', backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 8px center' }}>
-            {departments.map(d => <option key={d} value={d}>{d === 'All' ? 'All departments' : d}</option>)}
+          <select value={roleFilter} onChange={e => setRoleFilter(e.target.value)} style={selectStyle}>
+            <option value="All">Role: All</option>
+            <option value="Employee">Role: Employee</option>
+            <option value="Manager">Role: Manager</option>
+            <option value="Admin">Role: Admin</option>
+          </select>
+          <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} style={selectStyle}>
+            <option value="All">Status: All</option>
+            <option value="Active">Status: Active</option>
+            <option value="Inactive">Status: Inactive</option>
           </select>
         </div>
       </div>
@@ -1812,42 +2037,32 @@ function EmployeesScreen({ requests, onNav }) {
           <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-body)', fontSize: 13 }}>
             <thead>
               <tr style={{ borderBottom: `1px solid ${P.border}` }}>
-                <th style={{ textAlign: 'left', padding: '10px 16px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Employee</th>
-                <th style={{ textAlign: 'left', padding: '10px 16px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Department</th>
-                <th style={{ textAlign: 'center', padding: '10px 16px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Entitled</th>
-                <th style={{ textAlign: 'center', padding: '10px 16px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Used</th>
-                <th style={{ textAlign: 'center', padding: '10px 16px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Remaining</th>
-                <th style={{ width: 40 }}></th>
+                <th style={{ textAlign: 'left', padding: '10px 16px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em' }}>User name</th>
+                <th style={{ textAlign: 'left', padding: '10px 16px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Email</th>
+                <th style={{ textAlign: 'left', padding: '10px 16px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Entity</th>
+                <th style={{ textAlign: 'right', padding: '10px 16px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Budget balance</th>
+                <th style={{ textAlign: 'right', padding: '10px 16px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Actions</th>
               </tr>
             </thead>
             <tbody>
-              {Object.entries(grouped).map(([dept, emps]) => (
-                <React.Fragment key={dept}>
-                  <tr>
-                    <td colSpan={6} style={{ padding: '10px 16px 6px', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 11, color: P.inkSoft, textTransform: 'uppercase', letterSpacing: '0.04em', background: '#fafbfa' }}>
-                      {dept} <span style={{ fontWeight: 400, color: P.inkFaint }}>· {emps.length}</span>
-                    </td>
-                  </tr>
-                  {emps.map(emp => (
-                    <tr key={emp.id} onClick={() => onNav('employee-detail:' + emp.id)}
-                      style={{ borderBottom: `1px solid ${P.border}`, cursor: 'pointer', transition: 'background 80ms' }}
-                      onMouseEnter={e => e.currentTarget.style.background = '#f7f8f7'}
-                      onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                      <td style={{ padding: '10px 16px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center' }}>
-                          <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.ink }}>{emp.name}</span>
-                        </div>
-                      </td>
-                      <td style={{ padding: '10px 16px', color: P.inkSoft }}>{emp.department}</td>
-                      <td style={{ padding: '10px 16px', textAlign: 'center', color: P.ink, fontWeight: 600 }}>{emp.entitlement}</td>
-                      <td style={{ padding: '10px 16px', textAlign: 'center', color: P.inkSoft }}>{emp.usedPTO}</td>
-                      <td style={{ padding: '10px 16px', textAlign: 'center', fontWeight: 600, color: emp.remaining <= 3 ? '#ef4444' : P.ink }}>{emp.remaining}</td>
-                      <td style={{ padding: '10px 16px', textAlign: 'center' }}>
-                        <Icon name="ChevronRight" size={14} color={P.inkFaint} />
-                      </td>
-                    </tr>
-                  ))}
-                </React.Fragment>
+              {filtered.map(emp => (
+                <tr key={emp.id}
+                  style={{ borderBottom: `1px solid ${P.border}`, cursor: 'pointer', transition: 'background 80ms' }}
+                  onMouseEnter={e => e.currentTarget.style.background = '#f7f8f7'}
+                  onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                  <td style={{ padding: '10px 16px' }}>
+                    <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.ink }}>{emp.name}</span>
+                  </td>
+                  <td style={{ padding: '10px 16px', color: P.inkSoft }}>{emp.email}</td>
+                  <td style={{ padding: '10px 16px', color: P.inkSoft }}>{emp.entity}</td>
+                  <td style={{ padding: '10px 16px', textAlign: 'right', color: P.ink, fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>{fmtBudget(emp.budget)}</td>
+                  <td style={{ padding: '10px 16px', textAlign: 'right' }}>
+                    <button onClick={() => onNav('employee-detail:' + emp.id)}
+                      style={{ padding: '5px 12px', border: `1px solid ${P.ink}`, borderRadius: 6, background: P.white, color: P.ink, fontFamily: 'var(--font-body)', fontSize: 12, fontWeight: 500, cursor: 'pointer' }}>
+                      See details
+                    </button>
+                  </td>
+                </tr>
               ))}
             </tbody>
           </table>
@@ -1962,12 +2177,12 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, e
       {/* Header */}
       <div style={{ padding: '24px 28px 0', borderBottom: `1px solid ${P.border}`, background: P.white }}>
         <button onClick={() => onNav('employees')} style={{
-          display: 'inline-flex', alignItems: 'center', gap: 5, border: 'none', background: 'none',
-          cursor: 'pointer', padding: 0, marginBottom: 14,
-          fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft,
+          display: 'inline-flex', alignItems: 'center', gap: 6, border: `1px solid ${P.border}`, background: P.white,
+          cursor: 'pointer', padding: '6px 12px', marginBottom: 14, borderRadius: 8,
+          fontFamily: 'var(--font-body)', fontSize: 13, fontWeight: 500, color: P.ink,
         }}>
-          <Icon name="ArrowLeft" size={14} color={P.inkSoft} strokeWidth={2} />
-          Employees
+          <Icon name="ArrowLeft" size={14} color={P.ink} strokeWidth={2} />
+          Back
         </button>
         <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 18 }}>
           <div>
@@ -2024,9 +2239,9 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, e
                           <span style={{ color: P.ink }}>{b.type}</span>
                         </div>
                       </td>
-                      <td style={{ padding: '10px 16px', textAlign: 'center', color: b.entitled != null ? P.ink : P.inkFaint }}>{b.entitled != null ? b.entitled : '—'}</td>
-                      <td style={{ padding: '10px 16px', textAlign: 'center', color: b.used > 0 ? P.ink : P.inkFaint }}>{b.used || '—'}</td>
-                      <td style={{ padding: '10px 16px', textAlign: 'center', fontWeight: 600, color: b.remaining != null ? (b.remaining <= 3 ? '#ef4444' : P.ink) : P.inkFaint }}>{b.remaining != null ? b.remaining : '—'}</td>
+                      <td style={{ padding: '10px 16px', textAlign: 'center', color: b.entitled != null ? P.ink : P.inkFaint, fontStyle: b.entitled == null ? 'italic' : 'normal', fontSize: b.entitled == null ? 11 : 13 }}>{b.entitled != null ? b.entitled : 'No limit'}</td>
+                      <td style={{ padding: '10px 16px', textAlign: 'center', color: b.used > 0 ? P.ink : P.inkFaint }}>{b.used}</td>
+                      <td style={{ padding: '10px 16px', textAlign: 'center', fontWeight: 600, color: b.remaining != null ? (b.remaining <= 3 ? '#ef4444' : P.ink) : P.inkFaint, fontStyle: b.remaining == null ? 'italic' : 'normal', fontSize: b.remaining == null ? 11 : 13 }}>{b.remaining != null ? b.remaining : '—'}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -2044,13 +2259,23 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, e
                   fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12,
                 }}>
                   <Icon name="Plus" size={13} color="#fff" strokeWidth={2.5} />
-                  Register absence
+                  Add time off
                 </button>
               </div>
 
               {empReqs.length === 0 ? (
-                <div style={{ padding: '32px 20px', textAlign: 'center', color: P.inkFaint, fontFamily: 'var(--font-body)', fontSize: 13 }}>
-                  No absences recorded
+                <div style={{ padding: '32px 20px', textAlign: 'center' }}>
+                  <Icon name="CalendarOff" size={28} color={P.border} style={{ marginBottom: 8 }} />
+                  <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkFaint, marginBottom: 12 }}>No absences recorded yet</div>
+                  <button onClick={() => setAddModal('add')} style={{
+                    display: 'inline-flex', alignItems: 'center', gap: 6,
+                    padding: '7px 16px', borderRadius: 8,
+                    border: `1px solid ${P.border}`, background: 'transparent', cursor: 'pointer',
+                    fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, color: P.ink,
+                  }}>
+                    <Icon name="Plus" size={13} color={P.inkSoft} strokeWidth={2} />
+                    Register the first absence
+                  </button>
                 </div>
               ) : (
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-body)', fontSize: 13 }}>
@@ -2100,6 +2325,7 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, e
       {addModal && (
         <AddTimeOffModal
           existing={addModal === 'add' ? { employee: employeeId, _lockEmployee: true } : { ...addModal, _lockEmployee: true }}
+          requests={requests}
           onClose={() => setAddModal(null)}
           onSave={(req) => { onSave(req); setAddModal(null); }}
         />
@@ -2123,6 +2349,136 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, e
           onClose={() => setEditBalancesOpen(false)}
         />
       )}
+    </div>
+  );
+}
+
+// ── Dashboard screen ──────────────────────────────────────────────────────
+function DashboardScreen({ requests, onNav }) {
+  const today = new Date(); today.setHours(0,0,0,0);
+  const todayISO = isoDate(today);
+  const pending = requests.filter(r => r.status === 'pending');
+  const absenceMap = buildAbsenceMap(requests);
+
+  const weekDays = [];
+  const ws = weekStart(today);
+  for (let i = 0; i < 5; i++) weekDays.push(isoDate(addDays(ws, i)));
+
+  const offThisWeek = new Set();
+  for (const [empId, days] of Object.entries(absenceMap)) {
+    for (const iso of weekDays) {
+      if (days[iso]) { offThisWeek.add(empId); break; }
+    }
+  }
+
+  const offToday = [];
+  for (const [empId, days] of Object.entries(absenceMap)) {
+    if (days[todayISO]) offToday.push({ empId, ...days[todayISO] });
+  }
+
+  const lowBalance = Object.entries(EMPLOYEES).map(([id, emp]) => {
+    const used = requests.filter(r => r.employee === id && r.type === 'Time off' && r.status !== 'rejected').reduce((s, r) => s + r.days, 0);
+    return { id, name: emp.name, department: emp.department, remaining: emp.entitlement - used };
+  }).filter(e => e.remaining <= 5).sort((a, b) => a.remaining - b.remaining).slice(0, 5);
+
+  const statCard = (icon, label, value, color, onClick) => (
+    <div onClick={onClick} style={{
+      background: P.white, border: `1px solid ${P.border}`, borderRadius: 12, padding: '20px 22px',
+      flex: 1, cursor: onClick ? 'pointer' : 'default',
+      transition: 'box-shadow 150ms',
+    }}
+    onMouseEnter={e => { if (onClick) e.currentTarget.style.boxShadow = '0 2px 12px rgba(0,0,0,0.06)'; }}
+    onMouseLeave={e => e.currentTarget.style.boxShadow = 'none'}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+        <div style={{ width: 32, height: 32, borderRadius: 8, background: color + '18', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Icon name={icon} size={16} color={color} strokeWidth={2} />
+        </div>
+      </div>
+      <div style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 28, color: P.ink, letterSpacing: '-0.02em', lineHeight: 1 }}>{value}</div>
+      <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, marginTop: 4 }}>{label}</div>
+    </div>
+  );
+
+  return (
+    <div style={{ flex: 1, overflow: 'auto' }}>
+      <div style={{ padding: '28px 28px 0' }}>
+        <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 28, color: P.ink, margin: 0, letterSpacing: '-0.02em' }}>Dashboard</h1>
+        <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, margin: '4px 0 0' }}>
+          {today.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+        </p>
+      </div>
+
+      <div style={{ padding: '20px 28px', display: 'flex', gap: 16 }}>
+        {statCard('Clock', 'Pending approvals', pending.length, '#f59e0b', () => onNav('requests'))}
+        {statCard('CalendarOff', 'Off today', offToday.length, '#ef4444')}
+        {statCard('Users', 'Off this week', offThisWeek.size, '#6366f1')}
+      </div>
+
+      <div style={{ padding: '0 28px 28px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+        {/* Pending requests */}
+        <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 12, overflow: 'hidden' }}>
+          <div style={{ padding: '14px 20px', borderBottom: `1px solid ${P.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 15, color: P.ink }}>Pending requests</span>
+            {pending.length > 0 && (
+              <button onClick={() => onNav('requests')} style={{
+                border: 'none', background: 'transparent', cursor: 'pointer',
+                fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, color: '#6366f1',
+              }}>View all</button>
+            )}
+          </div>
+          {pending.length === 0 ? (
+            <div style={{ padding: '28px 20px', textAlign: 'center', color: P.inkFaint, fontFamily: 'var(--font-body)', fontSize: 13 }}>
+              All caught up — no pending requests
+            </div>
+          ) : pending.slice(0, 5).map(req => {
+            const emp = EMPLOYEES[req.employee] || { name: req.employee, initials: '?' };
+            return (
+              <div key={req.id} onClick={() => onNav('requests')} style={{
+                display: 'flex', alignItems: 'center', gap: 12, padding: '10px 20px',
+                borderBottom: `1px solid ${P.border}`, cursor: 'pointer',
+              }}
+              onMouseEnter={e => e.currentTarget.style.background = P.bg}
+              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                <Avatar employeeId={req.employee} size={28} />
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.ink }}>{emp.name}</div>
+                  <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>{req.type} · {req.days} {req.days === 1 ? 'day' : 'days'} · {req.startDate}</div>
+                </div>
+                <Icon name="ChevronRight" size={14} color={P.inkFaint} />
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Low balance alerts */}
+        <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 12, overflow: 'hidden' }}>
+          <div style={{ padding: '14px 20px', borderBottom: `1px solid ${P.border}` }}>
+            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 15, color: P.ink }}>Low balance</span>
+          </div>
+          {lowBalance.length === 0 ? (
+            <div style={{ padding: '28px 20px', textAlign: 'center', color: P.inkFaint, fontFamily: 'var(--font-body)', fontSize: 13 }}>
+              No employees with low balance
+            </div>
+          ) : lowBalance.map(emp => (
+            <div key={emp.id} onClick={() => onNav('employee-detail:' + emp.id)} style={{
+              display: 'flex', alignItems: 'center', gap: 12, padding: '10px 20px',
+              borderBottom: `1px solid ${P.border}`, cursor: 'pointer',
+            }}
+            onMouseEnter={e => e.currentTarget.style.background = P.bg}
+            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+              <Avatar employeeId={emp.id} size={28} />
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.ink }}>{emp.name}</div>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>{emp.department}</div>
+              </div>
+              <span style={{
+                fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 13,
+                color: emp.remaining <= 0 ? '#b91c1c' : emp.remaining <= 3 ? '#f59e0b' : P.ink,
+              }}>{emp.remaining}d left</span>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
@@ -2281,12 +2637,18 @@ function App() {
           from { opacity: 0; transform: translate(-50%, -94%); }
           to   { opacity: 1; transform: translate(-50%, -100%); }
         }
+        @keyframes slideInRight {
+          from { transform: translateX(100%); }
+          to   { transform: translateX(0); }
+        }
         * { box-sizing: border-box; }
+        ::placeholder { color: #9ca3af; opacity: 1; }
       `}</style>
 
       <Sidebar active={screen} onNav={setScreen} pendingCount={pendingCount} />
 
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, overflow: 'hidden' }}>
+        {screen === 'dashboard' && <DashboardScreen requests={requests} onNav={setScreen} />}
         {screen === 'team-absences' && <TeamAbsencesScreen requests={requests} pendingCount={pendingCount} onNav={setScreen} onShowDetail={setCalDetail} onSave={saveRequest} />}
         {screen === 'requests' && <RequestsScreen requests={requests} onApprove={approve} onDecline={requestDecline} onSave={saveRequest} onCancel={requestCancel} />}
         {screen === 'employees' && <EmployeesScreen requests={requests} onNav={setScreen} />}
