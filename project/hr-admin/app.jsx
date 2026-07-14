@@ -1280,7 +1280,10 @@ function AddTimeOffModal({ existing, onClose, onSave, requests = [] }) {
                     <div style={{ width: 28, height: 16, borderRadius: 8, flexShrink: 0, background: notifyEmployee ? P.ink : '#d1d5db', position: 'relative', transition: 'background 150ms' }}>
                       <div style={{ position: 'absolute', top: 2, left: notifyEmployee ? 14 : 2, width: 12, height: 12, borderRadius: 6, background: '#fff', transition: 'left 150ms' }} />
                     </div>
-                    <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, flex: 1 }}>Request {rule.label.toLowerCase()} from employee</span>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.ink }}>Request {rule.label.toLowerCase()} from employee</div>
+                      <div style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkSoft, marginTop: 2 }}>Sends an email asking the employee to upload the document</div>
+                    </div>
                   </div>
                 )}
               </div>
