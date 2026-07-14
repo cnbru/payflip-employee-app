@@ -56,8 +56,8 @@ const SPECIAL_LEAVE_REASONS = [
   { id: 'civic',     label: 'Civic duty',    hasWho: false, entitlement: 'Up to 5 days' },
 ];
 const SPECIAL_WEDDING_WHO = [
-  { id: 'own',    label: 'Your own wedding',              days: 2 },
-  { id: 'family', label: 'Child, sibling, or parent',     days: 1 },
+  { id: 'own',    label: "Employee's own wedding",         days: 2 },
+  { id: 'family', label: "Child, sibling, or parent of the employee", days: 1 },
 ];
 const SPECIAL_FUNERAL_WHO = [
   { id: 'partner',  label: 'Partner or spouse',           days: 10, note: '3 around the funeral, 7 more within the year' },
@@ -1146,7 +1146,7 @@ function AddTimeOffModal({ existing, onClose, onSave, requests = [] }) {
                 {reasonObj?.hasWho && (
                   <div>
                     <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.inkSoft, marginBottom: 6 }}>
-                      {specialReason === 'wedding' ? 'Whose wedding' : 'Relationship to deceased'}
+                      {specialReason === 'wedding' ? 'Wedding type' : 'Relationship to deceased'}
                     </label>
                     <SelectField value={specialWho} onChange={e => setSpecialWho(e.target.value)} style={{ ...inputStyle, cursor: 'pointer' }}>
                       <option value="">Select…</option>
