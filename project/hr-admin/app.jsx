@@ -290,10 +290,8 @@ function SidebarSub({ items, active, onNav }) {
 
 function Sidebar({ active, onNav, pendingCount }) {
   const [companyOpen, setCompanyOpen] = useState(false);
-  const [payrollOpen, setPayrollOpen] = useState(false);
-  const [todoOpen, setTodoOpen] = useState(false);
-  const isTeamScreen = active === 'team-absences' || active === 'requests' || active === 'employees' || active.startsWith('employee-detail:');
-  const [teamOpen, setTeamOpen] = useState(isTeamScreen);
+  const [payrollOpen, setPayrollOpen] = useState(active === 'team-absences' || active === 'payroll-overview' || active === 'payroll-settings' || active === 'payroll-wagecodes');
+  const [todoOpen, setTodoOpen] = useState(active === 'requests');
 
   return (
     <div style={{
@@ -340,10 +338,11 @@ function Sidebar({ active, onNav, pendingCount }) {
       <nav style={{ flex: 1, padding: '10px 8px', display: 'flex', flexDirection: 'column', gap: 1, overflow: 'auto' }}>
         <SidebarItem label="Home" isActive={active === 'home'} onClick={() => onNav('home')} />
 
-        <SidebarItem label="To do" onClick={() => setTodoOpen(o => !o)} badgeDot={2} chevron chevronOpen={todoOpen} />
+        <SidebarItem label="To do" onClick={() => setTodoOpen(o => !o)} badgeDot={pendingCount || undefined} chevron chevronOpen={todoOpen} />
         {todoOpen && <SidebarSub active={active} onNav={onNav} items={[
           { id: 'todo-review', label: 'Review choices' },
           { id: 'todo-relaunch', label: 'Assign relaunch admin' },
+          { id: 'requests', label: 'Time off requests', badge: pendingCount },
         ]} />}
 
         <SidebarItem label="Company" onClick={() => setCompanyOpen(o => !o)} chevron chevronOpen={companyOpen} />
@@ -362,14 +361,10 @@ function Sidebar({ active, onNav, pendingCount }) {
           { id: 'payroll-overview', label: 'Overview' },
           { id: 'payroll-settings', label: 'Settings' },
           { id: 'payroll-wagecodes', label: 'Wage codes' },
+          { id: 'team-absences', label: 'Team absences' },
         ]} />}
 
-        <SidebarItem label="Team management" onClick={() => setTeamOpen(o => !o)} chevron chevronOpen={teamOpen} />
-        {teamOpen && <SidebarSub active={active} onNav={onNav} items={[
-          { id: 'employees', label: 'Employees' },
-          { id: 'team-absences', label: 'Team absences' },
-          { id: 'requests', label: 'Time off requests', badge: pendingCount },
-        ]} />}
+        <SidebarItem label="Users" isActive={active === 'employees' || active?.startsWith('employee-detail')} onClick={() => onNav('employees')} />
 
         <div style={{ height: 1, background: P.border, margin: '6px 0' }} />
 
@@ -1305,7 +1300,7 @@ function RequestsScreen({ requests, onApprove, onDecline, onSave, onCancel }) {
             <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 28, color: P.ink, margin: 0, letterSpacing: '-0.02em' }}>Time off requests</h1>
             <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, margin: '4px 0 0' }}>Manage your team's time off</p>
           </div>
-          <button onClick={() => setAddOpen(true)} style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '9px 18px', borderRadius: 20, border: 'none', background: P.ink, color: '#fff', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>
+          <button onClick={() => setAddOpen(true)} style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '9px 18px', borderRadius: 8, border: 'none', background: P.ink, color: '#fff', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>
             <Icon name="Plus" size={14} color="#fff" strokeWidth={2.5} /> Add time off
           </button>
         </div>
@@ -1589,7 +1584,7 @@ function TeamAbsencesScreen({ requests, pendingCount, onNav, onShowDetail, onSav
   const todayISO = isoDate(today);
 
   // State
-  const [viewMode, setViewMode] = useState('month');
+  const [viewMode, setViewMode] = useState('week');
   const [refDate, setRefDate] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
   const [monthPickerOpen, setMonthPickerOpen] = useState(false);
   const [searchText, setSearchText] = useState('');
@@ -1762,9 +1757,9 @@ function TeamAbsencesScreen({ requests, pendingCount, onNav, onShowDetail, onSav
                 {[['week', 'Week'], ['month', 'Month']].map(([val, label]) => (
                   <button key={val} onClick={() => setViewMode(val)} style={{
                     padding: '6px 14px', border: 'none', cursor: 'pointer',
-                    background: viewMode === val ? '#e8eaed' : 'transparent',
+                    background: viewMode === val ? P.ink : 'transparent',
                     fontFamily: 'var(--font-display)', fontWeight: viewMode === val ? 700 : 500,
-                    fontSize: 13, color: P.ink,
+                    fontSize: 13, color: viewMode === val ? '#fff' : P.ink,
                   }}>{label}</button>
                 ))}
               </div>
@@ -2000,10 +1995,10 @@ function EmployeesScreen({ requests, onNav }) {
             <p style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkFaint, margin: '3px 0 0', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>Overview</p>
           </div>
           <div style={{ display: 'flex', gap: 8, paddingTop: 4 }}>
-            <button style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', border: `1px solid ${P.ink}`, borderRadius: 8, background: P.white, color: P.ink, fontFamily: 'var(--font-body)', fontSize: 13, fontWeight: 500, cursor: 'pointer' }}>
+            <button style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', border: `1px solid ${P.border}`, borderRadius: 8, background: P.white, color: P.ink, fontFamily: 'var(--font-body)', fontSize: 13, fontWeight: 500, cursor: 'pointer' }}>
               <Icon name="Mail" size={14} /> Invite users
             </button>
-            <button style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', border: `1px solid ${P.ink}`, borderRadius: 8, background: P.white, color: P.ink, fontFamily: 'var(--font-body)', fontSize: 13, fontWeight: 500, cursor: 'pointer' }}>
+            <button style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', border: `1px solid ${P.border}`, borderRadius: 8, background: P.white, color: P.ink, fontFamily: 'var(--font-body)', fontSize: 13, fontWeight: 500, cursor: 'pointer' }}>
               <Icon name="Settings2" size={14} /> Bulk actions
             </button>
             <button style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', border: 'none', borderRadius: 8, background: P.ink, color: P.white, fontFamily: 'var(--font-body)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
@@ -2177,12 +2172,14 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, e
       {/* Header */}
       <div style={{ padding: '24px 28px 0', borderBottom: `1px solid ${P.border}`, background: P.white }}>
         <button onClick={() => onNav('employees')} style={{
-          display: 'inline-flex', alignItems: 'center', gap: 6, border: `1px solid ${P.border}`, background: P.white,
-          cursor: 'pointer', padding: '6px 12px', marginBottom: 14, borderRadius: 8,
-          fontFamily: 'var(--font-body)', fontSize: 13, fontWeight: 500, color: P.ink,
+          display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+          width: 32, height: 32, flexShrink: 0,
+          border: `1px solid ${P.border}`, background: P.white,
+          cursor: 'pointer', borderRadius: 8, marginBottom: 24,
         }}>
-          <Icon name="ArrowLeft" size={14} color={P.ink} strokeWidth={2} />
-          Back
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={P.ink} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M19 12H5M12 5l-7 7 7 7"/>
+          </svg>
         </button>
         <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 18 }}>
           <div>
