@@ -2249,7 +2249,8 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, e
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'auto' }}>
       {/* Header */}
-      <div style={{ padding: '24px 28px 0', borderBottom: `1px solid ${P.border}`, background: P.white }}>
+      <div style={{ borderBottom: `1px solid ${P.border}`, background: P.white }}>
+      <div style={{ maxWidth: 900, margin: '0 auto', padding: '24px 24px 0' }}>
         <button onClick={() => onNav('employees')} style={{
           display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
           width: 32, height: 32, flexShrink: 0,
@@ -2282,6 +2283,7 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, e
             );
           })}
         </div>
+      </div>
       </div>
 
       {/* Tab content */}
