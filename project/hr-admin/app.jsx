@@ -275,6 +275,9 @@ const generatedRequests = [
   { id: 'gen-3', employee: 'mathias-de-smedt', type: 'Time off', startDate: 'Wed 8 Jul', endDate: 'Wed 8 Jul', days: 1, status: 'approved', submittedAt: '10 Jun', note: '', _selectedDates: ['2026-07-08'] },
   { id: 'gen-4', employee: 'stijn-laurent', type: 'Special leave', startDate: 'Fri 3 Jul', endDate: 'Fri 3 Jul', days: 1, status: 'approved', submittedAt: '25 Jun', note: 'Wedding', _selectedDates: ['2026-07-03'] },
   { id: 'gen-5', employee: 'laura-mertens', type: 'Sick leave', startDate: 'Tue 7 Jul', endDate: 'Tue 7 Jul', days: 1, status: 'approved', submittedAt: '7 Jul', note: '', _selectedDates: ['2026-07-07'] },
+  { id: 'gen-6c', employee: 'bram-goossens', type: 'Special leave', startDate: 'Thu 19 Mar', endDate: 'Thu 19 Mar', days: 1, status: 'approved', submittedAt: '10 Mar', note: 'Wedding', document: 'wedding_certificate.pdf', _selectedDates: ['2026-03-19'] },
+  { id: 'gen-6d', employee: 'bram-goossens', type: 'Sick leave', startDate: 'Mon 5 May', endDate: 'Tue 6 May', days: 2, status: 'approved', submittedAt: '5 May', document: 'medical_certificate.pdf', note: '', _selectedDates: ['2026-05-05','2026-05-06'] },
+  { id: 'gen-6b', employee: 'bram-goossens', type: 'Time off', startDate: 'Fri 19 Jun', endDate: 'Fri 19 Jun', days: 0.5, halfDay: 'PM', status: 'approved', submittedAt: '18 Jun', note: '', _selectedDates: ['2026-06-19'] },
   { id: 'gen-6', employee: 'bram-goossens', type: 'ADV / RTT', startDate: 'Mon 22 Jun', endDate: 'Tue 23 Jun', days: 2, status: 'approved', submittedAt: '15 Jun', note: '', _selectedDates: ['2026-06-22','2026-06-23'] },
   { id: 'gen-7', employee: 'jana-goossens', type: 'Time off', startDate: 'Thu 25 Jun', endDate: 'Fri 27 Jun', days: 3, status: 'approved', submittedAt: '10 Jun', note: 'Long weekend', _selectedDates: ['2026-06-25','2026-06-26','2026-06-27'] },
   { id: 'gen-8', employee: 'pieter-mertens', type: 'Extra-legal leave', startDate: 'Wed 1 Jul', endDate: 'Wed 1 Jul', days: 1, status: 'approved', submittedAt: '28 Jun', note: '', _selectedDates: ['2026-07-01'] },
@@ -349,7 +352,7 @@ function StatusDot({ status }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
       <span style={{ width: 8, height: 8, borderRadius: '50%', background: m.dot, flexShrink: 0 }} />
-      <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink }}>{m.label}</span>
+      <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.ink }}>{m.label}</span>
     </div>
   );
 }
@@ -495,7 +498,7 @@ function Sidebar({ active, onNav, pendingCount }) {
 }
 
 // ── Action menu (···) ──────────────────────────────────────────────────────
-function ActionMenu({ req, onApprove, onDecline, onViewDetails, onEdit, onCancel }) {
+function ActionMenu({ req, onApprove, onDecline, onViewDetails, onEdit, onCancel, onViewInCalendar }) {
   const [open, setOpen] = useState(false);
   const { rendered: menuRendered, visible: menuVisible } = usePopoverTransition(open);
   const ref = useRef(null);
@@ -510,7 +513,9 @@ function ActionMenu({ req, onApprove, onDecline, onViewDetails, onEdit, onCancel
     req?.status === 'pending' && { icon: 'CheckCircle', label: 'Approve', fn: onApprove, color: '#166534' },
     req?.status === 'pending' && { icon: 'XCircle', label: 'Decline', fn: onDecline, color: '#b91c1c' },
     onViewDetails && { icon: 'Eye', label: 'View details', fn: onViewDetails, color: P.ink },
+    onViewInCalendar && { icon: 'Calendar', label: 'View in calendar', fn: () => onViewInCalendar(req), color: P.ink },
     onEdit && { icon: 'Pencil', label: 'Edit', fn: onEdit, color: P.ink },
+    req?.document && { icon: 'Download', label: 'Download document', fn: () => {}, color: P.ink },
     req?.status === 'approved' && { icon: 'Trash2', label: 'Cancel absence', fn: onCancel, color: '#b91c1c' },
   ].filter(Boolean);
 
@@ -1475,7 +1480,7 @@ const TH = ({ children, style }) => (
   <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.06em', ...style }}>{children}</div>
 );
 
-function RequestRow({ req, requests, onApprove, onDecline, onDetail, onEdit, onCancel, selected, onToggle }) {
+function RequestRow({ req, requests, onApprove, onDecline, onDetail, onEdit, onCancel, selected, onToggle, onViewInCalendar }) {
   const emp = EMPLOYEES[req.employee] || { name: req.employee, initials: '?', color: '#e5e7eb', entitlement: 20 };
   const [hover, setHover] = useState(false);
   const usedDays = requests
@@ -1509,14 +1514,14 @@ function RequestRow({ req, requests, onApprove, onDecline, onDetail, onEdit, onC
       </span>
       <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft }}>{req.submittedAt}</span>
       <div onClick={e => e.stopPropagation()}>
-        <ActionMenu req={req} onApprove={() => onApprove(req.id)} onDecline={() => onDecline(req.id)} onViewDetails={() => onDetail(req)} onEdit={() => onEdit(req)} onCancel={() => onCancel(req.id)} />
+        <ActionMenu req={req} onApprove={() => onApprove(req.id)} onDecline={() => onDecline(req.id)} onViewDetails={() => onDetail(req)} onViewInCalendar={onViewInCalendar} onEdit={() => onEdit(req)} onCancel={() => onCancel(req.id)} />
       </div>
     </div>
   );
 }
 
 // ── Requests screen ────────────────────────────────────────────────────────
-function RequestsScreen({ requests, onApprove, onDecline, onSave, onCancel }) {
+function RequestsScreen({ requests, onApprove, onDecline, onSave, onCancel, onViewInCalendar }) {
   const [tab, setTab] = useState('pending');
   const [detail, setDetail] = useState(null);
   const [editReq, setEditReq] = useState(null);
@@ -1589,7 +1594,7 @@ function RequestsScreen({ requests, onApprove, onDecline, onSave, onCancel }) {
             <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkFaint, marginTop: 4 }}>{tab === 'pending' ? 'New requests from your team will appear here.' : ''}</div>
           </div>
         ) : filtered.map(req => (
-          <RequestRow key={req.id} req={req} requests={requests} onApprove={onApprove} onDecline={onDecline} onDetail={setDetail} onEdit={setEditReq} onCancel={onCancel} selected={selected.has(req.id)} onToggle={toggleSelect} />
+          <RequestRow key={req.id} req={req} requests={requests} onApprove={onApprove} onDecline={onDecline} onDetail={setDetail} onEdit={setEditReq} onCancel={onCancel} selected={selected.has(req.id)} onToggle={toggleSelect} onViewInCalendar={onViewInCalendar} />
         ))}
         {filtered.length > 0 && (
           <div style={{ padding: '10px 20px', fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkFaint }}>{filtered.length} {filtered.length === 1 ? 'record' : 'records'}</div>
@@ -1836,19 +1841,19 @@ function FilterToolbar({ searchText, onSearch, leaveFilter, onLeaveFilter, deptF
 }
 
 // ── Team absences screen ───────────────────────────────────────────────────
-function TeamAbsencesScreen({ requests, pendingCount, onNav, onShowDetail, onSave, companyEvents = [], onCancelCompanyEvent }) {
+function TeamAbsencesScreen({ requests, pendingCount, onNav, onShowDetail, onSave, companyEvents = [], onCancelCompanyEvent, initialDate, initialDeptFilter }) {
   const today = new Date(); today.setHours(0,0,0,0);
   const todayISO = isoDate(today);
 
   // State
   const [viewMode, setViewMode] = useState('week');
   const [viewModeRef, viewModeRect, viewModeAnimate] = useSlidingIndicator(viewMode);
-  const [refDate, setRefDate] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
+  const [refDate, setRefDate] = useState(() => initialDate || new Date(today.getFullYear(), today.getMonth(), 1));
   const [monthPickerOpen, setMonthPickerOpen] = useState(false);
   const [searchText, setSearchText] = useState('');
   const [activeDepts, setActiveDepts] = useState(() => new Set(DEPARTMENTS));
   const [leaveFilter, setLeaveFilter] = useState('all');
-  const [deptFilter, setDeptFilter] = useState('all');
+  const [deptFilter, setDeptFilter] = useState(() => initialDeptFilter || 'all');
   const [expandedDepts, setExpandedDepts] = useState(() => new Set(DEPARTMENTS));
   const [tooltip, setTooltip] = useState(null);
   const [tooltipRendered, setTooltipRendered] = useState(null);
@@ -2560,7 +2565,7 @@ function EditBalancesModal({ emp, balances, onSave, onClose, isNewEmployee, onCo
 }
 
 // ── Employee detail screen ────────────────────────────────────────────────
-function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, employeeBalance, onUpdateBalance, needsSetup, confirmedDate, onConfirmBalances }) {
+function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, onApprove, onDecline, onViewTeamCalendar, employeeBalance, onUpdateBalance, needsSetup, confirmedDate, onConfirmBalances }) {
   const emp = EMPLOYEES[employeeId];
   const [activeTab, setActiveTab] = useState('choices');
   const [addModal, setAddModal] = useState(null); // null | 'add' | request object (edit)
@@ -2582,7 +2587,7 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, e
     return ALL_LEAVE_TYPES.map(type => {
       const active = empReqs.filter(r => r.type === type && r.status !== 'rejected');
       const used = active.reduce((s, r) => s + (r.days || 1), 0);
-      const defaultEntitled = type === 'Time off' ? emp.entitlement : (type === 'Paternity leave' ? 10 : type === 'Maternity leave' ? 105 : null);
+      const defaultEntitled = type === 'Time off' ? emp.entitlement : type === 'ADV / RTT' ? 12 : type === 'Extra-legal leave' ? 4 : null;
       const entitled = (employeeBalance && employeeBalance[type] !== undefined) ? employeeBalance[type] : defaultEntitled;
       return { type, entitled, used, remaining: entitled != null ? Math.max(0, entitled - used) : null };
     });
@@ -2662,46 +2667,103 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, e
             <div style={{ marginBottom: 24 }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
                 <div>
-                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 16, color: P.ink }}>Balances</span>
+                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 16, color: P.ink }}>Balances <span style={{ fontWeight: 500, color: P.inkSoft }}>· {new Date().getFullYear()}</span></span>
                   {confirmedDate && (
                     <div style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkFaint, marginTop: 2 }}>Confirmed on {confirmedDate}</div>
                   )}
                 </div>
                 {!needsSetup && (
-                  <button onClick={() => setEditBalancesOpen(true)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 14px', borderRadius: 8, border: `1px solid ${P.border}`, background: 'transparent', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, color: P.ink }}>
+                  <button onClick={() => setEditBalancesOpen(true)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 14px', borderRadius: 8, border: `1px solid ${P.border}`, background: P.white, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, color: P.ink }}>
                     <Icon name="Pencil" size={12} color={P.inkSoft} />
                     Edit balances
                   </button>
                 )}
               </div>
-              <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 12, overflow: 'hidden' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-body)', fontSize: 13 }}>
-                <thead>
-                  <tr style={{ borderBottom: `1px solid ${P.border}` }}>
-                    <th style={{ textAlign: 'left', padding: '9px 20px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Leave type</th>
-                    <th style={{ textAlign: 'center', padding: '9px 16px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Entitled</th>
-                    <th style={{ textAlign: 'center', padding: '9px 16px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Used</th>
-                    <th style={{ textAlign: 'center', padding: '9px 16px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Remaining</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {balances.map(b => (
-                    <tr key={b.type} style={{ borderBottom: `1px solid ${P.border}` }}>
-                      <td style={{ padding: '10px 20px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                          <span style={{ width: 8, height: 8, borderRadius: 2, background: LEAVE_COLORS[b.type], flexShrink: 0 }} />
-                          <span style={{ color: P.ink }}>{b.type}</span>
-                        </div>
-                      </td>
-                      <td style={{ padding: '10px 16px', textAlign: 'center', color: b.entitled != null ? P.ink : P.inkFaint, fontStyle: b.entitled == null ? 'italic' : 'normal', fontSize: b.entitled == null ? 11 : 13 }}>{b.entitled != null ? b.entitled : 'No limit'}</td>
-                      <td style={{ padding: '10px 16px', textAlign: 'center', color: b.used > 0 ? P.ink : P.inkFaint }}>{b.used}</td>
-                      <td style={{ padding: '10px 16px', textAlign: 'center', fontWeight: 600, color: b.remaining != null ? (b.remaining <= 3 ? '#ef4444' : P.ink) : P.inkFaint, fontStyle: b.remaining == null ? 'italic' : 'normal', fontSize: b.remaining == null ? 11 : 13 }}>{b.remaining != null ? b.remaining : '—'}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+                {balances.filter(b => b.entitled != null || b.type === 'ADV / RTT' || b.type === 'Extra-legal leave').map(b => {
+                  const isLimited = b.entitled != null;
+                  const isLow = isLimited && b.remaining != null && b.remaining <= 3;
+                  return (
+                    <div key={b.type} style={{ flex: '1 1 160px', background: P.white, border: `1px solid ${P.border}`, borderRadius: 10, padding: '20px 24px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
+                        <span style={{ width: 7, height: 7, borderRadius: 2, background: LEAVE_COLORS[b.type], flexShrink: 0 }} />
+                        <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>{b.type}</span>
+                      </div>
+                      {isLimited ? (
+                        <>
+                          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 30, color: isLow ? '#ef4444' : P.ink, lineHeight: 1 }}>
+                            {b.remaining ?? 0}
+                            <span style={{ fontSize: 14, fontWeight: 500, color: P.inkSoft }}> / {b.entitled} days</span>
+                          </div>
+                          <div style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkFaint, marginTop: 6 }}>{b.used} used</div>
+                        </>
+                      ) : (
+                        <>
+                          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 30, color: P.ink, lineHeight: 1 }}>
+                            {b.used}
+                            <span style={{ fontSize: 14, fontWeight: 500, color: P.inkSoft }}> days</span>
+                          </div>
+                          <div style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkFaint, marginTop: 6 }}>taken · no limit</div>
+                        </>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
+
+            {/* Requested time off */}
+            {empReqs.filter(r => r.status === 'pending').length > 0 && (
+              <div style={{ marginBottom: 24 }}>
+                <div style={{ marginBottom: 12 }}>
+                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 16, color: P.ink }}>Requested time off</span>
+                </div>
+                <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 12, overflow: 'visible' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-body)', fontSize: 13 }}>
+                    <thead>
+                      <tr style={{ borderBottom: `1px solid ${P.border}` }}>
+                        <th style={{ textAlign: 'left', padding: '9px 20px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Date from</th>
+                        <th style={{ textAlign: 'left', padding: '9px 16px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Date to</th>
+                        <th style={{ textAlign: 'left', padding: '9px 16px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Type</th>
+                        <th style={{ textAlign: 'center', padding: '9px 16px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Days</th>
+                        <th style={{ textAlign: 'left', padding: '9px 16px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Status</th>
+                        <th style={{ width: 40 }}></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {empReqs.filter(r => r.status === 'pending').map(req => (
+                        <tr key={req.id} style={{ borderBottom: `1px solid ${P.border}` }}>
+                          <td style={{ padding: '10px 20px', color: P.ink }}>{req.startDate}</td>
+                          <td style={{ padding: '10px 16px', color: req.endDate && req.endDate !== req.startDate ? P.ink : P.inkFaint }}>
+                            {req.endDate && req.endDate !== req.startDate ? req.endDate : '—'}
+                          </td>
+                          <td style={{ padding: '10px 16px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                              <span style={{ width: 8, height: 8, borderRadius: 2, background: LEAVE_COLORS[req.type] || P.inkFaint, flexShrink: 0 }} />
+                              <span style={{ color: P.ink }}>{req.type}</span>
+                            </div>
+                          </td>
+                          <td style={{ padding: '10px 16px', textAlign: 'center', color: P.inkSoft }}>
+                            {req.days === 0.5 ? (
+                              <span>{'½'}<span style={{ fontSize: 11, color: P.inkFaint, marginLeft: 3 }}>{req.halfDay || ''}</span></span>
+                            ) : req.days || 1}
+                          </td>
+                          <td style={{ padding: '10px 16px' }}><StatusDot status={req.status} /></td>
+                          <td style={{ padding: '8px 16px' }}>
+                            <ActionMenu req={req}
+                              onApprove={() => onApprove(req.id)}
+                              onDecline={() => onDecline(req.id)}
+                              onEdit={() => setAddModal(req)}
+                              onCancel={() => setCancelAction(req)}
+                            />
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
 
             {/* Absence history */}
             <div>
@@ -2723,9 +2785,8 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, e
                   Add time off
                 </button>
               </div>
-              <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 12, overflow: 'hidden' }}>
-
-              {empReqs.length === 0 ? (
+              <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 12, overflow: 'visible' }}>
+              {empReqs.filter(r => r.status !== 'pending').length === 0 ? (
                 <div style={{ padding: '32px 20px', textAlign: 'center' }}>
                   <Icon name="CalendarOff" size={28} color={P.border} style={{ marginBottom: 8 }} />
                   <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkFaint }}>No absences recorded yet</div>
@@ -2734,7 +2795,8 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, e
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-body)', fontSize: 13 }}>
                   <thead>
                     <tr style={{ borderBottom: `1px solid ${P.border}` }}>
-                      <th style={{ textAlign: 'left', padding: '9px 20px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Period</th>
+                      <th style={{ textAlign: 'left', padding: '9px 20px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Date from</th>
+                      <th style={{ textAlign: 'left', padding: '9px 16px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Date to</th>
                       <th style={{ textAlign: 'left', padding: '9px 16px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Type</th>
                       <th style={{ textAlign: 'center', padding: '9px 16px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Days</th>
                       <th style={{ textAlign: 'left', padding: '9px 16px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Status</th>
@@ -2742,10 +2804,11 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, e
                     </tr>
                   </thead>
                   <tbody>
-                    {empReqs.map(req => (
+                    {empReqs.filter(r => r.status !== 'pending').map(req => (
                       <tr key={req.id} style={{ borderBottom: `1px solid ${P.border}` }}>
-                        <td style={{ padding: '10px 20px', color: P.ink }}>
-                          {req.startDate}{req.endDate && req.endDate !== req.startDate ? ` → ${req.endDate}` : ''}
+                        <td style={{ padding: '10px 20px', color: P.ink }}>{req.startDate}</td>
+                        <td style={{ padding: '10px 16px', color: req.endDate && req.endDate !== req.startDate ? P.ink : P.inkFaint }}>
+                          {req.endDate && req.endDate !== req.startDate ? req.endDate : '—'}
                         </td>
                         <td style={{ padding: '10px 16px' }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -2753,9 +2816,13 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, e
                             <span style={{ color: P.ink }}>{req.type}</span>
                           </div>
                         </td>
-                        <td style={{ padding: '10px 16px', textAlign: 'center', color: P.inkSoft }}>{req.days || 1}</td>
+                        <td style={{ padding: '10px 16px', textAlign: 'center', color: P.inkSoft }}>
+                          {req.days === 0.5 ? (
+                            <span>{'½'}<span style={{ fontSize: 11, color: P.inkFaint, marginLeft: 3 }}>{req.halfDay || ''}</span></span>
+                          ) : req.days || 1}
+                        </td>
                         <td style={{ padding: '10px 16px' }}><StatusDot status={req.status} /></td>
-                        <td style={{ padding: '10px 16px' }}>
+                        <td style={{ padding: '8px 16px' }}>
                           <ActionMenu req={req}
                             onEdit={() => setAddModal(req)}
                             onCancel={() => setCancelAction(req)}
@@ -3001,6 +3068,8 @@ function App() {
   const [toast, setToast] = useState(null);
   const [calDetail, setCalDetail] = useState(null);
   const [calEditReq, setCalEditReq] = useState(null);
+  const [calendarJumpDate, setCalendarJumpDate] = useState(null);
+  const [calendarDeptFilter, setCalendarDeptFilter] = useState(null);
   const [pendingAction, setPendingAction] = useState(null); // { type: 'decline'|'cancel', id, empName }
 
   useEffect(() => {
@@ -3086,8 +3155,6 @@ function App() {
         'Time off': emp.entitlement,
         'Sick leave': null,
         'Special leave': null,
-        'Paternity leave': 10,
-        'Maternity leave': 105,
         'Paid absence': null,
         'Unpaid absence': null,
       };
@@ -3100,7 +3167,7 @@ function App() {
     setToast('Balances updated');
   };
 
-  const [needsBalanceSetup, setNeedsBalanceSetup] = useState(new Set(['bram-goossens', 'thomas-vandenberghe']));
+  const [needsBalanceSetup, setNeedsBalanceSetup] = useState(new Set(['thomas-vandenberghe']));
   const [balanceConfirmedDates, setBalanceConfirmedDates] = useState({});
 
   const confirmBalancesFor = (empId) => {
@@ -3129,10 +3196,10 @@ function App() {
 
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, overflow: 'hidden' }}>
         {screen === 'dashboard' && <DashboardScreen requests={requests} onNav={setScreen} />}
-        {screen === 'team-absences' && <TeamAbsencesScreen requests={requests} pendingCount={pendingCount} onNav={setScreen} onShowDetail={setCalDetail} onSave={saveRequest} companyEvents={companyEvents} onCancelCompanyEvent={cancelCompanyEvent} />}
-        {screen === 'requests' && <RequestsScreen requests={requests} onApprove={approve} onDecline={requestDecline} onSave={saveRequest} onCancel={requestCancel} />}
+        {screen === 'team-absences' && <TeamAbsencesScreen requests={requests} pendingCount={pendingCount} onNav={setScreen} onShowDetail={setCalDetail} onSave={saveRequest} companyEvents={companyEvents} onCancelCompanyEvent={cancelCompanyEvent} initialDate={calendarJumpDate} initialDeptFilter={calendarDeptFilter} />}
+        {screen === 'requests' && <RequestsScreen requests={requests} onApprove={approve} onDecline={requestDecline} onSave={saveRequest} onCancel={requestCancel} onViewInCalendar={(req) => { const d = req._selectedDates?.[0] || req.startDate; if (d) { const iso = typeof d === 'string' && d.match(/^\d{4}-/) ? d : null; setCalendarJumpDate(iso ? new Date(iso) : parseDisplayDate(d)); } setScreen('team-absences'); }} />}
         {screen === 'employees' && <EmployeesScreen requests={requests} onNav={setScreen} />}
-        {screen.startsWith('employee-detail:') && <EmployeeDetailScreen employeeId={screen.split(':')[1]} requests={requests} onNav={setScreen} onSave={saveRequest} onCancel={cancelRequest} employeeBalance={employeeBalances[screen.split(':')[1]]} onUpdateBalance={(newBal) => updateBalances(screen.split(':')[1], newBal)} needsSetup={needsBalanceSetup.has(screen.split(':')[1])} confirmedDate={balanceConfirmedDates[screen.split(':')[1]]} onConfirmBalances={() => confirmBalancesFor(screen.split(':')[1])} />}
+        {screen.startsWith('employee-detail:') && <EmployeeDetailScreen employeeId={screen.split(':')[1]} requests={requests} onNav={setScreen} onSave={saveRequest} onCancel={cancelRequest} onApprove={approve} onDecline={requestDecline} onViewTeamCalendar={(dept) => { setCalendarDeptFilter(dept || null); setScreen('team-absences'); }} employeeBalance={employeeBalances[screen.split(':')[1]]} onUpdateBalance={(newBal) => updateBalances(screen.split(':')[1], newBal)} needsSetup={needsBalanceSetup.has(screen.split(':')[1])} confirmedDate={balanceConfirmedDates[screen.split(':')[1]]} onConfirmBalances={() => confirmBalancesFor(screen.split(':')[1])} />}
         {screen === 'settings' && <SettingsScreen />}
       </div>
 
