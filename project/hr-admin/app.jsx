@@ -1713,7 +1713,7 @@ function ViewSwitcher({ mode, onChange }) {
 }
 
 // ── Filter toolbar ─────────────────────────────────────────────────────────
-const LEAVE_FILTER_OPTS = [['all', 'All time-off types'], ['Time off', 'Time off'], ['ADV / RTT', 'ADV / RTT'], ['Extra-legal leave', 'Extra-legal leave'], ['Sick leave', 'Sick leave'], ['Special leave', 'Special leave']];
+const LEAVE_FILTER_OPTS = [['all', 'All time-off types'], ['Time off', 'Time off'], ['ADV / RTT', 'ADV / RTT'], ['Extra-legal leave', 'Extra-legal leave'], ['Sick leave', 'Sick leave'], ['Special leave', 'Special leave'], ['_closure', 'Company closure']];
 
 function FilterDropdown({ label, active, opts, onSelect, minWidth }) {
   const [open, setOpen] = useState(false);
@@ -1899,15 +1899,19 @@ function TeamAbsencesScreen({ requests, pendingCount, onNav, onShowDetail, onSav
       if (deptFilter !== 'all' && emp.department !== deptFilter) return false;
       if (search && !emp.name.toLowerCase().includes(search)) return false;
       if (absencesOnly) {
-        const hasAbsence = dayISOs.some(iso => {
-          const entry = absenceMap[id]?.[iso];
-          return entry && (leaveFilter === 'all' || entry.type === leaveFilter);
-        });
-        if (!hasAbsence) return false;
+        if (leaveFilter === '_closure') {
+          if (!dayISOs.some(iso => closureSet.has(iso))) return false;
+        } else {
+          const hasAbsence = dayISOs.some(iso => {
+            const entry = absenceMap[id]?.[iso];
+            return entry && (leaveFilter === 'all' || entry.type === leaveFilter);
+          });
+          if (!hasAbsence) return false;
+        }
       }
       return true;
     });
-  }, [searchText, activeDepts, deptFilter, absencesOnly, dayISOs, absenceMap, leaveFilter]);
+  }, [searchText, activeDepts, deptFilter, absencesOnly, dayISOs, absenceMap, leaveFilter, closureSet]);
 
   const grouped = useMemo(() => {
     const groups = {};
@@ -2083,7 +2087,7 @@ function TeamAbsencesScreen({ requests, pendingCount, onNav, onShowDetail, onSav
                           const isHoliday = _holidaySet.has(iso);
                           const isCollective = closureSet.has(iso);
                           const entry = absenceMap[empId]?.[iso];
-                          const show = entry && (leaveFilter === 'all' || entry.type === leaveFilter);
+                          const show = entry && leaveFilter !== '_closure' && (leaveFilter === 'all' || entry.type === leaveFilter);
                           const barColor = show ? (LEAVE_COLORS[entry.type] || '#2563eb') : null;
                           const isPending = show && entry.status === 'pending';
 
