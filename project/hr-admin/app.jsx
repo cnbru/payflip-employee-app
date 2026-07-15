@@ -20,29 +20,34 @@ const StatusMeta = {
 };
 
 const LEAVE_COLORS = {
-  'Time off':        '#c5dcfd',
-  'Sick leave':      '#fbd0e4',
-  'Special leave':   '#fde9c8',
-  'Funeral leave':   '#d8d3e3',
-  'Paternity leave': '#ddd8fb',
-  'Maternity leave': '#ddd8fb',
-  'Paid absence':    '#c0eef3',
-  'Unpaid absence':  '#e2e8ec',
+  'Time off':           '#c5dcfd',
+  'ADV / RTT':          '#fef3c7',
+  'Extra-legal leave':  '#ede9fe',
+  'Sick leave':         '#fbd0e4',
+  'Special leave':      '#fde9c8',
+  'Funeral leave':      '#d8d3e3',
+  'Paternity leave':    '#ddd8fb',
+  'Maternity leave':    '#ddd8fb',
+  'Paid absence':       '#c0eef3',
+  'Unpaid absence':     '#e2e8ec',
 };
 const LEAVE_BORDER_COLORS = {
-  'Time off':        '#7aafe8',
-  'Sick leave':      '#e698b8',
-  'Special leave':   '#e0b97a',
-  'Funeral leave':   '#a99dba',
-  'Paternity leave': '#a9a0e0',
-  'Maternity leave': '#a9a0e0',
-  'Paid absence':    '#7ac8d1',
-  'Unpaid absence':  '#a8b4be',
+  'Time off':           '#7aafe8',
+  'ADV / RTT':          '#e5c87a',
+  'Extra-legal leave':  '#a899e0',
+  'Sick leave':         '#e698b8',
+  'Special leave':      '#e0b97a',
+  'Funeral leave':      '#a99dba',
+  'Paternity leave':    '#a9a0e0',
+  'Maternity leave':    '#a9a0e0',
+  'Paid absence':       '#7ac8d1',
+  'Unpaid absence':     '#a8b4be',
 };
 
 
 const ALL_LEAVE_TYPES = [
-  'Time off', 'Sick leave', 'Special leave',
+  'Time off', 'ADV / RTT', 'Extra-legal leave',
+  'Sick leave', 'Special leave',
   'Paternity leave', 'Maternity leave', 'Paid absence', 'Unpaid absence',
 ];
 
@@ -1592,7 +1597,7 @@ function ViewSwitcher({ mode, onChange }) {
 }
 
 // ── Filter toolbar ─────────────────────────────────────────────────────────
-const LEAVE_FILTER_OPTS = [['all', 'All time-off types'], ['Time off', 'Time off'], ['Sick leave', 'Sick leave'], ['Special leave', 'Special leave']];
+const LEAVE_FILTER_OPTS = [['all', 'All time-off types'], ['Time off', 'Time off'], ['ADV / RTT', 'ADV / RTT'], ['Extra-legal leave', 'Extra-legal leave'], ['Sick leave', 'Sick leave'], ['Special leave', 'Special leave']];
 
 function FilterDropdown({ label, active, opts, onSelect, minWidth }) {
   const [open, setOpen] = useState(false);
