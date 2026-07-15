@@ -421,33 +421,6 @@ function Sidebar({ active, onNav, pendingCount }) {
       display: 'flex', flexDirection: 'column',
       height: '100vh', position: 'sticky', top: 0,
     }}>
-      {/* Global top section */}
-      <div style={{ padding: '14px 18px 10px', borderBottom: `1px solid ${P.border}` }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-          <div style={{ width: 28, height: 28, borderRadius: 8, background: '#6D17CF', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 14, color: '#fff' }}>P</span>
-          </div>
-          <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 15, color: P.ink }}>payflip</span>
-        </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-          {[['Companies', 'Building2', null], ['Reporting', 'BarChart2', null], ['Dashboard', 'LayoutDashboard', 'dashboard']].map(([label, icon, navId]) => {
-            const isDash = navId === 'dashboard';
-            const isActive = isDash && active === 'dashboard';
-            const disabled = !navId;
-            return (
-              <button key={label} onClick={() => navId && onNav(navId)} style={{
-                display: 'flex', alignItems: 'center', gap: 9,
-                padding: '6px 8px', borderRadius: 6, border: 'none',
-                background: isActive ? P.bg : 'transparent', cursor: disabled ? 'default' : 'pointer', width: '100%', textAlign: 'left',
-              }}>
-                <Icon name={icon} size={14} color={disabled ? P.inkFaint : isActive ? P.ink : P.inkSoft} />
-                <span style={{ fontFamily: 'var(--font-display)', fontWeight: isActive ? 700 : 500, fontSize: 13, color: disabled ? P.inkFaint : isActive ? P.ink : P.inkSoft }}>{label}</span>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
       {/* Entity selector */}
       <div style={{ padding: '10px 18px', borderBottom: `1px solid ${P.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div>
@@ -2946,7 +2919,7 @@ function Toast({ message, onDone }) {
 
 // ── Root App ───────────────────────────────────────────────────────────────
 function App() {
-  const [screen, setScreen] = useState('team-absences');
+  const [screen, setScreen] = useState('home');
   const [requests, setRequests] = useState(() => mergeRequests(generatedRequests, readLS()));
   const [companyEvents, setCompanyEvents] = useState([]);
   const [toast, setToast] = useState(null);
