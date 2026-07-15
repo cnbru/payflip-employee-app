@@ -1058,10 +1058,6 @@ function AddTimeOffModal({ existing, onClose, onSave, requests = [] }) {
 
         {/* Form — scrollable */}
         <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 24 }}>
-
-          {/* ── WHO ───────────────────────────────── */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 10, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Who</div>
           {/* Scope selector */}
           {!lockEmployee && !isEdit && (
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
@@ -1109,12 +1105,9 @@ function AddTimeOffModal({ existing, onClose, onSave, requests = [] }) {
             )}
             {errors.employee && <div style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: '#dc2626', marginTop: 4 }}>{errors.employee}</div>}
           </div>
-          </div>{/* /WHO */}
 
-          {/* ── WHAT ──────────────────────────────── */}
+          {/* Leave type — hidden for collective holidays */}
           {!allEmployees && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 10, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.06em' }}>What</div>
             <div>
               <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.inkSoft, marginBottom: 6 }}>Leave type</label>
               <SelectField value={type} onChange={e => setType(e.target.value)} style={{ ...inputStyle, cursor: 'pointer' }}>
@@ -1123,8 +1116,10 @@ function AddTimeOffModal({ existing, onClose, onSave, requests = [] }) {
                 ))}
               </SelectField>
             </div>
+          )}
+
           {/* Special leave cascading selects */}
-          {type === 'Special leave' && (() => {
+          {!allEmployees && type === 'Special leave' && (() => {
             const reasonObj = SPECIAL_LEAVE_REASONS.find(r => r.id === specialReason);
             const whoList = specialReason === 'wedding' ? SPECIAL_WEDDING_WHO : specialReason === 'funeral' ? SPECIAL_FUNERAL_WHO : [];
             const whoObj = whoList.find(w => w.id === specialWho);
@@ -1177,12 +1172,8 @@ function AddTimeOffModal({ existing, onClose, onSave, requests = [] }) {
               </>
             );
           })()}
-          </div>
-          )}{/* /WHAT */}
 
-          {/* ── WHEN & DETAILS ────────────────────── */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 10, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.06em' }}>When & details</div>
+
           {/* Date range inputs */}
           <div>
             <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.inkSoft, marginBottom: 6 }}>Dates</label>
@@ -1298,7 +1289,6 @@ function AddTimeOffModal({ existing, onClose, onSave, requests = [] }) {
               </div>
             );
           })()}
-          </div>{/* /WHEN & DETAILS */}
         </div>
 
         {/* Footer — pinned */}
