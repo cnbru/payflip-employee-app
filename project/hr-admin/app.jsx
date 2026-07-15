@@ -2291,14 +2291,15 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, e
         {activeTab === 'timeoff' ? (
           <div style={{ maxWidth: 900, margin: '0 auto' }}>
             {/* Balances card */}
-            <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 12, overflow: 'hidden', marginBottom: 24 }}>
-              <div style={{ padding: '14px 20px', borderBottom: `1px solid ${P.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ marginBottom: 24 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
                 <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 16, color: P.ink }}>Balances</span>
                 <button onClick={() => setEditBalancesOpen(true)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 14px', borderRadius: 8, border: `1px solid ${P.border}`, background: 'transparent', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, color: P.ink }}>
                   <Icon name="Pencil" size={12} color={P.inkSoft} />
                   Edit balances
                 </button>
               </div>
+              <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 12, overflow: 'hidden' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-body)', fontSize: 13 }}>
                 <thead>
                   <tr style={{ borderBottom: `1px solid ${P.border}` }}>
@@ -2324,11 +2325,12 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, e
                   ))}
                 </tbody>
               </table>
+              </div>
             </div>
 
             {/* Absence history */}
-            <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 12, overflow: 'hidden' }}>
-              <div style={{ padding: '14px 20px', borderBottom: `1px solid ${P.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
                 <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 16, color: P.ink }}>Absence history</span>
                 <button onClick={() => setAddModal('add')} style={{
                   display: 'inline-flex', alignItems: 'center', gap: 6,
@@ -2340,6 +2342,7 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, e
                   Add time off
                 </button>
               </div>
+              <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 12, overflow: 'hidden' }}>
 
               {empReqs.length === 0 ? (
                 <div style={{ padding: '32px 20px', textAlign: 'center' }}>
@@ -2391,6 +2394,7 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, e
                   </tbody>
                 </table>
               )}
+              </div>
             </div>
           </div>
         ) : (
