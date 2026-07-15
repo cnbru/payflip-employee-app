@@ -1798,7 +1798,7 @@ function TeamAbsencesScreen({ requests, pendingCount, onNav, onShowDetail, onSav
   const [tooltip, setTooltip] = useState(null);
   const [tooltipRendered, setTooltipRendered] = useState(null);
   const [addOpen, setAddOpen] = useState(false);
-  const [absencesOnly, setAbsencesOnly] = useState(true);
+  const [absencesOnly, setAbsencesOnly] = useState(false);
   const [closureDetail, setClosureDetail] = useState(null);
   const [closureEditOpen, setClosureEditOpen] = useState(null);
   const tooltipTimerRef = useRef(null);
