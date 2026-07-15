@@ -2287,7 +2287,7 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, e
       {/* Tab content */}
       <div style={{ flex: 1, overflow: 'auto', padding: 24 }}>
         {activeTab === 'timeoff' ? (
-          <div style={{ maxWidth: 900 }}>
+          <div style={{ maxWidth: 900, margin: '0 auto' }}>
             {/* Balances card */}
             <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 12, overflow: 'hidden', marginBottom: 24 }}>
               <div style={{ padding: '14px 20px', borderBottom: `1px solid ${P.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
