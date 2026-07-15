@@ -270,11 +270,14 @@ const EMPLOYEES = {
 };
 
 const generatedRequests = [
-  { id: 'gen-1', employee: 'david', type: 'Time off', startDate: 'Mon 1 Jun', endDate: 'Thu 11 Jun', days: 9, status: 'approved', submittedAt: '12 May', note: 'Summer holiday' },
+  { id: 'gen-1', employee: 'david', type: 'Time off', startDate: 'Mon 1 Jun', endDate: 'Thu 11 Jun', days: 9, status: 'approved', submittedAt: '12 May', note: 'Summer holiday', _selectedDates: ['2026-06-01','2026-06-02','2026-06-03','2026-06-04','2026-06-05','2026-06-08','2026-06-09','2026-06-10','2026-06-11'] },
   { id: 'gen-2', employee: 'emma-martens', type: 'Time off', startDate: 'Mon 13 Jul', endDate: 'Fri 17 Jul', days: 5, status: 'pending', submittedAt: '20 Jun', note: '' },
-  { id: 'gen-3', employee: 'mathias-de-smedt', type: 'Time off', startDate: 'Wed 8 Jul', endDate: 'Wed 8 Jul', days: 1, status: 'approved', submittedAt: '10 Jun', note: '' },
-  { id: 'gen-4', employee: 'stijn-laurent', type: 'Special leave', startDate: 'Fri 3 Jul', endDate: 'Fri 3 Jul', days: 1, status: 'approved', submittedAt: '25 Jun', note: 'Wedding' },
+  { id: 'gen-3', employee: 'mathias-de-smedt', type: 'Time off', startDate: 'Wed 8 Jul', endDate: 'Wed 8 Jul', days: 1, status: 'approved', submittedAt: '10 Jun', note: '', _selectedDates: ['2026-07-08'] },
+  { id: 'gen-4', employee: 'stijn-laurent', type: 'Special leave', startDate: 'Fri 3 Jul', endDate: 'Fri 3 Jul', days: 1, status: 'approved', submittedAt: '25 Jun', note: 'Wedding', _selectedDates: ['2026-07-03'] },
   { id: 'gen-5', employee: 'laura-mertens', type: 'Sick leave', startDate: 'Tue 7 Jul', endDate: 'Tue 7 Jul', days: 1, status: 'approved', submittedAt: '7 Jul', note: '', _selectedDates: ['2026-07-07'] },
+  { id: 'gen-6', employee: 'bram-goossens', type: 'ADV / RTT', startDate: 'Mon 22 Jun', endDate: 'Tue 23 Jun', days: 2, status: 'approved', submittedAt: '15 Jun', note: '', _selectedDates: ['2026-06-22','2026-06-23'] },
+  { id: 'gen-7', employee: 'jana-goossens', type: 'Time off', startDate: 'Thu 25 Jun', endDate: 'Fri 27 Jun', days: 3, status: 'approved', submittedAt: '10 Jun', note: 'Long weekend', _selectedDates: ['2026-06-25','2026-06-26','2026-06-27'] },
+  { id: 'gen-8', employee: 'pieter-mertens', type: 'Extra-legal leave', startDate: 'Wed 1 Jul', endDate: 'Wed 1 Jul', days: 1, status: 'approved', submittedAt: '28 Jun', note: '', _selectedDates: ['2026-07-01'] },
 ];
 
 // ── localStorage bridge ────────────────────────────────────────────────────
@@ -619,7 +622,34 @@ function DetailModal({ req, requests, onClose, onApprove, onDecline, onCancel, o
     .reduce((s, r) => s + r.days, 0);
   const remaining = Math.max(0, emp.entitlement - usedDays - req.days);
   const isPending = req.status === 'pending';
+
+  // Determine if absence is in the past (ended before today)
+  const today = new Date(); today.setHours(0,0,0,0);
+  const endD = req._selectedDates?.length
+    ? (() => { const p = req._selectedDates[req._selectedDates.length-1].split('-'); return new Date(+p[0],+p[1]-1,+p[2]); })()
+    : parseDisplayDate(req.endDate || req.startDate);
+  const isPast = endD && endD < today;
+  // Only show warning if ended within the past 30 days
+  const thirtyDaysAgo = new Date(today); thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+  const showPastWarning = isPast && endD >= thirtyDaysAgo;
+
+  const whenLabel = (() => {
+    const dateStr = req._selectedDates && req._selectedDates.length > 1
+      ? req._selectedDates.map(iso => { const p = iso.split('-'); return new Date(+p[0],+p[1]-1,+p[2]).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }); }).join(', ')
+      : req.startDate === req.endDate ? req.startDate : `${req.startDate} – ${req.endDate}`;
+    const sub = `${req.days} ${req.days === 1 ? 'day' : 'days'}${isPast ? ' · in the past' : ''}`;
+    return <span>{dateStr}<br /><span style={{ color: P.inkSoft, fontSize: 12 }}>{sub}</span></span>;
+  })();
+
   const { visible, close } = useModalTransition(onClose);
+
+  const Row = ({ label, children }) => (
+    <div style={{ display: 'grid', gridTemplateColumns: '140px 1fr', padding: '11px 22px', borderBottom: `1px solid ${P.border}`, alignItems: 'start', gap: 12 }}>
+      <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, paddingTop: 1 }}>{label}</span>
+      <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink }}>{children}</span>
+    </div>
+  );
+
   return (
     <div onClick={close} style={{
       position: 'fixed', inset: 0, zIndex: 200,
@@ -632,48 +662,71 @@ function DetailModal({ req, requests, onClose, onApprove, onDecline, onCancel, o
         display: 'flex', flexDirection: 'column', maxHeight: '90vh', overflow: 'hidden',
         ...modalPanelStyle(visible),
       }}>
+        {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 22px', borderBottom: `1px solid ${P.border}` }}>
           <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 16, color: P.ink }}>Time off details</span>
-          <button onClick={close} style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: 4, display: 'flex' }}>
-            <Icon name="X" size={18} color={P.inkSoft} />
+          <button onClick={close} style={{ border: `1px solid ${P.border}`, background: P.white, cursor: 'pointer', padding: '6px 8px', borderRadius: 8, display: 'flex' }}>
+            <Icon name="X" size={16} color={P.inkSoft} />
           </button>
         </div>
-        <div style={{ overflowY: 'auto', padding: '6px 0' }}>
-          {[
-            { label: 'Status', value: <StatusDot status={req.status} /> },
-            { label: 'Type', value: req.type },
-            { label: 'When', value: <span>{req._selectedDates && req._selectedDates.length > 1
-              ? req._selectedDates.map(iso => { const p = iso.split('-'); return new Date(+p[0], +p[1]-1, +p[2]).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }); }).join(', ')
-              : req.startDate === req.endDate ? req.startDate : `${req.startDate} – ${req.endDate}`}<br /><span style={{ color: P.inkSoft, fontSize: 12 }}>Total of {req.days} {req.days === 1 ? 'day' : 'days'}</span></span> },
-            { label: 'Notes', value: req.note || '—' },
-            { label: 'Requested on', value: req.submittedAt },
-            { label: 'Requested by', value: <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><span>{emp.name}</span><span style={{ color: P.inkFaint, fontSize: 12 }}>{emp.department}</span></div> },
-          ].map(({ label, value }) => (
-            <div key={label} style={{ display: 'grid', gridTemplateColumns: '130px 1fr', padding: '11px 22px', borderBottom: `1px solid ${P.border}`, alignItems: 'start', gap: 12 }}>
-              <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, paddingTop: 1 }}>{label}</span>
-              <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.ink }}>{value}</span>
-            </div>
-          ))}
-          <div style={{ margin: '14px 22px', background: P.bg, borderRadius: 10, padding: '14px 16px' }}>
-            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 13, color: P.ink, marginBottom: 10 }}>Balance summary</div>
+
+        <div style={{ overflowY: 'auto' }}>
+          {/* Status row */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 22px', borderBottom: `1px solid ${P.border}` }}>
+            <span style={{ width: 9, height: 9, borderRadius: '50%', background: req.status === 'approved' ? '#22c55e' : req.status === 'pending' ? '#f59e0b' : '#9ca3af', flexShrink: 0 }} />
+            <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>Status</span>
+            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 14, color: P.ink }}>
+              {req.status === 'approved' ? 'Approved' : req.status === 'pending' ? 'Pending' : 'Declined'}
+            </span>
+          </div>
+
+          {/* Balance summary card */}
+          <div style={{ margin: '14px 22px', borderRadius: 10, border: `1px solid ${P.border}`, overflow: 'hidden' }}>
             {[
-              { label: 'Annual entitlement', value: `${emp.entitlement} days` },
-              { label: 'Used & booked', value: `${usedDays} ${usedDays === 1 ? 'day' : 'days'}` },
-              { label: 'Requesting', value: `${req.days} ${req.days === 1 ? 'day' : 'days'}` },
+              { label: 'Annual entitlement', value: `${emp.entitlement} days`, bold: false },
+              { label: 'Used & booked', value: `${usedDays} ${usedDays === 1 ? 'day' : 'days'}`, bold: false },
+              { label: 'This request', value: `${req.days} ${req.days === 1 ? 'day' : 'days'}`, bold: false },
             ].map(({ label, value }) => (
-              <div key={label} style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 0', borderBottom: `1px solid ${P.border}` }}>
+              <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 16px', borderBottom: `1px solid ${P.border}` }}>
                 <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>{label}</span>
                 <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.ink }}>{value}</span>
               </div>
             ))}
-            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '7px 0 0' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 16px' }}>
               <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 13, color: P.ink }}>Remaining after request</span>
-              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 13, color: remaining < 0 ? '#b91c1c' : '#166534' }}>
+              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 14, color: remaining < 0 ? '#b91c1c' : P.ink }}>
                 {remaining} {Math.abs(remaining) === 1 ? 'day' : 'days'}
               </span>
             </div>
           </div>
+
+          {/* Detail rows */}
+          <Row label="Type">{req.type}</Row>
+          <Row label="When">{whenLabel}</Row>
+          <Row label="Requested on">{req.submittedAt}</Row>
+          <Row label="Requested by">
+            <span>{emp.name}</span>
+            {emp.department && <span style={{ color: P.inkFaint, fontSize: 12, marginLeft: 7 }}>{emp.department}</span>}
+          </Row>
+          <Row label="Notes">
+            {req.note
+              ? <span>{req.note}</span>
+              : <span style={{ color: P.inkFaint, fontStyle: 'italic' }}>None</span>}
+          </Row>
+
+          {/* Past warning — only within last 30 days */}
+          {showPastWarning && (
+            <div style={{ margin: '14px 22px', padding: '11px 14px', borderRadius: 8, background: '#fef9c3', border: '1px solid #fde047', display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#ca8a04" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 1 }}><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: '#92400e', lineHeight: 1.4 }}>
+                This absence has already passed. Changes may affect payroll records.
+              </span>
+            </div>
+          )}
+          <div style={{ height: 6 }} />
         </div>
+
+        {/* Footer */}
         {(isPending || req.status === 'approved') && (
           <div style={{ padding: '14px 22px', borderTop: `1px solid ${P.border}`, display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
             {isPending && <>
@@ -686,18 +739,18 @@ function DetailModal({ req, requests, onClose, onApprove, onDecline, onCancel, o
                 cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13,
               }}>Approve</button>
             </>}
-            {onEdit && (
-              <button onClick={() => { onEdit(req); close(); }} style={{
+            {req.status === 'approved' && <>
+              <button onClick={() => { onCancel(req.id); close(); }} style={{
                 padding: '8px 20px', borderRadius: 8, border: `1px solid ${P.border}`, background: P.white,
                 color: P.ink, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13,
-              }}>Edit</button>
-            )}
-            {req.status === 'approved' && (
-              <button onClick={() => { onCancel(req.id); close(); }} style={{
-                padding: '8px 20px', borderRadius: 8, border: '1px solid #fca5a5', background: '#fef2f2',
-                color: '#b91c1c', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13,
-              }}>Cancel absence</button>
-            )}
+              }}>Withdraw request</button>
+              {onEdit && (
+                <button onClick={() => { onEdit(req); close(); }} style={{
+                  padding: '8px 20px', borderRadius: 8, border: `1px solid ${P.border}`, background: P.white,
+                  color: P.ink, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13,
+                }}>Edit</button>
+              )}
+            </>}
           </div>
         )}
       </div>
