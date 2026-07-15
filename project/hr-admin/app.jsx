@@ -2243,7 +2243,7 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, e
     { id: 'budgets', label: 'Budgets' },
     { id: 'salary', label: 'Salary & components' },
     { id: 'details', label: 'Details & roles' },
-    { id: 'timeoff', label: 'Time off' },
+    { id: 'timeoff', label: 'Leave & absences' },
   ];
 
   return (
