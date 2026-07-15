@@ -253,20 +253,20 @@ const AVATAR_COLORS = ['#bfdbfe','#ddd6fe','#fde68a','#a7f3d0','#fecdd3','#fed7a
 
 const EMPLOYEES = {
   // Design
-  'bram-goossens':     { name: 'Bram Goossens',     initials: 'BG', color: '#bfdbfe', entitlement: 23, department: 'Design',       email: 'bram.goossens@edgxspace.be',     entity: 'EDGX SPACE', budget: 3750,  role: 'Employee', status: 'Active' },
-  'emma-martens':      { name: 'Emma Martens',       initials: 'EM', color: '#ddd6fe', entitlement: 29, department: 'Design',       email: 'emma.martens@edgxspace.be',      entity: 'EDGX SPACE', budget: 0,     role: 'Employee', status: 'Active' },
-  'mathias-de-smedt':  { name: 'Mathias De Smedt',  initials: 'MD', color: '#fde68a', entitlement: 23, department: 'Design',       email: 'mathias.de-smedt@edgxspace.be', entity: 'EDGX SPACE', budget: 6250,  role: 'Employee', status: 'Active' },
-  'thomas-vandenberghe': { name: 'Thomas Vandenberghe', initials: 'TV', color: '#99f6e4', entitlement: 20, department: 'Design',    email: 'thomas.vandenberghe@edgxspace.be', entity: 'EDGX SPACE', budget: 0, role: 'Employee', status: 'Active' },
+  'bram-goossens':     { name: 'Bram Goossens',     initials: 'BG', color: '#bfdbfe', entitlement: 23, department: 'Design',       email: 'bram.goossens@edgxspace.be',     entity: 'EDGX SPACE', budget: 3750,  role: 'Employee', status: 'Active', gender: 'm' },
+  'emma-martens':      { name: 'Emma Martens',       initials: 'EM', color: '#ddd6fe', entitlement: 29, department: 'Design',       email: 'emma.martens@edgxspace.be',      entity: 'EDGX SPACE', budget: 0,     role: 'Employee', status: 'Active', gender: 'f' },
+  'mathias-de-smedt':  { name: 'Mathias De Smedt',  initials: 'MD', color: '#fde68a', entitlement: 23, department: 'Design',       email: 'mathias.de-smedt@edgxspace.be', entity: 'EDGX SPACE', budget: 6250,  role: 'Employee', status: 'Active', gender: 'm' },
+  'thomas-vandenberghe': { name: 'Thomas Vandenberghe', initials: 'TV', color: '#99f6e4', entitlement: 20, department: 'Design',    email: 'thomas.vandenberghe@edgxspace.be', entity: 'EDGX SPACE', budget: 0, role: 'Employee', status: 'Active', gender: 'm' },
   // Engineering
-  'david':             { name: 'David Laurent',      initials: 'DL', color: '#fecdd3', entitlement: 20, department: 'Engineering', email: 'david.laurent@edgxspace.be',     entity: 'EDGX SPACE', budget: 4500,  role: 'Employee', status: 'Active' },
-  'stijn-laurent':     { name: 'Stijn Laurent',      initials: 'SL', color: '#a7f3d0', entitlement: 29, department: 'Engineering', email: 'stijn.laurent@edgxspace.be',     entity: 'EDGX SPACE', budget: 1500,  role: 'Employee', status: 'Active' },
-  'jana-goossens':     { name: 'Jana Goossens',      initials: 'JG', color: '#c7d2fe', entitlement: 20, department: 'Engineering', email: 'jana.goossens@edgxspace.be',     entity: 'EDGX SPACE', budget: 2000,  role: 'Employee', status: 'Active' },
-  'laura-mertens':     { name: 'Laura Mertens',      initials: 'LM', color: '#fca5a5', entitlement: 20, department: 'Engineering', email: 'laura.mertens@edgxspace.be',     entity: 'EDGX SPACE', budget: 750,   role: 'Employee', status: 'Active' },
+  'david':             { name: 'David Laurent',      initials: 'DL', color: '#fecdd3', entitlement: 20, department: 'Engineering', email: 'david.laurent@edgxspace.be',     entity: 'EDGX SPACE', budget: 4500,  role: 'Employee', status: 'Active', gender: 'm' },
+  'stijn-laurent':     { name: 'Stijn Laurent',      initials: 'SL', color: '#a7f3d0', entitlement: 29, department: 'Engineering', email: 'stijn.laurent@edgxspace.be',     entity: 'EDGX SPACE', budget: 1500,  role: 'Employee', status: 'Active', gender: 'm' },
+  'jana-goossens':     { name: 'Jana Goossens',      initials: 'JG', color: '#c7d2fe', entitlement: 20, department: 'Engineering', email: 'jana.goossens@edgxspace.be',     entity: 'EDGX SPACE', budget: 2000,  role: 'Employee', status: 'Active', gender: 'f' },
+  'laura-mertens':     { name: 'Laura Mertens',      initials: 'LM', color: '#fca5a5', entitlement: 20, department: 'Engineering', email: 'laura.mertens@edgxspace.be',     entity: 'EDGX SPACE', budget: 750,   role: 'Employee', status: 'Active', gender: 'f' },
   // Marketing
-  'pieter-mertens':    { name: 'Pieter Mertens',     initials: 'PM', color: '#a7f3d0', entitlement: 29, department: 'Marketing',   email: 'pieter.mertens@edgxspace.be',    entity: 'EDGX SPACE', budget: 8500,  role: 'Manager',  status: 'Active' },
-  'sarah-de-smedt':    { name: 'Sarah De Smedt',     initials: 'SD', color: '#fecdd3', entitlement: 23, department: 'Marketing',   email: 'sarah.de-smedt@edgxspace.be',   entity: 'EDGX SPACE', budget: 2750,  role: 'Employee', status: 'Active' },
-  'julie-goossens':    { name: 'Julie Goossens',     initials: 'JG', color: '#fed7aa', entitlement: 20, department: 'Marketing',   email: 'julie.goossens@edgxspace.be',    entity: 'EDGX SPACE', budget: 5000,  role: 'Manager',  status: 'Active' },
-  'noor-de-smedt':     { name: 'Noor De Smedt',      initials: 'ND', color: '#fde68a', entitlement: 20, department: 'Marketing',   email: 'noor.de-smedt@edgxspace.be',    entity: 'EDGX SPACE', budget: 0,     role: 'Employee', status: 'Active' },
+  'pieter-mertens':    { name: 'Pieter Mertens',     initials: 'PM', color: '#a7f3d0', entitlement: 29, department: 'Marketing',   email: 'pieter.mertens@edgxspace.be',    entity: 'EDGX SPACE', budget: 8500,  role: 'Manager',  status: 'Active', gender: 'm' },
+  'sarah-de-smedt':    { name: 'Sarah De Smedt',     initials: 'SD', color: '#fecdd3', entitlement: 23, department: 'Marketing',   email: 'sarah.de-smedt@edgxspace.be',   entity: 'EDGX SPACE', budget: 2750,  role: 'Employee', status: 'Active', gender: 'f' },
+  'julie-goossens':    { name: 'Julie Goossens',     initials: 'JG', color: '#fed7aa', entitlement: 20, department: 'Marketing',   email: 'julie.goossens@edgxspace.be',    entity: 'EDGX SPACE', budget: 5000,  role: 'Manager',  status: 'Active', gender: 'f' },
+  'noor-de-smedt':     { name: 'Noor De Smedt',      initials: 'ND', color: '#fde68a', entitlement: 20, department: 'Marketing',   email: 'noor.de-smedt@edgxspace.be',    entity: 'EDGX SPACE', budget: 0,     role: 'Employee', status: 'Active', gender: 'f' },
 };
 
 const generatedRequests = [
@@ -2398,13 +2398,6 @@ const BALANCE_SECTIONS = [
     badge: 'Belgian law',
     defaults: { 'Sick leave': 30, 'Special leave': null },
   },
-  {
-    label: 'HR-initiated only',
-    types: ['Paternity leave', 'Maternity leave'],
-    editable: false,
-    note: 'Not employee-booked',
-    defaults: { 'Paternity leave': 10, 'Maternity leave': 105 },
-  },
 ];
 
 function EditBalancesModal({ emp, balances, onSave, onClose, isNewEmployee, onConfirm }) {
@@ -2414,6 +2407,13 @@ function EditBalancesModal({ emp, balances, onSave, onClose, isNewEmployee, onCo
       return acc;
     }, {})
   );
+
+  const hrType = emp.gender === 'f' ? 'Maternity leave' : 'Paternity leave';
+  const hrDefault = emp.gender === 'f' ? 105 : 10;
+  const sections = [
+    ...BALANCE_SECTIONS,
+    { label: 'HR-initiated only', types: [hrType], editable: false, defaults: { [hrType]: hrDefault } },
+  ];
 
   const { visible, close } = useModalTransition(onClose);
 
@@ -2447,8 +2447,8 @@ function EditBalancesModal({ emp, balances, onSave, onClose, isNewEmployee, onCo
 
         {/* Body */}
         <div style={{ overflowY: 'auto' }}>
-          {BALANCE_SECTIONS.map((section, si) => (
-            <div key={section.label} style={{ borderBottom: si < BALANCE_SECTIONS.length - 1 ? `1px solid ${P.border}` : 'none' }}>
+          {sections.map((section, si) => (
+            <div key={section.label} style={{ borderBottom: si < sections.length - 1 ? `1px solid ${P.border}` : 'none' }}>
               <div style={{ padding: '10px 22px 6px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 10, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                 {section.label}
               </div>
