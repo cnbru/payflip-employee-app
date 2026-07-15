@@ -1984,6 +1984,7 @@ function TeamAbsencesScreen({ requests, pendingCount, onNav, onShowDetail, onSav
               <button onClick={() => setMonthPickerOpen(o => !o)} style={{
                 border: 'none', background: 'transparent', cursor: 'pointer', padding: '4px 6px', borderRadius: 6,
                 fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 15, color: P.ink,
+                minWidth: 160, textAlign: 'center',
               }}>{monthLabel}</button>
               <button onClick={() => step(1)} style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: 4, display: 'flex', alignItems: 'center' }}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={P.ink} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
