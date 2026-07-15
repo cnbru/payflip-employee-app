@@ -48,7 +48,7 @@ const LEAVE_BORDER_COLORS = {
 const ALL_LEAVE_TYPES = [
   'Time off', 'ADV / RTT', 'Extra-legal leave',
   'Sick leave', 'Special leave',
-  'Paternity leave', 'Maternity leave', 'Paid absence', 'Unpaid absence',
+  'Paternity leave', 'Maternity leave',
 ];
 
 const ADMIN_ONLY_TYPES = new Set(['Paternity leave', 'Maternity leave', 'Paid absence', 'Unpaid absence']);
