@@ -2385,96 +2385,124 @@ function EmployeesScreen({ requests, onNav }) {
 }
 
 // ── Edit balances modal ────────────────────────────────────────────────────
+const BALANCE_SECTIONS = [
+  {
+    label: 'Set by you',
+    types: ['Time off', 'ADV / RTT', 'Extra-legal leave'],
+    editable: true,
+  },
+  {
+    label: 'Set by law',
+    types: ['Sick leave', 'Special leave'],
+    editable: false,
+    badge: 'Belgian law',
+    defaults: { 'Sick leave': 30, 'Special leave': null },
+  },
+  {
+    label: 'HR-initiated only',
+    types: ['Paternity leave', 'Maternity leave'],
+    editable: false,
+    note: 'Not employee-booked',
+    defaults: { 'Paternity leave': 10, 'Maternity leave': 105 },
+  },
+];
+
 function EditBalancesModal({ emp, balances, onSave, onClose, isNewEmployee, onConfirm }) {
-  const [unlimited, setUnlimited] = useState(() =>
-    ALL_LEAVE_TYPES.reduce((acc, type) => {
-      acc[type] = balances[type] == null;
-      return acc;
-    }, {})
-  );
   const [values, setValues] = useState(() =>
-    ALL_LEAVE_TYPES.reduce((acc, type) => {
+    ['Time off', 'ADV / RTT', 'Extra-legal leave'].reduce((acc, type) => {
       acc[type] = balances[type] != null ? String(balances[type]) : '';
       return acc;
     }, {})
   );
 
-  const toggleUnlimited = (type) => {
-    setUnlimited(u => ({ ...u, [type]: !u[type] }));
-  };
-
   const { visible, close } = useModalTransition(onClose);
 
   const handleSave = () => {
-    const next = {};
-    for (const type of ALL_LEAVE_TYPES) {
-      if (unlimited[type]) {
-        next[type] = null;
-      } else {
-        const v = parseInt(values[type], 10);
-        next[type] = isNaN(v) ? null : Math.max(0, v);
-      }
+    const next = { ...balances };
+    for (const type of ['Time off', 'ADV / RTT', 'Extra-legal leave']) {
+      const v = parseInt(values[type], 10);
+      next[type] = isNaN(v) ? 0 : Math.max(0, v);
     }
     onSave(next);
     if (isNewEmployee && onConfirm) onConfirm();
     close();
   };
 
+  const year = new Date().getFullYear();
+
   return (
     <div onClick={close} style={{ position: 'fixed', inset: 0, zIndex: 200, background: 'rgba(15,13,40,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', ...modalBackdropStyle(visible) }}>
-      <div onClick={e => e.stopPropagation()} style={{ background: P.white, borderRadius: 14, width: 460, boxShadow: '0 8px 40px rgba(15,13,40,0.18)', display: 'flex', flexDirection: 'column', maxHeight: '90vh', overflow: 'hidden', ...modalPanelStyle(visible) }}>
+      <div onClick={e => e.stopPropagation()} style={{ background: P.white, borderRadius: 14, width: 480, boxShadow: '0 8px 40px rgba(15,13,40,0.18)', display: 'flex', flexDirection: 'column', maxHeight: '90vh', overflow: 'hidden', ...modalPanelStyle(visible) }}>
+
+        {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 22px', borderBottom: `1px solid ${P.border}` }}>
           <div>
             <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 16, color: P.ink }}>{isNewEmployee ? 'Review & confirm balances' : 'Edit balances'}</div>
-            <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, marginTop: 2 }}>{emp.name}</div>
+            <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, marginTop: 2 }}>{emp.name} · {year}</div>
           </div>
           <button onClick={close} style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: 4, display: 'flex' }}>
             <Icon name="X" size={18} color={P.inkSoft} />
           </button>
         </div>
+
+        {/* Body */}
         <div style={{ overflowY: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <thead>
-              <tr style={{ borderBottom: `1px solid ${P.border}` }}>
-                <th style={{ padding: '8px 22px', fontFamily: 'var(--font-body)', fontSize: 12, fontWeight: 500, color: P.inkFaint, textAlign: 'left', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Leave type</th>
-                <th style={{ padding: '8px 16px', fontFamily: 'var(--font-body)', fontSize: 12, fontWeight: 500, color: P.inkFaint, textAlign: 'center', textTransform: 'uppercase', letterSpacing: '0.04em', width: 100 }}>Entitled days</th>
-                <th style={{ padding: '8px 22px 8px 16px', fontFamily: 'var(--font-body)', fontSize: 12, fontWeight: 500, color: P.inkFaint, textAlign: 'center', textTransform: 'uppercase', letterSpacing: '0.04em', width: 60 }}>No limit</th>
-              </tr>
-            </thead>
-            <tbody>
-              {ALL_LEAVE_TYPES.map(type => {
-                const isUnlimited = unlimited[type];
-                return (
-                  <tr key={type} style={{ borderBottom: `1px solid ${P.border}`, height: 44 }}>
-                    <td style={{ padding: '10px 22px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
-                        <span style={{ width: 8, height: 8, borderRadius: 2, background: LEAVE_COLORS[type], flexShrink: 0 }} />
-                        <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink }}>{type}</span>
-                      </div>
-                    </td>
-                    <td style={{ padding: '10px 16px', textAlign: 'center' }}>
-                      {isUnlimited ? (
-                        <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkFaint }}>—</span>
-                      ) : (
+          {BALANCE_SECTIONS.map((section, si) => (
+            <div key={section.label} style={{ borderBottom: si < BALANCE_SECTIONS.length - 1 ? `1px solid ${P.border}` : 'none' }}>
+              <div style={{ padding: '10px 22px 6px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 10, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                {section.label}
+              </div>
+              {section.types.map((type, ti) => {
+                const dot = LEAVE_COLORS[type] || '#ccc';
+                const isLast = ti === section.types.length - 1;
+                if (section.editable) {
+                  return (
+                    <div key={type} style={{ display: 'flex', alignItems: 'center', padding: '10px 22px', borderTop: ti > 0 ? `1px solid ${P.border}` : 'none' }}>
+                      <span style={{ width: 9, height: 9, borderRadius: '50%', background: dot, flexShrink: 0, marginRight: 10 }} />
+                      <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink, flex: 1 }}>{type}</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                         <input
                           type="number" min="0"
                           value={values[type]}
                           onChange={e => setValues(v => ({ ...v, [type]: e.target.value }))}
                           placeholder="0"
-                          style={{ width: 64, padding: '5px 8px', borderRadius: 7, border: `1px solid ${P.border}`, fontFamily: 'var(--font-body)', fontSize: 13, color: P.ink, outline: 'none', textAlign: 'center' }}
+                          style={{ width: 56, padding: '5px 8px', borderRadius: 7, border: `1px solid ${P.border}`, fontFamily: 'var(--font-body)', fontSize: 14, fontWeight: 600, color: P.ink, outline: 'none', textAlign: 'center', background: P.bg }}
                         />
-                      )}
-                    </td>
-                    <td style={{ padding: '10px 22px 10px 16px', textAlign: 'center' }}>
-                      <Switch checked={isUnlimited} onChange={() => toggleUnlimited(type)} size="sm" />
-                    </td>
-                  </tr>
-                );
+                        <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>days</span>
+                      </div>
+                    </div>
+                  );
+                } else {
+                  const defaultVal = section.defaults?.[type];
+                  const displayVal = balances[type] != null ? balances[type] : defaultVal;
+                  return (
+                    <div key={type} style={{ display: 'flex', alignItems: 'center', padding: '10px 22px', borderTop: ti > 0 ? `1px solid ${P.border}` : 'none', opacity: 0.7 }}>
+                      <span style={{ width: 9, height: 9, borderRadius: '50%', background: dot, flexShrink: 0, marginRight: 10 }} />
+                      <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink, flex: 1 }}>{type}</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, fontWeight: 600, color: P.inkSoft }}>{displayVal ?? '—'}</span>
+                        <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>days</span>
+                        {section.badge && (
+                          <span style={{ padding: '2px 8px', borderRadius: 20, border: `1px solid ${P.border}`, fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkSoft }}>{section.badge}</span>
+                        )}
+                        {section.note && (
+                          <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkFaint, fontStyle: 'italic' }}>{section.note}</span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                }
               })}
-            </tbody>
-          </table>
+              <div style={{ height: 4 }} />
+            </div>
+          ))}
         </div>
-        <div style={{ padding: '14px 22px', borderTop: `1px solid ${P.border}`, display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+
+        {/* Footer */}
+        <div style={{ padding: '14px 22px', borderTop: `1px solid ${P.border}`, display: 'flex', alignItems: 'center', gap: 10 }}>
+          <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkFaint, flex: 1 }}>
+            Effective from {emp.name.split(' ')[0]}'s start date
+          </span>
           <button onClick={close} style={{ padding: '8px 18px', borderRadius: 8, border: `1px solid ${P.border}`, background: 'transparent', color: P.ink, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>Cancel</button>
           <button onClick={handleSave} style={{ padding: '8px 20px', borderRadius: 8, border: 'none', background: P.ink, color: '#fff', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>{isNewEmployee ? 'Confirm balances' : 'Save balances'}</button>
         </div>
