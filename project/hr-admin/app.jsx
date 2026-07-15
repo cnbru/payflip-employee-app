@@ -278,6 +278,8 @@ const generatedRequests = [
   { id: 'gen-6', employee: 'bram-goossens', type: 'ADV / RTT', startDate: 'Mon 22 Jun', endDate: 'Tue 23 Jun', days: 2, status: 'approved', submittedAt: '15 Jun', note: '', _selectedDates: ['2026-06-22','2026-06-23'] },
   { id: 'gen-7', employee: 'jana-goossens', type: 'Time off', startDate: 'Thu 25 Jun', endDate: 'Fri 27 Jun', days: 3, status: 'approved', submittedAt: '10 Jun', note: 'Long weekend', _selectedDates: ['2026-06-25','2026-06-26','2026-06-27'] },
   { id: 'gen-8', employee: 'pieter-mertens', type: 'Extra-legal leave', startDate: 'Wed 1 Jul', endDate: 'Wed 1 Jul', days: 1, status: 'approved', submittedAt: '28 Jun', note: '', _selectedDates: ['2026-07-01'] },
+  { id: 'gen-9', employee: 'thomas-janssens', type: 'Time off', startDate: 'Mon 20 Jul', endDate: 'Fri 24 Jul', days: 5, status: 'pending', submittedAt: '8 Jul', note: 'Family trip', _selectedDates: ['2026-07-20','2026-07-21','2026-07-22','2026-07-23','2026-07-24'] },
+  { id: 'gen-10', employee: 'bram-goossens', type: 'Time off', startDate: 'Thu 23 Jul', endDate: 'Fri 24 Jul', days: 2, status: 'pending', submittedAt: '10 Jul', note: '', _selectedDates: ['2026-07-23','2026-07-24'] },
 ];
 
 // ── localStorage bridge ────────────────────────────────────────────────────
@@ -681,7 +683,7 @@ function DetailModal({ req, requests, onClose, onApprove, onDecline, onCancel, o
           </div>
 
           {/* Balance summary card */}
-          <div style={{ margin: '14px 22px', borderRadius: 10, border: `1px solid ${P.border}`, overflow: 'hidden' }}>
+          <div style={{ margin: '14px 22px', borderRadius: 10, border: `1px solid ${P.border}`, overflow: 'hidden', background: P.bg }}>
             {[
               { label: 'Annual entitlement', value: `${emp.entitlement} days`, bold: false },
               { label: 'Used & booked', value: `${usedDays} ${usedDays === 1 ? 'day' : 'days'}`, bold: false },
@@ -1594,34 +1596,34 @@ function RequestsScreen({ requests, onApprove, onDecline, onSave, onCancel }) {
         )}
         {/* Bulk action bar */}
         {selected.size > 0 && (
-          <div style={{
-            position: 'sticky', bottom: 16, left: 0, right: 0,
-            margin: '0 20px',
-            background: P.ink, borderRadius: 12, padding: '10px 16px',
-            display: 'flex', alignItems: 'center', gap: 12,
-            boxShadow: '0 8px 32px rgba(15,13,40,0.25)',
-            animation: 'fadeUp 0.15s ease-out',
-          }}>
-            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: '#fff' }}>
-              {selected.size} selected
-            </span>
-            <div style={{ flex: 1 }} />
-            {selectedPending.length > 0 && (
-              <button onClick={() => { selectedPending.forEach(id => onApprove(id)); setSelected(new Set()); }} style={{
-                display: 'flex', alignItems: 'center', gap: 6,
-                padding: '7px 16px', borderRadius: 8, border: 'none',
-                background: '#22c55e', color: '#fff', cursor: 'pointer',
-                fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12,
-              }}>
-                <Icon name="CheckCircle" size={13} color="#fff" strokeWidth={2} />
-                Approve {selectedPending.length > 1 ? `all ${selectedPending.length}` : ''}
-              </button>
-            )}
-            <button onClick={() => setSelected(new Set())} style={{
-              padding: '7px 14px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.25)',
-              background: 'transparent', color: '#fff', cursor: 'pointer',
-              fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12,
-            }}>Cancel</button>
+          <div style={{ position: 'sticky', bottom: 16, left: 0, right: 0, display: 'flex', justifyContent: 'center', pointerEvents: 'none' }}>
+            <div style={{
+              pointerEvents: 'auto',
+              background: P.ink, borderRadius: 10, padding: '6px 14px',
+              display: 'flex', alignItems: 'center', gap: 10,
+              boxShadow: '0 6px 24px rgba(15,13,40,0.3)',
+              animation: 'fadeUp 0.15s ease-out',
+            }}>
+              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, color: '#fff' }}>
+                {selected.size} selected
+              </span>
+              {selectedPending.length > 0 && (
+                <button onClick={() => { selectedPending.forEach(id => onApprove(id)); setSelected(new Set()); }} style={{
+                  display: 'flex', alignItems: 'center', gap: 5,
+                  padding: '5px 12px', borderRadius: 7, border: 'none',
+                  background: '#22c55e', color: '#fff', cursor: 'pointer',
+                  fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11,
+                }}>
+                  <Icon name="CheckCircle" size={12} color="#fff" strokeWidth={2} />
+                  Approve{selectedPending.length > 1 ? ` all ${selectedPending.length}` : ''}
+                </button>
+              )}
+              <button onClick={() => setSelected(new Set())} style={{
+                padding: '5px 10px', borderRadius: 7, border: '1px solid rgba(255,255,255,0.25)',
+                background: 'transparent', color: '#fff', cursor: 'pointer',
+                fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11,
+              }}>Clear</button>
+            </div>
           </div>
         )}
       </div>
