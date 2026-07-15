@@ -2562,7 +2562,7 @@ function EditBalancesModal({ emp, balances, onSave, onClose, isNewEmployee, onCo
 // ── Employee detail screen ────────────────────────────────────────────────
 function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, employeeBalance, onUpdateBalance, needsSetup, confirmedDate, onConfirmBalances }) {
   const emp = EMPLOYEES[employeeId];
-  const [activeTab, setActiveTab] = useState('timeoff');
+  const [activeTab, setActiveTab] = useState('choices');
   const [addModal, setAddModal] = useState(null); // null | 'add' | request object (edit)
   const [cancelAction, setCancelAction] = useState(null);
   const [editBalancesOpen, setEditBalancesOpen] = useState(false);
