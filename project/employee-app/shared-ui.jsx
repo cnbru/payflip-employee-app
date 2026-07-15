@@ -85,7 +85,7 @@ function Button({
 }) {
   const palette = {
     primary:   { bg: 'rgb(15,13,40)', color: '#fff',  border: 'transparent', fw: 600 },
-    outline:   { bg: '#fff',           color: PFC.ink, border: PFC.borderHard, fw: 500 },
+    outline:   { bg: '#fff',           color: PFC.ink, border: PFC.border, fw: 500 },
     ghost:     { bg: 'transparent',    color: PFC.ink, border: 'transparent', fw: 500 },
     purple:    { bg: PFC.purpleTile,   color: PFC.ink, border: 'transparent', fw: 600 },
   }[variant];
@@ -95,7 +95,9 @@ function Button({
     large:   { fs: 14, lh: '20px', pad: '10px 20px', radius: 10 },
   }[size === 'large' ? 'large' : size === 'sm' ? 'sm' : 'regular'];
   return (
-    <button onClick={disabled ? undefined : onClick} disabled={disabled} style={{
+    <button onClick={disabled ? undefined : onClick} disabled={disabled}
+      className={disabled ? undefined : 'pf-pressable'}
+      style={{
       appearance: 'none', border: `1px solid ${palette.border}`,
       background: palette.bg, color: palette.color,
       fontFamily: _font, fontWeight: palette.fw,
@@ -118,7 +120,7 @@ function Button({
 // ─────────────────────────────────────────────────────────────
 function IconBtn({ name, onClick, ariaLabel, size = 36, color = 'rgb(103,107,116)', bg = PFC.bgInactive }) {
   return (
-    <button onClick={onClick} aria-label={ariaLabel} style={{
+    <button onClick={onClick} aria-label={ariaLabel} className="pf-pressable" style={{
       width: size, height: size, borderRadius: 8,
       background: bg, border: 'none', cursor: 'pointer',
       display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
@@ -363,7 +365,7 @@ function fmtEUR(n) {
 // Filter pills (used by Transactions screen)
 function FilterPill({ label, active, onClick }) {
   return (
-    <button onClick={onClick} style={{
+    <button onClick={onClick} className="pf-pressable" style={{
       appearance: 'none',
       background: active ? PFC.ink : '#fff',
       color: active ? '#fff' : PFC.ink,
@@ -371,6 +373,7 @@ function FilterPill({ label, active, onClick }) {
       borderRadius: 8, padding: '6px 12px',
       fontFamily: _font, fontWeight: 700, fontSize: 14, lineHeight: '20px',
       cursor: 'pointer', flex: 'none',
+      transition: 'background 120ms ease, color 120ms ease, border-color 120ms ease',
     }}>{label}</button>
   );
 }

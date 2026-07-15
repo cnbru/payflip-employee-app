@@ -440,6 +440,7 @@ function PersonalNavRow({ item, onClick }) {
   return (
     <div role="button" tabIndex={0} onClick={onClick}
       onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(); } }}
+      className="pf-pressable"
       style={{
         display: 'flex', alignItems: 'center', gap: 24,
         padding: '16px 0',
@@ -794,11 +795,12 @@ function DesktopTimeOffHub() {
     return (
       <div
         onClick={() => handleSelectItem(item)}
+        className="pf-pressable"
         style={{
           display: 'flex', alignItems: 'center', gap: 16,
           padding: '16px 0', cursor: 'pointer',
           background: 'transparent',
-          transition: 'background 120ms ease-out',
+          transition: 'background 120ms ease, transform 160ms ease-out, opacity 160ms ease-out',
           position: 'relative',
         }}>
         <div style={{ position: 'relative', width: 48, height: 48, flexShrink: 0 }}>
@@ -966,6 +968,7 @@ function DesktopTimeOffHub() {
           fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14,
           zIndex: 9999, boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
           display: 'flex', alignItems: 'center', gap: 8,
+          animation: 't-toast-up 220ms cubic-bezier(0.22, 1, 0.36, 1) both',
         }}>
           <LucideIcon name="Check" size={16} color="#fff" strokeWidth={2.5} />
           {toast}
@@ -1468,6 +1471,7 @@ function TimeOffHubScreen() {
                         aria-label={`${_label}, ${item.days === 1 ? '1 day' : item.days + ' days'}, ${item.date}`}
                         onClick={() => nav && nav.push('time-off-detail', { item })}
                         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); nav && nav.push('time-off-detail', { item }); } }}
+                        className="pf-pressable"
                         style={{
                           display: 'flex', alignItems: 'center', gap: 12,
                           padding: vPad,
@@ -1634,7 +1638,7 @@ function TimeOffHubScreen() {
         return ReactDOM.createPortal(
           <div
             style={{ position: 'absolute', inset: 0, zIndex: 400, background: 'rgba(15,13,40,0.45)', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end',
-              opacity: balanceSheetOpen ? 1 : 0, transition: 'opacity 300ms ease' }}
+              opacity: balanceSheetOpen ? 1 : 0, transition: 'opacity 200ms ease-out' }}
             onClick={(e) => { if (e.target === e.currentTarget) { setBalanceSheetAnimating(true); setBalanceSheetOpen(false); setTimeout(() => { setShowBalanceInfo(false); setExpandedRows({}); setBalanceSheetAnimating(false); }, 340); } }}
             onKeyDown={(e) => { if (e.key === 'Escape') { setBalanceSheetAnimating(true); setBalanceSheetOpen(false); setTimeout(() => { setShowBalanceInfo(false); setExpandedRows({}); setBalanceSheetAnimating(false); }, 340); } }}
           >
@@ -1722,6 +1726,7 @@ function TimeOffHubScreen() {
               fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14,
               boxShadow: '0 4px 24px rgba(0,0,0,0.18)',
               display: 'inline-flex', alignItems: 'center', gap: 8,
+              animation: 't-toast-up 220ms cubic-bezier(0.22, 1, 0.36, 1) both',
             }}>
             <LucideIcon name="CircleCheck" size={16} color="white" strokeWidth={2} />
             {toast}
@@ -1820,6 +1825,7 @@ function TimeOffHistoryScreen() {
         aria-label={`${_label}, ${item.days === 1 ? '1 day' : item.days + ' days'}, ${item.date}`}
         onClick={() => isDesktop ? setDetailItem(item) : nav && nav.push('time-off-detail', { item })}
         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); isDesktop ? setDetailItem(item) : nav && nav.push('time-off-detail', { item }); } }}
+        className="pf-pressable"
         style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 0', cursor: 'pointer' }}>
         <div style={{ width: 44, height: 44, borderRadius: 12, background: '#eeeff0', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
           <LucideIcon name={_icon} size={20} color={P.inkSoft} strokeWidth={1.75} />
@@ -2774,7 +2780,7 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
     return wrapDesktop(
       <div style={{ display: 'flex', flexDirection: 'column', minHeight: isDesktop ? 400 : '100%', background: isDesktop ? 'transparent' : '#F2F2F2', borderRadius: isDesktop ? 20 : 0 }}>
         {/* Centred content */}
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '48px 32px 0', textAlign: 'center' }}>
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: isDesktop ? '48px 32px 0' : '16px 16px 0', textAlign: 'center', maxWidth: isDesktop ? 480 : undefined, alignSelf: 'center', width: '100%' }}>
           <SuccessCheck iconName={iconName} iconColor={iconColor} iconBg={iconBg} />
           <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 22, color: P.ink, marginBottom: 8, animation: 'fadeSlideIn 0.5s ease-out 0.15s both' }}>
             {heading}
@@ -2783,7 +2789,7 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
             {subtext}
           </div>
           {/* Receipt card */}
-          <div style={{ width: '100%', maxWidth: 320, background: 'white', border: `1px solid ${P.border}`, borderRadius: 12, marginTop: 28, marginBottom: 8, overflow: 'hidden', textAlign: 'left', animation: 'fadeSlideIn 0.5s ease-out 0.35s both' }}>
+          <div style={{ width: '100%', background: 'white', border: `1px solid ${P.border}`, borderRadius: 12, marginTop: 28, marginBottom: 8, overflow: 'hidden', textAlign: 'left', animation: 'fadeSlideIn 0.5s ease-out 0.35s both' }}>
             <div style={{ padding: '10px 16px 6px', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 11, color: P.inkSoft, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
               Submitted
             </div>
@@ -2804,8 +2810,8 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
           </div>
         </div>
         {/* Buttons pinned to bottom */}
-        <div style={{ padding: isDesktop ? '24px 32px 40px' : '24px 16px 40px', display: 'flex', justifyContent: 'center', animation: 'fadeSlideIn 0.5s ease-out 0.45s both' }}>
-          <div style={{ width: '100%', maxWidth: 320, display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <div style={{ padding: isDesktop ? '24px 32px 40px' : '16px 16px 24px', display: 'flex', justifyContent: 'center', animation: 'fadeSlideIn 0.5s ease-out 0.45s both', maxWidth: isDesktop ? 480 : undefined, alignSelf: 'center', width: '100%' }}>
+          <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 10 }}>
             <Button variant="primary" size="large" fullWidth onClick={handleDone}>
               Back to time off
             </Button>
@@ -2888,6 +2894,10 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
           @keyframes sheetSlideUp {
             from { transform: translateY(100%); }
             to   { transform: translateY(0); }
+          }
+          @media (prefers-reduced-motion: reduce) {
+            @keyframes revealDown  { from { opacity: 0; } to { opacity: 1; } }
+            @keyframes sheetSlideUp { from { opacity: 0; } to { opacity: 1; } }
           }
           * { scrollbar-width: none; }
           *::-webkit-scrollbar { display: none; }
@@ -3195,9 +3205,14 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
                   <div style={{ padding: '14px 18px 18px' }}>
                     <div style={{ borderRadius: 10, overflow: 'hidden', background: 'rgba(15,13,40,0.06)' }}>
                       <div style={{ padding: '18px 22px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 15, color: P.ink }}>
-                          {totalDays === 0.5 ? '½ working day' : totalDays === 1 ? '1 working day' : `${totalDays} working days`}
-                          {_excluded > 0 && <span style={{ fontWeight: 500, color: P.inkSoft, marginLeft: 8 }}>({_excluded} day{_excluded > 1 ? 's' : ''} excluded)</span>}
+                        <div style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
+                          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 15, color: P.ink }}>
+                            {totalDays === 0.5 ? '½ working day' : totalDays === 1 ? '1 working day' : `${totalDays} working days`}
+                            {_excluded > 0 && <span style={{ fontWeight: 500, color: P.inkSoft, marginLeft: 8 }}>({_excluded} day{_excluded > 1 ? 's' : ''} excluded)</span>}
+                          </div>
+                          {leaveReason === 'timeoff' && totalDays > 0 && overBalance === 0 && (
+                            <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, fontWeight: 500, color: P.inkSoft }}>{Math.max(0, plannableTotal - totalDays)} remaining if approved</span>
+                          )}
                         </div>
                         <button onClick={() => openHoursSheet()} style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: 0 }}>
                           <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.ink, textDecoration: 'underline', textUnderlineOffset: 2 }}>Edit selection</span>
@@ -3205,7 +3220,6 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
                       </div>
                       {overBalance > 0 && leaveReason === 'timeoff' && <><div style={{ height: 1, background: P.border }} /><div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '16px 22px', background: '#FFF3E5' }}><LucideIcon name="AlertTriangle" size={14} color="#92400e" strokeWidth={2} style={{ flexShrink: 0 }} /><span style={{ fontFamily: 'var(--font-body)', fontSize: 13, fontWeight: 500, color: '#92400e', lineHeight: '18px' }}>Exceeds your balance by {overBalance === 0.5 ? '½' : overBalance} day{overBalance > 1 ? 's' : ''} — {plannableTotal} days available</span></div></>}
                       {overEntitlement > 0 && <><div style={{ height: 1, background: P.border }} /><div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '16px 22px', background: '#fef2f2' }}><LucideIcon name="AlertCircle" size={14} color="#b91c1c" strokeWidth={2} style={{ flexShrink: 0 }} /><span style={{ fontFamily: 'var(--font-body)', fontSize: 13, fontWeight: 500, color: '#b91c1c', lineHeight: '18px' }}>Maximum {entitledDaysLimit} day{entitledDaysLimit > 1 ? 's' : ''} for this leave type — reduce by {overEntitlement} day{overEntitlement > 1 ? 's' : ''} — <button onClick={() => { setSelectedDates(new Set()); setHalfDay(null); }} style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: 0, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: '#b91c1c', textDecoration: 'underline', textUnderlineOffset: 2 }}>Clear</button></span></div></>}
-                      {leaveReason === 'timeoff' && totalDays > 0 && overBalance === 0 && <><div style={{ height: 1, background: 'rgba(15,13,40,0.1)' }} /><div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '16px 22px' }}><LucideIcon name="Info" size={14} color={P.inkSoft} strokeWidth={2} style={{ flexShrink: 0 }} /><span style={{ fontFamily: 'var(--font-body)', fontSize: 13, fontWeight: 500, color: P.inkSoft, lineHeight: '18px' }}>{`${Math.max(0, plannableTotal - totalDays)} days remaining after this`}</span></div></>}
                     </div>
                   </div>
                   </RevealPanel>
@@ -4159,7 +4173,7 @@ function TimeOffDetailScreen({ item, onClose }) {
         borderRadius: 20, overflow: 'hidden',
         boxShadow: '0 20px 60px rgba(0,0,0,0.2)',
       } : {
-        display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, background: '#F2F2F2',
+        display: 'flex', flexDirection: 'column', height: '100%', background: '#F2F2F2',
       }}>
 
       {isDesktop ? (
@@ -5173,7 +5187,7 @@ function ReportIllnessScreen({ sourceItem }) {
     return wrapDesktop(
       <div style={{ display: 'flex', flexDirection: 'column', minHeight: isDesktop ? 0 : '100%', height: isDesktop ? 'auto' : '100%', background: isDesktop ? 'transparent' : '#F2F2F2' }}>
         {isDesktop ? _desktopHeader : <NavBar title="Report illness" />}
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '48px 32px 0', textAlign: 'center' }}>
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: isDesktop ? '48px 32px 0' : '16px 16px 0', textAlign: 'center' }}>
           <SuccessCheck iconName="CircleCheck" iconColor={PFC.successText} iconBg={PFC.successBg} />
           <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 22, color: P.ink, marginBottom: 8, animation: 'fadeSlideIn 0.5s ease-out 0.15s both' }}>
             Illness reported

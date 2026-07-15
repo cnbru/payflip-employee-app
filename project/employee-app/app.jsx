@@ -133,7 +133,7 @@ function DesktopTopBar() {
       height: 56, display: 'flex', alignItems: 'center',
       padding: '0 24px', background: 'white',
       borderBottom: '1px solid #e5e7eb',
-      flexShrink: 0, zIndex: 10,
+      flexShrink: 0,
     }}>
       {/* Logo */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 120 }}>
@@ -226,12 +226,12 @@ function DesktopAppShell() {
       background: 'white',
     }}>
       {!hideNav && <DesktopTopBar />}
-      {/* Content area — transform: translateZ(0) contains fixed-position overlays */}
+      {/* Content area */}
       <div
         data-app-shell
         style={{
           flex: 1, overflowY: 'auto', overflowX: 'hidden', position: 'relative',
-          transform: 'translateZ(0)',
+          zIndex: 1,
           background: '#F2F2F2',
         }}>
         <div style={{

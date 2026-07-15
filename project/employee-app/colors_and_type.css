@@ -309,3 +309,31 @@ hr { border: 0; border-top: 1px solid var(--border-default); }
 @media (prefers-reduced-motion: reduce) {
   .t-page-slide .t-page { transition: none !important; }
 }
+
+/* ── Press feedback ────────────────────────────────────────────────────────── */
+.pf-pressable {
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 160ms ease-out, opacity 120ms ease-out;
+}
+/* Desktop (precise pointer): opacity-only — scale looks cheap on mouse click */
+.pf-pressable:active { opacity: 0.6; }
+/* Touch (coarse pointer): scale + opacity — confirms the physical tap */
+@media (pointer: coarse) {
+  .pf-pressable:active { transform: scale(0.97); opacity: 0.9; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pf-pressable { transition: opacity 100ms ease !important; }
+  .pf-pressable:active { transform: none !important; opacity: 0.6; }
+}
+
+/* ── Toast entrance ─────────────────────────────────────────────────────────── */
+@keyframes t-toast-up {
+  from { opacity: 0; transform: translateX(-50%) translateY(10px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0);    }
+}
+@media (prefers-reduced-motion: reduce) {
+  @keyframes t-toast-up {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+}

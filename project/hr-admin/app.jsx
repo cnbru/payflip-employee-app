@@ -535,7 +535,7 @@ function DetailModal({ req, requests, onClose, onApprove, onDecline, onCancel })
   const usedDays = requests
     .filter(r => r.employee === req.employee && r.id !== req.id && (r.status === 'approved' || r.status === 'pending'))
     .reduce((s, r) => s + r.days, 0);
-  const remaining = emp.entitlement - usedDays - req.days;
+  const remaining = Math.max(0, emp.entitlement - usedDays - req.days);
   const isPending = req.status === 'pending';
   return (
     <div onClick={onClose} style={{
@@ -1325,7 +1325,7 @@ function RequestRow({ req, requests, onApprove, onDecline, onDetail, onEdit, onC
   const usedDays = requests
     .filter(r => r.employee === req.employee && r.id !== req.id && (r.status === 'approved' || r.status === 'pending'))
     .reduce((s, r) => s + r.days, 0);
-  const remaining = emp.entitlement - usedDays - req.days;
+  const remaining = Math.max(0, emp.entitlement - usedDays - req.days);
   return (
     <div onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)} onClick={() => onDetail(req)}
       style={{
@@ -2126,6 +2126,7 @@ function EmployeesScreen({ requests, onNav }) {
             <tbody>
               {filtered.map(emp => (
                 <tr key={emp.id}
+                  onClick={() => onNav('employee-detail:' + emp.id)}
                   style={{ borderBottom: `1px solid ${P.border}`, cursor: 'pointer', transition: 'background 80ms' }}
                   onMouseEnter={e => e.currentTarget.style.background = '#f7f8f7'}
                   onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
@@ -2136,10 +2137,9 @@ function EmployeesScreen({ requests, onNav }) {
                   <td style={{ padding: '10px 16px', color: P.inkSoft }}>{emp.entity}</td>
                   <td style={{ padding: '10px 16px', textAlign: 'right', color: P.ink, fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>{fmtBudget(emp.budget)}</td>
                   <td style={{ padding: '10px 16px', textAlign: 'right' }}>
-                    <button onClick={() => onNav('employee-detail:' + emp.id)}
-                      style={{ padding: '5px 12px', border: `1px solid ${P.ink}`, borderRadius: 6, background: P.white, color: P.ink, fontFamily: 'var(--font-body)', fontSize: 12, fontWeight: 500, cursor: 'pointer' }}>
+                    <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, fontWeight: 500, color: P.inkSoft }}>
                       See details
-                    </button>
+                    </span>
                   </td>
                 </tr>
               ))}
@@ -2153,6 +2153,12 @@ function EmployeesScreen({ requests, onNav }) {
 
 // ── Edit balances modal ────────────────────────────────────────────────────
 function EditBalancesModal({ emp, balances, onSave, onClose }) {
+  const [unlimited, setUnlimited] = useState(() =>
+    ALL_LEAVE_TYPES.reduce((acc, type) => {
+      acc[type] = balances[type] == null;
+      return acc;
+    }, {})
+  );
   const [values, setValues] = useState(() =>
     ALL_LEAVE_TYPES.reduce((acc, type) => {
       acc[type] = balances[type] != null ? String(balances[type]) : '';
@@ -2160,11 +2166,19 @@ function EditBalancesModal({ emp, balances, onSave, onClose }) {
     }, {})
   );
 
+  const toggleUnlimited = (type) => {
+    setUnlimited(u => ({ ...u, [type]: !u[type] }));
+  };
+
   const handleSave = () => {
     const next = {};
     for (const type of ALL_LEAVE_TYPES) {
-      const v = parseInt(values[type], 10);
-      next[type] = isNaN(v) || values[type] === '' ? null : v;
+      if (unlimited[type]) {
+        next[type] = null;
+      } else {
+        const v = parseInt(values[type], 10);
+        next[type] = isNaN(v) ? null : Math.max(0, v);
+      }
     }
     onSave(next);
     onClose();
@@ -2172,7 +2186,7 @@ function EditBalancesModal({ emp, balances, onSave, onClose }) {
 
   return (
     <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 200, background: 'rgba(15,13,40,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div onClick={e => e.stopPropagation()} style={{ background: P.white, borderRadius: 14, width: 440, boxShadow: '0 8px 40px rgba(15,13,40,0.18)', display: 'flex', flexDirection: 'column', maxHeight: '90vh', overflow: 'hidden' }}>
+      <div onClick={e => e.stopPropagation()} style={{ background: P.white, borderRadius: 14, width: 460, boxShadow: '0 8px 40px rgba(15,13,40,0.18)', display: 'flex', flexDirection: 'column', maxHeight: '90vh', overflow: 'hidden' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 22px', borderBottom: `1px solid ${P.border}` }}>
           <div>
             <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 16, color: P.ink }}>Edit balances</div>
@@ -2183,27 +2197,58 @@ function EditBalancesModal({ emp, balances, onSave, onClose }) {
           </button>
         </div>
         <div style={{ overflowY: 'auto' }}>
-          <p style={{ margin: '12px 22px 4px', fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>
-            Set the entitled days per leave type. Leave blank for unlimited / not tracked.
-          </p>
-          {ALL_LEAVE_TYPES.map(type => (
-            <div key={type} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '11px 22px', borderBottom: `1px solid ${P.border}` }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
-                <span style={{ width: 8, height: 8, borderRadius: 2, background: LEAVE_COLORS[type], flexShrink: 0 }} />
-                <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink }}>{type}</span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-                <input
-                  type="number" min="0"
-                  value={values[type]}
-                  onChange={e => setValues(v => ({ ...v, [type]: e.target.value }))}
-                  placeholder="—"
-                  style={{ width: 72, padding: '6px 10px', borderRadius: 7, border: `1px solid ${P.border}`, fontFamily: 'var(--font-body)', fontSize: 13, color: P.ink, outline: 'none', textAlign: 'center' }}
-                />
-                <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkFaint, width: 28 }}>days</span>
-              </div>
-            </div>
-          ))}
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <thead>
+              <tr style={{ borderBottom: `1px solid ${P.border}` }}>
+                <th style={{ padding: '8px 22px', fontFamily: 'var(--font-body)', fontSize: 12, fontWeight: 500, color: P.inkFaint, textAlign: 'left', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Leave type</th>
+                <th style={{ padding: '8px 16px', fontFamily: 'var(--font-body)', fontSize: 12, fontWeight: 500, color: P.inkFaint, textAlign: 'center', textTransform: 'uppercase', letterSpacing: '0.04em', width: 100 }}>Entitled days</th>
+                <th style={{ padding: '8px 22px 8px 16px', fontFamily: 'var(--font-body)', fontSize: 12, fontWeight: 500, color: P.inkFaint, textAlign: 'center', textTransform: 'uppercase', letterSpacing: '0.04em', width: 60 }}>No limit</th>
+              </tr>
+            </thead>
+            <tbody>
+              {ALL_LEAVE_TYPES.map(type => {
+                const isUnlimited = unlimited[type];
+                return (
+                  <tr key={type} style={{ borderBottom: `1px solid ${P.border}`, height: 44 }}>
+                    <td style={{ padding: '10px 22px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+                        <span style={{ width: 8, height: 8, borderRadius: 2, background: LEAVE_COLORS[type], flexShrink: 0 }} />
+                        <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink }}>{type}</span>
+                      </div>
+                    </td>
+                    <td style={{ padding: '10px 16px', textAlign: 'center' }}>
+                      {isUnlimited ? (
+                        <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkFaint }}>—</span>
+                      ) : (
+                        <input
+                          type="number" min="0"
+                          value={values[type]}
+                          onChange={e => setValues(v => ({ ...v, [type]: e.target.value }))}
+                          placeholder="0"
+                          style={{ width: 64, padding: '5px 8px', borderRadius: 7, border: `1px solid ${P.border}`, fontFamily: 'var(--font-body)', fontSize: 13, color: P.ink, outline: 'none', textAlign: 'center' }}
+                        />
+                      )}
+                    </td>
+                    <td style={{ padding: '10px 22px 10px 16px', textAlign: 'center' }}>
+                      <div onClick={() => toggleUnlimited(type)} style={{
+                        width: 28, height: 16, borderRadius: 8, cursor: 'pointer',
+                        background: isUnlimited ? P.ink : '#d1d5db',
+                        position: 'relative', transition: 'background 150ms',
+                        display: 'inline-block',
+                      }}>
+                        <div style={{
+                          position: 'absolute', top: 2,
+                          left: isUnlimited ? 14 : 2,
+                          width: 12, height: 12, borderRadius: 6,
+                          background: '#fff', transition: 'left 150ms',
+                        }} />
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
         <div style={{ padding: '14px 22px', borderTop: `1px solid ${P.border}`, display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
           <button onClick={onClose} style={{ padding: '8px 18px', borderRadius: 8, border: `1px solid ${P.border}`, background: 'transparent', color: P.ink, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>Cancel</button>
@@ -2239,7 +2284,7 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, e
       const used = active.reduce((s, r) => s + (r.days || 1), 0);
       const defaultEntitled = type === 'Time off' ? emp.entitlement : (type === 'Paternity leave' ? 10 : type === 'Maternity leave' ? 105 : null);
       const entitled = (employeeBalance && employeeBalance[type] !== undefined) ? employeeBalance[type] : defaultEntitled;
-      return { type, entitled, used, remaining: entitled != null ? entitled - used : null };
+      return { type, entitled, used, remaining: entitled != null ? Math.max(0, entitled - used) : null };
     });
   }, [empReqs, emp, employeeBalance]);
 
@@ -2352,16 +2397,7 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, e
               {empReqs.length === 0 ? (
                 <div style={{ padding: '32px 20px', textAlign: 'center' }}>
                   <Icon name="CalendarOff" size={28} color={P.border} style={{ marginBottom: 8 }} />
-                  <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkFaint, marginBottom: 12 }}>No absences recorded yet</div>
-                  <button onClick={() => setAddModal('add')} style={{
-                    display: 'inline-flex', alignItems: 'center', gap: 6,
-                    padding: '7px 16px', borderRadius: 8,
-                    border: `1px solid ${P.border}`, background: 'transparent', cursor: 'pointer',
-                    fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, color: P.ink,
-                  }}>
-                    <Icon name="Plus" size={13} color={P.inkSoft} strokeWidth={2} />
-                    Register the first absence
-                  </button>
+                  <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkFaint }}>No absences recorded yet</div>
                 </div>
               ) : (
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-body)', fontSize: 13 }}>
@@ -2465,7 +2501,7 @@ function DashboardScreen({ requests, onNav }) {
 
   const lowBalance = Object.entries(EMPLOYEES).map(([id, emp]) => {
     const used = requests.filter(r => r.employee === id && r.type === 'Time off' && r.status !== 'rejected').reduce((s, r) => s + r.days, 0);
-    return { id, name: emp.name, department: emp.department, remaining: emp.entitlement - used };
+    return { id, name: emp.name, department: emp.department, remaining: Math.max(0, emp.entitlement - used) };
   }).filter(e => e.remaining <= 5).sort((a, b) => a.remaining - b.remaining).slice(0, 5);
 
   const statCard = (icon, label, value, color, onClick) => (
