@@ -2482,12 +2482,6 @@ function EditBalancesModal({ emp, balances, onSave, onClose, isNewEmployee, onCo
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                         <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, fontWeight: 600, color: P.inkSoft }}>{displayVal ?? '—'}</span>
                         <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>days</span>
-                        {section.badge && (
-                          <span style={{ padding: '2px 8px', borderRadius: 20, border: `1px solid ${P.border}`, fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkSoft }}>{section.badge}</span>
-                        )}
-                        {section.note && (
-                          <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkFaint, fontStyle: 'italic' }}>{section.note}</span>
-                        )}
                       </div>
                     </div>
                   );
@@ -2500,9 +2494,7 @@ function EditBalancesModal({ emp, balances, onSave, onClose, isNewEmployee, onCo
 
         {/* Footer */}
         <div style={{ padding: '14px 22px', borderTop: `1px solid ${P.border}`, display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkFaint, flex: 1 }}>
-            Effective from {emp.name.split(' ')[0]}'s start date
-          </span>
+          <span style={{ flex: 1 }} />
           <button onClick={close} style={{ padding: '8px 18px', borderRadius: 8, border: `1px solid ${P.border}`, background: 'transparent', color: P.ink, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>Cancel</button>
           <button onClick={handleSave} style={{ padding: '8px 20px', borderRadius: 8, border: 'none', background: P.ink, color: '#fff', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>{isNewEmployee ? 'Confirm balances' : 'Save balances'}</button>
         </div>
