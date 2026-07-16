@@ -185,6 +185,12 @@ function modalPanelStyle(visible) {
     transition: `transform 200ms ${EASE_OUT}, opacity 200ms ${EASE_OUT}`,
   };
 }
+function sheetPanelStyle(visible) {
+  return {
+    transform: visible ? 'translateX(0)' : 'translateX(100%)',
+    transition: `transform 320ms ${EASE_OUT}`,
+  };
+}
 
 // ── Shared toggle switch ─────────────────────────────────────────────────────
 function Switch({ checked, onChange, size = 'md' }) {
@@ -1043,9 +1049,19 @@ function DetailModal({ req, requests, onClose, onApprove, onDecline, onCancel, o
   const showPastWarning = isPast && endD >= thirtyDaysAgo;
 
   const whenLabel = (() => {
-    const dateStr = req._selectedDates && req._selectedDates.length > 1
-      ? req._selectedDates.map(iso => { const p = iso.split('-'); return new Date(+p[0],+p[1]-1,+p[2]).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }); }).join(', ')
-      : req.startDate === req.endDate ? req.startDate : `${req.startDate} – ${req.endDate}`;
+    let dateStr;
+    if (req._selectedDates && req._selectedDates.length > 1) {
+      let consecutive = true;
+      for (let i = 1; i < req._selectedDates.length; i++) {
+        const a = new Date(req._selectedDates[i-1]), b = new Date(req._selectedDates[i]);
+        if ((b - a) / 86400000 !== 1) { consecutive = false; break; }
+      }
+      dateStr = consecutive
+        ? (req.startDate === req.endDate ? req.startDate : `${req.startDate} – ${req.endDate}`)
+        : req._selectedDates.map(iso => { const p = iso.split('-'); return new Date(+p[0],+p[1]-1,+p[2]).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }); }).join(', ');
+    } else {
+      dateStr = req.startDate === req.endDate ? req.startDate : `${req.startDate} – ${req.endDate}`;
+    }
     const sub = `${req.days} ${req.days === 1 ? 'day' : 'days'}${isPast ? ' · in the past' : ''}`;
     return <span>{dateStr}<br /><span style={{ color: P.inkSoft, fontSize: 12 }}>{sub}</span></span>;
   })();
@@ -1058,7 +1074,7 @@ function DetailModal({ req, requests, onClose, onApprove, onDecline, onCancel, o
   const statusLabel = req.status === 'approved' ? 'Approved' : req.status === 'pending' ? 'Pending' : 'Declined';
 
   const Row = ({ label, children }) => (
-    <div style={{ display: 'grid', gridTemplateColumns: '140px 1fr', padding: '10px 22px', alignItems: 'start', gap: 12 }}>
+    <div style={{ display: 'grid', gridTemplateColumns: '130px 1fr', margin: '0 24px', padding: '12px 0', alignItems: 'start', gap: 12, borderBottom: `1px solid ${P.border}` }}>
       <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, paddingTop: 1 }}>{label}</span>
       <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink }}>{children}</span>
     </div>
@@ -1067,26 +1083,25 @@ function DetailModal({ req, requests, onClose, onApprove, onDecline, onCancel, o
   return (
     <div onClick={close} style={{
       position: 'fixed', inset: 0, zIndex: 200,
-      background: 'rgba(15,13,40,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+      background: 'rgba(15,13,40,0.25)',
       ...modalBackdropStyle(visible),
     }}>
       <div onClick={e => e.stopPropagation()} style={{
-        background: P.white, borderRadius: 14, width: 520,
-        boxShadow: '0 8px 40px rgba(15,13,40,0.18)',
-        display: 'flex', flexDirection: 'column', maxHeight: '90vh', overflow: 'hidden',
-        ...modalPanelStyle(visible),
+        position: 'absolute', top: 0, right: 0, height: '100%', width: 480,
+        background: P.white,
+        boxShadow: '-8px 0 40px rgba(15,13,40,0.15)',
+        display: 'flex', flexDirection: 'column',
+        ...sheetPanelStyle(visible),
       }}>
         {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 22px', borderBottom: `1px solid ${P.border}` }}>
-          <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 16, color: P.ink }}>Time off details</span>
-          <button onClick={close} style={{ border: `1px solid ${P.border}`, background: P.white, cursor: 'pointer', padding: '6px 8px', borderRadius: 8, display: 'flex' }}>
-            <Icon name="X" size={16} color={P.inkSoft} />
+        <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 24px', borderBottom: `1px solid ${P.border}` }}>
+          <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18, color: P.ink }}>Time off details</span>
+          <button onClick={close} style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: 6, borderRadius: 6, display: 'flex' }}>
+            <Icon name="X" size={18} color={P.inkSoft} />
           </button>
         </div>
 
-        <div style={{ overflowY: 'auto' }}>
-          {/* Detail rows — no per-row dividers */}
-          <div style={{ padding: '6px 0 10px' }}>
+        <div style={{ flex: 1, overflowY: 'auto' }}>
             <Row label="Status">
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                 <span style={{ width: 7, height: 7, borderRadius: '50%', background: statusColor, flexShrink: 0 }} />
@@ -1094,39 +1109,37 @@ function DetailModal({ req, requests, onClose, onApprove, onDecline, onCancel, o
               </span>
             </Row>
             <Row label="Requested by">
-              <span>{emp.name}</span>
-              {emp.department && <span style={{ color: P.inkFaint, fontSize: 12, marginLeft: 7 }}>{emp.department}</span>}
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ width: 24, height: 24, borderRadius: '50%', background: emp.color || '#e5e7eb', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 8, fontWeight: 700, color: P.ink, fontFamily: 'var(--font-display)', flexShrink: 0 }}>{emp.initials || '?'}</span>
+                <span>{emp.name}</span>
+                {emp.department && <span style={{ color: P.inkFaint, fontSize: 12 }}>{emp.department}</span>}
+              </span>
             </Row>
             <Row label="When">{whenLabel}</Row>
             <Row label="Type">{req.type}</Row>
-            {req.note && <Row label="Notes">{req.note}</Row>}
-          </div>
-
-          {/* Team overlap card — decision context, visually separate from request data */}
+            <Row label="Notes">{req.note || <span style={{ color: P.inkFaint }}>—</span>}</Row>
           {overlapping.length > 0 && (
-            <div style={{ margin: '0 16px 14px', padding: '12px 14px', borderRadius: 10, background: '#fffbeb', border: '1px solid #fde68a' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
-                <Icon name="Users" size={14} color="#d97706" strokeWidth={2} />
-                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: '#92400e' }}>
-                  {overlapping.length === 1 ? '1 team member' : `${overlapping.length} team members`} also off during this period
-                </span>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+            <Row label="Also off">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                 {overlapping.map(r => {
                   const e2 = EMPLOYEES[r.employee];
-                  const parts = (e2?.name || r.employee).split(' ');
-                  const shortName = parts.length > 1 ? `${parts[0]} ${parts[parts.length-1][0]}.` : parts[0];
+                  const name = e2?.name || r.employee;
                   const period = r.startDate === r.endDate ? r.startDate : `${r.startDate} – ${r.endDate}`;
                   return (
                     <div key={r.id} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: '#78350f' }}>{shortName}</span>
-                      <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: '#a16207' }}>{r.type} · {period}</span>
+                      <span style={{ width: 20, height: 20, borderRadius: '50%', background: e2?.color || '#e5e7eb', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 7, fontWeight: 700, color: P.ink, fontFamily: 'var(--font-display)', flexShrink: 0 }}>{e2?.initials || '?'}</span>
+                      <span style={{ display: 'flex', flexDirection: 'column', gap: 1, minWidth: 0 }}>
+                        <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.ink, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{name}</span>
+                        <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkFaint }}>{period}</span>
+                      </span>
                     </div>
                   );
                 })}
               </div>
-            </div>
+            </Row>
           )}
+
+          <Row label="Submitted">{req.submittedAt}</Row>
 
           {/* Past warning — only within last 30 days */}
           {showPastWarning && (
@@ -1139,34 +1152,32 @@ function DetailModal({ req, requests, onClose, onApprove, onDecline, onCancel, o
           )}
         </div>
 
-        {/* Footer — "Submitted on" as fine print, actions right */}
+        {/* Footer */}
         {(isPending || req.status === 'approved') && (
-          <div style={{ padding: '12px 22px', borderTop: `1px solid ${P.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
-            <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkFaint }}>Submitted {req.submittedAt}</span>
-            <div style={{ display: 'flex', gap: 10 }}>
+          <div style={{ flexShrink: 0, padding: '14px 24px', borderTop: `1px solid ${P.border}`, display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div style={{ flex: 1 }} />
             {isPending && <>
               <button onClick={() => { onDecline(req.id); close(); }} style={{
-                padding: '8px 20px', borderRadius: 8, border: '1px solid #fca5a5', background: '#fef2f2',
-                color: '#b91c1c', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13,
+                padding: '8px 18px', borderRadius: 8, border: `1px solid ${P.borderStrong}`, background: 'transparent',
+                color: P.ink, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13,
               }}>Decline</button>
               <button onClick={() => { onApprove(req.id); close(); }} style={{
-                padding: '8px 20px', borderRadius: 8, border: 'none', background: '#166534', color: '#fff',
+                padding: '8px 20px', borderRadius: 8, border: 'none', background: P.ink, color: '#fff',
                 cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13,
               }}>Approve</button>
             </>}
             {req.status === 'approved' && <>
               <button onClick={() => { onCancel(req.id); close(); }} style={{
-                padding: '8px 20px', borderRadius: 8, border: `1px solid ${P.border}`, background: P.white,
+                padding: '8px 18px', borderRadius: 8, border: `1px solid ${P.borderStrong}`, background: 'transparent',
                 color: P.ink, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13,
-              }}>Withdraw request</button>
+              }}>Withdraw</button>
               {onEdit && (
                 <button onClick={() => { onEdit(req); close(); }} style={{
-                  padding: '8px 20px', borderRadius: 8, border: `1px solid ${P.border}`, background: P.white,
-                  color: P.ink, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13,
+                  padding: '8px 20px', borderRadius: 8, border: 'none', background: P.ink, color: '#fff',
+                  cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13,
                 }}>Edit</button>
               )}
             </>}
-            </div>
           </div>
         )}
       </div>
@@ -1624,8 +1635,7 @@ function AddTimeOffModal({ existing, onClose, onSave, requests = [] }) {
         background: P.white,
         boxShadow: '-8px 0 40px rgba(15,13,40,0.15)',
         display: 'flex', flexDirection: 'column',
-        transform: visible ? 'translateX(0)' : 'translateX(100%)',
-        transition: `transform ${MODAL_CLOSE_DUR}ms ${EASE_OUT}`,
+        ...sheetPanelStyle(visible),
       }}>
         {/* Header */}
         <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 24px', borderBottom: `1px solid ${P.border}` }}>
