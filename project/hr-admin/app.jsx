@@ -73,14 +73,6 @@ const SPECIAL_FUNERAL_WHO = [
   { id: 'other',    label: 'Other family member',         days: 1  },
 ];
 
-const WORK_REGIME_ADV = { '38h': 0, '39h': 6, '40h': 12 };
-const LEGAL_ENTITLEMENTS = [
-  { type: 'Sick leave', value: '30 days', note: 'Guaranteed salary period' },
-  { type: 'Special leave', value: 'Per occasion', note: 'Depends on event type' },
-  { type: 'Maternity leave', value: '15 weeks (105 days)', note: '6 prenatal + 9 postnatal' },
-  { type: 'Paternity leave', value: '20 days', note: '3 employer-paid + 17 mutual fund' },
-];
-
 const ATTACHMENT_RULES = {
   'Sick leave':      { label: 'Medical certificate', note: 'Required for absences of 2 or more consecutive days' },
   'Special leave':   { label: 'Supporting document', note: 'Marriage/birth certificate or official event proof' },
@@ -3167,7 +3159,7 @@ function EditBalancesModal({ emp, balances, onSave, onClose, isNewEmployee, onCo
 }
 
 // ── Employee detail screen ────────────────────────────────────────────────
-function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, onApprove, onDecline, onViewTeamCalendar, employeeBalance, onUpdateBalance, needsSetup, confirmedDate, onConfirmBalances, companyDefaults }) {
+function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, onApprove, onDecline, onViewTeamCalendar, employeeBalance, onUpdateBalance, needsSetup, confirmedDate, onConfirmBalances }) {
   const emp = EMPLOYEES[employeeId];
   const [activeTab, setActiveTab] = useState('choices');
   const [addModal, setAddModal] = useState(null); // null | 'add' | request object (edit)
@@ -3189,7 +3181,7 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, o
     return ALL_LEAVE_TYPES.map(type => {
       const active = empReqs.filter(r => r.type === type && r.status !== 'rejected');
       const used = active.reduce((s, r) => s + (r.days || 1), 0);
-      const defaultEntitled = type === 'Time off' ? (companyDefaults?.['Time off'] ?? emp.entitlement) : type === 'ADV / RTT' ? (companyDefaults?.['ADV / RTT'] ?? 12) : type === 'Extra-legal leave' ? (companyDefaults?.['Extra-legal leave'] ?? 4) : null;
+      const defaultEntitled = type === 'Time off' ? emp.entitlement : type === 'ADV / RTT' ? 12 : type === 'Extra-legal leave' ? 4 : null;
       const entitled = (employeeBalance && employeeBalance[type] !== undefined) ? employeeBalance[type] : defaultEntitled;
       return { type, entitled, used, remaining: entitled != null ? Math.max(0, entitled - used) : null };
     });
@@ -3478,122 +3470,6 @@ function DashboardScreen({ requests, onNav }) {
   );
 }
 
-// ── Time off settings ─────────────────────────────────────────────────────
-function TimeOffSettingsScreen({ companyDefaults, onSave }) {
-  const [values, setValues] = useState(() => ({ ...companyDefaults }));
-  const dirty = JSON.stringify(values) !== JSON.stringify(companyDefaults);
-
-  const handleRegimeChange = (regime) => {
-    setValues(v => ({ ...v, workRegime: regime, 'ADV / RTT': WORK_REGIME_ADV[regime] }));
-  };
-
-  const handleSave = () => onSave(values);
-  const handleCancel = () => setValues({ ...companyDefaults });
-
-  const regimes = [
-    { value: '38h', label: '38h', sub: '0 ADV' },
-    { value: '39h', label: '39h', sub: '6 ADV' },
-    { value: '40h', label: '40h', sub: '12 ADV' },
-  ];
-
-  const EntitlementRow = ({ type, value, helper, disabled, first }) => (
-    <div style={{ padding: '14px 20px', borderTop: first ? 'none' : `1px solid ${P.border}` }}>
-      <div style={{ display: 'flex', alignItems: 'center' }}>
-        <span style={{ width: 9, height: 9, borderRadius: '50%', background: LEAVE_COLORS[type] || '#ccc', flexShrink: 0, marginRight: 10 }} />
-        <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: disabled ? P.inkSoft : P.ink, flex: 1 }}>{type}</span>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          {disabled ? (
-            <span style={{ width: 56, padding: '5px 8px', borderRadius: 7, border: `1px solid ${P.border}`, fontFamily: 'var(--font-body)', fontSize: 14, fontWeight: 600, color: P.inkFaint, textAlign: 'center', background: P.bg, display: 'inline-block' }}>{value}</span>
-          ) : (
-            <input
-              type="number" min="0"
-              value={value}
-              onChange={e => { const v = e.target.value; setValues(prev => ({ ...prev, [type]: v === '' ? 0 : parseInt(v, 10) || 0 })); }}
-              style={{ width: 56, padding: '5px 8px', borderRadius: 7, border: `1px solid ${P.border}`, fontFamily: 'var(--font-body)', fontSize: 14, fontWeight: 600, color: P.ink, outline: 'none', textAlign: 'center', background: P.bg }}
-            />
-          )}
-          <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>days</span>
-          {disabled && <Icon name="Lock" size={12} color={P.inkFaint} />}
-        </div>
-      </div>
-      {helper && <div style={{ marginTop: 3, marginLeft: 19, fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkFaint }}>{helper}</div>}
-    </div>
-  );
-
-  const regimeLabel = values.workRegime + ' / week';
-
-  return (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, overflow: 'hidden', animation: `screenEnter 180ms ${EASE_OUT}` }}>
-      <PageHeader title="Time off" subtitle="Default leave entitlements for new employees" />
-      <div style={{ flex: 1, overflow: 'auto', padding: '24px 20px 40px' }}>
-        <div style={{ maxWidth: 640, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 24 }}>
-
-          {/* Card — Work regime + entitlements (merged) */}
-          <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 12 }}>
-            {/* Regime selector */}
-            <div style={{ padding: '20px 20px 16px' }}>
-              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.ink, marginBottom: 4 }}>Work regime</div>
-              <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, marginBottom: 12 }}>Determines ADV/RTT compensation days.</div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 6 }}>
-                {regimes.map(r => {
-                  const active = values.workRegime === r.value;
-                  return (
-                    <button key={r.value} onClick={() => handleRegimeChange(r.value)} style={{
-                      padding: '10px 0', borderRadius: 8, cursor: 'pointer',
-                      border: active ? `1.5px solid ${P.ink}` : `1.5px solid ${P.border}`,
-                      background: active ? P.bg : P.white,
-                      transition: `border-color 120ms ${EASE_OUT}, background 120ms ${EASE_OUT}`,
-                      display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
-                    }}>
-                      <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: active ? P.ink : P.inkSoft }}>{r.label}</span>
-                      <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkFaint }}>{r.sub}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Entitlement rows */}
-            <EntitlementRow type="Time off" value={values['Time off']} helper="Legal minimum for full-time (PC200)" first />
-            <EntitlementRow type="ADV / RTT" value={values['ADV / RTT']} helper={`Derived from ${regimeLabel} regime`} disabled />
-            <EntitlementRow type="Extra-legal leave" value={values['Extra-legal leave']} helper="Company-decided extra days" />
-          </div>
-
-          {/* Card — Set by law (reference, lighter) */}
-          <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 12 }}>
-            <div style={{ padding: '16px 20px 10px', display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.ink }}>Set by law</span>
-              <span style={{ fontSize: 10, fontWeight: 600, fontFamily: 'var(--font-display)', color: '#16a34a', background: '#f0fdf4', padding: '2px 8px', borderRadius: 4 }}>Belgian law</span>
-            </div>
-            <div style={{ padding: '0 20px 4px', fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>For reference only — these cannot be changed.</div>
-            {LEGAL_ENTITLEMENTS.map((le, i) => (
-              <div key={le.type} style={{ padding: '10px 20px', borderTop: `1px solid ${P.border}`, display: 'flex', alignItems: 'center' }}>
-                <span style={{ width: 7, height: 7, borderRadius: '50%', background: LEAVE_COLORS[le.type] || '#ccc', flexShrink: 0, marginRight: 10, opacity: 0.6 }} />
-                <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, flex: 1 }}>{le.type}</span>
-                <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>{le.value}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Sticky save bar */}
-      {dirty && (
-        <div style={{ flexShrink: 0, padding: '12px 24px', borderTop: `1px solid ${P.border}`, background: P.white, display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
-          <button onClick={handleCancel} style={{
-            padding: '8px 18px', borderRadius: 8, border: `1px solid ${P.borderStrong}`, background: 'transparent',
-            color: P.ink, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13,
-          }}>Cancel</button>
-          <button onClick={handleSave} style={{
-            padding: '8px 20px', borderRadius: 8, border: 'none', background: P.ink, color: '#fff',
-            cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13,
-          }}>Save changes</button>
-        </div>
-      )}
-    </div>
-  );
-}
-
 // ── Stub screens ──────────────────────────────────────────────────────────
 function StubScreen({ title, description }) {
   return (
@@ -3797,13 +3673,6 @@ function App() {
     setToast('Company closure cancelled');
   };
 
-  const [companyDefaults, setCompanyDefaults] = useState({
-    workRegime: '40h',
-    'Time off': 20,
-    'ADV / RTT': 12,
-    'Extra-legal leave': 4,
-  });
-
   const [employeeBalances, setEmployeeBalances] = useState(() => {
     const init = {};
     for (const [id, emp] of Object.entries(EMPLOYEES)) {
@@ -3867,12 +3736,11 @@ function App() {
         {screen === 'team-absences' && <TeamAbsencesScreen requests={requests} pendingCount={pendingCount} onNav={setScreen} onShowDetail={setCalDetail} onSave={saveRequest} companyEvents={companyEvents} onCancelCompanyEvent={cancelCompanyEvent} initialDate={calendarJumpDate} initialDeptFilter={calendarDeptFilter} />}
         {screen === 'requests' && <RequestsScreen requests={requests} onApprove={approve} onDecline={requestDecline} onSave={saveRequest} onCancel={requestCancel} onViewInCalendar={(req) => { const d = req._selectedDates?.[0] || req.startDate; if (d) { const iso = typeof d === 'string' && d.match(/^\d{4}-/) ? d : null; setCalendarJumpDate(iso ? new Date(iso) : parseDisplayDate(d)); } setScreen('team-absences'); }} />}
         {screen === 'employees' && <EmployeesScreen requests={requests} onNav={setScreen} />}
-        {screen.startsWith('employee-detail:') && <EmployeeDetailScreen employeeId={screen.split(':')[1]} requests={requests} onNav={setScreen} onSave={saveRequest} onCancel={cancelRequest} onApprove={approve} onDecline={requestDecline} onViewTeamCalendar={(dept) => { setCalendarDeptFilter(dept || null); setScreen('team-absences'); }} employeeBalance={employeeBalances[screen.split(':')[1]]} onUpdateBalance={(newBal) => updateBalances(screen.split(':')[1], newBal)} needsSetup={needsBalanceSetup.has(screen.split(':')[1])} confirmedDate={balanceConfirmedDates[screen.split(':')[1]]} onConfirmBalances={() => confirmBalancesFor(screen.split(':')[1])} companyDefaults={companyDefaults} />}
+        {screen.startsWith('employee-detail:') && <EmployeeDetailScreen employeeId={screen.split(':')[1]} requests={requests} onNav={setScreen} onSave={saveRequest} onCancel={cancelRequest} onApprove={approve} onDecline={requestDecline} onViewTeamCalendar={(dept) => { setCalendarDeptFilter(dept || null); setScreen('team-absences'); }} employeeBalance={employeeBalances[screen.split(':')[1]]} onUpdateBalance={(newBal) => updateBalances(screen.split(':')[1], newBal)} needsSetup={needsBalanceSetup.has(screen.split(':')[1])} confirmedDate={balanceConfirmedDates[screen.split(':')[1]]} onConfirmBalances={() => confirmBalancesFor(screen.split(':')[1])} />}
         {screen === 'choices' && <StubScreen title="Choices" description="Employee benefit choices overview" />}
         {screen === 'payroll-overview' && <StubScreen title="Payroll Overview" description="Monthly payroll run and submission" />}
         {screen === 'payroll-reports' && <StubScreen title="Payroll Reports" description="Reporting and exports" />}
-        {screen === 'settings-timeoff' && <TimeOffSettingsScreen companyDefaults={companyDefaults} onSave={(v) => { setCompanyDefaults(v); setToast('Default entitlements saved'); }} />}
-        {screen.startsWith('settings-') && screen !== 'settings-timeoff' && <StubScreen title={SETTINGS_TITLES[screen] || 'Settings'} description={`Configure ${(SETTINGS_TITLES[screen] || 'settings').toLowerCase()}`} />}
+        {screen.startsWith('settings-') && <StubScreen title={SETTINGS_TITLES[screen] || 'Settings'} description={`Configure ${(SETTINGS_TITLES[screen] || 'settings').toLowerCase()}`} />}
       </div>
 
       {calDetail && (
