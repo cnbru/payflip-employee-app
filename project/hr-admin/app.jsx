@@ -15,7 +15,7 @@ const P = {
 };
 
 const StatusMeta = {
-  pending:  { dot: '#f59e0b', label: 'Requested' },
+  pending:  { dot: '#f59e0b', label: 'Pending' },
   approved: { dot: '#22c55e', label: 'Approved'  },
   rejected: { dot: '#ef4444', label: 'Declined'  },
 };
@@ -258,6 +258,7 @@ const EMPLOYEES = {
   'emma-martens':      { name: 'Emma Martens',       initials: 'EM', color: '#ddd6fe', entitlement: 29, department: 'Design',       email: 'emma.martens@edgxspace.be',      entity: 'EDGX SPACE', budget: 0,     role: 'Employee', status: 'Active', gender: 'f' },
   'mathias-de-smedt':  { name: 'Mathias De Smedt',  initials: 'MD', color: '#fde68a', entitlement: 23, department: 'Design',       email: 'mathias.de-smedt@edgxspace.be', entity: 'EDGX SPACE', budget: 6250,  role: 'Employee', status: 'Active', gender: 'm' },
   'thomas-vandenberghe': { name: 'Thomas Vandenberghe', initials: 'TV', color: '#99f6e4', entitlement: 20, department: 'Design',    email: 'thomas.vandenberghe@edgxspace.be', entity: 'EDGX SPACE', budget: 0, role: 'Employee', status: 'Active', gender: 'm' },
+  'thomas-janssens':     { name: 'Thomas Janssens',    initials: 'TJ', color: '#d9f99d', entitlement: 23, department: 'Design',    email: 'thomas.janssens@edgxspace.be', entity: 'EDGX SPACE', budget: 3000, role: 'Employee', status: 'Active', gender: 'm' },
   // Engineering
   'david':             { name: 'David Laurent',      initials: 'DL', color: '#fecdd3', entitlement: 20, department: 'Engineering', email: 'david.laurent@edgxspace.be',     entity: 'EDGX SPACE', budget: 4500,  role: 'Employee', status: 'Active', gender: 'm' },
   'stijn-laurent':     { name: 'Stijn Laurent',      initials: 'SL', color: '#a7f3d0', entitlement: 29, department: 'Engineering', email: 'stijn.laurent@edgxspace.be',     entity: 'EDGX SPACE', budget: 1500,  role: 'Employee', status: 'Active', gender: 'm' },
@@ -276,6 +277,7 @@ const EMP_EXTRA = {
   'emma-martens':        { payrollId: '000040', hireDate: '12/05/2025', lang: 'English', admin: false },
   'mathias-de-smedt':    { payrollId: '000032', hireDate: '01/09/2022', lang: 'Dutch',   admin: false },
   'thomas-vandenberghe': { payrollId: '000028', hireDate: '04/02/2022', lang: 'Dutch',   admin: false },
+  'thomas-janssens':     { payrollId: '000044', hireDate: '10/01/2023', lang: 'Dutch',   admin: false },
   'david':               { payrollId: '000015', hireDate: '07/11/2020', lang: 'French',  admin: true  },
   'stijn-laurent':       { payrollId: '000019', hireDate: '14/04/2021', lang: 'Dutch',   admin: false },
   'jana-goossens':       { payrollId: '000033', hireDate: '02/11/2022', lang: 'Dutch',   admin: false },
@@ -558,8 +560,13 @@ const generatedRequests = [
   { id: 'gen-6', employee: 'bram-goossens', type: 'ADV / RTT', startDate: 'Mon 22 Jun', endDate: 'Tue 23 Jun', days: 2, status: 'approved', submittedAt: '15 Jun', note: '', _selectedDates: ['2026-06-22','2026-06-23'] },
   { id: 'gen-7', employee: 'jana-goossens', type: 'Time off', startDate: 'Thu 25 Jun', endDate: 'Fri 27 Jun', days: 3, status: 'approved', submittedAt: '10 Jun', note: 'Long weekend', _selectedDates: ['2026-06-25','2026-06-26','2026-06-27'] },
   { id: 'gen-8', employee: 'pieter-mertens', type: 'Extra-legal leave', startDate: 'Wed 1 Jul', endDate: 'Wed 1 Jul', days: 1, status: 'approved', submittedAt: '28 Jun', note: '', _selectedDates: ['2026-07-01'] },
+  { id: 'gen-12', employee: 'pieter-mertens', type: 'Time off', startDate: 'Mon 13 Jul', endDate: 'Wed 15 Jul', days: 3, status: 'approved', submittedAt: '1 Jul', note: '', _selectedDates: ['2026-07-13','2026-07-14','2026-07-15'] },
+  { id: 'gen-13', employee: 'sarah-de-smedt', type: 'Time off', startDate: 'Tue 14 Jul', endDate: 'Thu 16 Jul', days: 3, status: 'approved', submittedAt: '3 Jul', note: '', _selectedDates: ['2026-07-14','2026-07-15','2026-07-16'] },
+  { id: 'gen-14', employee: 'jana-goossens', type: 'Time off', startDate: 'Thu 16 Jul', endDate: 'Fri 17 Jul', days: 2, status: 'approved', submittedAt: '5 Jul', note: '', _selectedDates: ['2026-07-16','2026-07-17'] },
+  { id: 'gen-15', employee: 'julie-goossens', type: 'Time off', startDate: 'Wed 22 Jul', endDate: 'Fri 24 Jul', days: 3, status: 'approved', submittedAt: '9 Jul', note: '', _selectedDates: ['2026-07-22','2026-07-23','2026-07-24'] },
   { id: 'gen-9', employee: 'thomas-janssens', type: 'Time off', startDate: 'Mon 20 Jul', endDate: 'Fri 24 Jul', days: 5, status: 'pending', submittedAt: '8 Jul', note: 'Family trip', _selectedDates: ['2026-07-20','2026-07-21','2026-07-22','2026-07-23','2026-07-24'] },
   { id: 'gen-10', employee: 'bram-goossens', type: 'Time off', startDate: 'Thu 23 Jul', endDate: 'Fri 24 Jul', days: 2, status: 'pending', submittedAt: '10 Jul', note: '', _selectedDates: ['2026-07-23','2026-07-24'] },
+  { id: 'gen-16', employee: 'mathias-de-smedt', type: 'Time off', startDate: 'Mon 4 Aug', endDate: 'Wed 6 Aug', days: 3, status: 'pending', submittedAt: '14 Jul', note: '', _selectedDates: ['2026-08-04','2026-08-05','2026-08-06'] },
 ];
 
 // ── localStorage bridge ────────────────────────────────────────────────────
@@ -905,8 +912,8 @@ function ActionMenu({ req, onApprove, onDecline, onViewDetails, onEdit, onCancel
   }, [open]);
 
   const items = [
-    req?.status === 'pending' && { icon: 'CheckCircle', label: 'Approve', fn: onApprove, color: '#166534' },
-    req?.status === 'pending' && { icon: 'XCircle', label: 'Decline', fn: onDecline, color: '#b91c1c' },
+    req?.status === 'pending' && onApprove && { icon: 'CheckCircle', label: 'Approve', fn: onApprove, color: '#166534' },
+    req?.status === 'pending' && onDecline && { icon: 'XCircle', label: 'Decline', fn: onDecline, color: '#b91c1c' },
     onViewDetails && { icon: 'Eye', label: 'View details', fn: onViewDetails, color: P.ink },
     onViewInCalendar && { icon: 'Calendar', label: 'View in calendar', fn: () => onViewInCalendar(req), color: P.ink },
     onEdit && { icon: 'Pencil', label: 'Edit', fn: onEdit, color: P.ink },
@@ -1043,10 +1050,15 @@ function DetailModal({ req, requests, onClose, onApprove, onDecline, onCancel, o
     return <span>{dateStr}<br /><span style={{ color: P.inkSoft, fontSize: 12 }}>{sub}</span></span>;
   })();
 
+  const overlapping = getOverlapping(req, requests);
+
   const { visible, close } = useModalTransition(onClose);
 
+  const statusColor = req.status === 'approved' ? '#16a34a' : req.status === 'pending' ? '#d97706' : P.inkSoft;
+  const statusLabel = req.status === 'approved' ? 'Approved' : req.status === 'pending' ? 'Pending' : 'Declined';
+
   const Row = ({ label, children }) => (
-    <div style={{ display: 'grid', gridTemplateColumns: '140px 1fr', padding: '11px 22px', borderBottom: `1px solid ${P.border}`, alignItems: 'start', gap: 12 }}>
+    <div style={{ display: 'grid', gridTemplateColumns: '140px 1fr', padding: '10px 22px', alignItems: 'start', gap: 12 }}>
       <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, paddingTop: 1 }}>{label}</span>
       <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink }}>{children}</span>
     </div>
@@ -1073,64 +1085,65 @@ function DetailModal({ req, requests, onClose, onApprove, onDecline, onCancel, o
         </div>
 
         <div style={{ overflowY: 'auto' }}>
-          {/* Status row */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 22px', borderBottom: `1px solid ${P.border}` }}>
-            <span style={{ width: 9, height: 9, borderRadius: '50%', background: req.status === 'approved' ? '#22c55e' : req.status === 'pending' ? '#f59e0b' : '#9ca3af', flexShrink: 0 }} />
-            <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>Status</span>
-            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 14, color: P.ink }}>
-              {req.status === 'approved' ? 'Approved' : req.status === 'pending' ? 'Pending' : 'Declined'}
-            </span>
-          </div>
-
-          {/* Balance summary card */}
-          <div style={{ margin: '14px 22px', borderRadius: 10, border: `1px solid ${P.border}`, overflow: 'hidden', background: P.bg }}>
-            {[
-              { label: 'Annual entitlement', value: `${emp.entitlement} days`, bold: false },
-              { label: 'Used & booked', value: `${usedDays} ${usedDays === 1 ? 'day' : 'days'}`, bold: false },
-              { label: 'This request', value: `${req.days} ${req.days === 1 ? 'day' : 'days'}`, bold: false },
-            ].map(({ label, value }) => (
-              <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 16px', borderBottom: `1px solid ${P.border}` }}>
-                <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>{label}</span>
-                <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.ink }}>{value}</span>
-              </div>
-            ))}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 16px' }}>
-              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 13, color: P.ink }}>Remaining after request</span>
-              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 14, color: remaining < 0 ? '#b91c1c' : P.ink }}>
-                {remaining} {Math.abs(remaining) === 1 ? 'day' : 'days'}
+          {/* Detail rows — no per-row dividers */}
+          <div style={{ padding: '6px 0 10px' }}>
+            <Row label="Status">
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                <span style={{ width: 7, height: 7, borderRadius: '50%', background: statusColor, flexShrink: 0 }} />
+                <span style={{ color: statusColor, fontWeight: 600 }}>{statusLabel}</span>
               </span>
-            </div>
+            </Row>
+            <Row label="Requested by">
+              <span>{emp.name}</span>
+              {emp.department && <span style={{ color: P.inkFaint, fontSize: 12, marginLeft: 7 }}>{emp.department}</span>}
+            </Row>
+            <Row label="When">{whenLabel}</Row>
+            <Row label="Type">{req.type}</Row>
+            {req.note && <Row label="Notes">{req.note}</Row>}
           </div>
 
-          {/* Detail rows */}
-          <Row label="Type">{req.type}</Row>
-          <Row label="When">{whenLabel}</Row>
-          <Row label="Requested on">{req.submittedAt}</Row>
-          <Row label="Requested by">
-            <span>{emp.name}</span>
-            {emp.department && <span style={{ color: P.inkFaint, fontSize: 12, marginLeft: 7 }}>{emp.department}</span>}
-          </Row>
-          <Row label="Notes">
-            {req.note
-              ? <span>{req.note}</span>
-              : <span style={{ color: P.inkFaint, fontStyle: 'italic' }}>None</span>}
-          </Row>
+          {/* Team overlap card — decision context, visually separate from request data */}
+          {overlapping.length > 0 && (
+            <div style={{ margin: '0 16px 14px', padding: '12px 14px', borderRadius: 10, background: '#fffbeb', border: '1px solid #fde68a' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
+                <Icon name="Users" size={14} color="#d97706" strokeWidth={2} />
+                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: '#92400e' }}>
+                  {overlapping.length === 1 ? '1 team member' : `${overlapping.length} team members`} also off during this period
+                </span>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                {overlapping.map(r => {
+                  const e2 = EMPLOYEES[r.employee];
+                  const parts = (e2?.name || r.employee).split(' ');
+                  const shortName = parts.length > 1 ? `${parts[0]} ${parts[parts.length-1][0]}.` : parts[0];
+                  const period = r.startDate === r.endDate ? r.startDate : `${r.startDate} – ${r.endDate}`;
+                  return (
+                    <div key={r.id} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: '#78350f' }}>{shortName}</span>
+                      <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: '#a16207' }}>{r.type} · {period}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           {/* Past warning — only within last 30 days */}
           {showPastWarning && (
-            <div style={{ margin: '14px 22px', padding: '11px 14px', borderRadius: 8, background: '#fef9c3', border: '1px solid #fde047', display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+            <div style={{ margin: '0 22px 14px', padding: '11px 14px', borderRadius: 8, background: '#fef9c3', border: '1px solid #fde047', display: 'flex', alignItems: 'flex-start', gap: 8 }}>
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#ca8a04" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 1 }}><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
               <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: '#92400e', lineHeight: 1.4 }}>
                 This absence has already passed. Changes may affect payroll records.
               </span>
             </div>
           )}
-          <div style={{ height: 6 }} />
         </div>
 
-        {/* Footer */}
+        {/* Footer — "Submitted on" as fine print, actions right */}
         {(isPending || req.status === 'approved') && (
-          <div style={{ padding: '14px 22px', borderTop: `1px solid ${P.border}`, display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+          <div style={{ padding: '12px 22px', borderTop: `1px solid ${P.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
+            <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkFaint }}>Submitted {req.submittedAt}</span>
+            <div style={{ display: 'flex', gap: 10 }}>
             {isPending && <>
               <button onClick={() => { onDecline(req.id); close(); }} style={{
                 padding: '8px 20px', borderRadius: 8, border: '1px solid #fca5a5', background: '#fef2f2',
@@ -1153,6 +1166,7 @@ function DetailModal({ req, requests, onClose, onApprove, onDecline, onCancel, o
                 }}>Edit</button>
               )}
             </>}
+            </div>
           </div>
         )}
       </div>
@@ -1874,46 +1888,157 @@ function AddTimeOffModal({ existing, onClose, onSave, requests = [] }) {
   );
 }
 
+// ── Shared overlap helper ──────────────────────────────────────────────────
+function getOverlapping(req, requests) {
+  const _d = (r, last) => {
+    if (r._selectedDates?.length) {
+      const iso = last ? r._selectedDates[r._selectedDates.length-1] : r._selectedDates[0];
+      const p = iso.split('-'); return new Date(+p[0],+p[1]-1,+p[2]);
+    }
+    return parseDisplayDate(last ? (r.endDate || r.startDate) : r.startDate);
+  };
+  const s = _d(req, false), e = _d(req, true);
+  if (!s || !e) return [];
+  return requests.filter(r => {
+    if (r.id === req.id || r.employee === req.employee) return false;
+    if (r.status !== 'approved' && r.status !== 'pending') return false;
+    const rs = _d(r, false), re = _d(r, true);
+    return rs && re && rs <= e && re >= s;
+  });
+}
+
+// ── Avatar stack with hover-expand ─────────────────────────────────────────
+const AVATAR_SIZE = 30;
+const AVATAR_OVERLAP = -9;
+const AVATAR_EXPAND = 4;
+
+function AvatarStack({ people }) {
+  const [activeIdx, setActiveIdx] = useState(null);
+  const shown = people.slice(0, 4);
+  const extra = people.length - 4;
+  return (
+    <span
+      onMouseLeave={() => setActiveIdx(null)}
+      style={{ display: 'inline-flex', alignItems: 'flex-end', position: 'relative', height: AVATAR_SIZE + 8, paddingTop: 8 }}
+    >
+      {shown.map((p, i) => {
+        const e2 = EMPLOYEES[p.employee];
+        const initials = e2?.initials || '?';
+        const name = e2?.name || p.employee;
+        const isActive = activeIdx === i;
+        const lift = isActive ? -2 : 0;
+        return (
+          <span
+            key={p.id}
+            onMouseEnter={() => setActiveIdx(i)}
+            onMouseLeave={() => setActiveIdx(null)}
+            style={{
+              width: AVATAR_SIZE, height: AVATAR_SIZE, borderRadius: '50%',
+              background: e2?.color || '#e5e7eb',
+              border: '2px solid #fff',
+              display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: 9, fontWeight: 700, color: P.ink, letterSpacing: '0.02em',
+              marginLeft: i > 0 ? AVATAR_OVERLAP : 0,
+              position: 'relative', zIndex: isActive ? 20 : shown.length - i,
+              fontFamily: 'var(--font-display)', flexShrink: 0,
+              transition: `transform 350ms ${EASE_OUT}`,
+              transform: `translateY(${lift}px)${isActive ? ' scale(1.03)' : ''}`,
+              cursor: 'default',
+            }}
+          >
+            {initials}
+            {isActive && (
+              <span style={{
+                position: 'absolute', bottom: '100%', left: '50%', transform: 'translateX(-50%)',
+                marginBottom: 6, padding: '4px 8px', borderRadius: 6,
+                background: P.ink, color: '#fff',
+                fontSize: 11, fontWeight: 600, fontFamily: 'var(--font-display)',
+                whiteSpace: 'nowrap', pointerEvents: 'none', zIndex: 30,
+                display: 'flex', alignItems: 'baseline', gap: 5,
+              }}>
+                {name}
+                <span style={{ fontSize: 10, fontWeight: 500, opacity: 0.7 }}>
+                  {p.days === 1 ? p.startDate : `${p.startDate} – ${p.endDate}`}
+                </span>
+              </span>
+            )}
+          </span>
+        );
+      })}
+      {extra > 0 && (
+        <span style={{
+          width: AVATAR_SIZE, height: AVATAR_SIZE, borderRadius: '50%',
+          background: P.bg, border: '2px solid #fff',
+          display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: 9, fontWeight: 700, color: P.inkSoft,
+          marginLeft: AVATAR_OVERLAP,
+          position: 'relative', zIndex: 0,
+          fontFamily: 'var(--font-display)', flexShrink: 0,
+          transition: `transform 250ms ${EASE_OUT}`,
+          transform: 'translateY(0)',
+        }}>+{extra}</span>
+      )}
+    </span>
+  );
+}
+
 // ── Table row ──────────────────────────────────────────────────────────────
 const TH = ({ children, style }) => (
   <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.06em', ...style }}>{children}</div>
 );
 
-function RequestRow({ req, requests, onApprove, onDecline, onDetail, onEdit, onCancel, selected, onToggle, onViewInCalendar }) {
+function RequestRow({ req, requests, onApprove, onDecline, onDetail, onEdit, onCancel, selected, onToggle, onViewInCalendar, showStatus }) {
   const emp = EMPLOYEES[req.employee] || { name: req.employee, initials: '?', color: '#e5e7eb', entitlement: 20 };
   const [hover, setHover] = useState(false);
   const usedDays = requests
     .filter(r => r.employee === req.employee && r.id !== req.id && (r.status === 'approved' || r.status === 'pending'))
     .reduce((s, r) => s + r.days, 0);
   const remaining = Math.max(0, emp.entitlement - usedDays - req.days);
+  const overlapping = getOverlapping(req, requests);
+  const gridCols = showStatus ? '32px 1.8fr 1fr 0.9fr 0.7fr 0.7fr 1fr 1fr 96px' : '32px 1.8fr 0.9fr 0.7fr 0.7fr 1fr 1fr 96px';
   return (
     <div onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)} onClick={() => onDetail(req)}
       style={{
-        display: 'grid', gridTemplateColumns: '32px 1.8fr 1fr 0.9fr 0.7fr 0.7fr 1fr 0.7fr 0.9fr 44px',
-        alignItems: 'center', gap: 12, padding: '0 20px', height: 52,
-        borderBottom: `1px solid ${P.border}`, background: selected ? '#f5f3ff' : hover ? P.bg : P.white,
+        display: 'grid', gridTemplateColumns: gridCols,
+        alignItems: 'center', gap: 12, padding: '0 20px', minHeight: 52,
+        borderBottom: `1px solid ${P.border}`,
+        background: selected ? '#f5f3ff' : hover ? P.bg : P.white,
         cursor: 'pointer', transition: 'background 0.1s',
       }}>
       <input type="checkbox" checked={selected} onClick={e => e.stopPropagation()} onChange={() => onToggle(req.id)} style={{ cursor: 'pointer', accentColor: P.ink }} />
       <div style={{ display: 'flex', alignItems: 'center', minWidth: 0 }}>
         <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{emp.name}</span>
       </div>
-      <StatusDot status={req.status} />
+      {showStatus && <StatusDot status={req.status} />}
       <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink }}>{req.type}</span>
       <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink }}>{req.days} {req.days === 1 ? 'day' : 'days'}</span>
       <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink }}>{req.startDate}</span>
       <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: req.startDate === req.endDate ? P.inkFaint : P.ink }}>
         {req.startDate === req.endDate ? '—' : req.endDate}
       </span>
-      <span style={{
-        fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, textAlign: 'center',
-        color: remaining < 0 ? '#b91c1c' : remaining <= 3 ? '#f59e0b' : '#166534',
-      }}>
-        {remaining}d
+      <span style={{ display: 'inline-flex', alignItems: 'center' }}>
+        {overlapping.length === 0 ? (
+          <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkFaint }}>—</span>
+        ) : (
+          <AvatarStack people={overlapping} />
+        )}
       </span>
-      <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft }}>{req.submittedAt}</span>
-      <div onClick={e => e.stopPropagation()}>
-        <ActionMenu req={req} onApprove={() => onApprove(req.id)} onDecline={() => onDecline(req.id)} onViewDetails={() => onDetail(req)} onViewInCalendar={onViewInCalendar} onEdit={() => onEdit(req)} onCancel={() => onCancel(req.id)} />
+      <div onClick={e => e.stopPropagation()} style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4 }}>
+        {req.status === 'pending' && (<>
+          <button title="Decline" onClick={() => onDecline(req.id)}
+            onMouseEnter={e => { e.currentTarget.style.background = '#fee2e2'; e.currentTarget.style.borderColor = '#fca5a5'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = '#fef2f2'; e.currentTarget.style.borderColor = '#fecaca'; }}
+            style={{ width: 28, height: 28, borderRadius: 6, border: '1px solid #fecaca', background: '#fef2f2', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: hover ? 1 : 0, transition: `opacity 150ms ${EASE_OUT}`, pointerEvents: hover ? 'auto' : 'none', flexShrink: 0 }}>
+            <Icon name="X" size={14} color="#dc2626" strokeWidth={2.5} />
+          </button>
+          <button title="Approve" onClick={() => onApprove(req.id)}
+            onMouseEnter={e => { e.currentTarget.style.background = '#dcfce7'; e.currentTarget.style.borderColor = '#86efac'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = '#f0fdf4'; e.currentTarget.style.borderColor = '#bbf7d0'; }}
+            style={{ width: 28, height: 28, borderRadius: 6, border: '1px solid #bbf7d0', background: '#f0fdf4', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: hover ? 1 : 0, transition: `opacity 150ms ${EASE_OUT}`, pointerEvents: hover ? 'auto' : 'none', flexShrink: 0 }}>
+            <Icon name="Check" size={14} color="#16a34a" strokeWidth={2.5} />
+          </button>
+        </>)}
+        <ActionMenu req={req} onViewDetails={() => onDetail(req)} onViewInCalendar={onViewInCalendar} onEdit={() => onEdit(req)} onCancel={() => onCancel(req.id)} />
       </div>
     </div>
   );
@@ -1968,7 +2093,7 @@ function RequestsScreen({ requests, onApprove, onDecline, onSave, onCancel, onVi
         tabs={
           <TabBar
             tabs={[
-              { id: 'pending', label: `All pending requests${pendingCount > 0 ? ` (${pendingCount})` : ''}` },
+              { id: 'pending', label: `Pending${pendingCount > 0 ? ` (${pendingCount})` : ''}` },
               { id: 'approved', label: 'Approved' },
               { id: 'all', label: 'All requests' },
             ]}
@@ -1988,9 +2113,9 @@ function RequestsScreen({ requests, onApprove, onDecline, onSave, onCancel, onVi
       />
       <div style={{ flex: 1, overflowY: 'auto', padding: '0 20px 20px' }}>
       <div style={{ background: P.white, borderRadius: 12, border: `1px solid ${P.border}`, overflow: 'clip' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '32px 1.8fr 1fr 0.9fr 0.7fr 0.7fr 1fr 0.7fr 0.9fr 44px', alignItems: 'center', gap: 12, padding: '0 20px', height: 38, borderBottom: `1px solid ${P.border}`, background: P.bg, position: 'sticky', top: 0, zIndex: 5 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: tab === 'all' ? '32px 1.8fr 1fr 0.9fr 0.7fr 0.7fr 1fr 1fr 96px' : '32px 1.8fr 0.9fr 0.7fr 0.7fr 1fr 1fr 96px', alignItems: 'center', gap: 12, padding: '0 20px', height: 38, borderBottom: `1px solid ${P.border}`, background: P.bg, position: 'sticky', top: 0, zIndex: 5 }}>
           <input type="checkbox" checked={allSelected} onChange={toggleAll} style={{ cursor: 'pointer', accentColor: P.ink }} />
-          <TH>Requested by</TH><TH>Status</TH><TH>Leave type</TH><TH>Duration</TH><TH>Date from</TH><TH>Date to</TH><TH style={{ textAlign: 'center' }}>Balance</TH><TH>Added on</TH><div />
+          <TH>Requested by</TH>{tab === 'all' && <TH>Status</TH>}<TH>Leave type</TH><TH>Duration</TH><TH>Date from</TH><TH>Date to</TH><TH>Also off</TH><div />
         </div>
         {filtered.length === 0 ? (
           <div style={{ padding: '60px 24px', textAlign: 'center' }}>
@@ -1999,7 +2124,7 @@ function RequestsScreen({ requests, onApprove, onDecline, onSave, onCancel, onVi
             <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkFaint, marginTop: 4 }}>{tab === 'pending' ? 'New requests from your team will appear here.' : ''}</div>
           </div>
         ) : paginated.map(req => (
-          <RequestRow key={req.id} req={req} requests={requests} onApprove={onApprove} onDecline={onDecline} onDetail={setDetail} onEdit={setEditReq} onCancel={onCancel} selected={selected.has(req.id)} onToggle={toggleSelect} onViewInCalendar={onViewInCalendar} />
+          <RequestRow key={req.id} req={req} requests={requests} onApprove={onApprove} onDecline={onDecline} onDetail={setDetail} onEdit={setEditReq} onCancel={onCancel} selected={selected.has(req.id)} onToggle={toggleSelect} onViewInCalendar={onViewInCalendar} showStatus={tab === 'all'} />
         ))}
         {filtered.length > 0 && (
           <div style={{ padding: '8px 16px', borderTop: `1px solid ${P.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
