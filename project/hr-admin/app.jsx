@@ -3324,117 +3324,12 @@ function DashboardListRow({ onClick, children }) {
 
 function DashboardScreen({ requests, onNav }) {
   const today = new Date(); today.setHours(0,0,0,0);
-  const todayISO = isoDate(today);
-  const pending = requests.filter(r => r.status === 'pending');
-  const absenceMap = buildAbsenceMap(requests);
-
-  const weekDays = [];
-  const ws = weekStart(today);
-  for (let i = 0; i < 5; i++) weekDays.push(isoDate(addDays(ws, i)));
-
-  const offThisWeek = new Set();
-  for (const [empId, days] of Object.entries(absenceMap)) {
-    for (const iso of weekDays) {
-      if (days[iso]) { offThisWeek.add(empId); break; }
-    }
-  }
-
-  const offToday = [];
-  for (const [empId, days] of Object.entries(absenceMap)) {
-    if (days[todayISO]) offToday.push({ empId, ...days[todayISO] });
-  }
-
-  const lowBalance = Object.entries(EMPLOYEES).map(([id, emp]) => {
-    const used = requests.filter(r => r.employee === id && r.type === 'Time off' && r.status !== 'rejected').reduce((s, r) => s + r.days, 0);
-    return { id, name: emp.name, department: emp.department, remaining: Math.max(0, emp.entitlement - used) };
-  }).filter(e => e.remaining <= 5).sort((a, b) => a.remaining - b.remaining).slice(0, 5);
-
-  const statCard = (icon, label, value, color, onClick) => (
-    <div onClick={onClick} style={{
-      background: P.white, border: `1px solid ${P.border}`, borderRadius: 12, padding: '20px 22px',
-      flex: 1, cursor: onClick ? 'pointer' : 'default',
-      transition: 'box-shadow 150ms',
-    }}
-    onMouseEnter={e => { if (onClick) e.currentTarget.style.boxShadow = '0 2px 12px rgba(0,0,0,0.06)'; }}
-    onMouseLeave={e => e.currentTarget.style.boxShadow = 'none'}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-        <div style={{ width: 32, height: 32, borderRadius: 8, background: color + '18', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <Icon name={icon} size={16} color={color} strokeWidth={2} />
-        </div>
-      </div>
-      <div style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 28, color: P.ink, letterSpacing: '-0.02em', lineHeight: 1 }}>{value}</div>
-      <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, marginTop: 4 }}>{label}</div>
-    </div>
-  );
-
   return (
     <div style={{ flex: 1, overflow: 'auto', animation: `screenEnter 180ms ${EASE_OUT}` }}>
       <PageHeader
         title="Home"
         subtitle={today.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
       />
-
-      <div style={{ padding: '20px 20px', display: 'flex', gap: 16 }}>
-        {statCard('Clock', 'Pending approvals', pending.length, '#f59e0b', () => onNav('requests'))}
-        {statCard('CalendarOff', 'Off today', offToday.length, '#ef4444')}
-        {statCard('Users', 'Off this week', offThisWeek.size, '#6366f1')}
-      </div>
-
-      <div style={{ padding: '0 20px 20px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-        {/* Pending requests */}
-        <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 12, overflow: 'hidden' }}>
-          <div style={{ padding: '14px 20px', borderBottom: `1px solid ${P.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 15, color: P.ink }}>Pending requests</span>
-            {pending.length > 0 && (
-              <button onClick={() => onNav('requests')} style={{
-                border: 'none', background: 'transparent', cursor: 'pointer',
-                fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, color: P.accent,
-              }}>View all</button>
-            )}
-          </div>
-          {pending.length === 0 ? (
-            <div style={{ padding: '28px 20px', textAlign: 'center', color: P.inkFaint, fontFamily: 'var(--font-body)', fontSize: 13 }}>
-              All caught up — no pending requests
-            </div>
-          ) : pending.slice(0, 5).map(req => {
-            const emp = EMPLOYEES[req.employee] || { name: req.employee, initials: '?' };
-            return (
-              <DashboardListRow key={req.id} onClick={() => onNav('requests')}>
-                <Avatar employeeId={req.employee} size={28} />
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.ink }}>{emp.name}</div>
-                  <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>{req.type} · {req.days} {req.days === 1 ? 'day' : 'days'} · {req.startDate}</div>
-                </div>
-                <Icon name="ChevronRight" size={14} color={P.inkFaint} />
-              </DashboardListRow>
-            );
-          })}
-        </div>
-
-        {/* Low balance alerts */}
-        <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 12, overflow: 'hidden' }}>
-          <div style={{ padding: '14px 20px', borderBottom: `1px solid ${P.border}` }}>
-            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 15, color: P.ink }}>Low balance</span>
-          </div>
-          {lowBalance.length === 0 ? (
-            <div style={{ padding: '28px 20px', textAlign: 'center', color: P.inkFaint, fontFamily: 'var(--font-body)', fontSize: 13 }}>
-              No employees with low balance
-            </div>
-          ) : lowBalance.map(emp => (
-            <DashboardListRow key={emp.id} onClick={() => onNav('employee-detail:' + emp.id)}>
-              <Avatar employeeId={emp.id} size={28} />
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.ink }}>{emp.name}</div>
-                <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>{emp.department}</div>
-              </div>
-              <span style={{
-                fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 13,
-                color: emp.remaining <= 0 ? '#b91c1c' : emp.remaining <= 3 ? '#f59e0b' : P.ink,
-              }}>{emp.remaining}d left</span>
-            </DashboardListRow>
-          ))}
-        </div>
-      </div>
     </div>
   );
 }
