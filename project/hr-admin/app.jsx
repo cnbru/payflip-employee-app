@@ -1964,13 +1964,18 @@ function AvatarStack({ people }) {
                 position: 'absolute', bottom: '100%', left: '50%', transform: 'translateX(-50%)',
                 marginBottom: 6, padding: '4px 8px', borderRadius: 6,
                 background: P.ink, color: '#fff',
-                fontSize: 11, fontWeight: 600, fontFamily: 'var(--font-display)',
+                fontSize: 13, fontWeight: 600, fontFamily: 'var(--font-display)',
                 whiteSpace: 'nowrap', pointerEvents: 'none', zIndex: 30,
                 display: 'flex', alignItems: 'baseline', gap: 5,
               }}>
                 {name}
-                <span style={{ fontSize: 10, fontWeight: 500, opacity: 0.7 }}>
+                <span style={{ opacity: 0.45, fontWeight: 400 }}>·</span>
+                <span style={{ fontSize: 12, fontWeight: 500, opacity: 0.7 }}>
                   {p.days === 1 ? p.startDate : `${p.startDate} – ${p.endDate}`}
+                </span>
+                <span style={{ opacity: 0.45, fontWeight: 400 }}>·</span>
+                <span style={{ fontSize: 12, fontWeight: 500, opacity: 0.7 }}>
+                  {p.days} {p.days === 1 ? 'day' : 'days'}
                 </span>
               </span>
             )}
@@ -2040,13 +2045,13 @@ function RequestRow({ req, requests, onApprove, onDecline, onDetail, onEdit, onC
           <button title="Decline" onClick={() => onDecline(req.id)}
             onMouseEnter={e => { e.currentTarget.style.background = '#fee2e2'; e.currentTarget.style.borderColor = '#fca5a5'; }}
             onMouseLeave={e => { e.currentTarget.style.background = '#fef2f2'; e.currentTarget.style.borderColor = '#fecaca'; }}
-            style={{ width: 28, height: 28, borderRadius: 6, border: '1px solid #fecaca', background: '#fef2f2', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: hover ? 1 : 0, transition: `opacity 150ms ${EASE_OUT}`, pointerEvents: hover ? 'auto' : 'none', flexShrink: 0 }}>
+            style={{ width: 28, height: 28, borderRadius: 6, border: '1px solid #fecaca', background: '#fef2f2', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             <Icon name="X" size={14} color="#dc2626" strokeWidth={2.5} />
           </button>
           <button title="Approve" onClick={() => onApprove(req.id)}
             onMouseEnter={e => { e.currentTarget.style.background = '#dcfce7'; e.currentTarget.style.borderColor = '#86efac'; }}
             onMouseLeave={e => { e.currentTarget.style.background = '#f0fdf4'; e.currentTarget.style.borderColor = '#bbf7d0'; }}
-            style={{ width: 28, height: 28, borderRadius: 6, border: '1px solid #bbf7d0', background: '#f0fdf4', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: hover ? 1 : 0, transition: `opacity 150ms ${EASE_OUT}`, pointerEvents: hover ? 'auto' : 'none', flexShrink: 0 }}>
+            style={{ width: 28, height: 28, borderRadius: 6, border: '1px solid #bbf7d0', background: '#f0fdf4', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             <Icon name="Check" size={14} color="#16a34a" strokeWidth={2.5} />
           </button>
         </>)}
