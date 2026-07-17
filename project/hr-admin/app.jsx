@@ -260,21 +260,21 @@ const AVATAR_COLORS = ['#bfdbfe','#ddd6fe','#fde68a','#a7f3d0','#fecdd3','#fed7a
 
 const EMPLOYEES = {
   // Design
-  'bram-goossens':     { name: 'Bram Goossens',     initials: 'BG', color: '#bfdbfe', entitlement: 23, department: 'Design',       email: 'bram.goossens@edgxspace.be',     entity: 'EDGX SPACE', budget: 3750,  role: 'Employee', status: 'Active', gender: 'm' },
-  'emma-martens':      { name: 'Emma Martens',       initials: 'EM', color: '#ddd6fe', entitlement: 29, department: 'Design',       email: 'emma.martens@edgxspace.be',      entity: 'EDGX SPACE', budget: 0,     role: 'Employee', status: 'Active', gender: 'f' },
-  'mathias-de-smedt':  { name: 'Mathias De Smedt',  initials: 'MD', color: '#fde68a', entitlement: 23, department: 'Design',       email: 'mathias.de-smedt@edgxspace.be', entity: 'EDGX SPACE', budget: 6250,  role: 'Employee', status: 'Active', gender: 'm' },
-  'thomas-vandenberghe': { name: 'Thomas Vandenberghe', initials: 'TV', color: '#99f6e4', entitlement: 20, department: 'Design',    email: 'thomas.vandenberghe@edgxspace.be', entity: 'EDGX SPACE', budget: 0, role: 'Employee', status: 'Active', gender: 'm' },
-  'thomas-janssens':     { name: 'Thomas Janssens',    initials: 'TJ', color: '#d9f99d', entitlement: 23, department: 'Design',    email: 'thomas.janssens@edgxspace.be', entity: 'EDGX SPACE', budget: 3000, role: 'Employee', status: 'Active', gender: 'm' },
+  'bram-goossens':     { name: 'Bram Goossens',     initials: 'BG', color: '#bfdbfe', entitlement: 23, department: 'Design',       email: 'bram.goossens@lumiogroup.be',     entity: 'Lumio Group', budget: 3750,  role: 'Employee', status: 'Active', gender: 'm' },
+  'emma-martens':      { name: 'Emma Martens',       initials: 'EM', color: '#ddd6fe', entitlement: 29, department: 'Design',       email: 'emma.martens@lumiogroup.be',      entity: 'Lumio Group', budget: 0,     role: 'Employee', status: 'Active', gender: 'f' },
+  'mathias-de-smedt':  { name: 'Mathias De Smedt',  initials: 'MD', color: '#fde68a', entitlement: 23, department: 'Design',       email: 'mathias.de-smedt@lumiogroup.be', entity: 'Lumio Group', budget: 6250,  role: 'Employee', status: 'Active', gender: 'm' },
+  'thomas-vandenberghe': { name: 'Thomas Vandenberghe', initials: 'TV', color: '#99f6e4', entitlement: 20, department: 'Design',    email: 'thomas.vandenberghe@lumiogroup.be', entity: 'Lumio Group', budget: 0, role: 'Employee', status: 'Active', gender: 'm' },
+  'thomas-janssens':     { name: 'Thomas Janssens',    initials: 'TJ', color: '#d9f99d', entitlement: 23, department: 'Design',    email: 'thomas.janssens@lumiogroup.be', entity: 'Lumio Group', budget: 3000, role: 'Employee', status: 'Active', gender: 'm' },
   // Engineering
-  'david':             { name: 'David Laurent',      initials: 'DL', color: '#fecdd3', entitlement: 20, department: 'Engineering', email: 'david.laurent@edgxspace.be',     entity: 'EDGX SPACE', budget: 4500,  role: 'Employee', status: 'Active', gender: 'm' },
-  'stijn-laurent':     { name: 'Stijn Laurent',      initials: 'SL', color: '#a7f3d0', entitlement: 29, department: 'Engineering', email: 'stijn.laurent@edgxspace.be',     entity: 'EDGX SPACE', budget: 1500,  role: 'Employee', status: 'Active', gender: 'm' },
-  'jana-goossens':     { name: 'Jana Goossens',      initials: 'JG', color: '#c7d2fe', entitlement: 20, department: 'Engineering', email: 'jana.goossens@edgxspace.be',     entity: 'EDGX SPACE', budget: 2000,  role: 'Employee', status: 'Active', gender: 'f' },
-  'laura-mertens':     { name: 'Laura Mertens',      initials: 'LM', color: '#fca5a5', entitlement: 20, department: 'Engineering', email: 'laura.mertens@edgxspace.be',     entity: 'EDGX SPACE', budget: 750,   role: 'Employee', status: 'Active', gender: 'f' },
+  'david':             { name: 'David Laurent',      initials: 'DL', color: '#fecdd3', entitlement: 20, department: 'Engineering', email: 'david.laurent@lumiogroup.be',     entity: 'Lumio Group', budget: 4500,  role: 'Employee', status: 'Active', gender: 'm' },
+  'stijn-laurent':     { name: 'Stijn Laurent',      initials: 'SL', color: '#a7f3d0', entitlement: 29, department: 'Engineering', email: 'stijn.laurent@lumiogroup.be',     entity: 'Lumio Group', budget: 1500,  role: 'Employee', status: 'Active', gender: 'm' },
+  'jana-goossens':     { name: 'Jana Goossens',      initials: 'JG', color: '#c7d2fe', entitlement: 20, department: 'Engineering', email: 'jana.goossens@lumiogroup.be',     entity: 'Lumio Group', budget: 2000,  role: 'Employee', status: 'Active', gender: 'f' },
+  'laura-mertens':     { name: 'Laura Mertens',      initials: 'LM', color: '#fca5a5', entitlement: 20, department: 'Engineering', email: 'laura.mertens@lumiogroup.be',     entity: 'Lumio Group', budget: 750,   role: 'Employee', status: 'Active', gender: 'f' },
   // Marketing
-  'pieter-mertens':    { name: 'Pieter Mertens',     initials: 'PM', color: '#a7f3d0', entitlement: 29, department: 'Marketing',   email: 'pieter.mertens@edgxspace.be',    entity: 'EDGX SPACE', budget: 8500,  role: 'Manager',  status: 'Active', gender: 'm' },
-  'sarah-de-smedt':    { name: 'Sarah De Smedt',     initials: 'SD', color: '#fecdd3', entitlement: 23, department: 'Marketing',   email: 'sarah.de-smedt@edgxspace.be',   entity: 'EDGX SPACE', budget: 2750,  role: 'Employee', status: 'Active', gender: 'f' },
-  'julie-goossens':    { name: 'Julie Goossens',     initials: 'JG', color: '#fed7aa', entitlement: 20, department: 'Marketing',   email: 'julie.goossens@edgxspace.be',    entity: 'EDGX SPACE', budget: 5000,  role: 'Manager',  status: 'Active', gender: 'f' },
-  'noor-de-smedt':     { name: 'Noor De Smedt',      initials: 'ND', color: '#fde68a', entitlement: 20, department: 'Marketing',   email: 'noor.de-smedt@edgxspace.be',    entity: 'EDGX SPACE', budget: 0,     role: 'Employee', status: 'Active', gender: 'f' },
+  'pieter-mertens':    { name: 'Pieter Mertens',     initials: 'PM', color: '#a7f3d0', entitlement: 29, department: 'Marketing',   email: 'pieter.mertens@lumiogroup.be',    entity: 'Lumio Group', budget: 8500,  role: 'Manager',  status: 'Active', gender: 'm' },
+  'sarah-de-smedt':    { name: 'Sarah De Smedt',     initials: 'SD', color: '#fecdd3', entitlement: 23, department: 'Marketing',   email: 'sarah.de-smedt@lumiogroup.be',   entity: 'Lumio Group', budget: 2750,  role: 'Employee', status: 'Active', gender: 'f' },
+  'julie-goossens':    { name: 'Julie Goossens',     initials: 'JG', color: '#fed7aa', entitlement: 20, department: 'Marketing',   email: 'julie.goossens@lumiogroup.be',    entity: 'Lumio Group', budget: 5000,  role: 'Manager',  status: 'Active', gender: 'f' },
+  'noor-de-smedt':     { name: 'Noor De Smedt',      initials: 'ND', color: '#fde68a', entitlement: 20, department: 'Marketing',   email: 'noor.de-smedt@lumiogroup.be',    entity: 'Lumio Group', budget: 0,     role: 'Employee', status: 'Active', gender: 'f' },
 };
 
 // ── Per-employee supplemental data ────────────────────────────────────────
@@ -562,7 +562,7 @@ const generatedRequests = [
   { id: 'gen-11', employee: 'laura-mertens', type: 'Sick leave', startDate: 'Tue 14 Jul', endDate: 'Tue 14 Jul', days: 1, status: 'approved', submittedAt: '14 Jul', note: '', _selectedDates: ['2026-07-14'] },
   { id: 'gen-6c', employee: 'bram-goossens', type: 'Special leave', startDate: 'Thu 19 Mar', endDate: 'Thu 19 Mar', days: 1, status: 'approved', submittedAt: '10 Mar', note: 'Wedding', document: 'wedding_certificate.pdf', _selectedDates: ['2026-03-19'] },
   { id: 'gen-6d', employee: 'bram-goossens', type: 'Sick leave', startDate: 'Mon 5 May', endDate: 'Tue 6 May', days: 2, status: 'approved', submittedAt: '5 May', document: 'medical_certificate.pdf', note: '', _selectedDates: ['2026-05-05','2026-05-06'] },
-  { id: 'gen-6b', employee: 'bram-goossens', type: 'Time off', startDate: 'Fri 19 Jun', endDate: 'Fri 19 Jun', days: 0.5, halfDay: 'PM', status: 'approved', submittedAt: '18 Jun', note: '', _selectedDates: ['2026-06-19'] },
+  { id: 'gen-6b', employee: 'bram-goossens', type: 'Time off', startDate: 'Fri 19 Jun', endDate: 'Fri 19 Jun', days: 0.5, halfDay: 'PM', status: 'approved', submittedAt: '18 Jun', note: '', _selectedDates: ['2026-06-19'], _halfDay: { '2026-06-19': 'pm' } },
   { id: 'gen-6', employee: 'bram-goossens', type: 'ADV / RTT', startDate: 'Mon 22 Jun', endDate: 'Tue 23 Jun', days: 2, status: 'approved', submittedAt: '15 Jun', note: '', _selectedDates: ['2026-06-22','2026-06-23'] },
   { id: 'gen-7', employee: 'jana-goossens', type: 'Time off', startDate: 'Thu 25 Jun', endDate: 'Fri 27 Jun', days: 3, status: 'approved', submittedAt: '10 Jun', note: 'Long weekend', _selectedDates: ['2026-06-25','2026-06-26','2026-06-27'] },
   { id: 'gen-8', employee: 'pieter-mertens', type: 'Extra-legal leave', startDate: 'Wed 1 Jul', endDate: 'Wed 1 Jul', days: 1, status: 'approved', submittedAt: '28 Jun', note: '', _selectedDates: ['2026-07-01'] },
@@ -1482,23 +1482,23 @@ function ModalCalendar({ startDate, endDate, focusedField, onDateTap, pickedDate
 }
 
 // ── Add / Edit time off modal ──────────────────────────────────────────────
-function AddTimeOffModal({ existing, onClose, onSave, requests = [] }) {
+function AddTimeOffModal({ existing, onClose, onSave, requests = [], defaultDate, defaultEmployee, defaultHalfDay }) {
   const isEdit = !!existing?.id;
   const lockEmployee = existing?._lockEmployee;
-  const [empId, setEmpId]     = useState(existing?.employee || '');
+  const [empId, setEmpId]     = useState(existing?.employee || defaultEmployee || '');
   const [type, setType]       = useState(existing?.type || 'Time off');
   const [specialReason, setSpecialReason] = useState(existing?._specialReason || '');
   const [specialWho, setSpecialWho]       = useState(existing?._specialWho || '');
   const [note, setNote]       = useState(existing?.note || '');
   const [holidayName, setHolidayName] = useState(existing?.name || '');
   const [errors, setErrors] = useState({});
-  const [halfDay, setHalfDay] = useState(existing?._halfDay || {});
+  const [halfDay, setHalfDay] = useState(existing?._halfDay || (defaultDate && defaultHalfDay ? { [defaultDate]: defaultHalfDay } : {}));
   const [showEditSelection, setShowEditSelection] = useState(false);
   const [attachment, setAttachment] = useState(null);
   const [notifyEmployee, setNotifyEmployee] = useState(false);
   const [scope, setScope] = useState(existing?._isCompanyEvent ? 'collective' : 'one');
-  const [rangeFrom, setRangeFrom] = useState(() => existing?.startDate ? (toISOInput(existing.startDate) || '') : '');
-  const [rangeTo, setRangeTo]     = useState(() => existing ? (toISOInput(existing.endDate || existing.startDate) || '') : '');
+  const [rangeFrom, setRangeFrom] = useState(() => existing?.startDate ? (toISOInput(existing.startDate) || '') : defaultDate || '');
+  const [rangeTo, setRangeTo]     = useState(() => existing ? (toISOInput(existing.endDate || existing.startDate) || '') : defaultDate || '');
   const [pickedDates, setPickedDates] = useState(() => {
     if (existing?._selectedDates) return new Set(existing._selectedDates);
     if (existing?.startDate) {
@@ -1513,6 +1513,7 @@ function AddTimeOffModal({ existing, onClose, onSave, requests = [] }) {
       }
       return dates;
     }
+    if (defaultDate) return new Set([defaultDate]);
     return new Set();
   });
   const allEmployees = scope === 'collective';
@@ -2464,6 +2465,12 @@ function TeamAbsencesScreen({ requests, pendingCount, onNav, onShowDetail, onSav
   const [tooltip, setTooltip] = useState(null);
   const [tooltipRendered, setTooltipRendered] = useState(null);
   const [addOpen, setAddOpen] = useState(false);
+  const [cellDate, setCellDate] = useState(null);
+  const [cellEmpId, setCellEmpId] = useState(null);
+  const [hoveredCell, setHoveredCell] = useState(null);
+  const [halfHoveredCell, setHalfHoveredCell] = useState(null);
+  const [hoveredCol, setHoveredCol] = useState(null);
+  const [cellHalfDay, setCellHalfDay] = useState(null);
   const [absencesOnly, setAbsencesOnly] = useState(false);
   const [closureDetail, setClosureDetail] = useState(null);
   const [closureEditOpen, setClosureEditOpen] = useState(null);
@@ -2539,7 +2546,7 @@ function TeamAbsencesScreen({ requests, pendingCount, onNav, onShowDetail, onSav
       return addDays(d, dir * 7);
     });
   };
-  const goToday = () => setRefDate(new Date(today.getFullYear(), today.getMonth(), 1));
+  const goToday = () => setRefDate(new Date(today));
 
   // Filter employees
   const allDepartments = DEPARTMENTS;
@@ -2597,6 +2604,15 @@ function TeamAbsencesScreen({ requests, pendingCount, onNav, onShowDetail, onSav
   }, [dayISOs, filteredEmployees, absenceMap, leaveFilter]);
 
   const totalFiltered = filteredEmployees.length;
+
+  const firstNameCount = useMemo(() => {
+    const counts = {};
+    for (const [, emp] of filteredEmployees) {
+      const first = emp.name.split(' ')[0];
+      counts[first] = (counts[first] || 0) + 1;
+    }
+    return counts;
+  }, [filteredEmployees]);
 
   const colCount = days.length;
   const nameColW = viewMode === 'week' ? 200 : 170;
@@ -2695,11 +2711,16 @@ function TeamAbsencesScreen({ requests, pendingCount, onNav, onShowDetail, onSav
                   const isHoliday = _holidaySet.has(iso);
                   const isCollective = closureSet.has(iso);
                   const closureEv = closureByDate[iso];
+                  const isWeekStart = viewMode === 'month' && d.getDay() === 1 && i > 0;
                   return (
-                    <div key={i} onClick={closureEv ? () => setClosureDetail(closureEv) : undefined} style={{
+                    <div key={i}
+                      onClick={closureEv ? () => setClosureDetail(closureEv) : undefined}
+                      onMouseEnter={() => setHoveredCol(iso)}
+                      onMouseLeave={() => setHoveredCol(null)}
+                      style={{
                       padding: '6px 0', textAlign: 'center',
-                      background: isCollective ? '#faf6eb' : isHoliday ? '#f3f1fe' : isWknd ? '#fafafa' : 'transparent',
-                      borderLeft: `1px solid ${P.border}`,
+                      background: isCollective ? '#faf6eb' : isHoliday ? '#f3f1fe' : isWknd ? '#fafafa' : hoveredCol === iso ? 'rgba(99,102,241,0.04)' : 'transparent',
+                      borderLeft: isWeekStart ? `2px solid ${P.borderStrong}` : `1px solid ${P.border}`,
                       cursor: closureEv ? 'pointer' : undefined,
                     }} title={isHoliday ? BELGIAN_HOLIDAY_NAMES[iso] : closureEv ? (closureEv.name || 'Company closure') : isCollective ? 'Company closed' : ''}>
                       <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 9, color: P.inkFaint, letterSpacing: '0.06em' }}>
@@ -2735,12 +2756,17 @@ function TeamAbsencesScreen({ requests, pendingCount, onNav, onShowDetail, onSav
                         <div style={{ display: 'flex', alignItems: 'center', padding: '0 12px', gap: 8, overflow: 'hidden' }}>
                           <div style={{ overflow: 'hidden' }}>
                             <div style={{ fontFamily: 'var(--font-body)', fontSize: viewMode === 'week' ? 12 : 11, fontWeight: viewMode === 'week' ? 500 : 400, color: P.ink, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                              {viewMode === 'week' ? emp.name : emp.name.split(' ')[0]}
+                              {(() => {
+                                if (viewMode === 'week') return emp.name;
+                                const parts = emp.name.split(' ');
+                                return firstNameCount[parts[0]] > 1 && parts.length > 1 ? `${parts[0]} ${parts[1].charAt(0)}.` : parts[0];
+                              })()}
                             </div>
                           </div>
                         </div>
                         {dayISOs.map((iso, i) => {
                           const d = days[i];
+                          const isToday = iso === todayISO;
                           const isWknd = d.getDay() === 0 || d.getDay() === 6;
                           const isHoliday = _holidaySet.has(iso);
                           const isCollective = closureSet.has(iso);
@@ -2755,37 +2781,120 @@ function TeamAbsencesScreen({ requests, pendingCount, onNav, onShowDetail, onSav
                           const isStart = show && (!prevEntry || prevEntry.requestId !== entry.requestId);
                           const isEnd = show && (!nextEntry || nextEntry.requestId !== entry.requestId);
                           const isWeekCard = viewMode === 'week' && isStart;
+                          const fullReq = show ? requests.find(function(r) { return r.id === entry.requestId; }) : null;
+                          const halfDayForDate = fullReq?._halfDay?.[iso];
+                          const isHalfDayCell = !!(halfDayForDate && isWeekCard && isStart && isEnd);
                           const pt = viewMode === 'week' ? 8 : 3;
                           const pad = viewMode === 'week' ? 6 : 3;
 
                           const closureEv = closureByDate[iso];
                           const cellClickable = !show && closureEv;
+                          const cellAddable = !show && !isWknd && !isHoliday && !isCollective;
+                          const isHoveredAdd = cellAddable && hoveredCell === `${empId}-${iso}`;
+                          const isCellWeekStart = viewMode === 'month' && d.getDay() === 1 && i > 0;
 
                           return (
                             <div key={iso}
-                              onMouseEnter={cellClickable ? (e) => {
-                                clearTimeout(tooltipTimerRef.current);
-                                const key = 'closure-' + closureEv.id;
-                                if (tooltipReqIdRef.current !== key) {
-                                  tooltipReqIdRef.current = key;
-                                  const rect = e.currentTarget.getBoundingClientRect();
-                                  setTooltip({ closure: closureEv, x: rect.left + rect.width / 2, y: rect.top - 4 });
+                              onMouseEnter={(e) => {
+                                setHoveredCol(iso);
+                                if (cellClickable) {
+                                  clearTimeout(tooltipTimerRef.current);
+                                  const key = 'closure-' + closureEv.id;
+                                  if (tooltipReqIdRef.current !== key) {
+                                    tooltipReqIdRef.current = key;
+                                    const rect = e.currentTarget.getBoundingClientRect();
+                                    setTooltip({ closure: closureEv, x: rect.left + rect.width / 2, y: rect.top - 4 });
+                                  }
+                                } else if (cellAddable) {
+                                  setHoveredCell(`${empId}-${iso}`);
                                 }
-                              } : undefined}
-                              onMouseLeave={cellClickable ? () => {
-                                tooltipTimerRef.current = setTimeout(() => { tooltipReqIdRef.current = null; setTooltip(null); }, 80);
-                              } : undefined}
-                              onClick={cellClickable ? () => setClosureDetail(closureEv) : undefined}
+                              }}
+                              onMouseLeave={() => {
+                                setHoveredCol(null);
+                                if (cellClickable) {
+                                  tooltipTimerRef.current = setTimeout(() => { tooltipReqIdRef.current = null; setTooltip(null); }, 80);
+                                } else if (cellAddable) {
+                                  setHoveredCell(null);
+                                }
+                              }}
+                              onClick={cellClickable ? () => setClosureDetail(closureEv) : cellAddable ? () => { setCellDate(iso); setCellEmpId(empId); setAddOpen(true); } : undefined}
                               style={{
-                              borderLeft: `1px solid ${P.border}`,
-                              background: isCollective ? '#faf6eb' : isHoliday ? '#f3f1fe' : isWknd ? '#fafafa' : 'transparent',
+                              borderLeft: isCellWeekStart ? `2px solid ${P.borderStrong}` : `1px solid ${P.border}`,
+                              background: isCollective ? '#faf6eb' : isHoliday ? '#f3f1fe' : isWknd ? '#fafafa' : isHoveredAdd ? P.bg : hoveredCol === iso ? 'rgba(99,102,241,0.04)' : 'transparent',
                               display: 'flex', alignItems: 'stretch',
                               paddingTop: pt, paddingBottom: pt,
                               paddingLeft: isStart ? pad : 0,
                               paddingRight: isEnd ? pad : 0,
-                              cursor: cellClickable ? 'pointer' : undefined,
+                              cursor: (cellClickable || cellAddable) ? 'pointer' : undefined,
                             }}>
-                              {show && (
+                              {!show && isHoveredAdd && (
+                                <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                  <div style={{
+                                    width: 22, height: 22, borderRadius: 6,
+                                    background: P.white, border: `1px solid ${P.borderStrong}`,
+                                    boxShadow: '0 1px 3px rgba(15,13,40,0.08)',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                                  }}>
+                                    <Icon name="Plus" size={12} color={P.inkSoft} strokeWidth={2.5} />
+                                  </div>
+                                </div>
+                              )}
+                              {show && isHalfDayCell ? (
+                                ['am', 'pm'].map(function(half) {
+                                  const isTaken = halfDayForDate === half;
+                                  const halfKey = empId + '-' + iso + '-' + half;
+                                  const isHalfHov = halfHoveredCell === halfKey;
+                                  const barRadius = half === 'am' ? '5px 0 0 5px' : '0 5px 5px 0';
+                                  return isTaken ? (
+                                    <div key={half}
+                                      onMouseEnter={(e) => {
+                                        clearTimeout(tooltipTimerRef.current);
+                                        if (tooltipReqIdRef.current !== entry.requestId) {
+                                          tooltipReqIdRef.current = entry.requestId;
+                                          const rect = e.currentTarget.getBoundingClientRect();
+                                          if (fullReq) setTooltip({ req: fullReq, x: rect.left + rect.width / 2, y: rect.top - 4 });
+                                        }
+                                      }}
+                                      onMouseLeave={() => {
+                                        tooltipTimerRef.current = setTimeout(function() { tooltipReqIdRef.current = null; setTooltip(null); }, 80);
+                                      }}
+                                      onClick={() => { if (fullReq && onShowDetail) onShowDetail(fullReq); }}
+                                      style={{
+                                        flex: 1, borderRadius: barRadius, background: barColor,
+                                        borderTop: isPending ? `1.5px dashed ${LEAVE_BORDER_COLORS[entry.type] || '#999'}` : 'none',
+                                        borderBottom: isPending ? `1.5px dashed ${LEAVE_BORDER_COLORS[entry.type] || '#999'}` : 'none',
+                                        borderLeft: isPending && half === 'am' ? `1.5px dashed ${LEAVE_BORDER_COLORS[entry.type] || '#999'}` : 'none',
+                                        borderRight: isPending && half === 'pm' ? `1.5px dashed ${LEAVE_BORDER_COLORS[entry.type] || '#999'}` : 'none',
+                                        cursor: 'pointer',
+                                        padding: '5px 8px',
+                                        display: 'flex', alignItems: 'center', flexDirection: 'column', justifyContent: 'center',
+                                        gap: 2, overflow: 'hidden',
+                                      }}>
+                                      <WeekCard entry={entry} requestId={entry.requestId} requests={requests} isPending={isPending} />
+                                    </div>
+                                  ) : (
+                                    <div key={half}
+                                      onMouseEnter={() => setHalfHoveredCell(halfKey)}
+                                      onMouseLeave={() => setHalfHoveredCell(null)}
+                                      onClick={() => { setCellDate(iso); setCellEmpId(empId); setCellHalfDay(half); setAddOpen(true); }}
+                                      style={{
+                                        flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                        cursor: 'pointer', borderRadius: barRadius,
+                                      }}>
+                                      {isHalfHov && (
+                                        <div style={{
+                                          width: 22, height: 22, borderRadius: 6,
+                                          background: P.white, border: `1px solid ${P.borderStrong}`,
+                                          boxShadow: '0 1px 3px rgba(15,13,40,0.08)',
+                                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                        }}>
+                                          <Icon name="Plus" size={12} color={P.inkSoft} strokeWidth={2.5} />
+                                        </div>
+                                      )}
+                                    </div>
+                                  );
+                                })
+                              ) : show ? (
                                 <div
                                   onMouseEnter={(e) => {
                                     clearTimeout(tooltipTimerRef.current);
@@ -2817,17 +2926,18 @@ function TeamAbsencesScreen({ requests, pendingCount, onNav, onShowDetail, onSav
                                     cursor: 'pointer',
                                     padding: isWeekCard ? '5px 8px' : 0,
                                     display: isWeekCard ? 'flex' : 'block',
+                                    alignItems: isWeekCard ? 'center' : undefined,
                                     flexDirection: isWeekCard ? 'column' : undefined,
                                     justifyContent: isWeekCard ? 'center' : undefined,
                                     gap: isWeekCard ? 2 : undefined,
-                                    overflow: isWeekCard ? 'hidden' : undefined,
+                                    overflow: 'hidden',
                                   }}
                                 >
                                   {isWeekCard && (
                                     <WeekCard entry={entry} requestId={entry.requestId} requests={requests} isPending={isPending} />
                                   )}
                                 </div>
-                              )}
+                              ) : null}
                             </div>
                           );
                         })}
@@ -2875,7 +2985,7 @@ function TeamAbsencesScreen({ requests, pendingCount, onNav, onShowDetail, onSav
 
       </div>
       {addOpen && (
-        <AddTimeOffModal existing={null} requests={requests} onClose={() => setAddOpen(false)} onSave={(req) => { onSave(req); setAddOpen(false); }} />
+        <AddTimeOffModal existing={null} requests={requests} defaultDate={cellDate} defaultEmployee={cellEmpId} defaultHalfDay={cellHalfDay} onClose={() => { setAddOpen(false); setCellDate(null); setCellEmpId(null); setCellHalfDay(null); }} onSave={(req) => { onSave(req); setAddOpen(false); setCellDate(null); setCellEmpId(null); setCellHalfDay(null); }} />
       )}
 
       {closureDetail && (
@@ -3187,6 +3297,10 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, o
     });
   }, [empReqs, emp, employeeBalance]);
 
+  const balancesForModal = useMemo(() =>
+    Object.fromEntries(balances.filter(b => b.entitled != null).map(b => [b.type, b.entitled]))
+  , [balances]);
+
   const tabs = [
     { id: 'choices', label: 'Choices' },
     { id: 'budgets', label: 'Budgets' },
@@ -3228,7 +3342,6 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, o
           <div style={{ maxWidth: 900, margin: '0 auto' }}>
             {needsSetup && (
               <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 10, padding: '14px 18px', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 14 }}>
-                <Icon name="AlertTriangle" size={16} color="#d97706" />
                 <div style={{ flex: 1 }}>
                   <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: '#92400e' }}>Confirm {emp.name.split(' ')[0]}'s leave balances</div>
                   <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: '#78350f', marginTop: 1 }}>These are company defaults — adjust any values if needed, then confirm so {emp.name.split(' ')[0]} can request time off.</div>
@@ -3257,7 +3370,7 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, o
               <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
                 {balances.filter(b => b.entitled != null || b.type === 'ADV / RTT' || b.type === 'Extra-legal leave').map(b => {
                   const isLimited = b.entitled != null;
-                  const isLow = isLimited && b.remaining != null && b.remaining <= 3;
+                  const isLow = isLimited && b.remaining === 0;
                   return (
                     <div key={b.type} style={{ flex: '1 1 160px', background: P.white, border: `1px solid ${P.border}`, borderRadius: 10, padding: '20px 24px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
@@ -3433,7 +3546,7 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, o
       {editBalancesOpen && (
         <EditBalancesModal
           emp={emp}
-          balances={employeeBalance || {}}
+          balances={balancesForModal}
           onSave={onUpdateBalance}
           onClose={() => setEditBalancesOpen(false)}
           isNewEmployee={needsSetup}
