@@ -106,14 +106,16 @@ function Icon({ name, size = 16, color = P.inkSoft, strokeWidth = 1.75, style })
 
 // ── Motion tokens ────────────────────────────────────────────────────────────
 const EASE_OUT = 'cubic-bezier(0.22, 1, 0.36, 1)';
+const EASE_DRAWER = 'cubic-bezier(0.32, 0.72, 0, 1)';
 const EASE_BOUNCE = 'cubic-bezier(0.34, 1.56, 0.64, 1)';
 const PREFERS_REDUCED_MOTION = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const MODAL_CLOSE_DUR = 150;
+const SHEET_CLOSE_DUR = 220;
 
 // Drives a modal's mount-in / close-out transition. Returns `visible` (drive
 // opacity/transform from this) and `close` (call instead of the raw onClose —
 // it animates out, then fires the real onClose after MODAL_CLOSE_DUR).
-function useModalTransition(onClose) {
+function useModalTransition(onClose, closeDur = MODAL_CLOSE_DUR) {
   const [mounted, setMounted] = useState(false);
   const [closing, setClosing] = useState(false);
   useEffect(() => {
@@ -122,9 +124,9 @@ function useModalTransition(onClose) {
   }, []);
   const close = useCallback(() => {
     setClosing(true);
-    setTimeout(onClose, MODAL_CLOSE_DUR);
-  }, [onClose]);
-  return { visible: mounted && !closing, close };
+    setTimeout(onClose, closeDur);
+  }, [onClose, closeDur]);
+  return { visible: mounted && !closing, close, closing };
 }
 function modalBackdropStyle(visible) {
   return { opacity: visible ? 1 : 0, transition: `opacity ${MODAL_CLOSE_DUR}ms ${EASE_OUT}` };
@@ -186,10 +188,13 @@ function modalPanelStyle(visible) {
     transition: `transform 200ms ${EASE_OUT}, opacity 200ms ${EASE_OUT}`,
   };
 }
-function sheetPanelStyle(visible) {
+function sheetPanelStyle(visible, closing) {
+  const transDur = closing ? SHEET_CLOSE_DUR : 340;
+  const opacDur  = closing ? SHEET_CLOSE_DUR : 180;
   return {
     transform: visible ? 'translateX(0)' : 'translateX(100%)',
-    transition: `transform 320ms ${EASE_OUT}`,
+    opacity:   visible ? 1 : 0,
+    transition: `transform ${transDur}ms ${EASE_DRAWER}, opacity ${opacDur}ms ${EASE_OUT}`,
   };
 }
 
@@ -1076,7 +1081,7 @@ function DetailModal({ req, requests, onClose, onApprove, onDecline, onCancel, o
 
   const overlapping = getOverlapping(req, requests);
 
-  const { visible, close } = useModalTransition(onClose);
+  const { visible, close, closing } = useModalTransition(onClose, SHEET_CLOSE_DUR);
 
   const statusColor = req.status === 'approved' ? '#16a34a' : req.status === 'pending' ? '#d97706' : P.inkSoft;
   const statusLabel = req.status === 'approved' ? 'Approved' : req.status === 'pending' ? 'Pending' : 'Declined';
@@ -1100,7 +1105,7 @@ function DetailModal({ req, requests, onClose, onApprove, onDecline, onCancel, o
         borderRadius: 20,
         boxShadow: '0 24px 64px rgba(15,13,40,0.22), 0 0 0 1px rgba(15,13,40,0.06)',
         display: 'flex', flexDirection: 'column', overflow: 'hidden',
-        ...sheetPanelStyle(visible),
+        ...sheetPanelStyle(visible, closing),
       }}>
         {/* Header */}
         <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 24px', borderBottom: `1px solid ${P.border}` }}>
@@ -1632,7 +1637,7 @@ function AddTimeOffModal({ existing, onClose, onSave, requests = [], defaultDate
     fontFamily: 'var(--font-body)', fontSize: 13, color: P.ink, outline: 'none', background: P.white,
   };
 
-  const { visible, close } = useModalTransition(onClose);
+  const { visible, close, closing } = useModalTransition(onClose, SHEET_CLOSE_DUR);
 
   React.useEffect(() => {
     const handler = (e) => { if (e.key === 'Escape') close(); };
@@ -1652,7 +1657,7 @@ function AddTimeOffModal({ existing, onClose, onSave, requests = [], defaultDate
         borderRadius: 20,
         boxShadow: '0 24px 64px rgba(15,13,40,0.22), 0 0 0 1px rgba(15,13,40,0.06)',
         display: 'flex', flexDirection: 'column', overflow: 'hidden',
-        ...sheetPanelStyle(visible),
+        ...sheetPanelStyle(visible, closing),
       }}>
         {/* Header */}
         <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 24px', borderBottom: `1px solid ${P.border}` }}>
