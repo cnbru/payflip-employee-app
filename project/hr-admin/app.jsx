@@ -1927,11 +1927,12 @@ const AVATAR_EXPAND = 4;
 
 function AvatarStack({ people }) {
   const [activeIdx, setActiveIdx] = useState(null);
+  const [tooltipPos, setTooltipPos] = useState(null);
   const shown = people.slice(0, 4);
   const extra = people.length - 4;
   return (
     <span
-      onMouseLeave={() => setActiveIdx(null)}
+      onMouseLeave={() => { setActiveIdx(null); setTooltipPos(null); }}
       style={{ display: 'inline-flex', alignItems: 'flex-end', position: 'relative', height: AVATAR_SIZE + 8, paddingTop: 8 }}
     >
       {shown.map((p, i) => {
@@ -1943,8 +1944,12 @@ function AvatarStack({ people }) {
         return (
           <span
             key={p.id}
-            onMouseEnter={() => setActiveIdx(i)}
-            onMouseLeave={() => setActiveIdx(null)}
+            onMouseEnter={(e) => {
+              setActiveIdx(i);
+              const r = e.currentTarget.getBoundingClientRect();
+              setTooltipPos({ x: r.left + r.width / 2, y: r.top });
+            }}
+            onMouseLeave={() => { setActiveIdx(null); setTooltipPos(null); }}
             style={{
               width: AVATAR_SIZE, height: AVATAR_SIZE, borderRadius: '50%',
               background: e2?.color || '#e5e7eb',
@@ -1960,13 +1965,15 @@ function AvatarStack({ people }) {
             }}
           >
             {initials}
-            {isActive && (
+            {isActive && tooltipPos && (
               <span style={{
-                position: 'absolute', bottom: '100%', left: '50%', transform: 'translateX(-50%)',
-                marginBottom: 6, padding: '4px 8px', borderRadius: 6,
+                position: 'fixed',
+                left: tooltipPos.x, top: tooltipPos.y - 6,
+                transform: 'translateX(-50%) translateY(-100%)',
+                padding: '4px 8px', borderRadius: 6,
                 background: P.ink, color: '#fff',
                 fontSize: 13, fontWeight: 600, fontFamily: 'var(--font-display)',
-                whiteSpace: 'nowrap', pointerEvents: 'none', zIndex: 30,
+                whiteSpace: 'nowrap', pointerEvents: 'none', zIndex: 9999,
                 display: 'flex', alignItems: 'baseline', gap: 5,
               }}>
                 {name}
@@ -2019,7 +2026,7 @@ function RequestRow({ req, requests, onApprove, onDecline, onDetail, onEdit, onC
       display: 'grid',
       gridTemplateRows: removing ? '0fr' : '1fr',
       transition: PREFERS_REDUCED_MOTION ? 'none' : `grid-template-rows 200ms ${EASE_OUT}`,
-      overflow: 'hidden',
+      overflow: removing ? 'hidden' : 'visible',
     }}>
       <div style={{ minHeight: 0 }}>
         <div onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)} onClick={() => { if (!removing) onDetail(req); }}
