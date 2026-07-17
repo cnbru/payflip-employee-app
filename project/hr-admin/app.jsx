@@ -1965,7 +1965,7 @@ function AvatarStack({ people }) {
             }}
           >
             {initials}
-            {isActive && tooltipPos && (
+            {isActive && tooltipPos && ReactDOM.createPortal(
               <span style={{
                 position: 'fixed',
                 left: tooltipPos.x, top: tooltipPos.y - 6,
@@ -1985,7 +1985,8 @@ function AvatarStack({ people }) {
                 <span style={{ fontSize: 12, fontWeight: 500, opacity: 0.7 }}>
                   {p.days} {p.days === 1 ? 'day' : 'days'}
                 </span>
-              </span>
+              </span>,
+              document.body
             )}
           </span>
         );
