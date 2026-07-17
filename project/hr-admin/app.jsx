@@ -3690,7 +3690,7 @@ function Toast({ toast, onDone }) {
 
   return (
     <div style={{
-      position: 'fixed', bottom: 24, left: '50%',
+      position: 'fixed', bottom: 24, left: 'calc((100vw + 216px) / 2)',
       transform: exiting ? 'translateX(-50%) translateY(8px)' : 'translateX(-50%) translateY(0)',
       opacity: exiting ? 0 : 1,
       transition: exiting ? `opacity 180ms ${EASE_OUT}, transform 180ms ${EASE_OUT}` : 'none',
