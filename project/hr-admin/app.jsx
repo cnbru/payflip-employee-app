@@ -107,6 +107,7 @@ function Icon({ name, size = 16, color = P.inkSoft, strokeWidth = 1.75, style })
 // ── Motion tokens ────────────────────────────────────────────────────────────
 const EASE_OUT = 'cubic-bezier(0.22, 1, 0.36, 1)';
 const EASE_BOUNCE = 'cubic-bezier(0.34, 1.56, 0.64, 1)';
+const PREFERS_REDUCED_MOTION = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const MODAL_CLOSE_DUR = 150;
 
 // Drives a modal's mount-in / close-out transition. Returns `visible` (drive
@@ -773,7 +774,7 @@ function AppModeSidebar({ active, onNav, pendingCount, onEnterSettings }) {
         <SidebarItem icon="users" label="People" isActive={active === 'employees' || active?.startsWith('employee-detail')} onClick={() => onNav('employees')} />
         <SidebarItem icon="list-checks" label="Choices" isActive={active === 'choices'} onClick={() => onNav('choices')} />
 
-        <SidebarItem icon="calendar-days" label="Time off" onClick={() => setTimeoffOpen(o => !o)} chevron chevronOpen={timeoffOpen} isActive={active === 'requests' || active === 'team-absences'} />
+        <SidebarItem icon="calendar-days" label="Time off" onClick={() => setTimeoffOpen(o => !o)} chevron chevronOpen={timeoffOpen} isActive={active === 'requests' || active === 'team-absences'} badgeDot={!timeoffOpen && pendingCount > 0 ? pendingCount : null} />
         <SidebarAccordion open={timeoffOpen}>
           <SidebarSub active={active} onNav={onNav} items={[
             { id: 'requests', label: 'Requests', badge: pendingCount },
@@ -2004,7 +2005,7 @@ const TH = ({ children, style }) => (
   <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.06em', ...style }}>{children}</div>
 );
 
-function RequestRow({ req, requests, onApprove, onDecline, onDetail, onEdit, onCancel, selected, onToggle, onViewInCalendar, showStatus }) {
+function RequestRow({ req, requests, onApprove, onDecline, onDetail, onEdit, onCancel, selected, onToggle, onViewInCalendar, showStatus, removing }) {
   const emp = EMPLOYEES[req.employee] || { name: req.employee, initials: '?', color: '#e5e7eb', entitlement: 20 };
   const [hover, setHover] = useState(false);
   const usedDays = requests
@@ -2014,48 +2015,60 @@ function RequestRow({ req, requests, onApprove, onDecline, onDetail, onEdit, onC
   const overlapping = getOverlapping(req, requests);
   const gridCols = showStatus ? '32px 1.8fr 1fr 0.9fr 0.7fr 0.7fr 1fr 1fr 96px' : '32px 1.8fr 0.9fr 0.7fr 0.7fr 1fr 1fr 96px';
   return (
-    <div onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)} onClick={() => onDetail(req)}
-      style={{
-        display: 'grid', gridTemplateColumns: gridCols,
-        alignItems: 'center', gap: 12, padding: '0 20px', minHeight: 52,
-        borderBottom: `1px solid ${P.border}`,
-        background: selected ? '#f5f3ff' : hover ? P.bg : P.white,
-        cursor: 'pointer', transition: 'background 0.1s',
-      }}>
-      <input type="checkbox" checked={selected} onClick={e => e.stopPropagation()} onChange={() => onToggle(req.id)} style={{ cursor: 'pointer', accentColor: P.ink }} />
-      <div style={{ display: 'flex', alignItems: 'center', minWidth: 0 }}>
-        <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{emp.name}</span>
-      </div>
-      {showStatus && <StatusDot status={req.status} />}
-      <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink }}>{req.type}</span>
-      <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink }}>{req.days} {req.days === 1 ? 'day' : 'days'}</span>
-      <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink }}>{req.startDate}</span>
-      <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: req.startDate === req.endDate ? P.inkFaint : P.ink }}>
-        {req.startDate === req.endDate ? '—' : req.endDate}
-      </span>
-      <span style={{ display: 'inline-flex', alignItems: 'center' }}>
-        {overlapping.length === 0 ? (
-          <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkFaint }}>—</span>
-        ) : (
-          <AvatarStack people={overlapping} />
-        )}
-      </span>
-      <div onClick={e => e.stopPropagation()} style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4 }}>
-        {req.status === 'pending' && (<>
-          <button title="Decline" onClick={() => onDecline(req.id)}
-            onMouseEnter={e => { e.currentTarget.style.background = '#fee2e2'; e.currentTarget.style.borderColor = '#fca5a5'; }}
-            onMouseLeave={e => { e.currentTarget.style.background = '#fef2f2'; e.currentTarget.style.borderColor = '#fecaca'; }}
-            style={{ width: 28, height: 28, borderRadius: 6, border: '1px solid #fecaca', background: '#fef2f2', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <Icon name="X" size={14} color="#dc2626" strokeWidth={2.5} />
-          </button>
-          <button title="Approve" onClick={() => onApprove(req.id)}
-            onMouseEnter={e => { e.currentTarget.style.background = '#dcfce7'; e.currentTarget.style.borderColor = '#86efac'; }}
-            onMouseLeave={e => { e.currentTarget.style.background = '#f0fdf4'; e.currentTarget.style.borderColor = '#bbf7d0'; }}
-            style={{ width: 28, height: 28, borderRadius: 6, border: '1px solid #bbf7d0', background: '#f0fdf4', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <Icon name="Check" size={14} color="#16a34a" strokeWidth={2.5} />
-          </button>
-        </>)}
-        <ActionMenu req={req} onViewDetails={() => onDetail(req)} onViewInCalendar={onViewInCalendar} onEdit={() => onEdit(req)} onCancel={() => onCancel(req.id)} />
+    <div style={{
+      display: 'grid',
+      gridTemplateRows: removing ? '0fr' : '1fr',
+      transition: PREFERS_REDUCED_MOTION ? 'none' : `grid-template-rows 200ms ${EASE_OUT}`,
+      overflow: 'hidden',
+    }}>
+      <div style={{ minHeight: 0 }}>
+        <div onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)} onClick={() => { if (!removing) onDetail(req); }}
+          style={{
+            display: 'grid', gridTemplateColumns: gridCols,
+            alignItems: 'center', gap: 12, padding: '0 20px', minHeight: 52,
+            borderBottom: `1px solid ${P.border}`,
+            background: selected ? '#f5f3ff' : hover ? P.bg : P.white,
+            cursor: removing ? 'default' : 'pointer',
+            transition: PREFERS_REDUCED_MOTION ? 'background 0.1s, opacity 100ms linear' : `background 0.1s, opacity 150ms ${EASE_OUT}`,
+            opacity: removing ? 0 : 1,
+            pointerEvents: removing ? 'none' : 'auto',
+          }}>
+          <input type="checkbox" checked={selected} onClick={e => e.stopPropagation()} onChange={() => onToggle(req.id)} style={{ cursor: 'pointer', accentColor: P.ink }} />
+          <div style={{ display: 'flex', alignItems: 'center', minWidth: 0 }}>
+            <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{emp.name}</span>
+          </div>
+          {showStatus && <StatusDot status={req.status} />}
+          <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink }}>{req.type}</span>
+          <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink }}>{req.days} {req.days === 1 ? 'day' : 'days'}</span>
+          <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink }}>{req.startDate}</span>
+          <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: req.startDate === req.endDate ? P.inkFaint : P.ink }}>
+            {req.startDate === req.endDate ? '—' : req.endDate}
+          </span>
+          <span style={{ display: 'inline-flex', alignItems: 'center' }}>
+            {overlapping.length === 0 ? (
+              <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkFaint }}>—</span>
+            ) : (
+              <AvatarStack people={overlapping} />
+            )}
+          </span>
+          <div onClick={e => e.stopPropagation()} style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4 }}>
+            {req.status === 'pending' && (<>
+              <button title="Decline" onClick={() => onDecline(req.id)}
+                onMouseEnter={e => { e.currentTarget.style.background = '#fee2e2'; e.currentTarget.style.borderColor = '#fca5a5'; }}
+                onMouseLeave={e => { e.currentTarget.style.background = '#fef2f2'; e.currentTarget.style.borderColor = '#fecaca'; }}
+                style={{ width: 28, height: 28, borderRadius: 6, border: '1px solid #fecaca', background: '#fef2f2', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <Icon name="X" size={14} color="#dc2626" strokeWidth={2.5} />
+              </button>
+              <button title="Approve" onClick={() => onApprove(req.id)}
+                onMouseEnter={e => { e.currentTarget.style.background = '#dcfce7'; e.currentTarget.style.borderColor = '#86efac'; }}
+                onMouseLeave={e => { e.currentTarget.style.background = '#f0fdf4'; e.currentTarget.style.borderColor = '#bbf7d0'; }}
+                style={{ width: 28, height: 28, borderRadius: 6, border: '1px solid #bbf7d0', background: '#f0fdf4', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <Icon name="Check" size={14} color="#16a34a" strokeWidth={2.5} />
+              </button>
+            </>)}
+            <ActionMenu req={req} onViewDetails={() => onDetail(req)} onViewInCalendar={onViewInCalendar} onEdit={() => onEdit(req)} onCancel={() => onCancel(req.id)} />
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -2079,6 +2092,27 @@ function RequestsScreen({ requests, onApprove, onDecline, onSave, onCancel, onVi
     const t = setTimeout(() => setPillLeaving(false), 120);
     return () => clearTimeout(t);
   }, [selected.size]);
+  const prevPendingIdsRef = useRef(new Set());
+  const removalTimersRef = useRef(new Set());
+  const [removingIds, setRemovingIds] = useState(() => new Set());
+  useEffect(() => {
+    const currentPendingIds = new Set(requests.filter(r => r.status === 'pending').map(r => r.id));
+    const justLeft = [...prevPendingIdsRef.current].filter(id => !currentPendingIds.has(id));
+    if (justLeft.length > 0) {
+      setRemovingIds(prev => new Set([...prev, ...justLeft]));
+      const t = setTimeout(() => {
+        setRemovingIds(prev => {
+          const next = new Set(prev);
+          justLeft.forEach(id => next.delete(id));
+          return next;
+        });
+        removalTimersRef.current.delete(t);
+      }, 220);
+      removalTimersRef.current.add(t);
+    }
+    prevPendingIdsRef.current = currentPendingIds;
+  }, [requests]);
+  useEffect(() => () => { removalTimersRef.current.forEach(clearTimeout); }, []);
   const [searchText, setSearchText] = useState('');
   const [leaveFilter, setLeaveFilter] = useState('all');
   const [deptFilter, setDeptFilter] = useState('all');
@@ -2102,6 +2136,9 @@ function RequestsScreen({ requests, onApprove, onDecline, onSave, onCancel, onVi
     else setSelected(prev => new Set([...prev, ...paginated.map(r => r.id)]));
   };
   const selectedPending = [...selected].filter(id => requests.find(r => r.id === id)?.status === 'pending');
+  const displayRows = tab === 'pending'
+    ? [...paginated, ...[...removingIds].filter(id => !paginated.some(r => r.id === id)).map(id => requests.find(r => r.id === id)).filter(Boolean)]
+    : paginated;
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, position: 'relative', animation: `screenEnter 180ms ${EASE_OUT}` }}>
       <PageHeader
@@ -2134,14 +2171,14 @@ function RequestsScreen({ requests, onApprove, onDecline, onSave, onCancel, onVi
           <input type="checkbox" checked={allSelected} onChange={toggleAll} style={{ cursor: 'pointer', accentColor: P.ink }} />
           <TH>Requested by</TH>{tab === 'all' && <TH>Status</TH>}<TH>Leave type</TH><TH>Duration</TH><TH>Date from</TH><TH>Date to</TH><TH>Also off</TH><div />
         </div>
-        {filtered.length === 0 ? (
+        {displayRows.length === 0 ? (
           <div style={{ padding: '60px 24px', textAlign: 'center' }}>
             <Icon name="Inbox" size={32} color={P.border} style={{ marginBottom: 12 }} />
             <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.inkFaint }}>No {tab === 'pending' ? 'pending ' : tab === 'approved' ? 'approved ' : ''}requests</div>
             <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkFaint, marginTop: 4 }}>{tab === 'pending' ? 'New requests from your team will appear here.' : ''}</div>
           </div>
-        ) : paginated.map(req => (
-          <RequestRow key={req.id} req={req} requests={requests} onApprove={onApprove} onDecline={onDecline} onDetail={setDetail} onEdit={setEditReq} onCancel={onCancel} selected={selected.has(req.id)} onToggle={toggleSelect} onViewInCalendar={onViewInCalendar} showStatus={tab === 'all'} />
+        ) : displayRows.map(req => (
+          <RequestRow key={req.id} req={req} requests={requests} onApprove={onApprove} onDecline={onDecline} onDetail={setDetail} onEdit={setEditReq} onCancel={onCancel} selected={selected.has(req.id)} onToggle={toggleSelect} onViewInCalendar={onViewInCalendar} showStatus={tab === 'all'} removing={removingIds.has(req.id)} />
         ))}
         {filtered.length > 0 && (
           <div style={{ padding: '8px 16px', borderTop: `1px solid ${P.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -2460,7 +2497,7 @@ function TeamAbsencesScreen({ requests, pendingCount, onNav, onShowDetail, onSav
   // State
   const [viewMode, setViewMode] = useState('week');
   const [viewModeRef, viewModeRect, viewModeAnimate] = useSlidingIndicator(viewMode);
-  const [refDate, setRefDate] = useState(() => initialDate || new Date(today.getFullYear(), today.getMonth(), 1));
+  const [refDate, setRefDate] = useState(() => initialDate || today);
   const [monthPickerOpen, setMonthPickerOpen] = useState(false);
   const [searchText, setSearchText] = useState('');
   const [activeDepts, setActiveDepts] = useState(() => new Set(DEPARTMENTS));
@@ -3635,22 +3672,47 @@ function AppSwitcher() {
 }
 
 // ── Toast ──────────────────────────────────────────────────────────────────
-function Toast({ message, onDone }) {
+function Toast({ toast, onDone }) {
+  const [exiting, setExiting] = useState(false);
+
+  const dismiss = () => {
+    setExiting(true);
+    setTimeout(onDone, 180);
+  };
+
   useEffect(() => {
-    const t = setTimeout(onDone, 2500);
+    const duration = toast.type === 'decline' ? 5000 : 2500;
+    const t = setTimeout(dismiss, duration);
     return () => clearTimeout(t);
-  }, [message]);
+  }, [toast.message]);
+
+  const isDecline = toast.type === 'decline';
+
   return (
     <div style={{
-      position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)',
-      background: P.ink, color: '#fff', padding: '10px 20px', borderRadius: 10,
+      position: 'fixed', bottom: 24, left: '50%',
+      transform: exiting ? 'translateX(-50%) translateY(8px)' : 'translateX(-50%) translateY(0)',
+      opacity: exiting ? 0 : 1,
+      transition: exiting ? `opacity 180ms ${EASE_OUT}, transform 180ms ${EASE_OUT}` : 'none',
+      background: P.ink, color: '#fff',
+      padding: toast.onUndo ? '8px 8px 8px 16px' : '10px 20px',
+      borderRadius: 10,
       fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13,
       boxShadow: '0 4px 16px rgba(15,13,40,0.2)', zIndex: 300,
       display: 'flex', alignItems: 'center', gap: 8,
-      animation: 'fadeUp 0.2s ease-out',
+      animation: exiting ? 'none' : 'fadeUp 0.2s ease-out',
+      whiteSpace: 'nowrap',
     }}>
-      <Icon name="Check" size={15} color="#fff" strokeWidth={2.5} />
-      {message}
+      <Icon name={isDecline ? 'X' : 'Check'} size={15} color={isDecline ? '#f87171' : '#4ade80'} strokeWidth={2.5} />
+      {toast.message}
+      {toast.onUndo && (
+        <button onClick={() => { toast.onUndo(); dismiss(); }} style={{
+          marginLeft: 4, padding: '5px 12px', borderRadius: 7,
+          border: '1px solid rgba(255,255,255,0.25)',
+          background: 'transparent', color: '#fff', cursor: 'pointer',
+          fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11,
+        }}>Undo</button>
+      )}
     </div>
   );
 }
@@ -3704,6 +3766,10 @@ function App() {
   const [calEditReq, setCalEditReq] = useState(null);
   const [calendarJumpDate, setCalendarJumpDate] = useState(null);
   const [calendarDeptFilter, setCalendarDeptFilter] = useState(null);
+  const handleNav = (id) => {
+    if (id === 'team-absences') setCalendarJumpDate(null);
+    setScreen(id);
+  };
   const [pendingAction, setPendingAction] = useState(null); // { type: 'decline'|'cancel', id, empName }
   const [followUpPrompt, setFollowUpPrompt] = useState(null); // { empId, iso, half }
   const [followUpModalOpen, setFollowUpModalOpen] = useState(false);
@@ -3715,7 +3781,7 @@ function App() {
       setRequests(prev => {
         const merged = mergeRequests(prev, live);
         const hasNew = merged.some(r => r.status === 'pending' && !prev.find(p => p.id === r.id));
-        if (hasNew) setToast('New request received');
+        if (hasNew) setToast({ message: 'New request received' });
         return merged;
       });
     };
@@ -3730,7 +3796,15 @@ function App() {
       return next;
     });
     const req = requests.find(r => r.id === id);
-    if (req) setToast(`${(EMPLOYEES[req.employee] || { name: req.employee }).name.split(' ')[0]}'s request approved`);
+    if (req) setToast({ message: `${(EMPLOYEES[req.employee] || { name: req.employee }).name.split(' ')[0]}'s request approved`, type: 'approve' });
+  };
+
+  const undoDecline = (id) => {
+    setRequests(prev => {
+      const next = prev.map(r => r.id === id ? { ...r, status: 'pending', declineReason: undefined } : r);
+      writeLS(next);
+      return next;
+    });
   };
 
   const decline = (id, reason) => {
@@ -3740,7 +3814,7 @@ function App() {
       return next;
     });
     const req = requests.find(r => r.id === id);
-    if (req) setToast(`${(EMPLOYEES[req.employee] || { name: req.employee }).name.split(' ')[0]}'s request declined`);
+    if (req) setToast({ message: `${(EMPLOYEES[req.employee] || { name: req.employee }).name.split(' ')[0]}'s request declined`, type: 'decline', onUndo: () => undoDecline(id) });
   };
 
   // Interceptors — show ReasonModal before acting
@@ -3761,7 +3835,7 @@ function App() {
         const idx = prev.findIndex(e => e.id === req.id);
         return idx >= 0 ? prev.map(e => e.id === req.id ? req : e) : [req, ...prev];
       });
-      setToast('Company closure saved');
+      setToast({ message: 'Company closure saved' });
       return;
     }
     const wasEdit = requests.some(r => r.id === req.id);
@@ -3769,7 +3843,7 @@ function App() {
       const idx = prev.findIndex(r => r.id === req.id);
       return idx >= 0 ? prev.map(r => r.id === req.id ? req : r) : [req, ...prev];
     });
-    setToast(wasEdit ? 'Absence updated' : 'Absence added');
+    setToast({ message: wasEdit ? 'Absence updated' : 'Absence added' });
     if (wasEdit && req._halfDay) {
       const halfEntry = Object.entries(req._halfDay)
         .find(([iso, hv]) => req._selectedDates?.includes(iso) && (hv === 'am' || hv === 'pm'));
@@ -3783,12 +3857,12 @@ function App() {
 
   const cancelRequest = (id, reason) => {
     setRequests(prev => prev.filter(r => r.id !== id));
-    setToast('Absence cancelled');
+    setToast({ message: 'Absence cancelled' });
   };
 
   const cancelCompanyEvent = (id) => {
     setCompanyEvents(prev => prev.filter(e => e.id !== id));
-    setToast('Company closure cancelled');
+    setToast({ message: 'Company closure cancelled' });
   };
 
   const [employeeBalances, setEmployeeBalances] = useState(() => {
@@ -3807,7 +3881,7 @@ function App() {
 
   const updateBalances = (empId, newBalances) => {
     setEmployeeBalances(prev => ({ ...prev, [empId]: newBalances }));
-    setToast('Balances updated');
+    setToast({ message: 'Balances updated' });
   };
 
   const [needsBalanceSetup, setNeedsBalanceSetup] = useState(new Set(['thomas-vandenberghe']));
@@ -3847,7 +3921,7 @@ function App() {
         ::placeholder { color: #9ca3af; opacity: 1; }
       `}</style>
 
-      <Sidebar active={screen} onNav={setScreen} pendingCount={pendingCount} sidebarMode={sidebarMode} onSetSidebarMode={setSidebarMode} />
+      <Sidebar active={screen} onNav={handleNav} pendingCount={pendingCount} sidebarMode={sidebarMode} onSetSidebarMode={setSidebarMode} />
 
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, overflow: 'hidden' }}>
         {screen === 'dashboard' && <DashboardScreen requests={requests} onNav={setScreen} />}
@@ -3903,7 +3977,7 @@ function App() {
       )}
 
       <AppSwitcher />
-      {toast && <Toast message={toast} onDone={() => setToast(null)} />}
+      {toast && <Toast toast={toast} onDone={() => setToast(null)} />}
       {followUpPrompt && !followUpModalOpen && (
         <FollowUpBanner
           prompt={followUpPrompt}
