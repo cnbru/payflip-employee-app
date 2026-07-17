@@ -982,8 +982,14 @@ function ReasonModal({ title, description, confirmLabel, confirmColor = '#b91c1c
       }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 22px', borderBottom: `1px solid ${P.border}` }}>
           <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 16, color: P.ink }}>{title}</span>
-          <button onClick={close} style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: 4, display: 'flex' }}>
-            <Icon name="X" size={18} color={P.inkSoft} />
+          <button onClick={close} style={{
+            border: 'none', cursor: 'pointer',
+            width: 30, height: 30, borderRadius: '50%', flexShrink: 0,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            background: 'rgba(60,60,67,0.1)',
+            backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)',
+          }}>
+            <Icon name="X" size={14} color={P.ink} strokeWidth={2.5} />
           </button>
         </div>
         <div style={{ padding: '18px 22px', display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -1089,17 +1095,24 @@ function DetailModal({ req, requests, onClose, onApprove, onDecline, onCancel, o
       ...modalBackdropStyle(visible),
     }}>
       <div onClick={e => e.stopPropagation()} style={{
-        position: 'absolute', top: 0, right: 0, height: '100%', width: 480,
+        position: 'absolute', top: 16, bottom: 16, right: 16, width: 480,
         background: P.white,
-        boxShadow: '-8px 0 40px rgba(15,13,40,0.15)',
-        display: 'flex', flexDirection: 'column',
+        borderRadius: 20,
+        boxShadow: '0 24px 64px rgba(15,13,40,0.22), 0 0 0 1px rgba(15,13,40,0.06)',
+        display: 'flex', flexDirection: 'column', overflow: 'hidden',
         ...sheetPanelStyle(visible),
       }}>
         {/* Header */}
         <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 24px', borderBottom: `1px solid ${P.border}` }}>
           <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18, color: P.ink }}>Time off details</span>
-          <button onClick={close} style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: 6, borderRadius: 6, display: 'flex' }}>
-            <Icon name="X" size={18} color={P.inkSoft} />
+          <button onClick={close} style={{
+            border: 'none', cursor: 'pointer',
+            width: 30, height: 30, borderRadius: '50%', flexShrink: 0,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            background: 'rgba(60,60,67,0.1)',
+            backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)',
+          }}>
+            <Icon name="X" size={14} color={P.ink} strokeWidth={2.5} />
           </button>
         </div>
 
@@ -1634,10 +1647,11 @@ function AddTimeOffModal({ existing, onClose, onSave, requests = [], defaultDate
       ...modalBackdropStyle(visible),
     }}>
       <div onClick={e => e.stopPropagation()} style={{
-        position: 'absolute', top: 0, right: 0, height: '100%', width: 480,
+        position: 'absolute', top: 16, bottom: 16, right: 16, width: 480,
         background: P.white,
-        boxShadow: '-8px 0 40px rgba(15,13,40,0.15)',
-        display: 'flex', flexDirection: 'column',
+        borderRadius: 20,
+        boxShadow: '0 24px 64px rgba(15,13,40,0.22), 0 0 0 1px rgba(15,13,40,0.06)',
+        display: 'flex', flexDirection: 'column', overflow: 'hidden',
         ...sheetPanelStyle(visible),
       }}>
         {/* Header */}
@@ -1645,8 +1659,14 @@ function AddTimeOffModal({ existing, onClose, onSave, requests = [], defaultDate
           <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18, color: P.ink }}>
             {isEdit ? (allEmployees ? 'Edit company closure' : 'Edit time off') : (allEmployees ? 'Add company closure' : 'Add time off')}
           </span>
-          <button onClick={close} style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: 6, display: 'flex', borderRadius: 6 }}>
-            <Icon name="X" size={18} color={P.inkSoft} />
+          <button onClick={close} style={{
+            border: 'none', cursor: 'pointer',
+            width: 30, height: 30, borderRadius: '50%', flexShrink: 0,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            background: 'rgba(60,60,67,0.1)',
+            backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)',
+          }}>
+            <Icon name="X" size={14} color={P.ink} strokeWidth={2.5} />
           </button>
         </div>
 
@@ -3255,8 +3275,14 @@ function EditBalancesModal({ emp, balances, onSave, onClose, isNewEmployee, onCo
             <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 16, color: P.ink }}>{isNewEmployee ? 'Review & confirm balances' : 'Edit balances'}</div>
             <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, marginTop: 2 }}>{emp.name} · {year}</div>
           </div>
-          <button onClick={close} style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: 4, display: 'flex' }}>
-            <Icon name="X" size={18} color={P.inkSoft} />
+          <button onClick={close} style={{
+            border: 'none', cursor: 'pointer',
+            width: 30, height: 30, borderRadius: '50%', flexShrink: 0,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            background: 'rgba(60,60,67,0.1)',
+            backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)',
+          }}>
+            <Icon name="X" size={14} color={P.ink} strokeWidth={2.5} />
           </button>
         </div>
 
