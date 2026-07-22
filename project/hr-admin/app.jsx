@@ -1318,7 +1318,7 @@ function CalendarDrawer({ req, requests, onClose, onApprove, onDecline, onCancel
                   const isOff = offIds.has(empId);
                   return (
                     <span key={empId}
-                      style={{ marginLeft: i > 0 ? -8 : 0, borderRadius: '50%', border: `2px solid ${isOff ? '#fca5a5' : '#86efac'}`, display: 'flex', lineHeight: 0 }}
+                      style={{ marginLeft: i > 0 ? -8 : 0, borderRadius: '50%', border: `2px solid ${isOff ? '#fcd34d' : '#86efac'}`, display: 'flex', lineHeight: 0 }}
                       onMouseEnter={e => { const rect = e.currentTarget.getBoundingClientRect(); const offReq = overlapping.find(r => r.employee === empId); setAvatarTip({ name: oe?.name, offReq, x: rect.left + rect.width / 2, y: rect.top }); }}
                       onMouseLeave={() => setAvatarTip(null)}
                     >
