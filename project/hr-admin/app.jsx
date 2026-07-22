@@ -1333,7 +1333,7 @@ function CalendarDrawer({ req, requests, onClose, onApprove, onDecline, onCancel
 
             {/* Expanded member list */}
             {teamExpanded && (
-              <div style={{ borderTop: `1px solid ${P.border}`, paddingBottom: 4 }}>
+              <div style={{ paddingBottom: 4 }}>
                 {sorted.map((empId, i) => {
                   const oe = EMPLOYEES[empId];
                   const isOff = offIds.has(empId);
@@ -1342,7 +1342,7 @@ function CalendarDrawer({ req, requests, onClose, onApprove, onDecline, onCancel
                     ? (offReq.startDate === offReq.endDate ? offReq.startDate : `${offReq.startDate} – ${offReq.endDate}`)
                     : null;
                   return (
-                    <div key={empId} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 24px' }}>
+                    <div key={empId} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 24px 8px 45px' }}>
                       <span style={{ borderRadius: '50%', border: `2px solid ${isOff ? '#fcd34d' : '#86efac'}`, display: 'flex', lineHeight: 0, flexShrink: 0 }}>
                         <Avatar employeeId={empId} size={22} />
                       </span>
