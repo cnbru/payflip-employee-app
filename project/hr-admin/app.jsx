@@ -4126,7 +4126,7 @@ const SETTINGS_TITLES = {
 // ── App switcher pill ──────────────────────────────────────────────────────
 function AppSwitcher() {
   return (
-    <a href="../" style={{
+    <a href="../employee-app/" style={{
       position: 'fixed', bottom: 20, right: 20, zIndex: 100,
       display: 'inline-flex', alignItems: 'center', gap: 7,
       padding: '8px 14px', borderRadius: 20,
