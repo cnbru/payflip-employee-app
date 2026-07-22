@@ -291,6 +291,16 @@ const EMPLOYEES = {
   'mathias-de-smedt':  { name: 'Mathias De Smedt',  initials: 'MD', color: '#fde68a', entitlement: 23, department: 'Design',       email: 'mathias.de-smedt@lumiogroup.be', entity: 'Lumio Group', budget: 6250,  role: 'Employee', status: 'Active', gender: 'm' },
   'thomas-vandenberghe': { name: 'Thomas Vandenberghe', initials: 'TV', color: '#99f6e4', entitlement: 20, department: 'Design',    email: 'thomas.vandenberghe@lumiogroup.be', entity: 'Lumio Group', budget: 0, role: 'Employee', status: 'Active', gender: 'm' },
   'thomas-janssens':     { name: 'Thomas Janssens',    initials: 'TJ', color: '#d9f99d', entitlement: 23, department: 'Design',    email: 'thomas.janssens@lumiogroup.be', entity: 'Lumio Group', budget: 3000, role: 'Employee', status: 'Active', gender: 'm' },
+  'charlotte-pieters':   { name: 'Charlotte Pieters',  initials: 'CP', color: '#fecdd3', entitlement: 20, department: 'Design',    email: 'charlotte.pieters@lumiogroup.be', entity: 'Lumio Group', budget: 2500, role: 'Employee', status: 'Active', gender: 'f' },
+  'lasse-willems':       { name: 'Lasse Willems',      initials: 'LW', color: '#c7d2fe', entitlement: 23, department: 'Design',    email: 'lasse.willems@lumiogroup.be',   entity: 'Lumio Group', budget: 4000, role: 'Employee', status: 'Active', gender: 'm' },
+  'nathalie-cox':        { name: 'Nathalie Cox',        initials: 'NC', color: '#a7f3d0', entitlement: 20, department: 'Design',    email: 'nathalie.cox@lumiogroup.be',    entity: 'Lumio Group', budget: 3200, role: 'Employee', status: 'Active', gender: 'f' },
+  'ruben-declercq':      { name: 'Ruben Declercq',     initials: 'RD', color: '#fed7aa', entitlement: 25, department: 'Design',    email: 'ruben.declercq@lumiogroup.be',  entity: 'Lumio Group', budget: 5500, role: 'Employee', status: 'Active', gender: 'm' },
+  'ines-baert':          { name: 'Inès Baert',          initials: 'IB', color: '#ddd6fe', entitlement: 20, department: 'Design',    email: 'ines.baert@lumiogroup.be',      entity: 'Lumio Group', budget: 2800, role: 'Employee', status: 'Active', gender: 'f' },
+  'joachim-nijs':        { name: 'Joachim Nijs',        initials: 'JN', color: '#fde68a', entitlement: 23, department: 'Design',    email: 'joachim.nijs@lumiogroup.be',    entity: 'Lumio Group', budget: 4800, role: 'Employee', status: 'Active', gender: 'm' },
+  'sara-verbeke':        { name: 'Sara Verbeke',        initials: 'SV', color: '#bfdbfe', entitlement: 20, department: 'Design',    email: 'sara.verbeke@lumiogroup.be',    entity: 'Lumio Group', budget: 3100, role: 'Employee', status: 'Active', gender: 'f' },
+  'wout-desmet':         { name: 'Wout Desmet',         initials: 'WD', color: '#99f6e4', entitlement: 22, department: 'Design',    email: 'wout.desmet@lumiogroup.be',     entity: 'Lumio Group', budget: 4200, role: 'Employee', status: 'Active', gender: 'm' },
+  'amber-claes':         { name: 'Amber Claes',         initials: 'AC', color: '#fca5a5', entitlement: 20, department: 'Design',    email: 'amber.claes@lumiogroup.be',     entity: 'Lumio Group', budget: 2900, role: 'Employee', status: 'Active', gender: 'f' },
+  'pieter-verheyen':     { name: 'Pieter Verheyen',     initials: 'PV', color: '#d9f99d', entitlement: 25, department: 'Design',    email: 'pieter.verheyen@lumiogroup.be', entity: 'Lumio Group', budget: 6000, role: 'Manager',  status: 'Active', gender: 'm' },
   // Engineering
   'david':             { name: 'David Laurent',      initials: 'DL', color: '#fecdd3', entitlement: 20, department: 'Engineering', email: 'david.laurent@lumiogroup.be',     entity: 'Lumio Group', budget: 4500,  role: 'Employee', status: 'Active', gender: 'm', photo: true },
   'stijn-laurent':     { name: 'Stijn Laurent',      initials: 'SL', color: '#a7f3d0', entitlement: 29, department: 'Engineering', email: 'stijn.laurent@lumiogroup.be',     entity: 'Lumio Group', budget: 1500,  role: 'Employee', status: 'Active', gender: 'm' },
@@ -1291,31 +1301,44 @@ function CalendarDrawer({ req, requests, onClose, onApprove, onDecline, onCancel
 
       <SectionHeader>Team impact</SectionHeader>
       <Group>
-        <TableRow label="Team availability" icon="users">
-          <span style={{ display: 'flex', flexShrink: 0 }}>
-            {(hasOverlap ? overlapping.map(r => r.employee) : allTeamMemberIds).slice(0, 3).map((empId, i) => {
-              const oe = EMPLOYEES[empId];
-              return (
-                <span key={empId}
-                  style={{ marginLeft: i > 0 ? -8 : 0, borderRadius: '50%', border: `2px solid ${hasOverlap ? '#fca5a5' : '#86efac'}`, display: 'flex', lineHeight: 0 }}
-                  onMouseEnter={e => { const rect = e.currentTarget.getBoundingClientRect(); setAvatarTip({ name: oe?.name, x: rect.left + rect.width / 2, y: rect.top }); }}
-                  onMouseLeave={() => setAvatarTip(null)}
-                >
-                  <Avatar employeeId={empId} size={24} />
-                </span>
-              );
-            })}
-            {(hasOverlap ? overlapping.length : allTeamMemberIds.length) > 3 && (
-              <span style={{ marginLeft: -8, width: 28, height: 28, borderRadius: '50%', border: `2px solid ${hasOverlap ? '#fca5a5' : '#86efac'}`, background: '#e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 9, color: P.inkSoft, boxSizing: 'content-box' }}>
-                +{(hasOverlap ? overlapping.length : allTeamMemberIds.length) - 3}
+        {(() => {
+          const offIds = new Set(overlapping.map(r => r.employee));
+          const sorted = [
+            ...allTeamMemberIds.filter(id => offIds.has(id)),
+            ...allTeamMemberIds.filter(id => !offIds.has(id)),
+          ];
+          const MAX = 5;
+          const visible = sorted.slice(0, MAX);
+          const hidden = sorted.length - MAX;
+          return (
+            <TableRow label="Team availability" icon="users">
+              <span style={{ display: 'flex', flexShrink: 0 }}>
+                {visible.map((empId, i) => {
+                  const oe = EMPLOYEES[empId];
+                  const isOff = offIds.has(empId);
+                  return (
+                    <span key={empId}
+                      style={{ marginLeft: i > 0 ? -8 : 0, borderRadius: '50%', border: `2px solid ${isOff ? '#fca5a5' : '#86efac'}`, display: 'flex', lineHeight: 0 }}
+                      onMouseEnter={e => { const rect = e.currentTarget.getBoundingClientRect(); setAvatarTip({ name: oe?.name, x: rect.left + rect.width / 2, y: rect.top }); }}
+                      onMouseLeave={() => setAvatarTip(null)}
+                    >
+                      <Avatar employeeId={empId} size={24} />
+                    </span>
+                  );
+                })}
+                {hidden > 0 && (
+                  <span style={{ marginLeft: -8, width: 24, height: 24, borderRadius: '50%', border: '2px solid #e5e7eb', background: '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 9, color: P.inkSoft }}>
+                    +{hidden}
+                  </span>
+                )}
               </span>
-            )}
-          </span>
-          {hasOverlap
-            ? <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: '#dc2626' }}>{overlapping.length}/{teamSize} off</span>
-            : <span style={{ color: P.inkSoft }}>All available</span>
-          }
-        </TableRow>
+              {hasOverlap
+                ? <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: '#dc2626' }}>{overlapping.length}/{teamSize} off</span>
+                : <span style={{ color: P.inkSoft }}>All available</span>
+              }
+            </TableRow>
+          );
+        })()}
       </Group>
       {teamRisk && (
         <div style={{ margin: '8px 20px 4px', padding: '12px 14px', borderRadius: 10, background: '#fffbeb', display: 'flex', gap: 10, alignItems: 'flex-start' }}>
