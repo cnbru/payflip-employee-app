@@ -2545,7 +2545,7 @@ function RequestRow({ req, requests, onApprove, onDecline, onDetail, onEdit, onC
           </span>
           <div onClick={e => e.stopPropagation()} style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4 }}>
             {req.status === 'pending' && (<>
-              <button title="Decline" onClick={() => onDecline(req.id)}
+              <button title="Decline" onClick={() => onDetail(req)}
                 onMouseEnter={e => { e.currentTarget.style.background = '#fee2e2'; e.currentTarget.style.borderColor = '#fca5a5'; }}
                 onMouseLeave={e => { e.currentTarget.style.background = '#fef2f2'; e.currentTarget.style.borderColor = '#fecaca'; }}
                 style={{ width: 28, height: 28, borderRadius: 6, border: '1px solid #fecaca', background: '#fef2f2', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
