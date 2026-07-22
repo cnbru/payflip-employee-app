@@ -1257,8 +1257,8 @@ function CalendarDrawer({ req, requests, onClose, onApprove, onDecline, onCancel
           })}
         </span>
         {teamRisk
-          ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: '#fef2f2', color: '#dc2626', border: '1px solid #fecaca', borderRadius: 20, padding: '2px 8px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12 }}>
-              <Icon name="triangle-alert" size={11} color="#dc2626" strokeWidth={2.5} />
+          ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: '#fef2f2', color: '#dc2626', border: '1px solid #fecaca', borderRadius: 20, padding: '2px 8px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12 }}>
+              <span style={{ width: 5, height: 5, borderRadius: '50%', background: 'currentColor', flexShrink: 0 }} />
               {overlapping.length}/{teamSize} overlap
             </span>
           : <span style={{ color: P.inkSoft }}>{overlapping.length} of {teamSize} off</span>
