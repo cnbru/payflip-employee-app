@@ -506,7 +506,7 @@ function SalaryTab({ empId }) {
       <div>
         <SalSecHead title="Salary components" onAdd={() => {}} />
         <p style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, margin: '-8px 0 14px' }}>
-          Components are benefits offered as part of the employee's remuneration where a benefit in kind is charged for. <a href="#" style={{ color: P.accent }} onClick={e => e.preventDefault()}>Learn more</a>
+          Components are benefits offered as part of the employee's remuneration where a benefit in kind is charged for. <AppLink onClick={e => e.preventDefault()}>Learn more</AppLink>
         </p>
         <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 12, overflow: 'hidden' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-body)', fontSize: 13 }}>
@@ -1234,7 +1234,7 @@ function CalendarDrawer({ req, requests, onClose, onApprove, onDecline, onCancel
     ATTACHMENT_RULES[req.type] && (
       <TableRow key="attachment" label="Document" icon="paperclip">
         {req.document ? (
-          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: P.accent, cursor: 'pointer' }}>{req.document}</span>
+          <AppLink>{req.document}</AppLink>
         ) : (
           <>
             <span style={{ fontWeight: 600, fontSize: 12, color: '#92400e', background: '#fef9c3', border: '1px solid #fde68a', borderRadius: 20, padding: '2px 8px' }}>Missing</span>
@@ -2387,6 +2387,10 @@ function OverlapPopover({ req, overlapping, empDept }) {
 // ── Table row ──────────────────────────────────────────────────────────────
 const TH = ({ children, style }) => (
   <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.inkSoft, textTransform: 'uppercase', letterSpacing: '0.06em', ...style }}>{children}</div>
+);
+
+const AppLink = ({ children, onClick, style }) => (
+  <span onClick={onClick} style={{ color: P.ink, textDecoration: 'underline', cursor: 'pointer', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', ...style }}>{children}</span>
 );
 
 function RequestRow({ req, requests, onApprove, onDecline, onDetail, onEdit, onCancel, selected, onToggle, onViewInCalendar, showStatus, removing }) {
