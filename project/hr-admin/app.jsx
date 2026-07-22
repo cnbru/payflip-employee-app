@@ -1336,25 +1336,18 @@ function CalendarDrawer({ req, requests, onClose, onApprove, onDecline, onCancel
             {/* Expanded member list */}
             {teamExpanded && (
               <div style={{ paddingBottom: 4 }}>
-                {sorted.map((empId, i) => {
+                {sorted.filter(id => offIds.has(id)).map((empId) => {
                   const oe = EMPLOYEES[empId];
-                  const isOff = offIds.has(empId);
                   const offReq = overlapping.find(r => r.employee === empId);
-                  const dateStr = offReq
-                    ? (offReq.startDate === offReq.endDate ? offReq.startDate : `${offReq.startDate} – ${offReq.endDate}`)
-                    : null;
+                  const dateStr = offReq.startDate === offReq.endDate ? offReq.startDate : `${offReq.startDate} – ${offReq.endDate}`;
                   return (
                     <div key={empId} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 24px 8px 45px' }}>
-                      <span style={{ borderRadius: '50%', border: `2px solid ${isOff ? '#fcd34d' : '#86efac'}`, display: 'flex', lineHeight: 0, flexShrink: 0 }}>
+                      <span style={{ borderRadius: '50%', border: '2px solid #fcd34d', display: 'flex', lineHeight: 0, flexShrink: 0 }}>
                         <Avatar employeeId={empId} size={22} />
                       </span>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.ink, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{oe?.name}</div>
-                        {isOff ? (
-                          <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, marginTop: 1 }}>{offReq.type} · {dateStr}</div>
-                        ) : (
-                          <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkFaint, marginTop: 1 }}>Available</div>
-                        )}
+                        <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, marginTop: 1 }}>{offReq.type} · {dateStr}</div>
                       </div>
                     </div>
                   );
