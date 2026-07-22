@@ -660,14 +660,14 @@ const DAY_LABELS = ['MO','TU','WE','TH','FR','SA','SU'];
 const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
 // ── Avatar ─────────────────────────────────────────────────────────────────
-function Avatar({ employeeId, size = 28, style: extraStyle }) {
+function Avatar({ employeeId, size = 28, bg, style: extraStyle }) {
   const emp = EMPLOYEES[employeeId] || { initials: '?', color: '#e5e7eb' };
   if (emp.photo) {
     return <img src={avatarUrl(emp.name, emp.gender)} alt={emp.initials} style={{ width: size, height: size, borderRadius: '50%', flexShrink: 0, objectFit: 'cover', ...extraStyle }} />;
   }
   return (
     <div style={{
-      width: size, height: size, borderRadius: '50%', background: '#e5e7eb',
+      width: size, height: size, borderRadius: '50%', background: bg || '#e5e7eb',
       flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
       fontFamily: 'var(--font-display)', fontWeight: 700,
       fontSize: size * 0.34, color: P.ink, letterSpacing: '0.01em',
@@ -1229,6 +1229,11 @@ function CalendarDrawer({ req, requests, onClose, onApprove, onDecline, onCancel
     );
   };
 
+  const hasOverlap = overlapping.length > 0;
+  const allTeamMemberIds = Object.entries(EMPLOYEES)
+    .filter(([, e]) => e.department === emp.department)
+    .map(([id]) => id);
+
   // Overlap banner name list: "Sara L., Jonas G., and 1 other"
   const overlapPeers = overlapping.slice(0, 2).map(r => {
     const e = EMPLOYEES[r.employee];
@@ -1284,45 +1289,47 @@ function CalendarDrawer({ req, requests, onClose, onApprove, onDecline, onCancel
         </Group>
       </>}
 
-      {overlapping.length > 0 && <>
-        <SectionHeader>Team impact</SectionHeader>
-        <Group>
-          <TableRow label="Team availability" icon="users">
-            <span style={{ display: 'flex', flexShrink: 0 }}>
-              {overlapping.slice(0, 3).map((r, i) => {
-                const oe = EMPLOYEES[r.employee];
-                return (
-                  <span key={r.id}
-                    style={{ marginLeft: i > 0 ? -8 : 0, borderRadius: '50%', border: `2px solid ${P.white}`, display: 'flex', lineHeight: 0 }}
-                    onMouseEnter={e => { const rect = e.currentTarget.getBoundingClientRect(); setAvatarTip({ name: oe?.name, x: rect.left + rect.width / 2, y: rect.top }); }}
-                    onMouseLeave={() => setAvatarTip(null)}
-                  >
-                    <Avatar employeeId={r.employee} size={24} />
-                  </span>
-                );
-              })}
-              {overlapping.length > 3 && (
-                <span style={{ marginLeft: -8, width: 24, height: 24, borderRadius: '50%', border: `2px solid ${P.white}`, background: P.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 9, color: P.inkSoft }}>
-                  +{overlapping.length - 3}
+      <SectionHeader>Team impact</SectionHeader>
+      <Group>
+        <TableRow label="Team availability" icon="users">
+          <span style={{ display: 'flex', flexShrink: 0 }}>
+            {(hasOverlap ? overlapping.map(r => r.employee) : allTeamMemberIds).slice(0, 3).map((empId, i) => {
+              const oe = EMPLOYEES[empId];
+              return (
+                <span key={empId}
+                  style={{ marginLeft: i > 0 ? -8 : 0, borderRadius: '50%', border: `2px solid ${P.white}`, display: 'flex', lineHeight: 0 }}
+                  onMouseEnter={e => { const rect = e.currentTarget.getBoundingClientRect(); setAvatarTip({ name: oe?.name, x: rect.left + rect.width / 2, y: rect.top }); }}
+                  onMouseLeave={() => setAvatarTip(null)}
+                >
+                  <Avatar employeeId={empId} size={24} bg={hasOverlap ? '#fee2e2' : '#dcfce7'} />
                 </span>
-              )}
-            </span>
-          </TableRow>
-        </Group>
-        {teamRisk && (
-          <div style={{ margin: '8px 20px 4px', padding: '12px 14px', borderRadius: 10, background: '#fffbeb', display: 'flex', gap: 10, alignItems: 'flex-start' }}>
-            <Icon name="triangle-alert" size={14} color="#d97706" strokeWidth={2} style={{ flexShrink: 0, marginTop: 1 }} />
-            <div>
-              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: '#92400e' }}>
-                {overlapping.length} of {teamSize} team members also off
-              </div>
-              <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: '#92400e', marginTop: 2, lineHeight: 1.4 }}>
-                {overlapNamesStr} {overlapping.length === 1 ? 'has' : 'have'} approved leave overlapping these dates.
-              </div>
+              );
+            })}
+            {(hasOverlap ? overlapping.length : allTeamMemberIds.length) > 3 && (
+              <span style={{ marginLeft: -8, width: 24, height: 24, borderRadius: '50%', border: `2px solid ${P.white}`, background: hasOverlap ? '#fee2e2' : '#dcfce7', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 9, color: hasOverlap ? '#dc2626' : '#16a34a' }}>
+                +{(hasOverlap ? overlapping.length : allTeamMemberIds.length) - 3}
+              </span>
+            )}
+          </span>
+          {hasOverlap
+            ? <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: '#dc2626' }}>{overlapping.length}/{teamSize} off</span>
+            : <span style={{ color: P.inkSoft }}>All available</span>
+          }
+        </TableRow>
+      </Group>
+      {teamRisk && (
+        <div style={{ margin: '8px 20px 4px', padding: '12px 14px', borderRadius: 10, background: '#fffbeb', display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+          <Icon name="triangle-alert" size={14} color="#d97706" strokeWidth={2} style={{ flexShrink: 0, marginTop: 1 }} />
+          <div>
+            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: '#92400e' }}>
+              {overlapping.length} of {teamSize} team members also off
+            </div>
+            <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: '#92400e', marginTop: 2, lineHeight: 1.4 }}>
+              {overlapNamesStr} {overlapping.length === 1 ? 'has' : 'have'} approved leave overlapping these dates.
             </div>
           </div>
-        )}
-      </>}
+        </div>
+      )}
 
       <SectionHeader>Admin</SectionHeader>
       <Group>
