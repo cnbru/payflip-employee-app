@@ -1341,7 +1341,9 @@ function CalendarDrawer({ req, requests, onClose, onApprove, onDecline, onCancel
                   const offReq = overlapping.find(r => r.employee === empId);
                   const dateStr = offReq.startDate === offReq.endDate ? offReq.startDate : `${offReq.startDate} – ${offReq.endDate}`;
                   return (
-                    <div key={empId} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 24px', borderTop: i > 0 ? `1px solid ${P.border}` : 'none' }}>
+                    <React.Fragment key={empId}>
+                    {i > 0 && <div style={{ height: 1, background: P.border, margin: '0 24px' }} />}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 24px' }}>
                       <span style={{ borderRadius: '50%', border: '2px solid #fcd34d', display: 'flex', lineHeight: 0, flexShrink: 0 }}>
                         <Avatar employeeId={empId} size={22} />
                       </span>
@@ -1350,6 +1352,7 @@ function CalendarDrawer({ req, requests, onClose, onApprove, onDecline, onCancel
                         <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, marginTop: 2 }}>{offReq.type} · {dateStr}</div>
                       </div>
                     </div>
+                    </React.Fragment>
                   );
                 })}
               </div>
