@@ -1324,10 +1324,12 @@ function CalendarDrawer({ req, requests, onClose, onApprove, onDecline, onCancel
                   ? <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: '#92400e' }}>{overlapping.length}/{teamSize} off</span>
                   : <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 13, color: P.inkSoft }}>All available</span>
                 }
-                {/* Chevron — only tap target */}
-                <button onClick={() => setTeamExpanded(x => !x)} style={{ flexShrink: 0, width: 24, height: 24, borderRadius: '50%', border: 'none', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}>
-                  <Icon name="chevron-down" size={14} color={P.inkSoft} strokeWidth={2} style={{ transition: 'transform 200ms ease', transform: teamExpanded ? 'rotate(180deg)' : 'rotate(0deg)' }} />
-                </button>
+                {/* Chevron — only shown when there are conflicts */}
+                {hasOverlap && (
+                  <button onClick={() => setTeamExpanded(x => !x)} style={{ flexShrink: 0, width: 24, height: 24, borderRadius: '50%', border: 'none', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}>
+                    <Icon name="chevron-down" size={14} color={P.inkSoft} strokeWidth={2} style={{ transition: 'transform 200ms ease', transform: teamExpanded ? 'rotate(180deg)' : 'rotate(0deg)' }} />
+                  </button>
+                )}
               </div>
             </div>
 
