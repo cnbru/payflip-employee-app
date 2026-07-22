@@ -2386,7 +2386,7 @@ function OverlapPopover({ req, overlapping, empDept }) {
 
 // ── Table row ──────────────────────────────────────────────────────────────
 const TH = ({ children, style }) => (
-  <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.06em', ...style }}>{children}</div>
+  <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.inkSoft, textTransform: 'uppercase', letterSpacing: '0.06em', ...style }}>{children}</div>
 );
 
 function RequestRow({ req, requests, onApprove, onDecline, onDetail, onEdit, onCancel, selected, onToggle, onViewInCalendar, showStatus, removing }) {
