@@ -4455,7 +4455,7 @@ function App() {
           req={calDetail}
           requests={requests}
           onClose={() => setCalDetail(null)}
-          onApprove={(id) => { approve(id); setCalDetail(prev => prev && prev.id === id ? { ...prev, status: 'approved' } : prev); }}
+          onApprove={(id) => { approve(id); setCalDetail(null); }}
           onDecline={(id, reason) => requestDecline(id, reason)}
           onCancel={(id, reason) => requestCancel(id, reason)}
           onSave={(req) => { saveRequest(req); setCalDetail(req); }}
