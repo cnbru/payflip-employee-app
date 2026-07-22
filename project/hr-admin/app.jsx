@@ -1319,7 +1319,7 @@ function CalendarDrawer({ req, requests, onClose, onApprove, onDecline, onCancel
                   return (
                     <span key={empId}
                       style={{ marginLeft: i > 0 ? -8 : 0, borderRadius: '50%', border: `2px solid ${isOff ? '#fca5a5' : '#86efac'}`, display: 'flex', lineHeight: 0 }}
-                      onMouseEnter={e => { const rect = e.currentTarget.getBoundingClientRect(); setAvatarTip({ name: oe?.name, x: rect.left + rect.width / 2, y: rect.top }); }}
+                      onMouseEnter={e => { const rect = e.currentTarget.getBoundingClientRect(); const offReq = overlapping.find(r => r.employee === empId); setAvatarTip({ name: oe?.name, offReq, x: rect.left + rect.width / 2, y: rect.top }); }}
                       onMouseLeave={() => setAvatarTip(null)}
                     >
                       <Avatar employeeId={empId} size={24} />
@@ -1531,8 +1531,15 @@ function CalendarDrawer({ req, requests, onClose, onApprove, onDecline, onCancel
       </div>
 
       {avatarTip && ReactDOM.createPortal(
-        <div style={{ position: 'fixed', zIndex: 9999, left: avatarTip.x, top: avatarTip.y - 8, transform: 'translate(-50%, -100%)', background: P.ink, color: P.white, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, padding: '4px 8px', borderRadius: 6, pointerEvents: 'none', whiteSpace: 'nowrap' }}>
-          {avatarTip.name}
+        <div style={{ position: 'fixed', zIndex: 9999, left: avatarTip.x, top: avatarTip.y - 8, transform: 'translate(-50%, -100%)', background: P.ink, color: P.white, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, padding: '6px 10px', borderRadius: 8, pointerEvents: 'none', whiteSpace: 'nowrap', lineHeight: 1.5 }}>
+          <div>{avatarTip.name}</div>
+          {avatarTip.offReq ? (
+            <div style={{ fontWeight: 400, color: 'rgba(255,255,255,0.65)', fontSize: 11, marginTop: 1 }}>
+              {avatarTip.offReq.type} · {avatarTip.offReq.startDate === avatarTip.offReq.endDate ? avatarTip.offReq.startDate : `${avatarTip.offReq.startDate} – ${avatarTip.offReq.endDate}`}
+            </div>
+          ) : (
+            <div style={{ fontWeight: 400, color: 'rgba(255,255,255,0.65)', fontSize: 11, marginTop: 1 }}>Available</div>
+          )}
         </div>,
         document.body
       )}
