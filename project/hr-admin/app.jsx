@@ -1086,200 +1086,340 @@ function ReasonModal({ title, description, confirmLabel, confirmColor = '#b91c1c
   );
 }
 
-// ── Detail modal ───────────────────────────────────────────────────────────
-function DetailModal({ req, requests, onClose, onApprove, onDecline, onCancel, onEdit, onViewProfile }) {
+// ── Calendar right-side drawer ────────────────────────────────────────────
+// A no-overlay panel anchored to the right edge. Two states (detail / edit)
+// slide horizontally within a fixed header and scrollable content area.
+function CalendarDrawer({ req, requests, onClose, onApprove, onDecline, onCancel, onSave }) {
   const emp = EMPLOYEES[req.employee] || { name: req.employee, entitlement: 25, department: '' };
   const isPending = req.status === 'pending';
-  // Same-department only — matches the "Also off" column in the requests table (OverlapPopover),
-  // so the count an admin sees here never disagrees with what they saw in the list.
   const overlapping = getOverlapping(req, requests).filter(r => EMPLOYEES[r.employee]?.department === emp.department);
   const teamSize = Object.values(EMPLOYEES).filter(e => e.department === emp.department).length;
   const teamRisk = overlapping.length >= 2;
 
-  const { visible, close } = useModalTransition(onClose);
+  const { visible, close, closing } = useModalTransition(onClose, SHEET_CLOSE_DUR);
   const [avatarTip, setAvatarTip] = React.useState(null);
+  const [editMode, setEditMode] = React.useState(false);
+  const [cancelMode, setCancelMode] = React.useState(false);
+  const [cancelReason, setCancelReason] = React.useState('');
 
+  // Edit form state — initialized lazily via enterEdit()
+  const [editType, setEditType] = React.useState(req.type);
+  const [editNote, setEditNote] = React.useState(req.note || '');
+  const [editRangeFrom, setEditRangeFrom] = React.useState(() => {
+    const d = parseDisplayDate(req.startDate); return d ? isoDate(d) : '';
+  });
+  const [editRangeTo, setEditRangeTo] = React.useState(() => {
+    const d = parseDisplayDate(req.endDate || req.startDate); return d ? isoDate(d) : '';
+  });
+  const [editPickedDates, setEditPickedDates] = React.useState(() =>
+    req._selectedDates ? new Set(req._selectedDates) : new Set()
+  );
+  const [editHalfDay, setEditHalfDay] = React.useState(req._halfDay || {});
+  const [editErrors, setEditErrors] = React.useState({});
+
+  React.useEffect(() => {
+    if (!editRangeFrom || !editRangeTo) return;
+    const from = new Date(editRangeFrom + 'T00:00:00');
+    const to   = new Date(editRangeTo   + 'T00:00:00');
+    if (from > to) return;
+    const dates = new Set();
+    for (let d = new Date(from); d <= to; d = addDays(d, 1)) {
+      if (d.getDay() === 0 || d.getDay() === 6) continue;
+      if (_collectiveSet.has(isoDate(d))) continue;
+      if (_holidaySet.has(isoDate(d))) continue;
+      dates.add(isoDate(d));
+    }
+    setEditPickedDates(dates);
+    setEditErrors({});
+  }, [editRangeFrom, editRangeTo]);
+
+  const sortedPicked = [...editPickedDates].sort();
+  const halfDayDeduction = Object.entries(editHalfDay)
+    .filter(([iso, v]) => editPickedDates.has(iso) && (v === 'am' || v === 'pm')).length * 0.5;
+  const editDays = editPickedDates.size - halfDayDeduction;
+
+  const enterEdit = () => {
+    setEditType(req.type);
+    setEditNote(req.note || '');
+    const from = parseDisplayDate(req.startDate);
+    const to   = parseDisplayDate(req.endDate || req.startDate);
+    setEditRangeFrom(from ? isoDate(from) : '');
+    setEditRangeTo(to ? isoDate(to) : '');
+    setEditPickedDates(req._selectedDates ? new Set(req._selectedDates) : new Set());
+    setEditHalfDay(req._halfDay || {});
+    setEditErrors({});
+    setEditMode(true);
+  };
+  const exitEdit = () => { setEditMode(false); setCancelMode(false); };
+  const enterCancel = () => { setCancelReason(''); setCancelMode(true); };
+  const exitCancel = () => setCancelMode(false);
+
+  const handleSaveEdit = () => {
+    if (editPickedDates.size === 0) { setEditErrors({ dates: 'Please select dates' }); return; }
+    setEditErrors({});
+    const fmtD = (d) => d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+    const startD = new Date(sortedPicked[0] + 'T00:00:00');
+    const endD   = new Date(sortedPicked[sortedPicked.length - 1] + 'T00:00:00');
+    const activeHD = Object.fromEntries(Object.entries(editHalfDay).filter(([k]) => editPickedDates.has(k)));
+    const updatedReq = {
+      ...req,
+      type: editType,
+      startDate: fmtD(startD),
+      endDate:   fmtD(endD),
+      days: editDays,
+      note: editNote || undefined,
+      _selectedDates: sortedPicked,
+      ...(Object.keys(activeHD).length > 0 ? { _halfDay: activeHD } : {}),
+    };
+    onSave(updatedReq);
+    exitEdit();
+  };
+
+  // Status pill (must be before detailItems)
+  const pillData = {
+    approved: { bg: '#f0fdf4', color: '#16a34a', border: '#bbf7d0', label: 'Approved' },
+    rejected: { bg: '#fef2f2', color: '#dc2626', border: '#fecaca', label: 'Declined' },
+    pending:  { bg: '#fef9c3', color: '#92400e', border: '#fde68a', label: 'Pending'  },
+  };
+  const pill = pillData[req.status] || pillData.pending;
+
+  // Detail content helpers
   const heroDateStr = req.startDate === req.endDate ? req.startDate : `${req.startDate} – ${req.endDate}`;
   const durationStr = req.days === 0.5 ? '½ day' : req.days === 1 ? '1 day' : `${req.days} days`;
-  const typeIcon = { 'Time off': 'tree-palm', 'Sick leave': 'Thermometer', 'Special leave': 'Star', 'ADV / RTT': 'Clock', 'Extra-legal leave': 'Gift' }[req.type] || 'Calendar';
 
-  const fmtDate = (iso) => { const p = iso.split('-'); return new Date(+p[0],+p[1]-1,+p[2]).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }); };
-  const getOverlapRange = (r) => {
-    if (!req._selectedDates || !r._selectedDates) return null;
-    const reqSet = new Set(req._selectedDates);
-    const overlap = r._selectedDates.filter(d => reqSet.has(d)).sort();
-    if (overlap.length === 0) return null;
-    return overlap.length === 1 ? fmtDate(overlap[0]) : `${fmtDate(overlap[0])} – ${fmtDate(overlap[overlap.length-1])}`;
-  };
+  const labelStyle = { flexShrink: 0, fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.ink, whiteSpace: 'nowrap' };
+  const valueStyle = { flex: 1, minWidth: 0, fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.inkSoft, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 8 };
+  const TableRow = ({ label, icon, children }) => (
+    <div style={{ display: 'flex', alignItems: 'center', padding: '16px 24px', gap: 16 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 7, flexShrink: 0 }}>
+        {icon && <Icon name={icon} size={14} color={P.inkSoft} strokeWidth={1.75} style={{ flexShrink: 0 }} />}
+        <div style={labelStyle}>{label}</div>
+      </div>
+      <div style={valueStyle}>{children}</div>
+    </div>
+  );
 
-  // One shared row shell — every fact in the card looks and behaves the same way.
-  const CardRow = ({ icon, children, onClick, expanded }) => {
-    const Tag = onClick ? 'button' : 'div';
-    return (
-      <Tag onClick={onClick} style={{ width: '100%', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 10, background: 'none', border: 'none', cursor: onClick ? 'pointer' : 'default', textAlign: 'left', fontFamily: 'inherit' }}>
-        <Icon name={icon} size={15} color={P.inkSoft} strokeWidth={1.75} style={{ flexShrink: 0 }} />
-        <div style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: 10 }}>{children}</div>
-        {onClick && (
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={P.inkFaint} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, transform: expanded ? 'rotate(180deg)' : 'none', transition: `transform 220ms ${EASE_OUT}` }}>
-            <polyline points="6 9 12 15 18 9" />
-          </svg>
-        )}
-      </Tag>
-    );
-  };
-
-  const items = [
-    <CardRow key="date" icon="calendar-days">
-      <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.ink, flex: 1 }}>{heroDateStr}</span>
-      <span style={{ fontFamily: 'var(--font-display)', fontWeight: 400, fontSize: 14, color: P.inkSoft }}>{durationStr}</span>
-    </CardRow>,
-    <CardRow key="type" icon={typeIcon}>
-      <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.ink }}>{req.type}</span>
-    </CardRow>,
+  const detailItems = [
+    <TableRow key="employee" label="Requested by" icon="user">
+      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{emp.name}</span>
+      <Avatar employeeId={req.employee} size={22} />
+    </TableRow>,
+    <TableRow key="status" label="Status" icon="circle-dot">
+      <div style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: pill.bg, color: pill.color, padding: '2px 8px', borderRadius: 20, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12 }}>
+        <span style={{ width: 5, height: 5, borderRadius: '50%', background: 'currentColor', flexShrink: 0 }} />
+        {pill.label}
+      </div>
+    </TableRow>,
+    <TableRow key="dates" label="When" icon="calendar">
+      {heroDateStr} · {durationStr}
+    </TableRow>,
+    <TableRow key="type" label="Type" icon="tag">
+      {req.type}
+    </TableRow>,
+    <TableRow key="dept" label="Department" icon="building-2">
+      {emp.department}
+    </TableRow>,
     req.note && (
-      <CardRow key="note" icon="message-square">
-        <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.ink, fontStyle: 'italic', lineHeight: 1.4 }}>"{req.note}"</span>
-      </CardRow>
+      <TableRow key="note" label="Note" icon="message-square">
+        <span style={{ fontStyle: 'italic', lineHeight: 1.4, textAlign: 'right' }}>"{req.note}"</span>
+      </TableRow>
     ),
     ATTACHMENT_RULES[req.type] && (
-      <CardRow key="attachment" icon="paperclip">
+      <TableRow key="attachment" label="Document" icon="paperclip">
         {req.document ? (
-          <>
-            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.ink, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{req.document}</span>
-            <button onClick={e => { e.stopPropagation(); }} title="Download" style={{ flexShrink: 0, width: 30, height: 30, borderRadius: 7, border: `1px solid ${P.border}`, background: P.bg, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Icon name="download" size={14} color={P.inkSoft} strokeWidth={2} />
-            </button>
-          </>
+          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: P.accent, cursor: 'pointer' }}>{req.document}</span>
         ) : (
           <>
-            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.inkSoft, flex: 1 }}>{ATTACHMENT_RULES[req.type].label}</span>
-            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, color: '#92400e', background: '#fef9c3', border: '1px solid #fde68a', borderRadius: 20, padding: '3px 9px', flexShrink: 0 }}>Missing</span>
+            <span style={{ fontWeight: 600, fontSize: 12, color: '#92400e', background: '#fef9c3', border: '1px solid #fde68a', borderRadius: 20, padding: '2px 8px' }}>Missing</span>
+            <span style={{ fontWeight: 400, color: P.inkSoft }}>{ATTACHMENT_RULES[req.type].label}</span>
           </>
         )}
-      </CardRow>
+      </TableRow>
     ),
     overlapping.length > 0 && (
-      <CardRow key="team" icon="Users">
-        <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.ink, flex: 1 }}>
-          Team availability
-        </span>
-        <span style={{
-          fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, flexShrink: 0,
-          color: teamRisk ? '#dc2626' : P.inkSoft,
-          background: teamRisk ? '#fef2f2' : P.bg,
-          border: `1px solid ${teamRisk ? '#fecaca' : P.border}`,
-          borderRadius: 20, padding: '3px 9px',
-        }}>
-          {teamRisk ? '⚠ ' : ''}{overlapping.length} of {teamSize} off
-        </span>
+      <TableRow key="team" label="Team availability" icon="users">
         <span style={{ display: 'flex', flexShrink: 0 }}>
           {overlapping.slice(0, 4).map((r, i) => {
             const oe = EMPLOYEES[r.employee];
             return (
               <span key={r.id}
-                style={{ marginLeft: i > 0 ? -8 : 0, borderRadius: '50%', border: `2px solid ${P.white}`, display: 'flex', lineHeight: 0, position: 'relative' }}
+                style={{ marginLeft: i > 0 ? -8 : 0, borderRadius: '50%', border: `2px solid ${P.white}`, display: 'flex', lineHeight: 0 }}
                 onMouseEnter={e => { const rect = e.currentTarget.getBoundingClientRect(); setAvatarTip({ name: oe?.name, x: rect.left + rect.width / 2, y: rect.top }); }}
                 onMouseLeave={() => setAvatarTip(null)}
               >
-                <Avatar employeeId={r.employee} size={26} />
+                <Avatar employeeId={r.employee} size={24} />
               </span>
             );
           })}
         </span>
-      </CardRow>
+        <span style={{ color: teamRisk ? '#dc2626' : P.inkSoft }}>{teamRisk ? '⚠ ' : ''}{overlapping.length} of {teamSize} off</span>
+      </TableRow>
     ),
     req.submittedAt && (
-      <CardRow key="submitted" icon="Clock">
-        <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.ink, flex: 1 }}>Submitted</span>
-        <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.ink }}>{req.submittedAt}</span>
-      </CardRow>
+      <TableRow key="submitted" label="Requested on" icon="clock">
+        {req.submittedAt}
+      </TableRow>
     ),
   ].filter(Boolean);
 
+  // Slide transforms
+  const SLIDE_DUR = 300;
+  const secondPanel = editMode || cancelMode;
+  const detailSlide = secondPanel ? 'translateX(-100%)' : 'translateX(0)';
+  const editSlide   = secondPanel ? 'translateX(0)'     : 'translateX(100%)';
+  const slideTransition = `transform ${SLIDE_DUR}ms ${EASE_DRAWER}`;
+
+  const editInputStyle = {
+    width: '100%', padding: '8px 10px', borderRadius: 7, border: `1px solid ${P.border}`,
+    fontFamily: 'var(--font-body)', fontSize: 13, color: P.ink, outline: 'none', background: P.white,
+    boxSizing: 'border-box',
+  };
+  const editLabelStyle = {
+    display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11,
+    color: P.inkSoft, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6,
+  };
+  const editDurStr = editDays === 0.5 ? '½ day' : editDays === 1 ? '1 day' : `${editDays} days`;
+
   return (
     <React.Fragment>
-    <div onClick={close} style={{
-      position: 'fixed', inset: 0, zIndex: 200,
-      background: 'rgba(15,13,40,0.3)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      ...modalBackdropStyle(visible),
-    }}>
+      <div onClick={close} style={{
+        position: 'fixed', inset: 0, zIndex: 200,
+        background: 'rgba(15,13,40,0.25)',
+        ...modalBackdropStyle(visible),
+      }}>
       <div onClick={e => e.stopPropagation()} style={{
-        position: 'relative', width: 'min(480px, calc(100vw - 32px))',
-        maxHeight: 'calc(100vh - 48px)',
+        position: 'absolute', top: 16, bottom: 16, right: 16, width: 480,
         background: P.white,
         borderRadius: 20,
         boxShadow: '0 24px 64px rgba(15,13,40,0.22), 0 0 0 1px rgba(15,13,40,0.06)',
         display: 'flex', flexDirection: 'column', overflow: 'hidden',
-        ...modalPanelStyle(visible),
+        ...sheetPanelStyle(visible, closing),
       }}>
-        {/* Header — status pill + close */}
-        <div style={{ flexShrink: 0, padding: '20px 24px 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          {!isPending && (() => {
-            const pills = {
-              approved: { bg: '#f0fdf4', color: '#16a34a', border: '#bbf7d0' },
-              declined: { bg: '#fef2f2', color: '#dc2626', border: '#fecaca' },
-            };
-            const pill = pills[req.status] || { bg: P.bg, color: P.inkSoft, border: P.border };
-            const label = req.status === 'approved' ? 'Approved' : 'Declined';
-            return (
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: pill.bg, color: pill.color, border: `1px solid ${pill.border}`, padding: '3px 9px', borderRadius: 20, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12 }}>
-                <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'currentColor', flexShrink: 0 }} />
-                {label}
-              </div>
-            );
-          })()}
-          <button onClick={close} style={{ width: 32, height: 32, borderRadius: 8, background: '#f1f1f4', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Icon name="X" size={16} color={P.ink} strokeWidth={2} />
+
+        {/* Pinned header — stays fixed across both states */}
+        <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 24px', borderBottom: `1px solid ${P.border}` }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            {secondPanel && (
+              <button onClick={editMode ? exitEdit : exitCancel} style={{ flexShrink: 0, width: 30, height: 30, borderRadius: '50%', background: 'rgba(60,60,67,0.1)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Icon name="arrow-left" size={15} color={P.ink} strokeWidth={2} />
+              </button>
+            )}
+            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18, color: P.ink }}>
+              {editMode ? 'Edit request' : cancelMode ? 'Cancel absence' : 'Request details'}
+            </span>
+          </div>
+          <button onClick={close} style={{ border: 'none', cursor: 'pointer', width: 30, height: 30, borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(60,60,67,0.1)', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)' }}>
+            <Icon name="X" size={14} color={P.ink} strokeWidth={2.5} />
           </button>
         </div>
 
-        <div style={{ flex: 1, overflowY: 'auto' }}>
+        {/* Clipping window for the two sliding panels */}
+        <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
 
-          {/* Employee identity */}
-          <div style={{ padding: '20px 24px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <Avatar employeeId={req.employee} size={48} />
-            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 17, color: P.ink, marginTop: 10 }}>{emp.name}</div>
-            <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkFaint, marginTop: 2 }}>{emp.department}</div>
+          {/* Detail panel */}
+          <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', transform: detailSlide, transition: slideTransition }}>
+            <div style={{ flex: 1, overflowY: 'auto' }}>
+              <div style={{ marginTop: 16 }}>
+                {detailItems.map((item, i) => (
+                  <React.Fragment key={i}>
+                    {i > 0 && <div style={{ height: 1, background: P.border, marginLeft: 24, marginRight: 24 }} />}
+                    {item}
+                  </React.Fragment>
+                ))}
+              </div>
+            </div>
+            {(isPending || req.status === 'approved') && (
+              <div style={{ flexShrink: 0, padding: '12px 20px', borderTop: `1px solid ${P.border}`, display: 'flex', gap: 10 }}>
+                {isPending && <>
+                  <button onClick={() => onDecline(req.id)} style={{ flex: 1, padding: '10px 0', borderRadius: 10, border: '1px solid #fecaca', background: '#fef2f2', color: '#dc2626', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                    <Icon name="X" size={13} color="#dc2626" strokeWidth={2.5} /> Decline
+                  </button>
+                  <button onClick={() => onApprove(req.id)} style={{ flex: 1, padding: '10px 0', borderRadius: 10, border: 'none', background: P.ink, color: P.white, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                    <Icon name="Check" size={13} color={P.white} strokeWidth={2.5} /> Approve
+                  </button>
+                </>}
+                {req.status === 'approved' && <>
+                  <button onClick={enterEdit} style={{ flex: 1, padding: '10px 0', borderRadius: 10, border: `1px solid ${P.border}`, background: 'transparent', color: P.inkSoft, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>Edit</button>
+                  <button onClick={enterCancel} style={{ flex: 1, padding: '10px 0', borderRadius: 10, border: '1px solid #fecaca', background: '#fef2f2', color: '#dc2626', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>Cancel absence</button>
+                </>}
+              </div>
+            )}
           </div>
 
-          {/* One unified fact card — every row shares the same shell, one border, no nesting */}
-          <div style={{ margin: '0 20px 20px', border: `1px solid ${P.border}`, borderRadius: 12, overflow: 'hidden' }}>
-            {items.map((item, i) => (
-              <React.Fragment key={i}>
-                {i > 0 && <div style={{ height: 1, background: P.border }} />}
-                {item}
-              </React.Fragment>
-            ))}
+          {/* Edit / Cancel panel */}
+          <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', transform: editSlide, transition: slideTransition }}>
+            {cancelMode ? (
+              <>
+                <div style={{ flex: 1, overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+                  <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, lineHeight: 1.5 }}>
+                    You're cancelling <strong style={{ color: P.ink }}>{emp.name}</strong>'s {req.type} ({heroDateStr}). This cannot be undone.
+                  </p>
+                  <div>
+                    <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 10, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Reason <span style={{ textTransform: 'none', fontWeight: 400 }}>(optional)</span></label>
+                    <textarea value={cancelReason} onChange={e => setCancelReason(e.target.value)} placeholder="Add a reason…" rows={3} style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: `1px solid ${P.border}`, background: P.bg, fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink, resize: 'none', lineHeight: 1.5, boxSizing: 'border-box', outline: 'none' }} />
+                  </div>
+                </div>
+                <div style={{ flexShrink: 0, padding: '12px 20px', borderTop: `1px solid ${P.border}`, display: 'flex', gap: 10 }}>
+                  <button onClick={exitCancel} style={{ flex: 1, padding: '10px 0', borderRadius: 10, border: `1px solid ${P.border}`, background: 'transparent', color: P.inkSoft, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>Go back</button>
+                  <button onClick={() => { onCancel(req.id, cancelReason); close(); }} style={{ flex: 2, padding: '10px 0', borderRadius: 10, border: 'none', background: '#dc2626', color: P.white, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>Confirm cancellation</button>
+                </div>
+              </>
+            ) : (
+            <>
+            <div style={{ flex: 1, overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column', gap: 20 }}>
+              {/* Leave type */}
+              <div>
+                <label style={editLabelStyle}>Leave type</label>
+                <SelectField value={editType} onChange={e => setEditType(e.target.value)} style={{ ...editInputStyle }}>
+                  {ALL_LEAVE_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+                </SelectField>
+              </div>
+              {/* Date range */}
+              <div>
+                <label style={editLabelStyle}>Dates</label>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                  <div>
+                    <div style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkFaint, marginBottom: 4 }}>From</div>
+                    <input type="date" value={editRangeFrom} onChange={e => setEditRangeFrom(e.target.value)} style={editInputStyle} />
+                  </div>
+                  <div>
+                    <div style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkFaint, marginBottom: 4 }}>To</div>
+                    <input type="date" value={editRangeTo} onChange={e => setEditRangeTo(e.target.value)} style={editInputStyle} />
+                  </div>
+                </div>
+                {editPickedDates.size > 0 && !editErrors.dates && (
+                  <div style={{ marginTop: 8, fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>
+                    {editDurStr} — {editPickedDates.size} working {editPickedDates.size === 1 ? 'day' : 'days'}
+                  </div>
+                )}
+                {editErrors.dates && (
+                  <div style={{ marginTop: 6, fontFamily: 'var(--font-body)', fontSize: 12, color: '#dc2626' }}>{editErrors.dates}</div>
+                )}
+              </div>
+              {/* Note */}
+              <div>
+                <label style={editLabelStyle}>Note <span style={{ textTransform: 'none', fontWeight: 400, color: P.inkFaint }}>(optional)</span></label>
+                <textarea value={editNote} onChange={e => setEditNote(e.target.value)} placeholder="Add a note…" rows={3} style={{ ...editInputStyle, resize: 'none', lineHeight: 1.5 }} />
+              </div>
+            </div>
+            <div style={{ flexShrink: 0, padding: '12px 20px', borderTop: `1px solid ${P.border}`, display: 'flex', gap: 10 }}>
+              <button onClick={exitEdit} style={{ flex: 1, padding: '10px 0', borderRadius: 10, border: `1px solid ${P.border}`, background: 'transparent', color: P.inkSoft, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>Cancel</button>
+              <button onClick={handleSaveEdit} style={{ flex: 2, padding: '10px 0', borderRadius: 10, border: 'none', background: P.ink, color: P.white, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>Save changes</button>
+            </div>
+            </>
+            )}
           </div>
 
         </div>
-
-        {/* Footer — full-width buttons */}
-        {(isPending || req.status === 'approved') && (
-          <div style={{ flexShrink: 0, padding: '12px 20px', borderTop: `1px solid ${P.border}`, display: 'flex', gap: 10 }}>
-            {isPending && <>
-              <button onClick={() => { onDecline(req.id); close(); }} style={{ flex: 1, padding: '10px 0', borderRadius: 10, border: '1px solid #fecaca', background: '#fef2f2', color: '#dc2626', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
-                <Icon name="X" size={13} color="#dc2626" strokeWidth={2.5} /> Decline
-              </button>
-              <button onClick={() => { onApprove(req.id); close(); }} style={{ flex: 1, padding: '10px 0', borderRadius: 10, border: '1px solid #bbf7d0', background: '#f0fdf4', color: '#16a34a', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
-                <Icon name="Check" size={13} color="#16a34a" strokeWidth={2.5} /> Approve
-              </button>
-            </>}
-            {req.status === 'approved' && <>
-              {onEdit && <button onClick={() => { onEdit(req); close(); }} style={{ flex: 1, padding: '10px 0', borderRadius: 10, border: `1px solid ${P.border}`, background: 'transparent', color: P.inkSoft, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>Edit</button>}
-              <button onClick={() => { onCancel(req.id); close(); }} style={onEdit ? { flex: 1, padding: '10px 0', borderRadius: 10, border: '1px solid #fecaca', background: '#fef2f2', color: '#dc2626', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 } : { flex: '0 0 auto', minWidth: 160, marginLeft: 'auto', padding: '10px 0', borderRadius: 10, border: '1px solid #fecaca', background: '#fef2f2', color: '#dc2626', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>Withdraw</button>
-            </>}
-          </div>
-        )}
       </div>
-    </div>
-    {avatarTip && ReactDOM.createPortal(
-      <div style={{ position: 'fixed', zIndex: 9999, left: avatarTip.x, top: avatarTip.y - 8, transform: 'translate(-50%, -100%)', background: P.ink, color: P.white, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, padding: '4px 8px', borderRadius: 6, pointerEvents: 'none', whiteSpace: 'nowrap' }}>
-        {avatarTip.name}
-      </div>,
-      document.body
-    )}
+      </div>
+
+      {avatarTip && ReactDOM.createPortal(
+        <div style={{ position: 'fixed', zIndex: 9999, left: avatarTip.x, top: avatarTip.y - 8, transform: 'translate(-50%, -100%)', background: P.ink, color: P.white, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, padding: '4px 8px', borderRadius: 6, pointerEvents: 'none', whiteSpace: 'nowrap' }}>
+          {avatarTip.name}
+        </div>,
+        document.body
+      )}
     </React.Fragment>
   );
 }
@@ -2211,28 +2351,6 @@ function OverlapPopover({ req, overlapping, empDept }) {
               );
             })}
           </>}
-          {otherDept.length > 0 && <>
-            <div style={{ padding: '10px 14px 8px', borderTop: sameDept.length > 0 ? `1px solid ${P.border}` : 'none' }}>
-              <span style={{ fontFamily: 'var(--font-body)', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: P.inkFaint }}>
-                Others in company ({otherDept.length})
-              </span>
-            </div>
-            {otherDept.map(r => {
-              const e2 = EMPLOYEES[r.employee];
-              const period = r.startDate === r.endDate ? r.startDate : `${r.startDate} – ${r.endDate}`;
-              const od = calcOverlapDays(r);
-              return (
-                <div key={r.id} style={{ padding: '7px 14px', display: 'flex', alignItems: 'center', gap: 9, borderTop: `1px solid ${P.border}` }}>
-                  <Avatar employeeId={r.employee} size={24} />
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, fontWeight: 500, color: P.inkSoft, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{e2?.name || r.employee}</div>
-                    <div style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkFaint, marginTop: 1 }}>{e2?.department ? `${e2.department} · ` : ''}{period}</div>
-                  </div>
-                  {od > 0 && <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkFaint, flexShrink: 0 }}>{od}d overlap</span>}
-                </div>
-              );
-            })}
-          </>}
         </div>,
         document.body
       )}
@@ -2487,12 +2605,11 @@ function RequestsScreen({ requests, onApprove, onDecline, onSave, onCancel, onVi
         </div>
       )}
       {detail && (
-        <DetailModal req={detail} requests={requests} onClose={() => setDetail(null)}
-          onApprove={(id) => { onApprove(id); setDetail(prev => prev && prev.id === id ? { ...prev, status: 'approved' } : prev); }}
-          onDecline={(id) => onDecline(id)}
-          onCancel={(id) => { onCancel(id); setDetail(null); }}
-          onEdit={(r) => { setDetail(null); setEditReq(r); }}
-          onViewProfile={onNav ? (empId) => { setDetail(null); onNav(`employee-detail:${empId}`); } : undefined}
+        <CalendarDrawer key={detail.id} req={detail} requests={requests} onClose={() => setDetail(null)}
+          onApprove={(id) => { onApprove(id); setDetail(null); }}
+          onDecline={(id) => { onDecline(id); setDetail(null); }}
+          onCancel={(id, reason) => { onCancel(id, reason); setDetail(null); }}
+          onSave={(req) => { onSave(req); setDetail(req); }}
         />
       )}
       {(addOpen || editReq) && (
@@ -2731,7 +2848,7 @@ function FilterToolbar({ searchText, onSearch, leaveFilter, onLeaveFilter, deptF
 }
 
 // ── Team absences screen ───────────────────────────────────────────────────
-function TeamAbsencesScreen({ requests, pendingCount, onNav, onShowDetail, onSave, companyEvents = [], onCancelCompanyEvent, initialDate, initialDeptFilter }) {
+function TeamAbsencesScreen({ requests, pendingCount, onNav, onShowDetail, activeReqId, onSave, companyEvents = [], onCancelCompanyEvent, initialDate, initialDeptFilter }) {
   const today = new Date(); today.setHours(0,0,0,0);
   const todayISO = isoDate(today);
 
@@ -3148,6 +3265,7 @@ function TeamAbsencesScreen({ requests, pendingCount, onNav, onShowDetail, onSav
                                         borderBottom: isPending ? `1.5px dashed ${LEAVE_BORDER_COLORS[entry.type] || '#999'}` : 'none',
                                         borderLeft: isPending && half === 'am' ? `1.5px dashed ${LEAVE_BORDER_COLORS[entry.type] || '#999'}` : 'none',
                                         borderRight: isPending && half === 'pm' ? `1.5px dashed ${LEAVE_BORDER_COLORS[entry.type] || '#999'}` : 'none',
+                                        boxShadow: activeReqId && entry.requestId === activeReqId ? `inset 0 0 0 2px ${LEAVE_BORDER_COLORS[entry.type] || P.inkSoft}` : undefined,
                                         cursor: 'pointer',
                                         padding: '5px 8px',
                                         display: 'flex', alignItems: 'center', flexDirection: 'column', justifyContent: 'center',
@@ -3206,6 +3324,7 @@ function TeamAbsencesScreen({ requests, pendingCount, onNav, onShowDetail, onSav
                                     borderBottom: isPending ? `1.5px dashed ${LEAVE_BORDER_COLORS[entry.type] || '#999'}` : 'none',
                                     borderLeft: isPending && isStart ? `1.5px dashed ${LEAVE_BORDER_COLORS[entry.type] || '#999'}` : 'none',
                                     borderRight: isPending && isEnd ? `1.5px dashed ${LEAVE_BORDER_COLORS[entry.type] || '#999'}` : 'none',
+                                    boxShadow: activeReqId && entry.requestId === activeReqId ? `inset 0 0 0 2px ${LEAVE_BORDER_COLORS[entry.type] || P.inkSoft}` : undefined,
                                     cursor: 'pointer',
                                     padding: isWeekCard ? '5px 8px' : 0,
                                     display: isWeekCard ? 'flex' : 'block',
@@ -3845,14 +3964,14 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, o
       )}
 
       {detailReq && (
-        <DetailModal
+        <CalendarDrawer key={detailReq.id}
           req={detailReq}
           requests={requests}
           onClose={() => setDetailReq(null)}
           onApprove={(id) => { onApprove(id); setDetailReq(prev => prev?.id === id ? { ...prev, status: 'approved' } : prev); }}
-          onDecline={(id) => { onDecline(id); setDetailReq(prev => prev?.id === id ? { ...prev, status: 'declined' } : prev); }}
-          onCancel={(id) => { onCancel(id); setDetailReq(null); }}
-          onEdit={(r) => { setDetailReq(null); setAddModal(r); }}
+          onDecline={(id) => { onDecline(id); setDetailReq(prev => prev?.id === id ? { ...prev, status: 'rejected' } : prev); }}
+          onCancel={(id, reason) => { onCancel(id, reason); setDetailReq(null); }}
+          onSave={(req) => { onSave(req); setDetailReq(req); }}
         />
       )}
     </div>
@@ -4023,7 +4142,6 @@ function App() {
   const [companyEvents, setCompanyEvents] = useState([]);
   const [toast, setToast] = useState(null);
   const [calDetail, setCalDetail] = useState(null);
-  const [calEditReq, setCalEditReq] = useState(null);
   const [calendarJumpDate, setCalendarJumpDate] = useState(null);
   const [calendarDeptFilter, setCalendarDeptFilter] = useState(null);
   const handleNav = (id) => {
@@ -4083,7 +4201,8 @@ function App() {
     const empName = (EMPLOYEES[req?.employee] || { name: req?.employee || '' }).name;
     setPendingAction({ type: 'decline', id, empName });
   };
-  const requestCancel = (id) => {
+  const requestCancel = (id, reason) => {
+    if (reason !== undefined) { cancelRequest(id, reason); return; }
     const req = requests.find(r => r.id === id);
     const empName = (EMPLOYEES[req?.employee] || { name: req?.employee || '' }).name;
     setPendingAction({ type: 'cancel', id, empName });
@@ -4185,7 +4304,7 @@ function App() {
 
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, overflow: 'hidden' }}>
         {screen === 'dashboard' && <DashboardScreen requests={requests} onNav={setScreen} />}
-        {screen === 'team-absences' && <TeamAbsencesScreen requests={requests} pendingCount={pendingCount} onNav={setScreen} onShowDetail={setCalDetail} onSave={saveRequest} companyEvents={companyEvents} onCancelCompanyEvent={cancelCompanyEvent} initialDate={calendarJumpDate} initialDeptFilter={calendarDeptFilter} />}
+        {screen === 'team-absences' && <TeamAbsencesScreen requests={requests} pendingCount={pendingCount} onNav={setScreen} onShowDetail={setCalDetail} activeReqId={calDetail?.id} onSave={saveRequest} companyEvents={companyEvents} onCancelCompanyEvent={cancelCompanyEvent} initialDate={calendarJumpDate} initialDeptFilter={calendarDeptFilter} />}
         {screen === 'requests' && <RequestsScreen requests={requests} onApprove={approve} onDecline={requestDecline} onSave={saveRequest} onCancel={requestCancel} onNav={setScreen} onViewInCalendar={(req) => { const d = req._selectedDates?.[0] || req.startDate; if (d) { const iso = typeof d === 'string' && d.match(/^\d{4}-/) ? d : null; setCalendarJumpDate(iso ? new Date(iso) : parseDisplayDate(d)); } setScreen('team-absences'); }} />}
         {screen === 'employees' && <EmployeesScreen requests={requests} onNav={setScreen} />}
         {screen.startsWith('employee-detail:') && <EmployeeDetailScreen employeeId={screen.split(':')[1]} requests={requests} onNav={setScreen} onSave={saveRequest} onCancel={cancelRequest} onApprove={approve} onDecline={requestDecline} onViewTeamCalendar={(dept) => { setCalendarDeptFilter(dept || null); setScreen('team-absences'); }} employeeBalance={employeeBalances[screen.split(':')[1]]} onUpdateBalance={(newBal) => updateBalances(screen.split(':')[1], newBal)} needsSetup={needsBalanceSetup.has(screen.split(':')[1])} confirmedDate={balanceConfirmedDates[screen.split(':')[1]]} onConfirmBalances={() => confirmBalancesFor(screen.split(':')[1])} />}
@@ -4196,20 +4315,15 @@ function App() {
       </div>
 
       {calDetail && (
-        <DetailModal req={calDetail} requests={requests} onClose={() => setCalDetail(null)}
+        <CalendarDrawer
+          key={calDetail.id}
+          req={calDetail}
+          requests={requests}
+          onClose={() => setCalDetail(null)}
           onApprove={(id) => { approve(id); setCalDetail(prev => prev && prev.id === id ? { ...prev, status: 'approved' } : prev); }}
           onDecline={(id) => requestDecline(id)}
-          onCancel={(id) => requestCancel(id)}
-          onEdit={(r) => { setCalDetail(null); setCalEditReq(r); }}
-        />
-      )}
-
-      {calEditReq && (
-        <AddTimeOffModal
-          existing={calEditReq}
-          requests={requests}
-          onClose={() => setCalEditReq(null)}
-          onSave={(req) => { saveRequest(req); setCalEditReq(null); }}
+          onCancel={(id, reason) => requestCancel(id, reason)}
+          onSave={(req) => { saveRequest(req); setCalDetail(req); }}
         />
       )}
 
