@@ -1101,6 +1101,8 @@ function CalendarDrawer({ req, requests, onClose, onApprove, onDecline, onCancel
   const [editMode, setEditMode] = React.useState(false);
   const [cancelMode, setCancelMode] = React.useState(false);
   const [cancelReason, setCancelReason] = React.useState('');
+  const [declineMode, setDeclineMode] = React.useState(false);
+  const [declineReason, setDeclineReason] = React.useState('');
 
   // Edit form state — initialized lazily via enterEdit()
   const [editType, setEditType] = React.useState(req.type);
@@ -1153,6 +1155,8 @@ function CalendarDrawer({ req, requests, onClose, onApprove, onDecline, onCancel
   const exitEdit = () => { setEditMode(false); setCancelMode(false); };
   const enterCancel = () => { setCancelReason(''); setCancelMode(true); };
   const exitCancel = () => setCancelMode(false);
+  const enterDecline = () => { setDeclineReason(''); setDeclineMode(true); };
+  const exitDecline = () => setDeclineMode(false);
 
   const handleSaveEdit = () => {
     if (editPickedDates.size === 0) { setEditErrors({ dates: 'Please select dates' }); return; }
@@ -1264,7 +1268,7 @@ function CalendarDrawer({ req, requests, onClose, onApprove, onDecline, onCancel
 
   // Slide transforms
   const SLIDE_DUR = 300;
-  const secondPanel = editMode || cancelMode;
+  const secondPanel = editMode || cancelMode || declineMode;
   const detailSlide = secondPanel ? 'translateX(-100%)' : 'translateX(0)';
   const editSlide   = secondPanel ? 'translateX(0)'     : 'translateX(100%)';
   const slideTransition = `transform ${SLIDE_DUR}ms ${EASE_DRAWER}`;
@@ -1300,12 +1304,12 @@ function CalendarDrawer({ req, requests, onClose, onApprove, onDecline, onCancel
         <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 24px', borderBottom: `1px solid ${P.border}` }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             {secondPanel && (
-              <button onClick={editMode ? exitEdit : exitCancel} style={{ flexShrink: 0, width: 30, height: 30, borderRadius: '50%', background: 'rgba(60,60,67,0.1)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <button onClick={editMode ? exitEdit : cancelMode ? exitCancel : exitDecline} style={{ flexShrink: 0, width: 30, height: 30, borderRadius: '50%', background: 'rgba(60,60,67,0.1)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <Icon name="arrow-left" size={15} color={P.ink} strokeWidth={2} />
               </button>
             )}
             <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18, color: P.ink }}>
-              {editMode ? 'Edit request' : cancelMode ? 'Cancel absence' : 'Request details'}
+              {editMode ? 'Edit request' : cancelMode ? 'Cancel absence' : declineMode ? 'Decline request' : 'Request details'}
             </span>
           </div>
           <button onClick={close} style={{ border: 'none', cursor: 'pointer', width: 30, height: 30, borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(60,60,67,0.1)', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)' }}>
@@ -1331,7 +1335,7 @@ function CalendarDrawer({ req, requests, onClose, onApprove, onDecline, onCancel
             {(isPending || req.status === 'approved') && (
               <div style={{ flexShrink: 0, padding: '12px 20px', borderTop: `1px solid ${P.border}`, display: 'flex', gap: 10 }}>
                 {isPending && <>
-                  <button onClick={() => onDecline(req.id)} style={{ flex: 1, padding: '10px 0', borderRadius: 10, border: '1px solid #fecaca', background: '#fef2f2', color: '#dc2626', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                  <button onClick={enterDecline} style={{ flex: 1, padding: '10px 0', borderRadius: 10, border: '1px solid #fecaca', background: '#fef2f2', color: '#dc2626', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
                     <Icon name="X" size={13} color="#dc2626" strokeWidth={2.5} /> Decline
                   </button>
                   <button onClick={() => onApprove(req.id)} style={{ flex: 1, padding: '10px 0', borderRadius: 10, border: 'none', background: P.ink, color: P.white, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
@@ -1346,9 +1350,25 @@ function CalendarDrawer({ req, requests, onClose, onApprove, onDecline, onCancel
             )}
           </div>
 
-          {/* Edit / Cancel panel */}
+          {/* Edit / Cancel / Decline panel */}
           <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', transform: editSlide, transition: slideTransition }}>
-            {cancelMode ? (
+            {declineMode ? (
+              <>
+                <div style={{ flex: 1, overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+                  <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, lineHeight: 1.5 }}>
+                    You're declining <strong style={{ color: P.ink }}>{emp.name}</strong>'s {req.type} ({heroDateStr}).
+                  </p>
+                  <div>
+                    <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 10, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Reason <span style={{ textTransform: 'none', fontWeight: 400 }}>(optional)</span></label>
+                    <textarea value={declineReason} onChange={e => setDeclineReason(e.target.value)} placeholder="Explain why this request is being declined…" rows={3} style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: `1px solid ${P.border}`, background: P.bg, fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink, resize: 'none', lineHeight: 1.5, boxSizing: 'border-box', outline: 'none' }} />
+                  </div>
+                </div>
+                <div style={{ flexShrink: 0, padding: '12px 20px', borderTop: `1px solid ${P.border}`, display: 'flex', gap: 10 }}>
+                  <button onClick={exitDecline} style={{ flex: 1, padding: '10px 0', borderRadius: 10, border: `1px solid ${P.border}`, background: 'transparent', color: P.inkSoft, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>Go back</button>
+                  <button onClick={() => { onDecline(req.id, declineReason); close(); }} style={{ flex: 2, padding: '10px 0', borderRadius: 10, border: 'none', background: '#dc2626', color: P.white, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>Confirm decline</button>
+                </div>
+              </>
+            ) : cancelMode ? (
               <>
                 <div style={{ flex: 1, overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column', gap: 16 }}>
                   <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, lineHeight: 1.5 }}>
@@ -2607,7 +2627,7 @@ function RequestsScreen({ requests, onApprove, onDecline, onSave, onCancel, onVi
       {detail && (
         <CalendarDrawer key={detail.id} req={detail} requests={requests} onClose={() => setDetail(null)}
           onApprove={(id) => { onApprove(id); setDetail(null); }}
-          onDecline={(id) => { onDecline(id); setDetail(null); }}
+          onDecline={(id, reason) => { onDecline(id, reason); setDetail(null); }}
           onCancel={(id, reason) => { onCancel(id, reason); setDetail(null); }}
           onSave={(req) => { onSave(req); setDetail(req); }}
         />
@@ -3969,7 +3989,7 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, o
           requests={requests}
           onClose={() => setDetailReq(null)}
           onApprove={(id) => { onApprove(id); setDetailReq(prev => prev?.id === id ? { ...prev, status: 'approved' } : prev); }}
-          onDecline={(id) => { onDecline(id); setDetailReq(prev => prev?.id === id ? { ...prev, status: 'rejected' } : prev); }}
+          onDecline={(id, reason) => { onDecline(id, reason); setDetailReq(null); }}
           onCancel={(id, reason) => { onCancel(id, reason); setDetailReq(null); }}
           onSave={(req) => { onSave(req); setDetailReq(req); }}
         />
@@ -4196,7 +4216,8 @@ function App() {
   };
 
   // Interceptors — show ReasonModal before acting
-  const requestDecline = (id) => {
+  const requestDecline = (id, reason) => {
+    if (reason !== undefined) { decline(id, reason); return; }
     const req = requests.find(r => r.id === id);
     const empName = (EMPLOYEES[req?.employee] || { name: req?.employee || '' }).name;
     setPendingAction({ type: 'decline', id, empName });
@@ -4321,7 +4342,7 @@ function App() {
           requests={requests}
           onClose={() => setCalDetail(null)}
           onApprove={(id) => { approve(id); setCalDetail(prev => prev && prev.id === id ? { ...prev, status: 'approved' } : prev); }}
-          onDecline={(id) => requestDecline(id)}
+          onDecline={(id, reason) => requestDecline(id, reason)}
           onCancel={(id, reason) => requestCancel(id, reason)}
           onSave={(req) => { saveRequest(req); setCalDetail(req); }}
         />
