@@ -1307,11 +1307,10 @@ function CalendarDrawer({ req, requests, onClose, onApprove, onDecline, onCancel
                 </span>
               )}
             </span>
-            <span style={{ color: P.inkSoft }}>{overlapping.length} of {teamSize} off</span>
           </TableRow>
         </Group>
         {teamRisk && (
-          <div style={{ margin: '8px 20px 4px', padding: '12px 14px', borderRadius: 10, background: '#fffbeb', border: '1px solid #fde68a', display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+          <div style={{ margin: '8px 20px 4px', padding: '12px 14px', borderRadius: 10, background: '#fffbeb', display: 'flex', gap: 10, alignItems: 'flex-start' }}>
             <Icon name="triangle-alert" size={14} color="#d97706" strokeWidth={2} style={{ flexShrink: 0, marginTop: 1 }} />
             <div>
               <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: '#92400e' }}>
