@@ -1307,20 +1307,17 @@ function CalendarDrawer({ req, requests, onClose, onApprove, onDecline, onCancel
                 </span>
               )}
             </span>
-            {teamRisk
-              ? <DotPill bg="#fef2f2" color="#dc2626">{overlapping.length}/{teamSize} overlap</DotPill>
-              : <span style={{ color: P.inkSoft }}>{overlapping.length} of {teamSize} off</span>
-            }
+            <span style={{ color: P.inkSoft }}>{overlapping.length} of {teamSize} off</span>
           </TableRow>
         </Group>
         {teamRisk && (
-          <div style={{ margin: '8px 20px 4px', padding: '12px 14px', borderRadius: 10, background: '#fef2f2', border: '1px solid #fecaca', display: 'flex', gap: 10, alignItems: 'flex-start' }}>
-            <Icon name="triangle-alert" size={14} color="#dc2626" strokeWidth={2} style={{ flexShrink: 0, marginTop: 1 }} />
+          <div style={{ margin: '8px 20px 4px', padding: '12px 14px', borderRadius: 10, background: '#fffbeb', border: '1px solid #fde68a', display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+            <Icon name="triangle-alert" size={14} color="#d97706" strokeWidth={2} style={{ flexShrink: 0, marginTop: 1 }} />
             <div>
-              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: '#dc2626' }}>
+              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: '#92400e' }}>
                 {overlapping.length} of {teamSize} team members also off
               </div>
-              <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: '#b91c1c', marginTop: 2, lineHeight: 1.4 }}>
+              <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: '#92400e', marginTop: 2, lineHeight: 1.4 }}>
                 {overlapNamesStr} {overlapping.length === 1 ? 'has' : 'have'} approved leave overlapping these dates.
               </div>
             </div>
