@@ -1256,7 +1256,13 @@ function CalendarDrawer({ req, requests, onClose, onApprove, onDecline, onCancel
             );
           })}
         </span>
-        <span style={{ color: teamRisk ? '#dc2626' : P.inkSoft }}>{teamRisk ? '⚠ ' : ''}{overlapping.length} of {teamSize} off</span>
+        {teamRisk
+          ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: '#fef2f2', color: '#dc2626', border: '1px solid #fecaca', borderRadius: 20, padding: '2px 8px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12 }}>
+              <Icon name="triangle-alert" size={11} color="#dc2626" strokeWidth={2.5} />
+              {overlapping.length}/{teamSize} overlap
+            </span>
+          : <span style={{ color: P.inkSoft }}>{overlapping.length} of {teamSize} off</span>
+        }
       </TableRow>
     ),
     req.submittedAt && (
@@ -4326,7 +4332,7 @@ function App() {
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, overflow: 'hidden' }}>
         {screen === 'dashboard' && <DashboardScreen requests={requests} onNav={setScreen} />}
         {screen === 'team-absences' && <TeamAbsencesScreen requests={requests} pendingCount={pendingCount} onNav={setScreen} onShowDetail={setCalDetail} activeReqId={calDetail?.id} onSave={saveRequest} companyEvents={companyEvents} onCancelCompanyEvent={cancelCompanyEvent} initialDate={calendarJumpDate} initialDeptFilter={calendarDeptFilter} />}
-        {screen === 'requests' && <RequestsScreen requests={requests} onApprove={approve} onDecline={requestDecline} onSave={saveRequest} onCancel={requestCancel} onNav={setScreen} onViewInCalendar={(req) => { const d = req._selectedDates?.[0] || req.startDate; if (d) { const iso = typeof d === 'string' && d.match(/^\d{4}-/) ? d : null; setCalendarJumpDate(iso ? new Date(iso) : parseDisplayDate(d)); } setScreen('team-absences'); }} />}
+        {screen === 'requests' && <RequestsScreen requests={requests} onApprove={approve} onDecline={requestDecline} onSave={saveRequest} onCancel={requestCancel} onNav={setScreen} onViewInCalendar={(req) => { const d = req._selectedDates?.[0] || req.startDate; if (d) { const iso = typeof d === 'string' && d.match(/^\d{4}-/) ? d : null; setCalendarJumpDate(iso ? new Date(iso) : parseDisplayDate(d)); } setCalDetail(req); setScreen('team-absences'); }} />}
         {screen === 'employees' && <EmployeesScreen requests={requests} onNav={setScreen} />}
         {screen.startsWith('employee-detail:') && <EmployeeDetailScreen employeeId={screen.split(':')[1]} requests={requests} onNav={setScreen} onSave={saveRequest} onCancel={cancelRequest} onApprove={approve} onDecline={requestDecline} onViewTeamCalendar={(dept) => { setCalendarDeptFilter(dept || null); setScreen('team-absences'); }} employeeBalance={employeeBalances[screen.split(':')[1]]} onUpdateBalance={(newBal) => updateBalances(screen.split(':')[1], newBal)} needsSetup={needsBalanceSetup.has(screen.split(':')[1])} confirmedDate={balanceConfirmedDates[screen.split(':')[1]]} onConfirmBalances={() => confirmBalancesFor(screen.split(':')[1])} />}
         {screen === 'choices' && <StubScreen title="Choices" description="Employee benefit choices overview" />}
