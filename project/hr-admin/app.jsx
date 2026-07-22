@@ -1202,6 +1202,12 @@ function CalendarDrawer({ req, requests, onClose, onApprove, onDecline, onCancel
       <div style={valueStyle}>{children}</div>
     </div>
   );
+  const DotPill = ({ bg, color, children }) => (
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: bg, color, borderRadius: 20, padding: '2px 8px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12 }}>
+      <span style={{ width: 5, height: 5, borderRadius: '50%', background: 'currentColor', flexShrink: 0 }} />
+      {children}
+    </span>
+  );
 
   const detailItems = [
     <TableRow key="employee" label="Requested by" icon="user">
@@ -1209,10 +1215,7 @@ function CalendarDrawer({ req, requests, onClose, onApprove, onDecline, onCancel
       <Avatar employeeId={req.employee} size={22} />
     </TableRow>,
     <TableRow key="status" label="Status" icon="circle-dot">
-      <div style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: pill.bg, color: pill.color, padding: '2px 8px', borderRadius: 20, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12 }}>
-        <span style={{ width: 5, height: 5, borderRadius: '50%', background: 'currentColor', flexShrink: 0 }} />
-        {pill.label}
-      </div>
+      <DotPill bg={pill.bg} color={pill.color}>{pill.label}</DotPill>
     </TableRow>,
     <TableRow key="dates" label="When" icon="calendar">
       {heroDateStr} · {durationStr}
@@ -1257,10 +1260,7 @@ function CalendarDrawer({ req, requests, onClose, onApprove, onDecline, onCancel
           })}
         </span>
         {teamRisk
-          ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: '#fef2f2', color: '#dc2626', border: '1px solid #fecaca', borderRadius: 20, padding: '2px 8px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12 }}>
-              <span style={{ width: 5, height: 5, borderRadius: '50%', background: 'currentColor', flexShrink: 0 }} />
-              {overlapping.length}/{teamSize} overlap
-            </span>
+          ? <DotPill bg="#fef2f2" color="#dc2626">{overlapping.length}/{teamSize} overlap</DotPill>
           : <span style={{ color: P.inkSoft }}>{overlapping.length} of {teamSize} off</span>
         }
       </TableRow>
