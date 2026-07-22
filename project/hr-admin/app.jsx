@@ -1108,6 +1108,7 @@ function CalendarDrawer({ req, requests, onClose, onApprove, onDecline, onCancel
 
   const { visible, close, closing } = useModalTransition(onClose, SHEET_CLOSE_DUR);
   const [avatarTip, setAvatarTip] = React.useState(null);
+  const [teamExpanded, setTeamExpanded] = React.useState(false);
   const [editMode, setEditMode] = React.useState(false);
   const [cancelMode, setCancelMode] = React.useState(false);
   const [cancelReason, setCancelReason] = React.useState('');
@@ -1300,59 +1301,86 @@ function CalendarDrawer({ req, requests, onClose, onApprove, onDecline, onCancel
       </>}
 
       <SectionHeader>Team impact</SectionHeader>
-      <Group>
-        {(() => {
-          const offIds = new Set(overlapping.map(r => r.employee));
-          const sorted = [
-            ...allTeamMemberIds.filter(id => offIds.has(id)),
-            ...allTeamMemberIds.filter(id => !offIds.has(id)),
-          ];
-          const MAX = 5;
-          const visible = sorted.slice(0, MAX);
-          const hidden = sorted.length - MAX;
-          return (
-            <TableRow label="Team availability" icon="users">
-              <span style={{ display: 'flex', flexShrink: 0 }}>
-                {visible.map((empId, i) => {
+      {(() => {
+        const offIds = new Set(overlapping.map(r => r.employee));
+        const sorted = [
+          ...allTeamMemberIds.filter(id => offIds.has(id)),
+          ...allTeamMemberIds.filter(id => !offIds.has(id)),
+        ];
+        const MAX_STACK = 3;
+        const stackIds = sorted.slice(0, MAX_STACK);
+        const hidden = sorted.length - MAX_STACK;
+        return (
+          <div>
+            {/* Collapsed row */}
+            <div style={{ display: 'flex', alignItems: 'center', padding: '16px 24px', gap: 16 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 7, flexShrink: 0 }}>
+                <Icon name="users" size={14} color={P.inkSoft} strokeWidth={1.75} style={{ flexShrink: 0 }} />
+                <div style={{ flexShrink: 0, fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.ink, whiteSpace: 'nowrap' }}>Team availability</div>
+              </div>
+              <div style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 8 }}>
+                {/* Avatar stack */}
+                <span style={{ display: 'flex', flexShrink: 0 }}>
+                  {stackIds.map((empId, i) => {
+                    const oe = EMPLOYEES[empId];
+                    const isOff = offIds.has(empId);
+                    return (
+                      <span key={empId}
+                        style={{ marginLeft: i > 0 ? -8 : 0, borderRadius: '50%', border: `2px solid ${isOff ? '#fcd34d' : '#86efac'}`, display: 'flex', lineHeight: 0 }}
+                        onMouseEnter={e => { const rect = e.currentTarget.getBoundingClientRect(); const offReq = overlapping.find(r => r.employee === empId); setAvatarTip({ name: oe?.name, offReq, x: rect.left + rect.width / 2, y: rect.top }); }}
+                        onMouseLeave={() => setAvatarTip(null)}
+                      >
+                        <Avatar employeeId={empId} size={24} />
+                      </span>
+                    );
+                  })}
+                  {hidden > 0 && (
+                    <span style={{ marginLeft: -8, width: 24, height: 24, borderRadius: '50%', border: '2px solid #e5e7eb', background: '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 9, color: P.inkSoft, boxSizing: 'content-box' }}>
+                      +{hidden}
+                    </span>
+                  )}
+                </span>
+                {/* Summary label */}
+                {hasOverlap
+                  ? <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: '#92400e' }}>{overlapping.length}/{teamSize} off</span>
+                  : <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 13, color: P.inkSoft }}>All available</span>
+                }
+                {/* Chevron — only tap target */}
+                <button onClick={() => setTeamExpanded(x => !x)} style={{ flexShrink: 0, width: 24, height: 24, borderRadius: '50%', border: 'none', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}>
+                  <Icon name="chevron-down" size={14} color={P.inkSoft} strokeWidth={2} style={{ transition: 'transform 200ms ease', transform: teamExpanded ? 'rotate(180deg)' : 'rotate(0deg)' }} />
+                </button>
+              </div>
+            </div>
+
+            {/* Expanded member list */}
+            {teamExpanded && (
+              <div style={{ borderTop: `1px solid ${P.border}`, paddingBottom: 4 }}>
+                {sorted.map((empId, i) => {
                   const oe = EMPLOYEES[empId];
                   const isOff = offIds.has(empId);
+                  const offReq = overlapping.find(r => r.employee === empId);
+                  const dateStr = offReq
+                    ? (offReq.startDate === offReq.endDate ? offReq.startDate : `${offReq.startDate} – ${offReq.endDate}`)
+                    : null;
                   return (
-                    <span key={empId}
-                      style={{ marginLeft: i > 0 ? -8 : 0, borderRadius: '50%', border: `2px solid ${isOff ? '#fcd34d' : '#86efac'}`, display: 'flex', lineHeight: 0 }}
-                      onMouseEnter={e => { const rect = e.currentTarget.getBoundingClientRect(); const offReq = overlapping.find(r => r.employee === empId); setAvatarTip({ name: oe?.name, offReq, x: rect.left + rect.width / 2, y: rect.top }); }}
-                      onMouseLeave={() => setAvatarTip(null)}
-                    >
-                      <Avatar employeeId={empId} size={24} />
-                    </span>
+                    <div key={empId} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 24px' }}>
+                      <span style={{ borderRadius: '50%', border: `2px solid ${isOff ? '#fcd34d' : '#86efac'}`, display: 'flex', lineHeight: 0, flexShrink: 0 }}>
+                        <Avatar employeeId={empId} size={22} />
+                      </span>
+                      <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.ink, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{oe?.name}</span>
+                      {isOff ? (
+                        <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: '#92400e', flexShrink: 0 }}>{offReq.type} · {dateStr}</span>
+                      ) : (
+                        <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkFaint, flexShrink: 0 }}>Available</span>
+                      )}
+                    </div>
                   );
                 })}
-                {hidden > 0 && (
-                  <span style={{ marginLeft: -8, width: 24, height: 24, borderRadius: '50%', border: '2px solid #e5e7eb', background: '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 9, color: P.inkSoft, boxSizing: 'content-box' }}>
-                    +{hidden}
-                  </span>
-                )}
-              </span>
-              {hasOverlap
-                ? <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: '#92400e' }}>{overlapping.length}/{teamSize} off</span>
-                : <span style={{ color: P.inkSoft }}>All available</span>
-              }
-            </TableRow>
-          );
-        })()}
-      </Group>
-      {teamRisk && (
-        <div style={{ margin: '8px 20px 4px', padding: '12px 14px', borderRadius: 10, background: '#fffbeb', display: 'flex', gap: 10, alignItems: 'flex-start' }}>
-          <Icon name="triangle-alert" size={14} color="#d97706" strokeWidth={2} style={{ flexShrink: 0, marginTop: 1 }} />
-          <div>
-            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: '#92400e' }}>
-              {overlapping.length} of {teamSize} team members also off
-            </div>
-            <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: '#92400e', marginTop: 2, lineHeight: 1.4 }}>
-              {overlapNamesStr} {overlapping.length === 1 ? 'has' : 'have'} approved leave overlapping these dates.
-            </div>
+              </div>
+            )}
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       <SectionHeader>Admin</SectionHeader>
       <Group>
