@@ -12,12 +12,19 @@ const P = {
   bg:          '#f7f7f8',
   white:       '#ffffff',
   accent:      '#6366f1',
+  action:      '#220A35',
 };
 
 const StatusMeta = {
-  pending:  { dot: '#f59e0b', label: 'Pending' },
-  approved: { dot: '#22c55e', label: 'Approved'  },
-  rejected: { dot: '#ef4444', label: 'Declined'  },
+  pending:  { dot: '#f59e0b', label: 'Pending',  icon: 'Clock', color: '#92400e', bg: '#fde68a' },
+  approved: { dot: '#22c55e', label: 'Approved', icon: 'Check', color: '#14532d', bg: '#bbf7d0' },
+  rejected: { dot: '#ef4444', label: 'Declined', icon: 'X',     color: '#7f1d1d', bg: '#fecaca' },
+};
+
+const avatarUrl = (name, gender) => {
+  const hash = name.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0);
+  const img = gender === 'f' ? (hash % 35) + 1 : (hash % 35) + 36;
+  return `https://i.pravatar.cc/64?img=${img}`;
 };
 
 const LEAVE_COLORS = {
@@ -45,6 +52,19 @@ const LEAVE_BORDER_COLORS = {
   'Unpaid absence':     '#a8b4be',
 };
 
+
+const LEAVE_ICONS = {
+  'Time off':          'Palmtree',
+  'ADV / RTT':         'Clock',
+  'Extra-legal leave': 'Star',
+  'Sick leave':        'Stethoscope',
+  'Special leave':     'Heart',
+  'Funeral leave':     'Flower2',
+  'Paternity leave':   'Baby',
+  'Maternity leave':   'Baby',
+  'Paid absence':      'Briefcase',
+  'Unpaid absence':    'Briefcase',
+};
 
 const ALL_LEAVE_TYPES = [
   'Time off', 'ADV / RTT', 'Extra-legal leave',
@@ -204,7 +224,7 @@ function Switch({ checked, onChange, size = 'md' }) {
   return (
     <div onClick={onChange} style={{
       width: dims.w, height: dims.h, borderRadius: dims.h / 2, flexShrink: 0, cursor: 'pointer',
-      background: checked ? P.ink : '#d1d5db',
+      background: checked ? P.action : '#d1d5db',
       position: 'relative', transition: `background 150ms ${EASE_OUT}`,
     }}>
       <div style={{
@@ -267,12 +287,12 @@ const AVATAR_COLORS = ['#bfdbfe','#ddd6fe','#fde68a','#a7f3d0','#fecdd3','#fed7a
 const EMPLOYEES = {
   // Design
   'bram-goossens':     { name: 'Bram Goossens',     initials: 'BG', color: '#bfdbfe', entitlement: 23, department: 'Design',       email: 'bram.goossens@lumiogroup.be',     entity: 'Lumio Group', budget: 3750,  role: 'Employee', status: 'Active', gender: 'm' },
-  'emma-martens':      { name: 'Emma Martens',       initials: 'EM', color: '#ddd6fe', entitlement: 29, department: 'Design',       email: 'emma.martens@lumiogroup.be',      entity: 'Lumio Group', budget: 0,     role: 'Employee', status: 'Active', gender: 'f' },
+  'emma-martens':      { name: 'Emma Martens',       initials: 'EM', color: '#ddd6fe', entitlement: 29, department: 'Design',       email: 'emma.martens@lumiogroup.be',      entity: 'Lumio Group', budget: 0,     role: 'Employee', status: 'Active', gender: 'f', photo: true },
   'mathias-de-smedt':  { name: 'Mathias De Smedt',  initials: 'MD', color: '#fde68a', entitlement: 23, department: 'Design',       email: 'mathias.de-smedt@lumiogroup.be', entity: 'Lumio Group', budget: 6250,  role: 'Employee', status: 'Active', gender: 'm' },
   'thomas-vandenberghe': { name: 'Thomas Vandenberghe', initials: 'TV', color: '#99f6e4', entitlement: 20, department: 'Design',    email: 'thomas.vandenberghe@lumiogroup.be', entity: 'Lumio Group', budget: 0, role: 'Employee', status: 'Active', gender: 'm' },
   'thomas-janssens':     { name: 'Thomas Janssens',    initials: 'TJ', color: '#d9f99d', entitlement: 23, department: 'Design',    email: 'thomas.janssens@lumiogroup.be', entity: 'Lumio Group', budget: 3000, role: 'Employee', status: 'Active', gender: 'm' },
   // Engineering
-  'david':             { name: 'David Laurent',      initials: 'DL', color: '#fecdd3', entitlement: 20, department: 'Engineering', email: 'david.laurent@lumiogroup.be',     entity: 'Lumio Group', budget: 4500,  role: 'Employee', status: 'Active', gender: 'm' },
+  'david':             { name: 'David Laurent',      initials: 'DL', color: '#fecdd3', entitlement: 20, department: 'Engineering', email: 'david.laurent@lumiogroup.be',     entity: 'Lumio Group', budget: 4500,  role: 'Employee', status: 'Active', gender: 'm', photo: true },
   'stijn-laurent':     { name: 'Stijn Laurent',      initials: 'SL', color: '#a7f3d0', entitlement: 29, department: 'Engineering', email: 'stijn.laurent@lumiogroup.be',     entity: 'Lumio Group', budget: 1500,  role: 'Employee', status: 'Active', gender: 'm' },
   'jana-goossens':     { name: 'Jana Goossens',      initials: 'JG', color: '#c7d2fe', entitlement: 20, department: 'Engineering', email: 'jana.goossens@lumiogroup.be',     entity: 'Lumio Group', budget: 2000,  role: 'Employee', status: 'Active', gender: 'f' },
   'laura-mertens':     { name: 'Laura Mertens',      initials: 'LM', color: '#fca5a5', entitlement: 20, department: 'Engineering', email: 'laura.mertens@lumiogroup.be',     entity: 'Lumio Group', budget: 750,   role: 'Employee', status: 'Active', gender: 'f' },
@@ -359,7 +379,7 @@ function ChoicesTab({ empId }) {
     <div>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
         <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18, color: P.ink }}>Choices</span>
-        <button style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '6px 14px', borderRadius: 8, border: 'none', background: P.ink, color: '#fff', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12 }}>
+        <button style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '6px 14px', borderRadius: 8, border: 'none', background: P.action, color: '#fff', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12 }}>
           <Icon name="Plus" size={12} color="#fff" />Add
         </button>
       </div>
@@ -401,7 +421,7 @@ function BudgetsTab({ empId }) {
     <div>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
         <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18, color: P.ink }}>Budgets</span>
-        <button style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '6px 14px', borderRadius: 8, border: 'none', background: P.ink, color: '#fff', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12 }}>
+        <button style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '6px 14px', borderRadius: 8, border: 'none', background: P.action, color: '#fff', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12 }}>
           <Icon name="Plus" size={12} color="#fff" />Add budget
         </button>
       </div>
@@ -425,7 +445,7 @@ function BudgetsTab({ empId }) {
               <td style={{ padding: '8px 16px', textAlign: 'right' }}>
                 <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
                   <button style={{ border: `1px solid ${P.border}`, background: 'transparent', borderRadius: 6, padding: '5px 10px', fontSize: 11, fontFamily: 'var(--font-display)', fontWeight: 600, color: P.inkSoft, cursor: 'pointer', whiteSpace: 'nowrap' }}>See transactions</button>
-                  <button style={{ border: 'none', background: P.ink, borderRadius: 6, padding: '5px 12px', fontSize: 11, fontFamily: 'var(--font-display)', fontWeight: 600, color: '#fff', cursor: 'pointer' }}>Edit</button>
+                  <button style={{ border: 'none', background: P.action, borderRadius: 6, padding: '5px 12px', fontSize: 11, fontFamily: 'var(--font-display)', fontWeight: 600, color: '#fff', cursor: 'pointer' }}>Edit</button>
                 </div>
               </td>
             </tr>
@@ -441,7 +461,7 @@ function SalaryTab({ empId }) {
   const SalSecHead = ({ title, onAdd }) => (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
       <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18, color: P.ink }}>{title}</span>
-      <button onClick={onAdd} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '6px 14px', borderRadius: 8, border: 'none', background: P.ink, color: '#fff', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12 }}>
+      <button onClick={onAdd} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '6px 14px', borderRadius: 8, border: 'none', background: P.action, color: '#fff', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12 }}>
         <Icon name="Plus" size={12} color="#fff" />Add
       </button>
     </div>
@@ -579,6 +599,16 @@ const generatedRequests = [
   { id: 'gen-9', employee: 'thomas-janssens', type: 'Time off', startDate: 'Mon 20 Jul', endDate: 'Fri 24 Jul', days: 5, status: 'pending', submittedAt: '8 Jul', note: 'Family trip', _selectedDates: ['2026-07-20','2026-07-21','2026-07-22','2026-07-23','2026-07-24'] },
   { id: 'gen-10', employee: 'bram-goossens', type: 'Time off', startDate: 'Thu 23 Jul', endDate: 'Fri 24 Jul', days: 2, status: 'pending', submittedAt: '10 Jul', note: '', _selectedDates: ['2026-07-23','2026-07-24'] },
   { id: 'gen-16', employee: 'mathias-de-smedt', type: 'Time off', startDate: 'Mon 4 Aug', endDate: 'Wed 6 Aug', days: 3, status: 'pending', submittedAt: '14 Jul', note: '', _selectedDates: ['2026-08-04','2026-08-05','2026-08-06'] },
+  // Pending: sick leave with medical certificate
+  { id: 'req-sick-tv', employee: 'thomas-vandenberghe', type: 'Sick leave', startDate: 'Mon 28 Jul', endDate: 'Wed 30 Jul', days: 3, status: 'pending', submittedAt: '17 Jul', note: '', document: 'medical_certificate.pdf', _selectedDates: ['2026-07-28','2026-07-29','2026-07-30'] },
+  // Pending: special leave wedding with many colleagues off
+  { id: 'req-wedding-lm', employee: 'laura-mertens', type: 'Special leave', startDate: 'Thu 30 Jul', endDate: 'Fri 1 Aug', days: 2, status: 'pending', submittedAt: '17 Jul', note: "Sister's wedding", document: 'wedding_invitation.pdf', _selectedDates: ['2026-07-30','2026-07-31'] },
+  // Approved: Design colleagues off same week as TV sick leave (create conflict)
+  { id: 'gen-17', employee: 'emma-martens', type: 'Time off', startDate: 'Mon 28 Jul', endDate: 'Wed 30 Jul', days: 3, status: 'approved', submittedAt: '12 Jul', note: '', _selectedDates: ['2026-07-28','2026-07-29','2026-07-30'] },
+  // Approved: Engineering colleagues off same days as Laura's wedding (create overlap)
+  { id: 'gen-18', employee: 'david', type: 'Time off', startDate: 'Mon 28 Jul', endDate: 'Fri 1 Aug', days: 5, status: 'approved', submittedAt: '5 Jul', note: 'Summer break', _selectedDates: ['2026-07-27','2026-07-28','2026-07-29','2026-07-30','2026-07-31'] },
+  { id: 'gen-19', employee: 'stijn-laurent', type: 'Time off', startDate: 'Mon 27 Jul', endDate: 'Fri 1 Aug', days: 6, status: 'approved', submittedAt: '8 Jul', note: '', _selectedDates: ['2026-07-27','2026-07-28','2026-07-29','2026-07-30','2026-07-31'] },
+  { id: 'gen-20', employee: 'jana-goossens', type: 'ADV / RTT', startDate: 'Thu 30 Jul', endDate: 'Fri 31 Jul', days: 2, status: 'approved', submittedAt: '11 Jul', note: '', _selectedDates: ['2026-07-30','2026-07-31'] },
 ];
 
 // ── localStorage bridge ────────────────────────────────────────────────────
@@ -630,14 +660,18 @@ const DAY_LABELS = ['MO','TU','WE','TH','FR','SA','SU'];
 const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
 // ── Avatar ─────────────────────────────────────────────────────────────────
-function Avatar({ employeeId, size = 28 }) {
+function Avatar({ employeeId, size = 28, style: extraStyle }) {
   const emp = EMPLOYEES[employeeId] || { initials: '?', color: '#e5e7eb' };
+  if (emp.photo) {
+    return <img src={avatarUrl(emp.name, emp.gender)} alt={emp.initials} style={{ width: size, height: size, borderRadius: '50%', flexShrink: 0, objectFit: 'cover', ...extraStyle }} />;
+  }
   return (
     <div style={{
-      width: size, height: size, borderRadius: '50%', background: emp.color,
+      width: size, height: size, borderRadius: '50%', background: '#e5e7eb',
       flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
       fontFamily: 'var(--font-display)', fontWeight: 700,
       fontSize: size * 0.34, color: P.ink, letterSpacing: '0.01em',
+      ...extraStyle,
     }}>{emp.initials}</div>
   );
 }
@@ -650,6 +684,16 @@ function StatusDot({ status }) {
       <span style={{ width: 8, height: 8, borderRadius: '50%', background: m.dot, flexShrink: 0 }} />
       <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.ink }}>{m.label}</span>
     </div>
+  );
+}
+
+function StatusBadge({ status }) {
+  const m = StatusMeta[status] || StatusMeta.pending;
+  return (
+    <span style={{ background: m.bg, color: m.color, borderRadius: 6, padding: '3px 8px', fontSize: 11, fontFamily: 'var(--font-display)', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+      <Icon name={m.icon} size={10} color={m.color} strokeWidth={2.5} />
+      {m.label}
+    </span>
   );
 }
 
@@ -667,7 +711,7 @@ function SidebarItem({ icon, label, isActive, onClick, badgeDot, chevron, chevro
       <span style={{ fontFamily: 'var(--font-display)', fontWeight: isActive ? 700 : 500, fontSize: 13, color: disabled ? P.inkFaint : isActive ? P.ink : P.inkSoft, flex: 1 }}>
         {label}
       </span>
-      {badgeDot && <span style={{ minWidth: 17, height: 17, borderRadius: 9, padding: '0 4px', background: P.ink, color: '#fff', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', animation: `badgePopIn 500ms ${EASE_BOUNCE}` }}>{typeof badgeDot === 'number' ? badgeDot : '!'}</span>}
+      {badgeDot && <span style={{ minWidth: 17, height: 17, borderRadius: 9, padding: '0 4px', background: P.action, color: '#fff', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', animation: `badgePopIn 500ms ${EASE_BOUNCE}` }}>{typeof badgeDot === 'number' ? badgeDot : '!'}</span>}
       {chevron && (
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={P.ink} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{
           flexShrink: 0, transform: chevronOpen ? 'scaleY(-1)' : 'scaleY(1)', transition: `transform 200ms ${EASE_OUT}`,
@@ -707,7 +751,7 @@ function SidebarSub({ items, active, onNav }) {
             <div style={{ position: 'absolute', left: 26, top: 0, bottom: 0, width: 1, background: isActive ? '#C42BFC' : P.border }} />
             <span style={{ fontFamily: 'var(--font-display)', fontWeight: isActive ? 600 : 400, fontSize: 13, color: isActive ? '#C42BFC' : P.inkSoft, flex: 1 }}>{label}</span>
             {badge > 0 && (
-              <span style={{ minWidth: 17, height: 17, borderRadius: 9, padding: '0 4px', background: P.ink, color: '#fff', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', animation: `badgePopIn 500ms ${EASE_BOUNCE}` }}>{badge}</span>
+              <span style={{ minWidth: 17, height: 17, borderRadius: 9, padding: '0 4px', background: P.action, color: '#fff', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', animation: `badgePopIn 500ms ${EASE_BOUNCE}` }}>{badge}</span>
             )}
           </button>
         );
@@ -1043,165 +1087,200 @@ function ReasonModal({ title, description, confirmLabel, confirmColor = '#b91c1c
 }
 
 // ── Detail modal ───────────────────────────────────────────────────────────
-function DetailModal({ req, requests, onClose, onApprove, onDecline, onCancel, onEdit }) {
+function DetailModal({ req, requests, onClose, onApprove, onDecline, onCancel, onEdit, onViewProfile }) {
   const emp = EMPLOYEES[req.employee] || { name: req.employee, entitlement: 25, department: '' };
-  const usedDays = requests
-    .filter(r => r.employee === req.employee && r.id !== req.id && (r.status === 'approved' || r.status === 'pending'))
-    .reduce((s, r) => s + r.days, 0);
-  const remaining = Math.max(0, emp.entitlement - usedDays - req.days);
   const isPending = req.status === 'pending';
+  // Same-department only — matches the "Also off" column in the requests table (OverlapPopover),
+  // so the count an admin sees here never disagrees with what they saw in the list.
+  const overlapping = getOverlapping(req, requests).filter(r => EMPLOYEES[r.employee]?.department === emp.department);
+  const teamSize = Object.values(EMPLOYEES).filter(e => e.department === emp.department).length;
+  const teamRisk = overlapping.length >= 2;
 
-  // Determine if absence is in the past (ended before today)
-  const today = new Date(); today.setHours(0,0,0,0);
-  const endD = req._selectedDates?.length
-    ? (() => { const p = req._selectedDates[req._selectedDates.length-1].split('-'); return new Date(+p[0],+p[1]-1,+p[2]); })()
-    : parseDisplayDate(req.endDate || req.startDate);
-  const isPast = endD && endD < today;
-  // Only show warning if ended within the past 30 days
-  const thirtyDaysAgo = new Date(today); thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-  const showPastWarning = isPast && endD >= thirtyDaysAgo;
+  const { visible, close } = useModalTransition(onClose);
+  const [avatarTip, setAvatarTip] = React.useState(null);
 
-  const whenLabel = (() => {
-    let dateStr;
-    if (req._selectedDates && req._selectedDates.length > 1) {
-      let consecutive = true;
-      for (let i = 1; i < req._selectedDates.length; i++) {
-        const a = new Date(req._selectedDates[i-1]), b = new Date(req._selectedDates[i]);
-        if ((b - a) / 86400000 !== 1) { consecutive = false; break; }
-      }
-      dateStr = consecutive
-        ? (req.startDate === req.endDate ? req.startDate : `${req.startDate} – ${req.endDate}`)
-        : req._selectedDates.map(iso => { const p = iso.split('-'); return new Date(+p[0],+p[1]-1,+p[2]).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }); }).join(', ');
-    } else {
-      dateStr = req.startDate === req.endDate ? req.startDate : `${req.startDate} – ${req.endDate}`;
-    }
-    const sub = `${req.days} ${req.days === 1 ? 'day' : 'days'}${isPast ? ' · in the past' : ''}`;
-    return <span>{dateStr}<br /><span style={{ color: P.inkSoft, fontSize: 12 }}>{sub}</span></span>;
-  })();
+  const heroDateStr = req.startDate === req.endDate ? req.startDate : `${req.startDate} – ${req.endDate}`;
+  const durationStr = req.days === 0.5 ? '½ day' : req.days === 1 ? '1 day' : `${req.days} days`;
+  const typeIcon = { 'Time off': 'tree-palm', 'Sick leave': 'Thermometer', 'Special leave': 'Star', 'ADV / RTT': 'Clock', 'Extra-legal leave': 'Gift' }[req.type] || 'Calendar';
 
-  const overlapping = getOverlapping(req, requests);
+  const fmtDate = (iso) => { const p = iso.split('-'); return new Date(+p[0],+p[1]-1,+p[2]).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }); };
+  const getOverlapRange = (r) => {
+    if (!req._selectedDates || !r._selectedDates) return null;
+    const reqSet = new Set(req._selectedDates);
+    const overlap = r._selectedDates.filter(d => reqSet.has(d)).sort();
+    if (overlap.length === 0) return null;
+    return overlap.length === 1 ? fmtDate(overlap[0]) : `${fmtDate(overlap[0])} – ${fmtDate(overlap[overlap.length-1])}`;
+  };
 
-  const { visible, close, closing } = useModalTransition(onClose, SHEET_CLOSE_DUR);
+  // One shared row shell — every fact in the card looks and behaves the same way.
+  const CardRow = ({ icon, children, onClick, expanded }) => {
+    const Tag = onClick ? 'button' : 'div';
+    return (
+      <Tag onClick={onClick} style={{ width: '100%', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 10, background: 'none', border: 'none', cursor: onClick ? 'pointer' : 'default', textAlign: 'left', fontFamily: 'inherit' }}>
+        <Icon name={icon} size={15} color={P.inkSoft} strokeWidth={1.75} style={{ flexShrink: 0 }} />
+        <div style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: 10 }}>{children}</div>
+        {onClick && (
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={P.inkFaint} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, transform: expanded ? 'rotate(180deg)' : 'none', transition: `transform 220ms ${EASE_OUT}` }}>
+            <polyline points="6 9 12 15 18 9" />
+          </svg>
+        )}
+      </Tag>
+    );
+  };
 
-  const statusColor = req.status === 'approved' ? '#16a34a' : req.status === 'pending' ? '#d97706' : P.inkSoft;
-  const statusLabel = req.status === 'approved' ? 'Approved' : req.status === 'pending' ? 'Pending' : 'Declined';
-
-  const Row = ({ label, children }) => (
-    <div style={{ display: 'grid', gridTemplateColumns: '130px 1fr', margin: '0 24px', padding: '12px 0', alignItems: 'start', gap: 12, borderBottom: `1px solid ${P.border}` }}>
-      <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, paddingTop: 1 }}>{label}</span>
-      <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink }}>{children}</span>
-    </div>
-  );
+  const items = [
+    <CardRow key="date" icon="calendar-days">
+      <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.ink, flex: 1 }}>{heroDateStr}</span>
+      <span style={{ fontFamily: 'var(--font-display)', fontWeight: 400, fontSize: 14, color: P.inkSoft }}>{durationStr}</span>
+    </CardRow>,
+    <CardRow key="type" icon={typeIcon}>
+      <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.ink }}>{req.type}</span>
+    </CardRow>,
+    req.note && (
+      <CardRow key="note" icon="message-square">
+        <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.ink, fontStyle: 'italic', lineHeight: 1.4 }}>"{req.note}"</span>
+      </CardRow>
+    ),
+    ATTACHMENT_RULES[req.type] && (
+      <CardRow key="attachment" icon="paperclip">
+        {req.document ? (
+          <>
+            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.ink, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{req.document}</span>
+            <button onClick={e => { e.stopPropagation(); }} title="Download" style={{ flexShrink: 0, width: 30, height: 30, borderRadius: 7, border: `1px solid ${P.border}`, background: P.bg, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Icon name="download" size={14} color={P.inkSoft} strokeWidth={2} />
+            </button>
+          </>
+        ) : (
+          <>
+            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.inkSoft, flex: 1 }}>{ATTACHMENT_RULES[req.type].label}</span>
+            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, color: '#92400e', background: '#fef9c3', border: '1px solid #fde68a', borderRadius: 20, padding: '3px 9px', flexShrink: 0 }}>Missing</span>
+          </>
+        )}
+      </CardRow>
+    ),
+    overlapping.length > 0 && (
+      <CardRow key="team" icon="Users">
+        <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.ink, flex: 1 }}>
+          Team availability
+        </span>
+        <span style={{
+          fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, flexShrink: 0,
+          color: teamRisk ? '#dc2626' : P.inkSoft,
+          background: teamRisk ? '#fef2f2' : P.bg,
+          border: `1px solid ${teamRisk ? '#fecaca' : P.border}`,
+          borderRadius: 20, padding: '3px 9px',
+        }}>
+          {teamRisk ? '⚠ ' : ''}{overlapping.length} of {teamSize} off
+        </span>
+        <span style={{ display: 'flex', flexShrink: 0 }}>
+          {overlapping.slice(0, 4).map((r, i) => {
+            const oe = EMPLOYEES[r.employee];
+            return (
+              <span key={r.id}
+                style={{ marginLeft: i > 0 ? -8 : 0, borderRadius: '50%', border: `2px solid ${P.white}`, display: 'flex', lineHeight: 0, position: 'relative' }}
+                onMouseEnter={e => { const rect = e.currentTarget.getBoundingClientRect(); setAvatarTip({ name: oe?.name, x: rect.left + rect.width / 2, y: rect.top }); }}
+                onMouseLeave={() => setAvatarTip(null)}
+              >
+                <Avatar employeeId={r.employee} size={26} />
+              </span>
+            );
+          })}
+        </span>
+      </CardRow>
+    ),
+    req.submittedAt && (
+      <CardRow key="submitted" icon="Clock">
+        <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.ink, flex: 1 }}>Submitted</span>
+        <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.ink }}>{req.submittedAt}</span>
+      </CardRow>
+    ),
+  ].filter(Boolean);
 
   return (
+    <React.Fragment>
     <div onClick={close} style={{
       position: 'fixed', inset: 0, zIndex: 200,
-      background: 'rgba(15,13,40,0.25)',
+      background: 'rgba(15,13,40,0.3)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
       ...modalBackdropStyle(visible),
     }}>
       <div onClick={e => e.stopPropagation()} style={{
-        position: 'absolute', top: 16, bottom: 16, right: 16, width: 480,
+        position: 'relative', width: 'min(480px, calc(100vw - 32px))',
+        maxHeight: 'calc(100vh - 48px)',
         background: P.white,
         borderRadius: 20,
         boxShadow: '0 24px 64px rgba(15,13,40,0.22), 0 0 0 1px rgba(15,13,40,0.06)',
         display: 'flex', flexDirection: 'column', overflow: 'hidden',
-        ...sheetPanelStyle(visible, closing),
+        ...modalPanelStyle(visible),
       }}>
-        {/* Header */}
-        <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 24px', borderBottom: `1px solid ${P.border}` }}>
-          <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18, color: P.ink }}>Time off details</span>
-          <button onClick={close} style={{
-            border: 'none', cursor: 'pointer',
-            width: 30, height: 30, borderRadius: '50%', flexShrink: 0,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            background: 'rgba(60,60,67,0.1)',
-            backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)',
-          }}>
-            <Icon name="X" size={14} color={P.ink} strokeWidth={2.5} />
+        {/* Header — status pill + close */}
+        <div style={{ flexShrink: 0, padding: '20px 24px 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          {!isPending && (() => {
+            const pills = {
+              approved: { bg: '#f0fdf4', color: '#16a34a', border: '#bbf7d0' },
+              declined: { bg: '#fef2f2', color: '#dc2626', border: '#fecaca' },
+            };
+            const pill = pills[req.status] || { bg: P.bg, color: P.inkSoft, border: P.border };
+            const label = req.status === 'approved' ? 'Approved' : 'Declined';
+            return (
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: pill.bg, color: pill.color, border: `1px solid ${pill.border}`, padding: '3px 9px', borderRadius: 20, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12 }}>
+                <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'currentColor', flexShrink: 0 }} />
+                {label}
+              </div>
+            );
+          })()}
+          <button onClick={close} style={{ width: 32, height: 32, borderRadius: 8, background: '#f1f1f4', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Icon name="X" size={16} color={P.ink} strokeWidth={2} />
           </button>
         </div>
 
         <div style={{ flex: 1, overflowY: 'auto' }}>
-            <Row label="Status">
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                <span style={{ width: 7, height: 7, borderRadius: '50%', background: statusColor, flexShrink: 0 }} />
-                <span style={{ color: statusColor, fontWeight: 600 }}>{statusLabel}</span>
-              </span>
-            </Row>
-            <Row label="Requested by">
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-                <span style={{ width: 24, height: 24, borderRadius: '50%', background: emp.color || '#e5e7eb', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 8, fontWeight: 700, color: P.ink, fontFamily: 'var(--font-display)', flexShrink: 0 }}>{emp.initials || '?'}</span>
-                <span>{emp.name}</span>
-                {emp.department && <span style={{ color: P.inkFaint, fontSize: 12 }}>{emp.department}</span>}
-              </span>
-            </Row>
-            <Row label="When">{whenLabel}</Row>
-            <Row label="Type">{req.type}</Row>
-            <Row label="Notes">{req.note || <span style={{ color: P.inkFaint }}>—</span>}</Row>
-          {overlapping.length > 0 && (
-            <Row label="Also off">
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                {overlapping.map(r => {
-                  const e2 = EMPLOYEES[r.employee];
-                  const name = e2?.name || r.employee;
-                  const period = r.startDate === r.endDate ? r.startDate : `${r.startDate} – ${r.endDate}`;
-                  return (
-                    <div key={r.id} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <span style={{ width: 20, height: 20, borderRadius: '50%', background: e2?.color || '#e5e7eb', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 7, fontWeight: 700, color: P.ink, fontFamily: 'var(--font-display)', flexShrink: 0 }}>{e2?.initials || '?'}</span>
-                      <span style={{ display: 'flex', flexDirection: 'column', gap: 1, minWidth: 0 }}>
-                        <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.ink, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{name}</span>
-                        <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkFaint }}>{period}</span>
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            </Row>
-          )}
 
-          <Row label="Submitted">{req.submittedAt}</Row>
+          {/* Employee identity */}
+          <div style={{ padding: '20px 24px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <Avatar employeeId={req.employee} size={48} />
+            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 17, color: P.ink, marginTop: 10 }}>{emp.name}</div>
+            <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkFaint, marginTop: 2 }}>{emp.department}</div>
+          </div>
 
-          {/* Past warning — only within last 30 days */}
-          {showPastWarning && (
-            <div style={{ margin: '0 22px 14px', padding: '11px 14px', borderRadius: 8, background: '#fef9c3', border: '1px solid #fde047', display: 'flex', alignItems: 'flex-start', gap: 8 }}>
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#ca8a04" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 1 }}><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-              <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: '#92400e', lineHeight: 1.4 }}>
-                This absence has already passed. Changes may affect payroll records.
-              </span>
-            </div>
-          )}
+          {/* One unified fact card — every row shares the same shell, one border, no nesting */}
+          <div style={{ margin: '0 20px 20px', border: `1px solid ${P.border}`, borderRadius: 12, overflow: 'hidden' }}>
+            {items.map((item, i) => (
+              <React.Fragment key={i}>
+                {i > 0 && <div style={{ height: 1, background: P.border }} />}
+                {item}
+              </React.Fragment>
+            ))}
+          </div>
+
         </div>
 
-        {/* Footer */}
+        {/* Footer — full-width buttons */}
         {(isPending || req.status === 'approved') && (
-          <div style={{ flexShrink: 0, padding: '14px 24px', borderTop: `1px solid ${P.border}`, display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div style={{ flex: 1 }} />
+          <div style={{ flexShrink: 0, padding: '12px 20px', borderTop: `1px solid ${P.border}`, display: 'flex', gap: 10 }}>
             {isPending && <>
-              <button onClick={() => { onDecline(req.id); close(); }} style={{
-                padding: '8px 18px', borderRadius: 8, border: `1px solid ${P.borderStrong}`, background: 'transparent',
-                color: P.ink, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13,
-              }}>Decline</button>
-              <button onClick={() => { onApprove(req.id); close(); }} style={{
-                padding: '8px 20px', borderRadius: 8, border: 'none', background: P.ink, color: '#fff',
-                cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13,
-              }}>Approve</button>
+              <button onClick={() => { onDecline(req.id); close(); }} style={{ flex: 1, padding: '10px 0', borderRadius: 10, border: '1px solid #fecaca', background: '#fef2f2', color: '#dc2626', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                <Icon name="X" size={13} color="#dc2626" strokeWidth={2.5} /> Decline
+              </button>
+              <button onClick={() => { onApprove(req.id); close(); }} style={{ flex: 1, padding: '10px 0', borderRadius: 10, border: '1px solid #bbf7d0', background: '#f0fdf4', color: '#16a34a', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                <Icon name="Check" size={13} color="#16a34a" strokeWidth={2.5} /> Approve
+              </button>
             </>}
             {req.status === 'approved' && <>
-              <button onClick={() => { onCancel(req.id); close(); }} style={{
-                padding: '8px 18px', borderRadius: 8, border: `1px solid ${P.borderStrong}`, background: 'transparent',
-                color: P.ink, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13,
-              }}>Withdraw</button>
-              {onEdit && (
-                <button onClick={() => { onEdit(req); close(); }} style={{
-                  padding: '8px 20px', borderRadius: 8, border: 'none', background: P.ink, color: '#fff',
-                  cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13,
-                }}>Edit</button>
-              )}
+              {onEdit && <button onClick={() => { onEdit(req); close(); }} style={{ flex: 1, padding: '10px 0', borderRadius: 10, border: `1px solid ${P.border}`, background: 'transparent', color: P.inkSoft, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>Edit</button>}
+              <button onClick={() => { onCancel(req.id); close(); }} style={onEdit ? { flex: 1, padding: '10px 0', borderRadius: 10, border: '1px solid #fecaca', background: '#fef2f2', color: '#dc2626', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 } : { flex: '0 0 auto', minWidth: 160, marginLeft: 'auto', padding: '10px 0', borderRadius: 10, border: '1px solid #fecaca', background: '#fef2f2', color: '#dc2626', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>Withdraw</button>
             </>}
           </div>
         )}
       </div>
     </div>
+    {avatarTip && ReactDOM.createPortal(
+      <div style={{ position: 'fixed', zIndex: 9999, left: avatarTip.x, top: avatarTip.y - 8, transform: 'translate(-50%, -100%)', background: P.ink, color: P.white, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, padding: '4px 8px', borderRadius: 6, pointerEvents: 'none', whiteSpace: 'nowrap' }}>
+        {avatarTip.name}
+      </div>,
+      document.body
+    )}
+    </React.Fragment>
   );
 }
 
@@ -1453,13 +1532,13 @@ function ModalCalendar({ startDate, endDate, focusedField, onDateTap, pickedDate
           let color = P.ink;
           let fontWeight = 500;
           if (halfDayVal === 'am') {
-            btnBg = `linear-gradient(to bottom, ${P.ink} 50%, rgba(15,13,40,0.45) 50%)`;
+            btnBg = `linear-gradient(to bottom, ${P.action} 50%, rgba(34,10,53,0.45) 50%)`;
             color = '#fff'; fontWeight = 700;
           } else if (halfDayVal === 'pm') {
-            btnBg = `linear-gradient(to bottom, rgba(15,13,40,0.45) 50%, ${P.ink} 50%)`;
+            btnBg = `linear-gradient(to bottom, rgba(34,10,53,0.45) 50%, ${P.action} 50%)`;
             color = '#fff'; fontWeight = 700;
           } else if (isMidRange) { fontWeight = 700; }
-          else if (sel) { btnBg = P.ink; color = '#fff'; fontWeight = 700; }
+          else if (sel) { btnBg = P.action; color = '#fff'; fontWeight = 700; }
           else if (disabled) { color = '#c5c9d0'; }
           else if (inRange) { fontWeight = 600; }
 
@@ -1485,7 +1564,7 @@ function ModalCalendar({ startDate, endDate, focusedField, onDateTap, pickedDate
                 fontFamily: 'var(--font-display)', fontWeight, fontSize: 12, color,
                 display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
                 position: 'relative',
-                boxShadow: isToday(d) && !sel ? `inset 0 0 0 1.5px ${P.ink}` : 'none',
+                boxShadow: isToday(d) && !sel ? `inset 0 0 0 1.5px ${P.action}` : 'none',
               }}>
                 {d.getDate()}
                 {isHoliday(d) && !sel && (
@@ -1674,6 +1753,24 @@ function AddTimeOffModal({ existing, onClose, onSave, requests = [], defaultDate
             <Icon name="X" size={14} color={P.ink} strokeWidth={2.5} />
           </button>
         </div>
+
+        {/* Past-record warning — only in edit mode for past absences */}
+        {isEdit && (() => {
+          const today = new Date(); today.setHours(0,0,0,0);
+          const endD = existing?._selectedDates?.length
+            ? (() => { const p = existing._selectedDates[existing._selectedDates.length-1].split('-'); return new Date(+p[0],+p[1]-1,+p[2]); })()
+            : null;
+          const thirtyDaysAgo = new Date(today); thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+          if (!endD || endD >= today || endD < thirtyDaysAgo) return null;
+          return (
+            <div style={{ flexShrink: 0, padding: '16px 24px 4px' }}>
+              <div style={{ padding: '14px 16px', borderRadius: 10, background: '#fdf6ec', display: 'flex', alignItems: 'center', gap: 10 }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#d97706" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: '#92400e', lineHeight: 1.4 }}>Changes to past absences may affect payroll records.</span>
+              </div>
+            </div>
+          );
+        })()}
 
         {/* Form — scrollable */}
         <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 24 }}>
@@ -1917,7 +2014,7 @@ function AddTimeOffModal({ existing, onClose, onSave, requests = [], defaultDate
           <div style={{ flex: 1 }} />
           <button onClick={handleSave} style={{
             padding: '8px 20px', borderRadius: 8, border: 'none',
-            background: P.ink, color: '#fff', cursor: 'pointer',
+            background: P.action, color: '#fff', cursor: 'pointer',
             fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13,
           }}>{isEdit ? (allEmployees ? 'Save closure' : 'Save changes') : (allEmployees ? 'Add closure' : 'Confirm absence')}</button>
         </div>
@@ -1946,7 +2043,7 @@ function getOverlapping(req, requests) {
 }
 
 // ── Avatar stack with hover-expand ─────────────────────────────────────────
-const AVATAR_SIZE = 30;
+const AVATAR_SIZE = 24;
 const AVATAR_OVERLAP = -9;
 const AVATAR_EXPAND = 4;
 
@@ -1977,26 +2074,29 @@ function AvatarStack({ people }) {
             onMouseLeave={() => { setActiveIdx(null); setTooltipPos(null); }}
             style={{
               width: AVATAR_SIZE, height: AVATAR_SIZE, borderRadius: '50%',
-              background: e2?.color || '#e5e7eb',
-              border: '2px solid #fff',
+              background: '#e5e7eb',
+              border: '2px solid #fff', boxSizing: 'content-box',
               display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
               fontSize: 9, fontWeight: 700, color: P.ink, letterSpacing: '0.02em',
               marginLeft: i > 0 ? AVATAR_OVERLAP : 0,
               position: 'relative', zIndex: isActive ? 20 : shown.length - i,
               fontFamily: 'var(--font-display)', flexShrink: 0,
+              overflow: 'hidden',
               transition: `transform 350ms ${EASE_OUT}`,
               transform: `translateY(${lift}px)${isActive ? ' scale(1.03)' : ''}`,
               cursor: 'default',
             }}
           >
-            {initials}
+            {e2?.photo
+              ? <img src={avatarUrl(e2.name, e2.gender)} alt={initials} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+              : initials}
             {isActive && tooltipPos && ReactDOM.createPortal(
               <span style={{
                 position: 'fixed',
                 left: tooltipPos.x, top: tooltipPos.y - 6,
                 transform: 'translateX(-50%) translateY(-100%)',
                 padding: '4px 8px', borderRadius: 6,
-                background: P.ink, color: '#fff',
+                background: P.action, color: '#fff',
                 fontSize: 13, fontWeight: 600, fontFamily: 'var(--font-display)',
                 whiteSpace: 'nowrap', pointerEvents: 'none', zIndex: 9999,
                 display: 'flex', alignItems: 'baseline', gap: 5,
@@ -2019,7 +2119,7 @@ function AvatarStack({ people }) {
       {extra > 0 && (
         <span style={{
           width: AVATAR_SIZE, height: AVATAR_SIZE, borderRadius: '50%',
-          background: P.bg, border: '2px solid #fff',
+          background: P.bg, border: '2px solid #fff', boxSizing: 'content-box',
           display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
           fontSize: 9, fontWeight: 700, color: P.inkSoft,
           marginLeft: AVATAR_OVERLAP,
@@ -2028,6 +2128,113 @@ function AvatarStack({ people }) {
           transition: `transform 250ms ${EASE_OUT}`,
           transform: 'translateY(0)',
         }}>+{extra}</span>
+      )}
+    </span>
+  );
+}
+
+// ── Overlap popover ────────────────────────────────────────────────────────
+function OverlapPopover({ req, overlapping, empDept }) {
+  const [open, setOpen] = useState(false);
+  const { rendered, visible } = usePopoverTransition(open);
+  const [pos, setPos] = useState(null);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [open]);
+
+  const sameDept = overlapping.filter(r => EMPLOYEES[r.employee]?.department === empDept);
+  const otherDept = overlapping.filter(r => EMPLOYEES[r.employee]?.department !== empDept);
+
+  const calcOverlapDays = (r) => {
+    if (!req._selectedDates || !r._selectedDates) return null;
+    const reqSet = new Set(req._selectedDates);
+    return r._selectedDates.filter(d => reqSet.has(d)).length;
+  };
+
+  const handleClick = (e) => {
+    e.stopPropagation();
+    if (!open && ref.current) {
+      const r = ref.current.getBoundingClientRect();
+      setPos({ x: Math.max(8, r.left), y: r.bottom + 6 });
+    }
+    setOpen(o => !o);
+  };
+
+  if (sameDept.length === 0) {
+    return <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkFaint }}>—</span>;
+  }
+
+  return (
+    <span ref={ref} style={{ display: 'inline-flex', alignItems: 'center' }}>
+      <span onClick={handleClick} style={{ cursor: 'pointer', borderRadius: 6, padding: '2px 0' }}>
+        <AvatarStack people={sameDept} />
+      </span>
+      {rendered && pos && ReactDOM.createPortal(
+        <div style={{
+          position: 'fixed', left: pos.x, top: pos.y, zIndex: 400,
+          width: 304,
+          background: P.white, borderRadius: 12,
+          border: `1px solid ${P.border}`,
+          boxShadow: '0 8px 32px rgba(15,13,40,0.13), 0 0 0 1px rgba(15,13,40,0.04)',
+          overflow: 'hidden',
+          ...popoverStyle(visible, 'top left'),
+        }}>
+          {sameDept.length > 0 && <>
+            <div style={{ padding: '10px 14px 8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span style={{ fontFamily: 'var(--font-body)', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: P.inkFaint }}>
+                {empDept} also off
+              </span>
+              {sameDept.length >= 2 && (
+                <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, fontWeight: 600, color: '#dc2626', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 20, padding: '1px 7px' }}>
+                  ⚠ {sameDept.length} overlaps
+                </span>
+              )}
+            </div>
+            {sameDept.map(r => {
+              const e2 = EMPLOYEES[r.employee];
+              const period = r.startDate === r.endDate ? r.startDate : `${r.startDate} – ${r.endDate}`;
+              const od = calcOverlapDays(r);
+              return (
+                <div key={r.id} style={{ padding: '8px 14px', display: 'flex', alignItems: 'center', gap: 9, borderTop: `1px solid ${P.border}` }}>
+                  <Avatar employeeId={r.employee} size={28} />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, fontWeight: 400, color: P.ink, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{e2?.name || r.employee}</div>
+                    <div style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkSoft, marginTop: 1 }}>{period}</div>
+                  </div>
+                  {od > 0 && <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkSoft, flexShrink: 0 }}>{od}d overlap</span>}
+                </div>
+              );
+            })}
+          </>}
+          {otherDept.length > 0 && <>
+            <div style={{ padding: '10px 14px 8px', borderTop: sameDept.length > 0 ? `1px solid ${P.border}` : 'none' }}>
+              <span style={{ fontFamily: 'var(--font-body)', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: P.inkFaint }}>
+                Others in company ({otherDept.length})
+              </span>
+            </div>
+            {otherDept.map(r => {
+              const e2 = EMPLOYEES[r.employee];
+              const period = r.startDate === r.endDate ? r.startDate : `${r.startDate} – ${r.endDate}`;
+              const od = calcOverlapDays(r);
+              return (
+                <div key={r.id} style={{ padding: '7px 14px', display: 'flex', alignItems: 'center', gap: 9, borderTop: `1px solid ${P.border}` }}>
+                  <Avatar employeeId={r.employee} size={24} />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, fontWeight: 500, color: P.inkSoft, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{e2?.name || r.employee}</div>
+                    <div style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkFaint, marginTop: 1 }}>{e2?.department ? `${e2.department} · ` : ''}{period}</div>
+                  </div>
+                  {od > 0 && <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkFaint, flexShrink: 0 }}>{od}d overlap</span>}
+                </div>
+              );
+            })}
+          </>}
+        </div>,
+        document.body
       )}
     </span>
   );
@@ -2066,23 +2273,23 @@ function RequestRow({ req, requests, onApprove, onDecline, onDetail, onEdit, onC
             opacity: removing ? 0 : 1,
             pointerEvents: removing ? 'none' : 'auto',
           }}>
-          <input type="checkbox" checked={selected} onClick={e => e.stopPropagation()} onChange={() => onToggle(req.id)} style={{ cursor: 'pointer', accentColor: P.ink }} />
-          <div style={{ display: 'flex', alignItems: 'center', minWidth: 0 }}>
-            <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{emp.name}</span>
+          <input type="checkbox" checked={selected} onClick={e => e.stopPropagation()} onChange={() => onToggle(req.id)} style={{ cursor: 'pointer', accentColor: P.action }} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 9, minWidth: 0 }}>
+            <Avatar employeeId={req.employee} size={24} style={{ border: '2px solid #fff', boxSizing: 'content-box' }} />
+            <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, fontWeight: 500, color: P.ink, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{emp.name}</span>
           </div>
           {showStatus && <StatusDot status={req.status} />}
-          <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink }}>{req.type}</span>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}>
+            <span style={{ width: 8, height: 8, borderRadius: 2, background: LEAVE_COLORS[req.type] || P.inkFaint, flexShrink: 0 }} />
+            <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink }}>{req.type}</span>
+          </span>
           <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink }}>{req.days} {req.days === 1 ? 'day' : 'days'}</span>
           <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink }}>{req.startDate}</span>
           <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: req.startDate === req.endDate ? P.inkFaint : P.ink }}>
             {req.startDate === req.endDate ? '—' : req.endDate}
           </span>
           <span style={{ display: 'inline-flex', alignItems: 'center' }}>
-            {overlapping.length === 0 ? (
-              <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkFaint }}>—</span>
-            ) : (
-              <AvatarStack people={overlapping} />
-            )}
+            <OverlapPopover req={req} overlapping={overlapping} empDept={emp.department} />
           </span>
           <div onClick={e => e.stopPropagation()} style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4 }}>
             {req.status === 'pending' && (<>
@@ -2110,7 +2317,7 @@ function RequestRow({ req, requests, onApprove, onDecline, onDetail, onEdit, onC
 // ── Requests screen ────────────────────────────────────────────────────────
 const PAGE_SIZE = 10;
 
-function RequestsScreen({ requests, onApprove, onDecline, onSave, onCancel, onViewInCalendar }) {
+function RequestsScreen({ requests, onApprove, onDecline, onSave, onCancel, onViewInCalendar, onNav }) {
   const [tab, setTab] = useState('pending');
   const [page, setPage] = useState(1);
   const [detail, setDetail] = useState(null);
@@ -2189,7 +2396,7 @@ function RequestsScreen({ requests, onApprove, onDecline, onSave, onCancel, onVi
           />
         }
       >
-        <button onClick={() => setAddOpen(true)} style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '9px 18px', borderRadius: 8, border: 'none', background: P.ink, color: '#fff', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>
+        <button onClick={() => setAddOpen(true)} style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '9px 18px', borderRadius: 8, border: 'none', background: P.action, color: '#fff', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>
           <Icon name="Plus" size={14} color="#fff" strokeWidth={2.5} /> Add time off
         </button>
       </PageHeader>
@@ -2201,7 +2408,7 @@ function RequestsScreen({ requests, onApprove, onDecline, onSave, onCancel, onVi
       <div style={{ flex: 1, overflowY: 'auto', padding: '0 20px 20px' }}>
       <div style={{ background: P.white, borderRadius: 12, border: `1px solid ${P.border}`, overflow: 'clip' }}>
         <div style={{ display: 'grid', gridTemplateColumns: tab === 'all' ? '32px 1.8fr 1fr 0.9fr 0.7fr 0.7fr 1fr 1fr 96px' : '32px 1.8fr 0.9fr 0.7fr 0.7fr 1fr 1fr 96px', alignItems: 'center', gap: 12, padding: '0 20px', height: 38, borderBottom: `1px solid ${P.border}`, background: P.bg, position: 'sticky', top: 0, zIndex: 5 }}>
-          <input type="checkbox" checked={allSelected} onChange={toggleAll} style={{ cursor: 'pointer', accentColor: P.ink }} />
+          <input type="checkbox" checked={allSelected} onChange={toggleAll} style={{ cursor: 'pointer', accentColor: P.action }} />
           <TH>Requested by</TH>{tab === 'all' && <TH>Status</TH>}<TH>Leave type</TH><TH>Duration</TH><TH>Date from</TH><TH>Date to</TH><TH>Also off</TH><div />
         </div>
         {displayRows.length === 0 ? (
@@ -2250,7 +2457,7 @@ function RequestsScreen({ requests, onApprove, onDecline, onSave, onCancel, onVi
         <div style={{ position: 'absolute', bottom: 16, left: 0, right: 0, display: 'flex', justifyContent: 'center', pointerEvents: 'none', zIndex: 10 }}>
           <div style={{
             pointerEvents: pillLeaving ? 'none' : 'auto',
-            background: P.ink, borderRadius: 10, padding: '6px 14px',
+            background: P.action, borderRadius: 10, padding: '6px 14px',
             display: 'flex', alignItems: 'center', gap: 10,
             boxShadow: '0 6px 24px rgba(15,13,40,0.3)',
             animation: pillLeaving
@@ -2285,6 +2492,7 @@ function RequestsScreen({ requests, onApprove, onDecline, onSave, onCancel, onVi
           onDecline={(id) => onDecline(id)}
           onCancel={(id) => { onCancel(id); setDetail(null); }}
           onEdit={(r) => { setDetail(null); setEditReq(r); }}
+          onViewProfile={onNav ? (empId) => { setDetail(null); onNav(`employee-detail:${empId}`); } : undefined}
         />
       )}
       {(addOpen || editReq) && (
@@ -2359,7 +2567,7 @@ function MonthPicker({ currentDate, onSelect, onClose }) {
             <button key={i} onClick={() => { onSelect(new Date(year, i, 1)); onClose(); }}
               style={{
                 padding: '7px 0', borderRadius: 6, border: 'none',
-                background: isCurrent ? P.ink : 'transparent',
+                background: isCurrent ? P.action : 'transparent',
                 color: isCurrent ? '#fff' : P.ink,
                 cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 12,
               }}
@@ -2392,7 +2600,7 @@ function ViewSwitcher({ mode, onChange }) {
       <button onClick={() => setOpen(o => !o)} style={{
         display: 'flex', alignItems: 'center', gap: 5,
         padding: '5px 11px', border: `1px solid ${P.border}`, borderRadius: 7,
-        background: P.ink, color: '#fff', cursor: 'pointer',
+        background: P.action, color: '#fff', cursor: 'pointer',
         fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12,
       }}>
         {labels[mode]}
@@ -2480,7 +2688,7 @@ function TabBar({ tabs, activeTab, onTabChange, padding = '0 28px' }) {
         }}>{label}</button>
       ))}
       <div style={{
-        position: 'absolute', bottom: -1, height: 2, background: P.ink, borderRadius: 1,
+        position: 'absolute', bottom: -1, height: 2, background: P.action, borderRadius: 1,
         left: rect.left, width: rect.width,
         transition: animate ? `left 250ms ${EASE_OUT}, width 250ms ${EASE_OUT}` : 'none',
       }} />
@@ -2703,7 +2911,7 @@ function TeamAbsencesScreen({ requests, pendingCount, onNav, onShowDetail, onSav
       <PageHeader title="Team absences" subtitle="Track and plan team availability">
         <button onClick={() => setAddOpen(true)} style={{
           display: 'flex', alignItems: 'center', gap: 7, padding: '9px 18px', borderRadius: 8, border: 'none',
-          background: P.ink, color: '#fff', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13,
+          background: P.action, color: '#fff', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13,
         }}>
           <Icon name="Plus" size={14} color="#fff" strokeWidth={2.5} /> Add time off
         </button>
@@ -2743,7 +2951,7 @@ function TeamAbsencesScreen({ requests, pendingCount, onNav, onShowDetail, onSav
               </button>
               <div ref={viewModeRef} style={{ display: 'flex', border: `1px solid ${P.border}`, borderRadius: 8, overflow: 'hidden', marginLeft: 4, position: 'relative' }}>
                 <div style={{
-                  position: 'absolute', top: 0, bottom: 0, background: P.ink,
+                  position: 'absolute', top: 0, bottom: 0, background: P.action,
                   left: viewModeRect.left, width: viewModeRect.width,
                   transition: viewModeAnimate ? `left 250ms ${EASE_OUT}, width 250ms ${EASE_OUT}` : 'none',
                 }} />
@@ -2803,7 +3011,7 @@ function TeamAbsencesScreen({ requests, pendingCount, onNav, onShowDetail, onSav
                       </div>
                       <div style={{
                         width: 22, height: 22, borderRadius: '50%', margin: '1px auto 0',
-                        background: isToday ? P.ink : 'transparent',
+                        background: isToday ? P.action : 'transparent',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                       }}>
                         <span style={{ fontFamily: 'var(--font-display)', fontWeight: isToday ? 700 : 500, fontSize: 11, color: isToday ? '#fff' : isWknd ? P.inkFaint : P.ink }}>
@@ -3028,7 +3236,7 @@ function TeamAbsencesScreen({ requests, pendingCount, onNav, onShowDetail, onSav
               <div style={{
                 position: 'fixed', left: tooltipRendered.x, top: tooltipRendered.y - 8,
                 transform: 'translate(-50%, -100%)', zIndex: 100,
-                background: P.ink, color: '#fff', padding: '8px 12px', borderRadius: 8,
+                background: P.action, color: '#fff', padding: '8px 12px', borderRadius: 8,
                 boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
                 fontFamily: 'var(--font-body)', fontSize: 11, lineHeight: 1.5,
                 pointerEvents: 'none', whiteSpace: 'nowrap',
@@ -3176,7 +3384,7 @@ function EmployeesScreen({ requests, onNav }) {
           <button style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', border: `1px solid ${P.border}`, borderRadius: 8, background: P.white, color: P.ink, fontFamily: 'var(--font-body)', fontSize: 13, fontWeight: 500, cursor: 'pointer' }}>
             <Icon name="Settings2" size={14} /> Bulk actions
           </button>
-          <button style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', border: 'none', borderRadius: 8, background: P.ink, color: P.white, fontFamily: 'var(--font-body)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+          <button style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', border: 'none', borderRadius: 8, background: P.action, color: P.white, fontFamily: 'var(--font-body)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
             <Icon name="Plus" size={14} color={P.white} /> Add a user
           </button>
         </div>
@@ -3342,7 +3550,7 @@ function EditBalancesModal({ emp, balances, onSave, onClose, isNewEmployee, onCo
         <div style={{ padding: '14px 22px', borderTop: `1px solid ${P.border}`, display: 'flex', alignItems: 'center', gap: 10 }}>
           <span style={{ flex: 1 }} />
           <button onClick={close} style={{ padding: '8px 18px', borderRadius: 8, border: `1px solid ${P.border}`, background: 'transparent', color: P.ink, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>Cancel</button>
-          <button onClick={handleSave} style={{ padding: '8px 20px', borderRadius: 8, border: 'none', background: P.ink, color: '#fff', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>{isNewEmployee ? 'Confirm balances' : 'Save balances'}</button>
+          <button onClick={handleSave} style={{ padding: '8px 20px', borderRadius: 8, border: 'none', background: P.action, color: '#fff', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>{isNewEmployee ? 'Confirm balances' : 'Save balances'}</button>
         </div>
       </div>
     </div>
@@ -3356,6 +3564,7 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, o
   const [addModal, setAddModal] = useState(null); // null | 'add' | request object (edit)
   const [cancelAction, setCancelAction] = useState(null);
   const [editBalancesOpen, setEditBalancesOpen] = useState(false);
+  const [detailReq, setDetailReq] = useState(null);
 
   if (!emp) return <div style={{ padding: 24 }}>Employee not found</div>;
 
@@ -3427,7 +3636,7 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, o
                   <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: '#92400e' }}>Confirm {emp.name.split(' ')[0]}'s leave balances</div>
                   <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: '#78350f', marginTop: 1 }}>These are company defaults — adjust any values if needed, then confirm so {emp.name.split(' ')[0]} can request time off.</div>
                 </div>
-                <button onClick={() => setEditBalancesOpen(true)} style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: P.ink, color: '#fff', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, flexShrink: 0, whiteSpace: 'nowrap' }}>
+                <button onClick={() => setEditBalancesOpen(true)} style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: P.action, color: '#fff', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, flexShrink: 0, whiteSpace: 'nowrap' }}>
                   Review & confirm
                 </button>
               </div>
@@ -3442,7 +3651,7 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, o
                   )}
                 </div>
                 {!needsSetup && (
-                  <button onClick={() => setEditBalancesOpen(true)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 14px', borderRadius: 8, border: 'none', background: P.ink, color: '#fff', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12 }}>
+                  <button onClick={() => setEditBalancesOpen(true)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 14px', borderRadius: 8, border: 'none', background: P.action, color: '#fff', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12 }}>
                     <Icon name="Pencil" size={12} color="#fff" />
                     Edit balances
                   </button>
@@ -3501,24 +3710,24 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, o
                     </thead>
                     <tbody>
                       {empReqs.filter(r => r.status === 'pending').map((req, idx, arr) => (
-                        <tr key={req.id} style={{ borderBottom: idx < arr.length - 1 ? `1px solid ${P.border}` : 'none' }}>
-                          <td style={{ padding: '10px 20px', color: P.ink }}>{req.startDate}</td>
-                          <td style={{ padding: '10px 16px', color: req.endDate && req.endDate !== req.startDate ? P.ink : P.inkFaint }}>
+                        <tr key={req.id} onClick={() => setDetailReq(req)} style={{ borderBottom: idx < arr.length - 1 ? `1px solid ${P.border}` : 'none', cursor: 'pointer' }}>
+                          <td style={{ padding: '12px 20px', fontSize: 14, color: P.ink }}>{req.startDate}</td>
+                          <td style={{ padding: '12px 16px', fontSize: 14, color: req.endDate && req.endDate !== req.startDate ? P.ink : P.inkFaint }}>
                             {req.endDate && req.endDate !== req.startDate ? req.endDate : '—'}
                           </td>
-                          <td style={{ padding: '10px 16px' }}>
+                          <td style={{ padding: '12px 16px' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                               <span style={{ width: 8, height: 8, borderRadius: 2, background: LEAVE_COLORS[req.type] || P.inkFaint, flexShrink: 0 }} />
-                              <span style={{ color: P.ink }}>{req.type}</span>
+                              <span style={{ fontSize: 14, color: P.ink }}>{req.type}</span>
                             </div>
                           </td>
-                          <td style={{ padding: '10px 16px', textAlign: 'center', color: P.inkSoft }}>
+                          <td style={{ padding: '12px 16px', fontSize: 14, textAlign: 'center', color: P.ink }}>
                             {req.days === 0.5 ? (
                               <span>{'½'}<span style={{ fontSize: 11, color: P.inkFaint, marginLeft: 3 }}>{req.halfDay || ''}</span></span>
                             ) : req.days || 1}
                           </td>
-                          <td style={{ padding: '10px 16px' }}><StatusDot status={req.status} /></td>
-                          <td style={{ padding: '8px 16px' }}>
+                          <td style={{ padding: '12px 16px' }}><StatusDot status={req.status} /></td>
+                          <td style={{ padding: '10px 16px' }} onClick={e => e.stopPropagation()}>
                             <ActionMenu req={req}
                               onApprove={() => onApprove(req.id)}
                               onDecline={() => onDecline(req.id)}
@@ -3559,24 +3768,24 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, o
                   </thead>
                   <tbody>
                     {empReqs.filter(r => r.status !== 'pending').map((req, idx, arr) => (
-                      <tr key={req.id} style={{ borderBottom: idx < arr.length - 1 ? `1px solid ${P.border}` : 'none' }}>
-                        <td style={{ padding: '10px 20px', color: P.ink }}>{req.startDate}</td>
-                        <td style={{ padding: '10px 16px', color: req.endDate && req.endDate !== req.startDate ? P.ink : P.inkFaint }}>
+                      <tr key={req.id} onClick={() => setDetailReq(req)} style={{ borderBottom: idx < arr.length - 1 ? `1px solid ${P.border}` : 'none', cursor: 'pointer' }}>
+                        <td style={{ padding: '12px 20px', fontSize: 14, color: P.ink }}>{req.startDate}</td>
+                        <td style={{ padding: '12px 16px', fontSize: 14, color: req.endDate && req.endDate !== req.startDate ? P.ink : P.inkFaint }}>
                           {req.endDate && req.endDate !== req.startDate ? req.endDate : '—'}
                         </td>
-                        <td style={{ padding: '10px 16px' }}>
+                        <td style={{ padding: '12px 16px' }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                             <span style={{ width: 8, height: 8, borderRadius: 2, background: LEAVE_COLORS[req.type] || P.inkFaint, flexShrink: 0 }} />
-                            <span style={{ color: P.ink }}>{req.type}</span>
+                            <span style={{ fontSize: 14, color: P.ink }}>{req.type}</span>
                           </div>
                         </td>
-                        <td style={{ padding: '10px 16px', textAlign: 'center', color: P.inkSoft }}>
+                        <td style={{ padding: '12px 16px', fontSize: 14, textAlign: 'center', color: P.ink }}>
                           {req.days === 0.5 ? (
                             <span>{'½'}<span style={{ fontSize: 11, color: P.inkFaint, marginLeft: 3 }}>{req.halfDay || ''}</span></span>
                           ) : req.days || 1}
                         </td>
-                        <td style={{ padding: '10px 16px' }}><StatusDot status={req.status} /></td>
-                        <td style={{ padding: '8px 16px' }}>
+                        <td style={{ padding: '12px 16px' }}><StatusDot status={req.status} /></td>
+                        <td style={{ padding: '10px 16px' }} onClick={e => e.stopPropagation()}>
                           <ActionMenu req={req}
                             onEdit={() => setAddModal(req)}
                             onCancel={() => setCancelAction(req)}
@@ -3632,6 +3841,18 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, o
           onClose={() => setEditBalancesOpen(false)}
           isNewEmployee={needsSetup}
           onConfirm={onConfirmBalances}
+        />
+      )}
+
+      {detailReq && (
+        <DetailModal
+          req={detailReq}
+          requests={requests}
+          onClose={() => setDetailReq(null)}
+          onApprove={(id) => { onApprove(id); setDetailReq(prev => prev?.id === id ? { ...prev, status: 'approved' } : prev); }}
+          onDecline={(id) => { onDecline(id); setDetailReq(prev => prev?.id === id ? { ...prev, status: 'declined' } : prev); }}
+          onCancel={(id) => { onCancel(id); setDetailReq(null); }}
+          onEdit={(r) => { setDetailReq(null); setAddModal(r); }}
         />
       )}
     </div>
@@ -3700,7 +3921,7 @@ function AppSwitcher() {
       position: 'fixed', bottom: 20, right: 20, zIndex: 100,
       display: 'inline-flex', alignItems: 'center', gap: 7,
       padding: '8px 14px', borderRadius: 20,
-      background: P.ink, color: '#fff', textDecoration: 'none',
+      background: P.action, color: '#fff', textDecoration: 'none',
       fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12,
       boxShadow: '0 2px 12px rgba(15,13,40,0.2)',
     }}>
@@ -3733,7 +3954,7 @@ function Toast({ toast, onDone }) {
       transform: exiting ? 'translateX(-50%) translateY(8px)' : 'translateX(-50%) translateY(0)',
       opacity: exiting ? 0 : 1,
       transition: exiting ? `opacity 180ms ${EASE_OUT}, transform 180ms ${EASE_OUT}` : 'none',
-      background: P.ink, color: '#fff',
+      background: P.action, color: '#fff',
       padding: toast.onUndo ? '8px 8px 8px 16px' : '10px 20px',
       borderRadius: 10,
       fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13,
@@ -3766,7 +3987,7 @@ function FollowUpBanner({ prompt, onLog, onDismiss }) {
     <div style={{ position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)', zIndex: 300, pointerEvents: 'none' }}>
       <div style={{
         pointerEvents: 'auto',
-        background: P.ink, borderRadius: 10, padding: '8px 8px 8px 18px',
+        background: P.action, borderRadius: 10, padding: '8px 8px 8px 18px',
         display: 'flex', alignItems: 'center', gap: 10,
         boxShadow: '0 6px 24px rgba(15,13,40,0.3)',
         animation: `pillFadeUp 150ms ${EASE_OUT}`,
@@ -3965,7 +4186,7 @@ function App() {
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, overflow: 'hidden' }}>
         {screen === 'dashboard' && <DashboardScreen requests={requests} onNav={setScreen} />}
         {screen === 'team-absences' && <TeamAbsencesScreen requests={requests} pendingCount={pendingCount} onNav={setScreen} onShowDetail={setCalDetail} onSave={saveRequest} companyEvents={companyEvents} onCancelCompanyEvent={cancelCompanyEvent} initialDate={calendarJumpDate} initialDeptFilter={calendarDeptFilter} />}
-        {screen === 'requests' && <RequestsScreen requests={requests} onApprove={approve} onDecline={requestDecline} onSave={saveRequest} onCancel={requestCancel} onViewInCalendar={(req) => { const d = req._selectedDates?.[0] || req.startDate; if (d) { const iso = typeof d === 'string' && d.match(/^\d{4}-/) ? d : null; setCalendarJumpDate(iso ? new Date(iso) : parseDisplayDate(d)); } setScreen('team-absences'); }} />}
+        {screen === 'requests' && <RequestsScreen requests={requests} onApprove={approve} onDecline={requestDecline} onSave={saveRequest} onCancel={requestCancel} onNav={setScreen} onViewInCalendar={(req) => { const d = req._selectedDates?.[0] || req.startDate; if (d) { const iso = typeof d === 'string' && d.match(/^\d{4}-/) ? d : null; setCalendarJumpDate(iso ? new Date(iso) : parseDisplayDate(d)); } setScreen('team-absences'); }} />}
         {screen === 'employees' && <EmployeesScreen requests={requests} onNav={setScreen} />}
         {screen.startsWith('employee-detail:') && <EmployeeDetailScreen employeeId={screen.split(':')[1]} requests={requests} onNav={setScreen} onSave={saveRequest} onCancel={cancelRequest} onApprove={approve} onDecline={requestDecline} onViewTeamCalendar={(dept) => { setCalendarDeptFilter(dept || null); setScreen('team-absences'); }} employeeBalance={employeeBalances[screen.split(':')[1]]} onUpdateBalance={(newBal) => updateBalances(screen.split(':')[1], newBal)} needsSetup={needsBalanceSetup.has(screen.split(':')[1])} confirmedDate={balanceConfirmedDates[screen.split(':')[1]]} onConfirmBalances={() => confirmBalancesFor(screen.split(':')[1])} />}
         {screen === 'choices' && <StubScreen title="Choices" description="Employee benefit choices overview" />}

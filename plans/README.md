@@ -9,7 +9,7 @@
 | 005 | [SidebarItem background transition](005-sidebar-item-background-transition.md) | LOW | DONE |
 | 006 | [Screen entrance animation — Team calendar](006-screen-enter-team-calendar.md) | MEDIUM | DONE |
 | 007 | [Animate RequestRow exit on approve/decline](007-requestrow-exit-on-approve-decline.md) | MEDIUM | DONE |
-| 008 | [Sheet animation overhaul](008-sheet-animation-overhaul.md) | HIGH | TODO |
+| 008 | [Sheet animation overhaul](008-sheet-animation-overhaul.md) | HIGH | DONE |
 
 ## Execution order
 

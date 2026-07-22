@@ -1,6 +1,6 @@
 # 008 — Sheet animation overhaul
 
-- **Status**: TODO
+- **Status**: DONE
 - **Commit**: 3f51a15
 - **Severity**: HIGH
 - **Category**: Easing & duration / Interruptibility / Physicality
