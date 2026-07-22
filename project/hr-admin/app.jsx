@@ -1327,7 +1327,7 @@ function CalendarDrawer({ req, requests, onClose, onApprove, onDecline, onCancel
                   );
                 })}
                 {hidden > 0 && (
-                  <span style={{ marginLeft: -8, width: 24, height: 24, borderRadius: '50%', border: '2px solid #e5e7eb', background: '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 9, color: P.inkSoft }}>
+                  <span style={{ marginLeft: -8, width: 24, height: 24, borderRadius: '50%', border: '2px solid #e5e7eb', background: '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 9, color: P.inkSoft, boxSizing: 'content-box' }}>
                     +{hidden}
                   </span>
                 )}
