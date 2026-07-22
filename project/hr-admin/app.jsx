@@ -1319,27 +1319,6 @@ function CalendarDrawer({ req, requests, onClose, onApprove, onDecline, onCancel
                 <div style={{ flexShrink: 0, fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.ink, whiteSpace: 'nowrap' }}>Team availability</div>
               </div>
               <div style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 8 }}>
-                {/* Avatar stack */}
-                <span style={{ display: 'flex', flexShrink: 0 }}>
-                  {stackIds.map((empId, i) => {
-                    const oe = EMPLOYEES[empId];
-                    const isOff = offIds.has(empId);
-                    return (
-                      <span key={empId}
-                        style={{ marginLeft: i > 0 ? -8 : 0, borderRadius: '50%', border: `2px solid ${isOff ? '#fcd34d' : '#86efac'}`, display: 'flex', lineHeight: 0 }}
-                        onMouseEnter={e => { const rect = e.currentTarget.getBoundingClientRect(); const offReq = overlapping.find(r => r.employee === empId); setAvatarTip({ name: oe?.name, offReq, x: rect.left + rect.width / 2, y: rect.top }); }}
-                        onMouseLeave={() => setAvatarTip(null)}
-                      >
-                        <Avatar employeeId={empId} size={24} />
-                      </span>
-                    );
-                  })}
-                  {hidden > 0 && (
-                    <span style={{ marginLeft: -8, width: 24, height: 24, borderRadius: '50%', border: '2px solid #e5e7eb', background: '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 9, color: P.inkSoft, boxSizing: 'content-box' }}>
-                      +{hidden}
-                    </span>
-                  )}
-                </span>
                 {/* Summary label */}
                 {hasOverlap
                   ? <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: '#92400e' }}>{overlapping.length}/{teamSize} off</span>
