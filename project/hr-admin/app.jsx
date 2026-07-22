@@ -1333,7 +1333,7 @@ function CalendarDrawer({ req, requests, onClose, onApprove, onDecline, onCancel
                 )}
               </span>
               {hasOverlap
-                ? <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: '#dc2626' }}>{overlapping.length}/{teamSize} off</span>
+                ? <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: '#92400e' }}>{overlapping.length}/{teamSize} off</span>
                 : <span style={{ color: P.inkSoft }}>All available</span>
               }
             </TableRow>
