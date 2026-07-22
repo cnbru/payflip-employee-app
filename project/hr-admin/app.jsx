@@ -1346,9 +1346,7 @@ function CalendarDrawer({ req, requests, onClose, onApprove, onDecline, onCancel
                         <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.ink }}>{oe?.name}</div>
                         <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, marginTop: 1 }}>{offReq.type} · {dateStr}</div>
                       </div>
-                      <span style={{ borderRadius: '50%', border: '2px solid #fcd34d', display: 'flex', lineHeight: 0, flexShrink: 0 }}>
-                        <Avatar employeeId={empId} size={22} />
-                      </span>
+                      <Avatar employeeId={empId} size={22} />
                     </div>
                   );
                 })}
