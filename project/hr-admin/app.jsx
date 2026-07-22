@@ -1341,12 +1341,14 @@ function CalendarDrawer({ req, requests, onClose, onApprove, onDecline, onCancel
                   const offReq = overlapping.find(r => r.employee === empId);
                   const dateStr = offReq.startDate === offReq.endDate ? offReq.startDate : `${offReq.startDate} – ${offReq.endDate}`;
                   return (
-                    <div key={empId} style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 8, padding: '10px 24px', borderTop: i > 0 ? `1px solid ${P.border}` : 'none' }}>
+                    <div key={empId} style={{ display: 'flex', justifyContent: 'flex-end', padding: '10px 24px', borderTop: i > 0 ? `1px solid ${P.border}` : 'none' }}>
                       <div style={{ textAlign: 'right' }}>
-                        <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.ink }}>{oe?.name}</div>
-                        <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, marginTop: 1 }}>{offReq.type} · {dateStr}</div>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 6 }}>
+                          <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.ink }}>{oe?.name}</span>
+                          <Avatar employeeId={empId} size={22} />
+                        </div>
+                        <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, marginTop: 2 }}>{offReq.type} · {dateStr}</div>
                       </div>
-                      <Avatar employeeId={empId} size={22} />
                     </div>
                   );
                 })}
