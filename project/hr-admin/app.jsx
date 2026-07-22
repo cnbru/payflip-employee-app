@@ -1209,68 +1209,139 @@ function CalendarDrawer({ req, requests, onClose, onApprove, onDecline, onCancel
     </span>
   );
 
-  const detailItems = [
-    <TableRow key="employee" label="Requested by" icon="user">
-      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{emp.name}</span>
-      <Avatar employeeId={req.employee} size={22} />
-    </TableRow>,
-    <TableRow key="status" label="Status" icon="circle-dot">
-      <DotPill bg={pill.bg} color={pill.color}>{pill.label}</DotPill>
-    </TableRow>,
-    <TableRow key="dates" label="When" icon="calendar">
-      {heroDateStr} · {durationStr}
-    </TableRow>,
-    <TableRow key="type" label="Type" icon="tag">
-      {req.type}
-    </TableRow>,
-    <TableRow key="dept" label="Department" icon="building-2">
-      {emp.department}
-    </TableRow>,
-    req.note && (
-      <TableRow key="note" label="Note" icon="message-square">
-        <span style={{ fontStyle: 'italic', lineHeight: 1.4, textAlign: 'right' }}>"{req.note}"</span>
-      </TableRow>
-    ),
-    ATTACHMENT_RULES[req.type] && (
-      <TableRow key="attachment" label="Document" icon="paperclip">
-        {req.document ? (
-          <AppLink>{req.document}</AppLink>
-        ) : (
-          <>
-            <span style={{ fontWeight: 600, fontSize: 12, color: '#92400e', background: '#fef9c3', border: '1px solid #fde68a', borderRadius: 20, padding: '2px 8px' }}>Missing</span>
-            <span style={{ fontWeight: 400, color: P.inkSoft }}>{ATTACHMENT_RULES[req.type].label}</span>
-          </>
+  const SectionHeader = ({ children }) => (
+    <div style={{ padding: '16px 24px 6px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 10, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+      {children}
+    </div>
+  );
+
+  const Group = ({ children }) => {
+    const items = React.Children.toArray(children).filter(Boolean);
+    return (
+      <div>
+        {items.map((child, i) => (
+          <React.Fragment key={i}>
+            {i > 0 && <div style={{ height: 1, background: P.border, marginLeft: 24, marginRight: 24 }} />}
+            {child}
+          </React.Fragment>
+        ))}
+      </div>
+    );
+  };
+
+  // Overlap banner name list: "Sara L., Jonas G., and 1 other"
+  const overlapPeers = overlapping.slice(0, 2).map(r => {
+    const e = EMPLOYEES[r.employee];
+    if (!e) return r.employee;
+    const [first, ...rest] = e.name.split(' ');
+    return first + (rest[0] ? ' ' + rest[0][0] + '.' : '');
+  });
+  const overlapExtra = overlapping.length - overlapPeers.length;
+  const overlapNamesStr = overlapPeers.length === 0 ? '' :
+    overlapExtra > 0 ? overlapPeers.join(', ') + `, and ${overlapExtra} other${overlapExtra > 1 ? 's' : ''}` :
+    overlapPeers.length === 2 ? `${overlapPeers[0]} and ${overlapPeers[1]}` :
+    overlapPeers[0];
+
+  const detailContent = (
+    <div>
+      <SectionHeader>Request</SectionHeader>
+      <Group>
+        <TableRow label="Requested by" icon="user">
+          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{emp.name}</span>
+          <Avatar employeeId={req.employee} size={22} />
+        </TableRow>
+        <TableRow label="When" icon="calendar">
+          {heroDateStr} · {durationStr}
+        </TableRow>
+        <TableRow label="Type" icon="tag">
+          {req.type}
+        </TableRow>
+        <TableRow label="Department" icon="building-2">
+          {emp.department}
+        </TableRow>
+      </Group>
+
+      {(req.note || ATTACHMENT_RULES[req.type]) && <>
+        <SectionHeader>Supporting info</SectionHeader>
+        <Group>
+          {ATTACHMENT_RULES[req.type] && (
+            <TableRow label="Document" icon="paperclip">
+              {req.document ? (
+                <AppLink>{req.document}</AppLink>
+              ) : (
+                <>
+                  <span style={{ fontWeight: 600, fontSize: 12, color: '#92400e', background: '#fef9c3', border: '1px solid #fde68a', borderRadius: 20, padding: '2px 8px' }}>Missing</span>
+                  <span style={{ fontWeight: 400, color: P.inkSoft }}>{ATTACHMENT_RULES[req.type].label}</span>
+                </>
+              )}
+            </TableRow>
+          )}
+          {req.note && (
+            <TableRow label="Note" icon="message-square">
+              <span style={{ fontStyle: 'italic', lineHeight: 1.4, textAlign: 'right' }}>"{req.note}"</span>
+            </TableRow>
+          )}
+        </Group>
+      </>}
+
+      {overlapping.length > 0 && <>
+        <SectionHeader>Team impact</SectionHeader>
+        <Group>
+          <TableRow label="Team availability" icon="users">
+            <span style={{ display: 'flex', flexShrink: 0 }}>
+              {overlapping.slice(0, 3).map((r, i) => {
+                const oe = EMPLOYEES[r.employee];
+                return (
+                  <span key={r.id}
+                    style={{ marginLeft: i > 0 ? -8 : 0, borderRadius: '50%', border: `2px solid ${P.white}`, display: 'flex', lineHeight: 0 }}
+                    onMouseEnter={e => { const rect = e.currentTarget.getBoundingClientRect(); setAvatarTip({ name: oe?.name, x: rect.left + rect.width / 2, y: rect.top }); }}
+                    onMouseLeave={() => setAvatarTip(null)}
+                  >
+                    <Avatar employeeId={r.employee} size={24} />
+                  </span>
+                );
+              })}
+              {overlapping.length > 3 && (
+                <span style={{ marginLeft: -8, width: 24, height: 24, borderRadius: '50%', border: `2px solid ${P.white}`, background: P.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 9, color: P.inkSoft }}>
+                  +{overlapping.length - 3}
+                </span>
+              )}
+            </span>
+            {teamRisk
+              ? <DotPill bg="#fef2f2" color="#dc2626">{overlapping.length}/{teamSize} overlap</DotPill>
+              : <span style={{ color: P.inkSoft }}>{overlapping.length} of {teamSize} off</span>
+            }
+          </TableRow>
+        </Group>
+        {teamRisk && (
+          <div style={{ margin: '8px 20px 4px', padding: '12px 14px', borderRadius: 10, background: '#fef2f2', border: '1px solid #fecaca', display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+            <Icon name="triangle-alert" size={14} color="#dc2626" strokeWidth={2} style={{ flexShrink: 0, marginTop: 1 }} />
+            <div>
+              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: '#dc2626' }}>
+                {overlapping.length} of {teamSize} team members also off
+              </div>
+              <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: '#b91c1c', marginTop: 2, lineHeight: 1.4 }}>
+                {overlapNamesStr} {overlapping.length === 1 ? 'has' : 'have'} approved leave overlapping these dates.
+              </div>
+            </div>
+          </div>
         )}
-      </TableRow>
-    ),
-    overlapping.length > 0 && (
-      <TableRow key="team" label="Team availability" icon="users">
-        <span style={{ display: 'flex', flexShrink: 0 }}>
-          {overlapping.slice(0, 4).map((r, i) => {
-            const oe = EMPLOYEES[r.employee];
-            return (
-              <span key={r.id}
-                style={{ marginLeft: i > 0 ? -8 : 0, borderRadius: '50%', border: `2px solid ${P.white}`, display: 'flex', lineHeight: 0 }}
-                onMouseEnter={e => { const rect = e.currentTarget.getBoundingClientRect(); setAvatarTip({ name: oe?.name, x: rect.left + rect.width / 2, y: rect.top }); }}
-                onMouseLeave={() => setAvatarTip(null)}
-              >
-                <Avatar employeeId={r.employee} size={24} />
-              </span>
-            );
-          })}
-        </span>
-        {teamRisk
-          ? <DotPill bg="#fef2f2" color="#dc2626">{overlapping.length}/{teamSize} overlap</DotPill>
-          : <span style={{ color: P.inkSoft }}>{overlapping.length} of {teamSize} off</span>
-        }
-      </TableRow>
-    ),
-    req.submittedAt && (
-      <TableRow key="submitted" label="Requested on" icon="clock">
-        {req.submittedAt}
-      </TableRow>
-    ),
-  ].filter(Boolean);
+      </>}
+
+      <SectionHeader>Admin</SectionHeader>
+      <Group>
+        <TableRow label="Status" icon="circle-dot">
+          <DotPill bg={pill.bg} color={pill.color}>{pill.label}</DotPill>
+        </TableRow>
+        {req.submittedAt && (
+          <TableRow label="Requested on" icon="clock">
+            {req.submittedAt}
+          </TableRow>
+        )}
+      </Group>
+      <div style={{ height: 16 }} />
+    </div>
+  );
 
   // Slide transforms
   const SLIDE_DUR = 300;
@@ -1329,14 +1400,7 @@ function CalendarDrawer({ req, requests, onClose, onApprove, onDecline, onCancel
           {/* Detail panel */}
           <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', transform: detailSlide, transition: slideTransition }}>
             <div style={{ flex: 1, overflowY: 'auto' }}>
-              <div style={{ marginTop: 16 }}>
-                {detailItems.map((item, i) => (
-                  <React.Fragment key={i}>
-                    {i > 0 && <div style={{ height: 1, background: P.border, marginLeft: 24, marginRight: 24 }} />}
-                    {item}
-                  </React.Fragment>
-                ))}
-              </div>
+              {detailContent}
             </div>
             {(isPending || req.status === 'approved') && (
               <div style={{ flexShrink: 0, padding: '12px 20px', borderTop: `1px solid ${P.border}`, display: 'flex', gap: 10 }}>
