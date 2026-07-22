@@ -621,6 +621,21 @@ const generatedRequests = [
   { id: 'gen-20', employee: 'jana-goossens', type: 'ADV / RTT', startDate: 'Thu 30 Jul', endDate: 'Fri 31 Jul', days: 2, status: 'approved', submittedAt: '11 Jul', note: '', _selectedDates: ['2026-07-30','2026-07-31'] },
 ];
 
+const EXPENSE_CATEGORIES = ['Taxi', 'Restaurants', 'Travel'];
+
+const EXPENSES_SEED = [
+  { id: 'exp-1', employee: 'thomas-janssens', category: 'Travel', amount: 124.50, currency: 'EUR', submittedAt: '14 Jul', description: 'Train Brussels–Ghent client visit', receipt: 'sncb_ticket.pdf', status: 'pending' },
+  { id: 'exp-2', employee: 'sarah-de-smedt', category: 'Restaurants', amount: 87.00, currency: 'EUR', submittedAt: '10 Jul', description: 'Team lunch — 4 people', receipt: '', status: 'pending' },
+  { id: 'exp-3', employee: 'bram-goossens', category: 'Taxi', amount: 34.00, currency: 'EUR', submittedAt: '7 Jul', description: 'Taxi to Brussels airport — client meeting', receipt: 'taxi_receipt.pdf', status: 'pending' },
+  { id: 'exp-4', employee: 'emma-martens', category: 'Restaurants', amount: 15.00, currency: 'EUR', submittedAt: '1 Jul', description: 'Working lunch with design team', receipt: '', status: 'approved' },
+  { id: 'exp-5', employee: 'david', category: 'Travel', amount: 212.00, currency: 'EUR', submittedAt: '25 Jun', description: 'Brussels–London for product workshop', receipt: 'eurostar.pdf', status: 'approved' },
+  { id: 'exp-6', employee: 'pieter-mertens', category: 'Restaurants', amount: 43.50, currency: 'EUR', submittedAt: '22 Jun', description: 'Client dinner', receipt: '', status: 'rejected', rejectReason: 'No client approval on record for this dinner.' },
+  { id: 'exp-7', employee: 'jana-goossens', category: 'Taxi', amount: 19.00, currency: 'EUR', submittedAt: '18 Jun', description: 'Taxi home after late client event', receipt: 'taxi_receipt.pdf', status: 'approved' },
+  { id: 'exp-8', employee: 'stijn-laurent', category: 'Travel', amount: 31.00, currency: 'EUR', submittedAt: '15 Jun', description: 'Monthly transit pass — June', receipt: '', status: 'pending' },
+  { id: 'exp-9', employee: 'laura-mertens', category: 'Restaurants', amount: 27.50, currency: 'EUR', submittedAt: '10 Jun', description: 'Lunch with new hire onboarding', receipt: '', status: 'approved' },
+  { id: 'exp-10', employee: 'mathias-de-smedt', category: 'Taxi', amount: 22.00, currency: 'EUR', submittedAt: '3 Jun', description: 'Taxi to Ghent office — missed last train', receipt: '', status: 'pending' },
+];
+
 // ── localStorage bridge ────────────────────────────────────────────────────
 const LS_KEY = 'payflip_hr_requests';
 function readLS() {
@@ -833,10 +848,10 @@ function AppModeSidebar({ active, onNav, pendingCount, onEnterSettings }) {
         <SidebarItem icon="users" label="People" isActive={active === 'employees' || active?.startsWith('employee-detail')} onClick={() => onNav('employees')} />
         <SidebarItem icon="list-checks" label="Choices" isActive={active === 'choices'} onClick={() => onNav('choices')} />
 
-        <SidebarItem icon="calendar-days" label="Time off" onClick={() => setTimeoffOpen(o => !o)} chevron chevronOpen={timeoffOpen} isActive={active === 'requests' || active === 'team-absences'} badgeDot={!timeoffOpen && pendingCount > 0 ? pendingCount : null} />
+        <SidebarItem icon="calendar-days" label="Time off" onClick={() => setTimeoffOpen(o => !o)} chevron chevronOpen={timeoffOpen} isActive={active === 'requests' || active === 'team-absences'} badgeDot={!timeoffOpen && (pendingCount?.requests ?? pendingCount) > 0 ? (pendingCount?.requests ?? pendingCount) : null} />
         <SidebarAccordion open={timeoffOpen}>
           <SidebarSub active={active} onNav={onNav} items={[
-            { id: 'requests', label: 'Requests', badge: pendingCount },
+            { id: 'requests', label: 'Requests', badge: pendingCount?.requests ?? pendingCount },
             { id: 'team-absences', label: 'Team calendar' },
           ]} />
         </SidebarAccordion>
@@ -848,6 +863,8 @@ function AppModeSidebar({ active, onNav, pendingCount, onEnterSettings }) {
             { id: 'payroll-reports', label: 'Reports' },
           ]} />
         </SidebarAccordion>
+
+        <SidebarItem icon="receipt" label="Expenses" isActive={active === 'expenses'} onClick={() => onNav('expenses')} badgeDot={pendingCount?.expenses || null} />
 
         <SidebarItem icon="settings" label="Settings" onClick={onEnterSettings} />
       </nav>
@@ -2488,6 +2505,174 @@ function OverlapPopover({ req, overlapping, empDept }) {
   );
 }
 
+// ── Expense drawer ─────────────────────────────────────────────────────────
+function ExpenseDrawer({ expense, onClose, onApprove, onReject }) {
+  const emp = EMPLOYEES[expense.employee] || { name: expense.employee, initials: '?', color: '#e5e7eb' };
+  const isPending = expense.status === 'pending';
+
+  const { visible, close, closing } = useModalTransition(onClose, SHEET_CLOSE_DUR);
+  const [rejectMode, setRejectMode] = React.useState(false);
+  const [rejectReason, setRejectReason] = React.useState('');
+
+  const SLIDE_DUR = 300;
+  const secondPanel = rejectMode;
+  const detailSlide = secondPanel ? 'translateX(-100%)' : 'translateX(0)';
+  const editSlide   = secondPanel ? 'translateX(0)'     : 'translateX(100%)';
+  const slideTransition = `transform ${SLIDE_DUR}ms ${EASE_DRAWER}`;
+
+  const labelStyle = { flexShrink: 0, fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.ink, whiteSpace: 'nowrap' };
+  const valueStyle = { flex: 1, minWidth: 0, fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.inkSoft, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 8 };
+
+  const TableRow = ({ label, icon, children }) => (
+    <div style={{ display: 'flex', alignItems: 'center', padding: '16px 24px', gap: 16 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 7, flexShrink: 0 }}>
+        {icon && <Icon name={icon} size={14} color={P.inkSoft} strokeWidth={1.75} style={{ flexShrink: 0 }} />}
+        <div style={labelStyle}>{label}</div>
+      </div>
+      <div style={valueStyle}>{children}</div>
+    </div>
+  );
+  const SectionHeader = ({ children }) => (
+    <div style={{ padding: '16px 24px 6px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 10, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+      {children}
+    </div>
+  );
+  const Group = ({ children }) => {
+    const items = React.Children.toArray(children).filter(Boolean);
+    return (
+      <div>
+        {items.map((child, i) => (
+          <React.Fragment key={i}>
+            {i > 0 && <div style={{ height: 1, background: P.border, marginLeft: 24, marginRight: 24 }} />}
+            {child}
+          </React.Fragment>
+        ))}
+      </div>
+    );
+  };
+
+  const amountStr = `€ ${expense.amount.toFixed(2).replace('.', ',')}`;
+  const sm = StatusMeta[expense.status] || StatusMeta.pending;
+
+  const detailContent = (
+    <div>
+      <SectionHeader>Expense</SectionHeader>
+      <Group>
+        <TableRow label="Submitted by" icon="user">
+          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{emp.name}</span>
+          <Avatar employeeId={expense.employee} size={22} />
+        </TableRow>
+        <TableRow label="Amount" icon="coins">
+          <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 14, color: P.ink }}>{amountStr}</span>
+        </TableRow>
+        <TableRow label="Category" icon="tag">
+          {expense.category}
+        </TableRow>
+      </Group>
+
+      <SectionHeader>Supporting</SectionHeader>
+      <Group>
+        <TableRow label="Description" icon="file-text">
+          <span style={{ textAlign: 'right', whiteSpace: 'normal', lineHeight: 1.4 }}>{expense.description || '—'}</span>
+        </TableRow>
+        <TableRow label="Receipt" icon="paperclip">
+          {expense.receipt
+            ? <span style={{ color: P.accent, textDecoration: 'underline', cursor: 'pointer', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{expense.receipt}</span>
+            : <span style={{ color: P.inkFaint }}>No receipt attached</span>
+          }
+        </TableRow>
+      </Group>
+
+      <SectionHeader>Admin</SectionHeader>
+      <Group>
+        <TableRow label="Status" icon="circle-dot">
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: sm.bg, color: sm.color, borderRadius: 20, padding: '2px 8px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12 }}>
+            <span style={{ width: 5, height: 5, borderRadius: '50%', background: 'currentColor', flexShrink: 0 }} />
+            {sm.label}
+          </span>
+        </TableRow>
+        <TableRow label="Submitted" icon="calendar">
+          {expense.submittedAt}
+        </TableRow>
+        {expense.status === 'rejected' && expense.rejectReason && (
+          <TableRow label="Reject reason" icon="message-square">
+            <span style={{ textAlign: 'right', whiteSpace: 'normal', lineHeight: 1.4, color: '#dc2626' }}>{expense.rejectReason}</span>
+          </TableRow>
+        )}
+      </Group>
+    </div>
+  );
+
+  return (
+    <React.Fragment>
+      <div onClick={close} style={{
+        position: 'fixed', inset: 0, zIndex: 200,
+        background: 'rgba(15,13,40,0.25)',
+        ...modalBackdropStyle(visible),
+      }}>
+      <div onClick={e => e.stopPropagation()} style={{
+        position: 'absolute', top: 16, bottom: 16, right: 16, width: 480,
+        background: P.white,
+        borderRadius: 20,
+        boxShadow: '0 24px 64px rgba(15,13,40,0.22), 0 0 0 1px rgba(15,13,40,0.06)',
+        display: 'flex', flexDirection: 'column', overflow: 'hidden',
+        ...sheetPanelStyle(visible, closing),
+      }}>
+        <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 24px', borderBottom: `1px solid ${P.border}` }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            {secondPanel && (
+              <button onClick={() => setRejectMode(false)} style={{ flexShrink: 0, width: 30, height: 30, borderRadius: '50%', background: 'rgba(60,60,67,0.1)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Icon name="arrow-left" size={15} color={P.ink} strokeWidth={2} />
+              </button>
+            )}
+            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18, color: P.ink }}>
+              {rejectMode ? 'Reject expense' : 'Expense details'}
+            </span>
+          </div>
+          <button onClick={close} style={{ border: 'none', cursor: 'pointer', width: 30, height: 30, borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(60,60,67,0.1)' }}>
+            <Icon name="X" size={14} color={P.ink} strokeWidth={2.5} />
+          </button>
+        </div>
+
+        <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
+          <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', transform: detailSlide, transition: slideTransition }}>
+            <div style={{ flex: 1, overflowY: 'auto' }}>
+              {detailContent}
+            </div>
+            {isPending && (
+              <div style={{ flexShrink: 0, padding: '12px 20px', borderTop: `1px solid ${P.border}`, display: 'flex', gap: 10 }}>
+                <button onClick={() => { setRejectReason(''); setRejectMode(true); }} style={{ flex: 1, padding: '10px 0', borderRadius: 10, border: '1px solid #fecaca', background: '#fef2f2', color: '#dc2626', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                  <Icon name="X" size={13} color="#dc2626" strokeWidth={2.5} /> Reject
+                </button>
+                <button onClick={() => { onApprove(expense.id); close(); }} style={{ flex: 1, padding: '10px 0', borderRadius: 10, border: 'none', background: P.ink, color: P.white, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                  <Icon name="Check" size={13} color={P.white} strokeWidth={2.5} /> Approve
+                </button>
+              </div>
+            )}
+          </div>
+
+          <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', transform: editSlide, transition: slideTransition }}>
+            <div style={{ flex: 1, overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, lineHeight: 1.5 }}>
+                You're rejecting <strong style={{ color: P.ink }}>{emp.name}</strong>'s {expense.category} expense ({amountStr}).
+              </p>
+              <div>
+                <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 10, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Reason <span style={{ textTransform: 'none', fontWeight: 400 }}>(optional)</span></label>
+                <textarea value={rejectReason} onChange={e => setRejectReason(e.target.value)} placeholder="Explain why this expense is being rejected…" rows={3} style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: `1px solid ${P.border}`, background: P.bg, fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink, resize: 'none', lineHeight: 1.5, boxSizing: 'border-box', outline: 'none' }} />
+              </div>
+            </div>
+            <div style={{ flexShrink: 0, padding: '12px 20px', borderTop: `1px solid ${P.border}`, display: 'flex', gap: 10 }}>
+              <button onClick={() => setRejectMode(false)} style={{ flex: 1, padding: '10px 0', borderRadius: 10, border: `1px solid ${P.border}`, background: 'transparent', color: P.inkSoft, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>Go back</button>
+              <button onClick={() => { onReject(expense.id, rejectReason); close(); }} style={{ flex: 2, padding: '10px 0', borderRadius: 10, border: 'none', background: '#dc2626', color: P.white, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>Confirm rejection</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      </div>
+    </React.Fragment>
+  );
+}
+
 // ── Table row ──────────────────────────────────────────────────────────────
 const TH = ({ children, style }) => (
   <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.inkSoft, textTransform: 'uppercase', letterSpacing: '0.06em', ...style }}>{children}</div>
@@ -2560,6 +2745,135 @@ function RequestRow({ req, requests, onApprove, onDecline, onDetail, onEdit, onC
             </>)}
             <ActionMenu req={req} onViewDetails={() => onDetail(req)} onViewInCalendar={onViewInCalendar} onEdit={() => onEdit(req)} onCancel={() => onCancel(req.id)} />
           </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Expense row ────────────────────────────────────────────────────────────
+function ExpenseRow({ exp, onApprove, onDetail, showStatus, selected, onToggle }) {
+  const emp = EMPLOYEES[exp.employee] || { name: exp.employee, initials: '?', color: '#e5e7eb' };
+  const [hover, setHover] = useState(false);
+  const gridCols = showStatus
+    ? '32px 1.8fr 1fr 1fr 2fr 0.8fr 0.7fr 96px'
+    : '32px 1.8fr 1fr 2fr 0.8fr 0.7fr 96px';
+
+  const amountStr = `€ ${exp.amount.toFixed(2).replace('.', ',')}`;
+
+  return (
+    <div onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)} onClick={() => onDetail(exp)}
+      style={{
+        display: 'grid', gridTemplateColumns: gridCols,
+        alignItems: 'center', gap: 12, padding: '0 20px', minHeight: 52,
+        borderBottom: `1px solid ${P.border}`,
+        background: selected ? '#f5f3ff' : hover ? P.bg : P.white,
+        cursor: 'pointer',
+        transition: `background 0.1s`,
+      }}>
+      <input type="checkbox" checked={!!selected} onClick={e => e.stopPropagation()} onChange={() => onToggle && onToggle(exp.id)} style={{ cursor: 'pointer', accentColor: P.action }} />
+      <div style={{ display: 'flex', alignItems: 'center', gap: 9, minWidth: 0 }}>
+        <Avatar employeeId={exp.employee} size={24} style={{ border: '2px solid #fff', boxSizing: 'content-box' }} />
+        <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, fontWeight: 500, color: P.ink, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{emp.name}</span>
+      </div>
+      {showStatus && <StatusDot status={exp.status} />}
+      <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink }}>{exp.category}</span>
+      <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{exp.description}</span>
+      <span style={{ fontFamily: 'var(--font-display)', fontSize: 14, fontWeight: 600, color: P.ink }}>{amountStr}</span>
+      <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkFaint }}>{exp.submittedAt}</span>
+      <div onClick={e => e.stopPropagation()} style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4 }}>
+        {exp.status === 'pending' && (<>
+          <button title="Reject" onClick={() => onDetail(exp)}
+            onMouseEnter={e => { e.currentTarget.style.background = '#fee2e2'; e.currentTarget.style.borderColor = '#fca5a5'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = '#fef2f2'; e.currentTarget.style.borderColor = '#fecaca'; }}
+            style={{ width: 28, height: 28, borderRadius: 6, border: '1px solid #fecaca', background: '#fef2f2', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <Icon name="X" size={14} color="#dc2626" strokeWidth={2.5} />
+          </button>
+          <button title="Approve" onClick={() => onApprove(exp.id)}
+            onMouseEnter={e => { e.currentTarget.style.background = '#dcfce7'; e.currentTarget.style.borderColor = '#86efac'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = '#f0fdf4'; e.currentTarget.style.borderColor = '#bbf7d0'; }}
+            style={{ width: 28, height: 28, borderRadius: 6, border: '1px solid #bbf7d0', background: '#f0fdf4', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <Icon name="Check" size={14} color="#16a34a" strokeWidth={2.5} />
+          </button>
+        </>)}
+      </div>
+    </div>
+  );
+}
+
+// ── Expenses screen ─────────────────────────────────────────────────────────
+const EXPENSE_CATEGORY_OPTS = [['all', 'All categories'], ...EXPENSE_CATEGORIES.map(c => [c, c])];
+
+function ExpensesScreen({ expenses, onApprove, onDetail }) {
+  const [tab, setTab] = useState('pending');
+  const [selected, setSelected] = useState(new Set());
+  const [searchText, setSearchText] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('all');
+  const [deptFilter, setDeptFilter] = useState('all');
+  const pendingCount = expenses.filter(e => e.status === 'pending').length;
+  const filtered = (tab === 'pending' ? expenses.filter(e => e.status === 'pending')
+    : tab === 'approved' ? expenses.filter(e => e.status === 'approved')
+    : expenses)
+    .filter(e => {
+      const emp = EMPLOYEES[e.employee];
+      if (searchText.trim() && !(emp?.name || e.employee).toLowerCase().includes(searchText.trim().toLowerCase())) return false;
+      if (categoryFilter !== 'all' && e.category !== categoryFilter) return false;
+      if (deptFilter !== 'all' && emp?.department !== deptFilter) return false;
+      return true;
+    });
+  const showStatus = tab === 'all';
+  const gridCols = showStatus
+    ? '32px 1.8fr 1fr 1fr 2fr 0.8fr 0.7fr 96px'
+    : '32px 1.8fr 1fr 2fr 0.8fr 0.7fr 96px';
+  const toggleSelect = (id) => setSelected(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
+  const allSelected = filtered.length > 0 && filtered.every(e => selected.has(e.id));
+  const toggleAll = () => {
+    if (allSelected) setSelected(prev => { const n = new Set(prev); filtered.forEach(e => n.delete(e.id)); return n; });
+    else setSelected(prev => new Set([...prev, ...filtered.map(e => e.id)]));
+  };
+
+  return (
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, position: 'relative', animation: `screenEnter 180ms ${EASE_OUT}` }}>
+      <PageHeader
+        title="Expenses"
+        subtitle="Review and approve team expense claims"
+        tabs={
+          <TabBar
+            tabs={[
+              { id: 'pending', label: `Pending${pendingCount > 0 ? ` (${pendingCount})` : ''}` },
+              { id: 'approved', label: 'Approved' },
+              { id: 'all', label: 'All expenses' },
+            ]}
+            activeTab={tab}
+            onTabChange={(v) => { setTab(v); setSelected(new Set()); }}
+          />
+        }
+      />
+      <FilterToolbar
+        searchText={searchText} onSearch={v => { setSearchText(v); setSelected(new Set()); }}
+        filter={categoryFilter} onFilter={v => { setCategoryFilter(v); setSelected(new Set()); }} filterOpts={EXPENSE_CATEGORY_OPTS}
+        deptFilter={deptFilter} onDeptFilter={v => { setDeptFilter(v); setSelected(new Set()); }}
+      />
+      <div style={{ flex: 1, overflowY: 'auto', padding: '0 20px 20px' }}>
+        <div style={{ background: P.white, borderRadius: 12, border: `1px solid ${P.border}`, overflow: 'clip' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: gridCols, alignItems: 'center', gap: 12, padding: '0 20px', height: 38, borderBottom: `1px solid ${P.border}`, background: P.bg, position: 'sticky', top: 0, zIndex: 5 }}>
+            <input type="checkbox" checked={allSelected} onChange={toggleAll} style={{ cursor: 'pointer', accentColor: P.action }} />
+            <TH>Submitted by</TH>
+            {showStatus && <TH>Status</TH>}
+            <TH>Category</TH>
+            <TH>Note</TH>
+            <TH>Amount</TH>
+            <TH>Date</TH>
+            <div />
+          </div>
+          {filtered.length === 0 ? (
+            <div style={{ padding: '60px 24px', textAlign: 'center' }}>
+              <Icon name="receipt" size={32} color={P.border} style={{ marginBottom: 12 }} />
+              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.inkFaint }}>No {tab === 'pending' ? 'pending ' : tab === 'approved' ? 'approved ' : ''}expenses</div>
+            </div>
+          ) : filtered.map(exp => (
+            <ExpenseRow key={exp.id} exp={exp} onApprove={onApprove} onDetail={onDetail} showStatus={showStatus} selected={selected.has(exp.id)} onToggle={toggleSelect} />
+          ))}
         </div>
       </div>
     </div>
@@ -2654,7 +2968,7 @@ function RequestsScreen({ requests, onApprove, onDecline, onSave, onCancel, onVi
       </PageHeader>
       <FilterToolbar
         searchText={searchText} onSearch={v => { setSearchText(v); setPage(1); }}
-        leaveFilter={leaveFilter} onLeaveFilter={v => { setLeaveFilter(v); setPage(1); }}
+        filter={leaveFilter} onFilter={v => { setLeaveFilter(v); setPage(1); }}
         deptFilter={deptFilter} onDeptFilter={v => { setDeptFilter(v); setPage(1); }}
       />
       <div style={{ flex: 1, overflowY: 'auto', padding: '0 20px 20px' }}>
@@ -2962,11 +3276,11 @@ function PageHeader({ title, subtitle, children, tabs }) {
   );
 }
 
-function FilterToolbar({ searchText, onSearch, leaveFilter, onLeaveFilter, deptFilter, onDeptFilter }) {
+function FilterToolbar({ searchText, onSearch, filter, onFilter, filterOpts, deptFilter, onDeptFilter }) {
   const deptOpts = [['all', 'All departments'], ...DEPARTMENTS.map(d => [d, d])];
+  const resolvedOpts = filterOpts || LEAVE_FILTER_OPTS;
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '24px 20px 14px' }}>
-      {/* Search */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 7, border: `1px solid ${P.border}`, borderRadius: 7, padding: '8px 12px', width: 240, background: P.white }}>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={P.inkFaint} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
           <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
@@ -2975,7 +3289,7 @@ function FilterToolbar({ searchText, onSearch, leaveFilter, onLeaveFilter, deptF
           border: 'none', outline: 'none', background: 'transparent', fontFamily: 'var(--font-body)', fontSize: 12, color: P.ink, width: '100%',
         }} />
       </div>
-      <FilterDropdown label="All time-off types" active={leaveFilter} opts={LEAVE_FILTER_OPTS} onSelect={onLeaveFilter} minWidth={170} />
+      <FilterDropdown label={resolvedOpts[0][1]} active={filter} opts={resolvedOpts} onSelect={onFilter} minWidth={170} />
       <FilterDropdown label="All departments" active={deptFilter} opts={deptOpts} onSelect={onDeptFilter} minWidth={160} />
     </div>
   );
@@ -4282,6 +4596,21 @@ function App() {
     if (id === 'team-absences') setCalendarJumpDate(null);
     setScreen(id);
   };
+  const [expenses, setExpenses] = useState(EXPENSES_SEED);
+  const [expDetail, setExpDetail] = useState(null);
+
+  const approveExpense = (id) => {
+    setExpenses(prev => prev.map(e => e.id === id ? { ...e, status: 'approved' } : e));
+    const exp = expenses.find(e => e.id === id);
+    if (exp) setToast({ message: `${(EMPLOYEES[exp.employee] || { name: exp.employee }).name.split(' ')[0]}'s expense approved`, type: 'approve' });
+  };
+
+  const rejectExpense = (id, reason) => {
+    setExpenses(prev => prev.map(e => e.id === id ? { ...e, status: 'rejected', rejectReason: reason } : e));
+    const exp = expenses.find(e => e.id === id);
+    if (exp) setToast({ message: `${(EMPLOYEES[exp.employee] || { name: exp.employee }).name.split(' ')[0]}'s expense rejected`, type: 'decline' });
+  };
+
   const [pendingAction, setPendingAction] = useState(null); // { type: 'decline'|'cancel', id, empName }
   const [followUpPrompt, setFollowUpPrompt] = useState(null); // { empId, iso, half }
   const [followUpModalOpen, setFollowUpModalOpen] = useState(false);
@@ -4406,7 +4735,9 @@ function App() {
     setBalanceConfirmedDates(prev => ({ ...prev, [empId]: '15 Jul 2026' }));
   };
 
-  const pendingCount = requests.filter(r => r.status === 'pending').length;
+  const pendingRequestsCount = requests.filter(r => r.status === 'pending').length;
+  const pendingExpensesCount = expenses.filter(e => e.status === 'pending').length;
+  const pendingCount = { requests: pendingRequestsCount, expenses: pendingExpensesCount };
 
   return (
     <div style={{ display: 'flex', height: '100vh', background: P.bg }}>
@@ -4439,10 +4770,11 @@ function App() {
 
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, overflow: 'hidden' }}>
         {screen === 'dashboard' && <DashboardScreen requests={requests} onNav={setScreen} />}
-        {screen === 'team-absences' && <TeamAbsencesScreen requests={requests} pendingCount={pendingCount} onNav={setScreen} onShowDetail={setCalDetail} activeReqId={calDetail?.id} onSave={saveRequest} companyEvents={companyEvents} onCancelCompanyEvent={cancelCompanyEvent} initialDate={calendarJumpDate} initialDeptFilter={calendarDeptFilter} />}
+        {screen === 'team-absences' && <TeamAbsencesScreen requests={requests} pendingCount={pendingRequestsCount} onNav={setScreen} onShowDetail={setCalDetail} activeReqId={calDetail?.id} onSave={saveRequest} companyEvents={companyEvents} onCancelCompanyEvent={cancelCompanyEvent} initialDate={calendarJumpDate} initialDeptFilter={calendarDeptFilter} />}
         {screen === 'requests' && <RequestsScreen requests={requests} onApprove={approve} onDecline={requestDecline} onSave={saveRequest} onCancel={requestCancel} onNav={setScreen} onViewInCalendar={(req) => { const d = req._selectedDates?.[0] || req.startDate; if (d) { const iso = typeof d === 'string' && d.match(/^\d{4}-/) ? d : null; setCalendarJumpDate(iso ? new Date(iso) : parseDisplayDate(d)); } setCalDetail(req); setScreen('team-absences'); }} />}
         {screen === 'employees' && <EmployeesScreen requests={requests} onNav={setScreen} />}
         {screen.startsWith('employee-detail:') && <EmployeeDetailScreen employeeId={screen.split(':')[1]} requests={requests} onNav={setScreen} onSave={saveRequest} onCancel={cancelRequest} onApprove={approve} onDecline={requestDecline} onViewTeamCalendar={(dept) => { setCalendarDeptFilter(dept || null); setScreen('team-absences'); }} employeeBalance={employeeBalances[screen.split(':')[1]]} onUpdateBalance={(newBal) => updateBalances(screen.split(':')[1], newBal)} needsSetup={needsBalanceSetup.has(screen.split(':')[1])} confirmedDate={balanceConfirmedDates[screen.split(':')[1]]} onConfirmBalances={() => confirmBalancesFor(screen.split(':')[1])} />}
+        {screen === 'expenses' && <ExpensesScreen expenses={expenses} onApprove={approveExpense} onDetail={(exp) => setExpDetail(exp)} />}
         {screen === 'choices' && <StubScreen title="Choices" description="Employee benefit choices overview" />}
         {screen === 'payroll-overview' && <StubScreen title="Payroll Overview" description="Monthly payroll run and submission" />}
         {screen === 'payroll-reports' && <StubScreen title="Payroll Reports" description="Reporting and exports" />}
@@ -4459,6 +4791,16 @@ function App() {
           onDecline={(id, reason) => requestDecline(id, reason)}
           onCancel={(id, reason) => requestCancel(id, reason)}
           onSave={(req) => { saveRequest(req); setCalDetail(req); }}
+        />
+      )}
+
+      {expDetail && (
+        <ExpenseDrawer
+          key={expDetail.id}
+          expense={expDetail}
+          onClose={() => setExpDetail(null)}
+          onApprove={(id) => { approveExpense(id); setExpDetail(null); }}
+          onReject={(id, reason) => { rejectExpense(id, reason); setExpDetail(null); }}
         />
       )}
 
