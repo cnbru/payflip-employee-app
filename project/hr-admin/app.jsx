@@ -1346,12 +1346,14 @@ function CalendarDrawer({ req, requests, onClose, onApprove, onDecline, onCancel
                       <span style={{ borderRadius: '50%', border: `2px solid ${isOff ? '#fcd34d' : '#86efac'}`, display: 'flex', lineHeight: 0, flexShrink: 0 }}>
                         <Avatar employeeId={empId} size={22} />
                       </span>
-                      <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.ink, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{oe?.name}</span>
-                      {isOff ? (
-                        <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: '#92400e', flexShrink: 0 }}>{offReq.type} · {dateStr}</span>
-                      ) : (
-                        <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkFaint, flexShrink: 0 }}>Available</span>
-                      )}
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.ink, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{oe?.name}</div>
+                        {isOff ? (
+                          <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, marginTop: 1 }}>{offReq.type} · {dateStr}</div>
+                        ) : (
+                          <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkFaint, marginTop: 1 }}>Available</div>
+                        )}
+                      </div>
                     </div>
                   );
                 })}
