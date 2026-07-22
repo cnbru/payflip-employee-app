@@ -1297,16 +1297,16 @@ function CalendarDrawer({ req, requests, onClose, onApprove, onDecline, onCancel
               const oe = EMPLOYEES[empId];
               return (
                 <span key={empId}
-                  style={{ marginLeft: i > 0 ? -8 : 0, borderRadius: '50%', border: `2px solid ${P.white}`, display: 'flex', lineHeight: 0 }}
+                  style={{ marginLeft: i > 0 ? -8 : 0, borderRadius: '50%', border: `2px solid ${hasOverlap ? '#fca5a5' : '#86efac'}`, display: 'flex', lineHeight: 0 }}
                   onMouseEnter={e => { const rect = e.currentTarget.getBoundingClientRect(); setAvatarTip({ name: oe?.name, x: rect.left + rect.width / 2, y: rect.top }); }}
                   onMouseLeave={() => setAvatarTip(null)}
                 >
-                  <Avatar employeeId={empId} size={24} bg={hasOverlap ? '#fee2e2' : '#dcfce7'} />
+                  <Avatar employeeId={empId} size={24} />
                 </span>
               );
             })}
             {(hasOverlap ? overlapping.length : allTeamMemberIds.length) > 3 && (
-              <span style={{ marginLeft: -8, width: 24, height: 24, borderRadius: '50%', border: `2px solid ${P.white}`, background: hasOverlap ? '#fee2e2' : '#dcfce7', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 9, color: hasOverlap ? '#dc2626' : '#16a34a' }}>
+              <span style={{ marginLeft: -8, width: 28, height: 28, borderRadius: '50%', border: `2px solid ${hasOverlap ? '#fca5a5' : '#86efac'}`, background: '#e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 9, color: P.inkSoft, boxSizing: 'content-box' }}>
                 +{(hasOverlap ? overlapping.length : allTeamMemberIds.length) - 3}
               </span>
             )}
