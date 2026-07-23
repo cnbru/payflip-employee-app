@@ -19,6 +19,7 @@ const StatusMeta = {
   pending:  { dot: '#f59e0b', label: 'Pending',  icon: 'Clock', color: '#92400e', bg: '#fde68a' },
   approved: { dot: '#22c55e', label: 'Approved', icon: 'Check', color: '#14532d', bg: '#bbf7d0' },
   rejected: { dot: '#ef4444', label: 'Declined', icon: 'X',     color: '#7f1d1d', bg: '#fecaca' },
+  ended:    { dot: '#9ca3af', label: 'Ended',    icon: 'Minus', color: '#374151', bg: '#f3f4f6' },
 };
 
 const avatarUrl = (name, gender) => {
@@ -291,6 +292,16 @@ const EMPLOYEES = {
   'mathias-de-smedt':  { name: 'Mathias De Smedt',  initials: 'MD', color: '#fde68a', entitlement: 23, department: 'Design',       email: 'mathias.de-smedt@lumiogroup.be', entity: 'Lumio Group', budget: 6250,  role: 'Employee', status: 'Active', gender: 'm' },
   'thomas-vandenberghe': { name: 'Thomas Vandenberghe', initials: 'TV', color: '#99f6e4', entitlement: 20, department: 'Design',    email: 'thomas.vandenberghe@lumiogroup.be', entity: 'Lumio Group', budget: 0, role: 'Employee', status: 'Active', gender: 'm' },
   'thomas-janssens':     { name: 'Thomas Janssens',    initials: 'TJ', color: '#d9f99d', entitlement: 23, department: 'Design',    email: 'thomas.janssens@lumiogroup.be', entity: 'Lumio Group', budget: 3000, role: 'Employee', status: 'Active', gender: 'm' },
+  'charlotte-pieters':   { name: 'Charlotte Pieters',  initials: 'CP', color: '#fecdd3', entitlement: 20, department: 'Design',    email: 'charlotte.pieters@lumiogroup.be', entity: 'Lumio Group', budget: 2500, role: 'Employee', status: 'Active', gender: 'f' },
+  'lasse-willems':       { name: 'Lasse Willems',      initials: 'LW', color: '#c7d2fe', entitlement: 23, department: 'Design',    email: 'lasse.willems@lumiogroup.be',   entity: 'Lumio Group', budget: 4000, role: 'Employee', status: 'Active', gender: 'm' },
+  'nathalie-cox':        { name: 'Nathalie Cox',        initials: 'NC', color: '#a7f3d0', entitlement: 20, department: 'Design',    email: 'nathalie.cox@lumiogroup.be',    entity: 'Lumio Group', budget: 3200, role: 'Employee', status: 'Active', gender: 'f' },
+  'ruben-declercq':      { name: 'Ruben Declercq',     initials: 'RD', color: '#fed7aa', entitlement: 25, department: 'Design',    email: 'ruben.declercq@lumiogroup.be',  entity: 'Lumio Group', budget: 5500, role: 'Employee', status: 'Active', gender: 'm' },
+  'ines-baert':          { name: 'Inès Baert',          initials: 'IB', color: '#ddd6fe', entitlement: 20, department: 'Design',    email: 'ines.baert@lumiogroup.be',      entity: 'Lumio Group', budget: 2800, role: 'Employee', status: 'Active', gender: 'f' },
+  'joachim-nijs':        { name: 'Joachim Nijs',        initials: 'JN', color: '#fde68a', entitlement: 23, department: 'Design',    email: 'joachim.nijs@lumiogroup.be',    entity: 'Lumio Group', budget: 4800, role: 'Employee', status: 'Active', gender: 'm' },
+  'sara-verbeke':        { name: 'Sara Verbeke',        initials: 'SV', color: '#bfdbfe', entitlement: 20, department: 'Design',    email: 'sara.verbeke@lumiogroup.be',    entity: 'Lumio Group', budget: 3100, role: 'Employee', status: 'Active', gender: 'f' },
+  'wout-desmet':         { name: 'Wout Desmet',         initials: 'WD', color: '#99f6e4', entitlement: 22, department: 'Design',    email: 'wout.desmet@lumiogroup.be',     entity: 'Lumio Group', budget: 4200, role: 'Employee', status: 'Active', gender: 'm' },
+  'amber-claes':         { name: 'Amber Claes',         initials: 'AC', color: '#fca5a5', entitlement: 20, department: 'Design',    email: 'amber.claes@lumiogroup.be',     entity: 'Lumio Group', budget: 2900, role: 'Employee', status: 'Active', gender: 'f' },
+  'pieter-verheyen':     { name: 'Pieter Verheyen',     initials: 'PV', color: '#d9f99d', entitlement: 25, department: 'Design',    email: 'pieter.verheyen@lumiogroup.be', entity: 'Lumio Group', budget: 6000, role: 'Manager',  status: 'Active', gender: 'm' },
   // Engineering
   'david':             { name: 'David Laurent',      initials: 'DL', color: '#fecdd3', entitlement: 20, department: 'Engineering', email: 'david.laurent@lumiogroup.be',     entity: 'Lumio Group', budget: 4500,  role: 'Employee', status: 'Active', gender: 'm', photo: true },
   'stijn-laurent':     { name: 'Stijn Laurent',      initials: 'SL', color: '#a7f3d0', entitlement: 29, department: 'Engineering', email: 'stijn.laurent@lumiogroup.be',     entity: 'Lumio Group', budget: 1500,  role: 'Employee', status: 'Active', gender: 'm' },
@@ -367,14 +378,40 @@ const _CPOOL = [
 function genChoices(id) {
   const h = _eseed(id, 'cho');
   const items = _CPOOL.filter((_, i) => (h >> i) & 1);
-  return items.length >= 2 ? items : _CPOOL.slice(0, 2 + (h & 3));
+  const base = items.length >= 2 ? items : _CPOOL.slice(0, 2 + (h & 3));
+  return base.map((c, i) => {
+    const s = (h >> (i * 3 + 10)) & 7;
+    const status = s === 0 ? 'pending' : s === 1 ? 'declined' : 'approved';
+    return { ...c, status };
+  });
 }
+const CHOICES_SEED = (() => {
+  const hardcoded = [
+    { id: 'tablet-coolblue-pending', empId: 'charlotte-pieters', name: 'Tablet via Coolblue', price: '369,00 EUR', cDate: '13/05/2026', sDate: '13/05/2026', eDate: '13/05/2028', status: 'pending', productName: 'Apple iPad (2025) 11 Pouces 128 Go Wifi Argent', productUrl: 'https://www.coolblue.be/nl/product/960489', productNumber: '960489', orderId: '97190251', orderDate: '13/05/2026', depreciation: 24, transactions: [{ label: 'Home office budget', amount: '233,73 EUR', date: '13/05/2026' }, { label: 'End of year premium', amount: '180,55 EUR', date: '13/05/2026' }] },
+  ];
+  const generated = Object.entries(EMPLOYEES).flatMap(([empId]) =>
+    genChoices(empId).map((c, i) => ({ ...c, empId, id: `${empId}-cho-${i}` }))
+  );
+  const all = [...hardcoded, ...generated];
+  let pendingCount = 0;
+  return all.map(c => {
+    if (c.status === 'pending') {
+      if (pendingCount < 6) { pendingCount++; return c; }
+      return { ...c, status: 'approved' };
+    }
+    return c;
+  });
+})();
 
 // ── Employee detail tab components ─────────────────────────────────────────
+const CHOICES_STATUS_OPTS = [['all', 'All statuses'], ['approved', 'Approved'], ['pending', 'Pending'], ['declined', 'Declined']];
+
 function ChoicesTab({ empId }) {
   const items = genChoices(empId);
+  const [statusFilter, setStatusFilter] = useState('all');
+  const filtered = statusFilter === 'all' ? items : items.filter(i => i.status?.toLowerCase() === statusFilter);
   const th = { textAlign: 'left', padding: '9px 16px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em', whiteSpace: 'nowrap' };
-  const td = { padding: '12px 16px', color: P.ink };
+  const td = { padding: '14px 16px', color: P.ink, verticalAlign: 'middle' };
   return (
     <div>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
@@ -383,8 +420,11 @@ function ChoicesTab({ empId }) {
           <Icon name="Plus" size={12} color="#fff" />Add
         </button>
       </div>
+      <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
+        <FilterDropdown label="All statuses" active={statusFilter} opts={CHOICES_STATUS_OPTS} onSelect={setStatusFilter} minWidth={150} />
+      </div>
       <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 12, overflow: 'hidden' }}>
-        {items.length === 0 ? (
+        {filtered.length === 0 ? (
           <div style={{ padding: '32px 20px', textAlign: 'center', color: P.inkFaint, fontFamily: 'var(--font-body)', fontSize: 13 }}>No choices recorded yet</div>
         ) : (
           <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-body)', fontSize: 13 }}>
@@ -397,14 +437,14 @@ function ChoicesTab({ empId }) {
               <th style={th}>Status</th>
               <th style={th}></th>
             </tr></thead>
-            <tbody>{items.map((item, idx) => (
-              <tr key={idx} style={{ borderBottom: idx < items.length - 1 ? `1px solid ${P.border}` : 'none' }}>
+            <tbody>{filtered.map((item, idx) => (
+              <tr key={idx} style={{ borderBottom: idx < filtered.length - 1 ? `1px solid ${P.border}` : 'none' }}>
                 <td style={{ ...td, paddingLeft: 20, maxWidth: 220 }}><div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.name}</div></td>
                 <td style={{ ...td, whiteSpace: 'nowrap' }}>{item.price}</td>
                 <td style={{ ...td, color: P.inkSoft }}>{item.cDate}</td>
                 <td style={{ ...td, color: P.inkSoft }}>{item.sDate}</td>
                 <td style={{ ...td, color: P.inkSoft }}>{item.eDate}</td>
-                <td style={td}><span style={{ background: '#dcfce7', color: '#16a34a', borderRadius: 6, padding: '3px 8px', fontSize: 11, fontFamily: 'var(--font-display)', fontWeight: 600 }}>Approved</span></td>
+                <td style={td}><StatusPill status={item.status || 'approved'} /></td>
                 <td style={{ padding: '8px 16px', textAlign: 'right' }}><button style={{ border: `1px solid ${P.border}`, background: 'transparent', borderRadius: 6, padding: '4px 10px', fontSize: 11, fontFamily: 'var(--font-display)', fontWeight: 600, color: P.inkSoft, cursor: 'pointer' }}>Details</button></td>
               </tr>
             ))}</tbody>
@@ -611,6 +651,21 @@ const generatedRequests = [
   { id: 'gen-20', employee: 'jana-goossens', type: 'ADV / RTT', startDate: 'Thu 30 Jul', endDate: 'Fri 31 Jul', days: 2, status: 'approved', submittedAt: '11 Jul', note: '', _selectedDates: ['2026-07-30','2026-07-31'] },
 ];
 
+const EXPENSE_CATEGORIES_SEED = ['Taxi', 'Restaurants', 'Travel'];
+
+const EXPENSES_SEED = [
+  { id: 'exp-1', employee: 'thomas-janssens', category: 'Travel', amount: 124.50, currency: 'EUR', submittedAt: '14 Jul', description: 'Train Brussels–Ghent client visit', receipt: 'sncb_ticket.pdf', status: 'pending' },
+  { id: 'exp-2', employee: 'sarah-de-smedt', category: 'Restaurants', amount: 87.00, currency: 'EUR', submittedAt: '10 Jul', description: 'Team lunch — 4 people', receipt: '', status: 'pending' },
+  { id: 'exp-3', employee: 'bram-goossens', category: 'Taxi', amount: 34.00, currency: 'EUR', submittedAt: '7 Jul', description: 'Taxi to Brussels airport — client meeting', receipt: 'taxi_receipt.pdf', status: 'pending' },
+  { id: 'exp-4', employee: 'emma-martens', category: 'Restaurants', amount: 15.00, currency: 'EUR', submittedAt: '1 Jul', description: 'Working lunch with design team', receipt: '', status: 'approved' },
+  { id: 'exp-5', employee: 'david', category: 'Travel', amount: 212.00, currency: 'EUR', submittedAt: '25 Jun', description: 'Brussels–London for product workshop', receipt: 'eurostar.pdf', status: 'approved' },
+  { id: 'exp-6', employee: 'pieter-mertens', category: 'Restaurants', amount: 43.50, currency: 'EUR', submittedAt: '22 Jun', description: 'Client dinner', receipt: '', status: 'rejected', rejectReason: 'No client approval on record for this dinner.' },
+  { id: 'exp-7', employee: 'jana-goossens', category: 'Taxi', amount: 19.00, currency: 'EUR', submittedAt: '18 Jun', description: 'Taxi home after late client event', receipt: 'taxi_receipt.pdf', status: 'approved' },
+  { id: 'exp-8', employee: 'stijn-laurent', category: 'Travel', amount: 31.00, currency: 'EUR', submittedAt: '15 Jun', description: 'Monthly transit pass — June', receipt: '', status: 'pending' },
+  { id: 'exp-9', employee: 'laura-mertens', category: 'Restaurants', amount: 27.50, currency: 'EUR', submittedAt: '10 Jun', description: 'Lunch with new hire onboarding', receipt: '', status: 'approved' },
+  { id: 'exp-10', employee: 'mathias-de-smedt', category: 'Taxi', amount: 22.00, currency: 'EUR', submittedAt: '3 Jun', description: 'Taxi to Ghent office — missed last train', receipt: '', status: 'pending' },
+];
+
 // ── localStorage bridge ────────────────────────────────────────────────────
 const LS_KEY = 'payflip_hr_requests';
 function readLS() {
@@ -660,14 +715,14 @@ const DAY_LABELS = ['MO','TU','WE','TH','FR','SA','SU'];
 const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
 // ── Avatar ─────────────────────────────────────────────────────────────────
-function Avatar({ employeeId, size = 28, style: extraStyle }) {
+function Avatar({ employeeId, size = 28, bg, style: extraStyle }) {
   const emp = EMPLOYEES[employeeId] || { initials: '?', color: '#e5e7eb' };
   if (emp.photo) {
     return <img src={avatarUrl(emp.name, emp.gender)} alt={emp.initials} style={{ width: size, height: size, borderRadius: '50%', flexShrink: 0, objectFit: 'cover', ...extraStyle }} />;
   }
   return (
     <div style={{
-      width: size, height: size, borderRadius: '50%', background: '#e5e7eb',
+      width: size, height: size, borderRadius: '50%', background: bg || '#e5e7eb',
       flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
       fontFamily: 'var(--font-display)', fontWeight: 700,
       fontSize: size * 0.34, color: P.ink, letterSpacing: '0.01em',
@@ -697,6 +752,19 @@ function StatusBadge({ status }) {
   );
 }
 
+function DotPill({ bg, color, children }) {
+  return (
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: bg, color, borderRadius: 20, padding: '2px 8px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12 }}>
+      <span style={{ width: 5, height: 5, borderRadius: '50%', background: 'currentColor', flexShrink: 0 }} />
+      {children}
+    </span>
+  );
+}
+function StatusPill({ status }) {
+  const m = StatusMeta[status] || StatusMeta.pending;
+  return <DotPill bg={m.bg} color={m.color}>{m.label}</DotPill>;
+}
+
 // ── Sidebar ────────────────────────────────────────────────────────────────
 function SidebarItem({ icon, label, isActive, onClick, badgeDot, chevron, chevronOpen, disabled }) {
   return (
@@ -711,7 +779,7 @@ function SidebarItem({ icon, label, isActive, onClick, badgeDot, chevron, chevro
       <span style={{ fontFamily: 'var(--font-display)', fontWeight: isActive ? 700 : 500, fontSize: 13, color: disabled ? P.inkFaint : isActive ? P.ink : P.inkSoft, flex: 1 }}>
         {label}
       </span>
-      {badgeDot && <span style={{ minWidth: 17, height: 17, borderRadius: 9, padding: '0 4px', background: P.action, color: '#fff', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', animation: `badgePopIn 500ms ${EASE_BOUNCE}` }}>{typeof badgeDot === 'number' ? badgeDot : '!'}</span>}
+      {badgeDot && <span style={{ minWidth: 17, height: 17, borderRadius: 9, padding: '0 4px', background: P.border, color: P.inkSoft, fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 10, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{typeof badgeDot === 'number' ? badgeDot : '!'}</span>}
       {chevron && (
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={P.ink} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{
           flexShrink: 0, transform: chevronOpen ? 'scaleY(-1)' : 'scaleY(1)', transition: `transform 200ms ${EASE_OUT}`,
@@ -751,7 +819,7 @@ function SidebarSub({ items, active, onNav }) {
             <div style={{ position: 'absolute', left: 26, top: 0, bottom: 0, width: 1, background: isActive ? '#C42BFC' : P.border }} />
             <span style={{ fontFamily: 'var(--font-display)', fontWeight: isActive ? 600 : 400, fontSize: 13, color: isActive ? '#C42BFC' : P.inkSoft, flex: 1 }}>{label}</span>
             {badge > 0 && (
-              <span style={{ minWidth: 17, height: 17, borderRadius: 9, padding: '0 4px', background: P.action, color: '#fff', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', animation: `badgePopIn 500ms ${EASE_BOUNCE}` }}>{badge}</span>
+              <span style={{ minWidth: 17, height: 17, borderRadius: 9, padding: '0 4px', background: P.border, color: P.inkSoft, fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 10, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{badge}</span>
             )}
           </button>
         );
@@ -821,12 +889,12 @@ function AppModeSidebar({ active, onNav, pendingCount, onEnterSettings }) {
       <nav style={{ flex: 1, padding: '10px 0', display: 'flex', flexDirection: 'column', gap: 3, overflow: 'auto' }}>
         <SidebarItem icon="house" label="Home" isActive={active === 'dashboard'} onClick={() => onNav('dashboard')} />
         <SidebarItem icon="users" label="People" isActive={active === 'employees' || active?.startsWith('employee-detail')} onClick={() => onNav('employees')} />
-        <SidebarItem icon="list-checks" label="Choices" isActive={active === 'choices'} onClick={() => onNav('choices')} />
+        <SidebarItem icon="list-checks" label="Choices" isActive={active === 'choices'} onClick={() => onNav('choices')} badgeDot={pendingCount?.choices || null} />
 
-        <SidebarItem icon="calendar-days" label="Time off" onClick={() => setTimeoffOpen(o => !o)} chevron chevronOpen={timeoffOpen} isActive={active === 'requests' || active === 'team-absences'} badgeDot={!timeoffOpen && pendingCount > 0 ? pendingCount : null} />
+        <SidebarItem icon="calendar-days" label="Time off" onClick={() => setTimeoffOpen(o => !o)} chevron chevronOpen={timeoffOpen} isActive={active === 'requests' || active === 'team-absences'} badgeDot={!timeoffOpen && (pendingCount?.requests ?? pendingCount) > 0 ? (pendingCount?.requests ?? pendingCount) : null} />
         <SidebarAccordion open={timeoffOpen}>
           <SidebarSub active={active} onNav={onNav} items={[
-            { id: 'requests', label: 'Requests', badge: pendingCount },
+            { id: 'requests', label: 'Requests', badge: pendingCount?.requests ?? pendingCount },
             { id: 'team-absences', label: 'Team calendar' },
           ]} />
         </SidebarAccordion>
@@ -839,6 +907,8 @@ function AppModeSidebar({ active, onNav, pendingCount, onEnterSettings }) {
           ]} />
         </SidebarAccordion>
 
+        <SidebarItem icon="receipt" label="Expenses" isActive={active === 'expenses'} onClick={() => onNav('expenses')} badgeDot={pendingCount?.expenses || null} />
+
         <SidebarItem icon="settings" label="Settings" onClick={onEnterSettings} />
       </nav>
     </React.Fragment>
@@ -846,7 +916,7 @@ function AppModeSidebar({ active, onNav, pendingCount, onEnterSettings }) {
 }
 
 const PERSONAL_IDS = ['settings-notifications', 'settings-account'];
-const COMPANY_IDS  = ['settings-entities','settings-budgets','settings-benefits','settings-packages','settings-documents','settings-timeoff','settings-payroll','settings-cardrules','settings-integrations','settings-team'];
+const COMPANY_IDS  = ['settings-entities','settings-budgets','settings-benefits','settings-packages','settings-documents','settings-timeoff','settings-payroll','settings-expenses','settings-cardrules','settings-integrations','settings-team'];
 
 function SettingsModeSidebar({ active, onNav, onBack }) {
   const [personalOpen, setPersonalOpen] = useState(() => PERSONAL_IDS.includes(active));
@@ -884,6 +954,7 @@ function SettingsModeSidebar({ active, onNav, onBack }) {
             { id: 'settings-documents',    label: 'Documents' },
             { id: 'settings-timeoff',      label: 'Time off' },
             { id: 'settings-payroll',      label: 'Payroll' },
+            { id: 'settings-expenses',     label: 'Expenses' },
             { id: 'settings-cardrules',    label: 'Card rules' },
             { id: 'settings-integrations', label: 'Integrations' },
             { id: 'settings-team',         label: 'Team & access' },
@@ -895,32 +966,15 @@ function SettingsModeSidebar({ active, onNav, onBack }) {
   );
 }
 
+const PANEL_DUR = 280;
 function Sidebar({ active, onNav, pendingCount, sidebarMode, onSetSidebarMode }) {
-  const [displayMode, setDisplayMode] = useState(sidebarMode);
-  const [phase, setPhase] = useState('idle');
-  const [direction, setDirection] = useState('forward');
-
-  useEffect(() => {
-    if (sidebarMode === displayMode) return;
-    setDirection(sidebarMode === 'settings' ? 'forward' : 'back');
-    setPhase('leaving');
-    const t = setTimeout(() => {
-      setDisplayMode(sidebarMode);
-      setPhase('entering');
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => setPhase('idle'));
-      });
-    }, 100);
-    return () => clearTimeout(t);
-  }, [sidebarMode]);
-
-  const contentStyle = {
-    flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden',
-    opacity: phase === 'leaving' ? 0 : 1,
-    transition: phase === 'entering'
-      ? 'none'
-      : `opacity ${phase === 'leaving' ? 100 : 100}ms ${EASE_OUT}`,
-  };
+  const inSettings = sidebarMode === 'settings';
+  const panelStyle = (offset) => ({
+    position: 'absolute', inset: 0,
+    display: 'flex', flexDirection: 'column',
+    transform: `translateX(${offset})`,
+    transition: `transform ${PANEL_DUR}ms ${EASE_DRAWER}`,
+  });
 
   return (
     <div style={{
@@ -935,21 +989,22 @@ function Sidebar({ active, onNav, pendingCount, sidebarMode, onSetSidebarMode })
           <path d="M4.33203 5.57666C6.05531 5.57671 7.54249 7.51885 8.24023 10.3306C8.49527 9.9639 8.77641 9.60597 9.08301 9.26025C12.4138 5.50467 17.5161 4.59001 20.4785 7.21729C21.4856 8.11046 22.1146 9.29844 22.377 10.6245C24.205 7.2415 26.4713 5.13629 27.8652 5.72314C28.6853 6.06841 29.0487 7.28097 28.9775 8.96826C29.5959 6.87093 30.4348 5.53748 31.2529 5.60596C32.5914 5.71859 33.3628 9.54023 32.9756 14.1411C32.5884 18.7414 31.1899 22.3791 29.8516 22.2671C28.5131 22.1545 27.7418 18.3338 28.1289 13.7329C28.1475 13.5121 28.1702 13.2937 28.1934 13.0776C27.9732 13.7849 27.7085 14.514 27.3984 15.2505C25.4779 19.8119 22.573 22.9418 20.9102 22.2417C20.055 21.8815 19.6963 20.5784 19.8096 18.7769C16.4787 22.5311 11.378 23.4448 8.41602 20.8179C8.04583 20.4895 7.72679 20.1213 7.45801 19.7212C6.66956 21.3081 5.56123 22.2963 4.33203 22.2964C1.93956 22.2964 7.5582e-05 18.554 0 13.937C0 9.31987 1.93951 5.57666 4.33203 5.57666Z" fill={P.ink}/>
         </svg>
       </div>
-      <div style={contentStyle}>
-        {displayMode === 'settings' ? (
-          <SettingsModeSidebar
-            active={active}
-            onNav={onNav}
-            onBack={() => { onSetSidebarMode('app'); onNav('dashboard'); }}
-          />
-        ) : (
+      <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
+        <div style={panelStyle(inSettings ? '-100%' : '0%')}>
           <AppModeSidebar
             active={active}
             onNav={onNav}
             pendingCount={pendingCount}
             onEnterSettings={() => { onSetSidebarMode('settings'); onNav('settings-notifications'); }}
           />
-        )}
+        </div>
+        <div style={panelStyle(inSettings ? '0%' : '100%')}>
+          <SettingsModeSidebar
+            active={active}
+            onNav={onNav}
+            onBack={() => { onSetSidebarMode('app'); onNav('dashboard'); }}
+          />
+        </div>
       </div>
       <AdminProfileFooter />
     </div>
@@ -1089,7 +1144,7 @@ function ReasonModal({ title, description, confirmLabel, confirmColor = '#b91c1c
 // ── Calendar right-side drawer ────────────────────────────────────────────
 // A no-overlay panel anchored to the right edge. Two states (detail / edit)
 // slide horizontally within a fixed header and scrollable content area.
-function CalendarDrawer({ req, requests, onClose, onApprove, onDecline, onCancel, onSave }) {
+function CalendarDrawer({ req, requests, onClose, onApprove, onDecline, onCancel, onSave, initialDeclineMode }) {
   const emp = EMPLOYEES[req.employee] || { name: req.employee, entitlement: 25, department: '' };
   const isPending = req.status === 'pending';
   const overlapping = getOverlapping(req, requests).filter(r => EMPLOYEES[r.employee]?.department === emp.department);
@@ -1098,10 +1153,11 @@ function CalendarDrawer({ req, requests, onClose, onApprove, onDecline, onCancel
 
   const { visible, close, closing } = useModalTransition(onClose, SHEET_CLOSE_DUR);
   const [avatarTip, setAvatarTip] = React.useState(null);
+  const [teamExpanded, setTeamExpanded] = React.useState(false);
   const [editMode, setEditMode] = React.useState(false);
   const [cancelMode, setCancelMode] = React.useState(false);
   const [cancelReason, setCancelReason] = React.useState('');
-  const [declineMode, setDeclineMode] = React.useState(false);
+  const [declineMode, setDeclineMode] = React.useState(!!initialDeclineMode);
   const [declineReason, setDeclineReason] = React.useState('');
 
   // Edit form state — initialized lazily via enterEdit()
@@ -1202,15 +1258,9 @@ function CalendarDrawer({ req, requests, onClose, onApprove, onDecline, onCancel
       <div style={valueStyle}>{children}</div>
     </div>
   );
-  const DotPill = ({ bg, color, children }) => (
-    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: bg, color, borderRadius: 20, padding: '2px 8px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12 }}>
-      <span style={{ width: 5, height: 5, borderRadius: '50%', background: 'currentColor', flexShrink: 0 }} />
-      {children}
-    </span>
-  );
 
   const SectionHeader = ({ children }) => (
-    <div style={{ padding: '16px 24px 6px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 10, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+    <div style={{ padding: '24px 24px 6px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 10, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
       {children}
     </div>
   );
@@ -1228,6 +1278,11 @@ function CalendarDrawer({ req, requests, onClose, onApprove, onDecline, onCancel
       </div>
     );
   };
+
+  const hasOverlap = overlapping.length > 0;
+  const allTeamMemberIds = Object.entries(EMPLOYEES)
+    .filter(([, e]) => e.department === emp.department)
+    .map(([id]) => id);
 
   // Overlap banner name list: "Sara L., Jonas G., and 1 other"
   const overlapPeers = overlapping.slice(0, 2).map(r => {
@@ -1254,7 +1309,10 @@ function CalendarDrawer({ req, requests, onClose, onApprove, onDecline, onCancel
           {heroDateStr} · {durationStr}
         </TableRow>
         <TableRow label="Type" icon="tag">
-          {req.type}
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}>
+            <span style={{ width: 10, height: 10, borderRadius: '50%', background: LEAVE_COLORS[req.type] || P.inkFaint, border: `1.5px solid ${LEAVE_BORDER_COLORS[req.type] || P.border}`, flexShrink: 0 }} />
+            {req.type}
+          </span>
         </TableRow>
         <TableRow label="Department" icon="building-2">
           {emp.department}
@@ -1284,45 +1342,62 @@ function CalendarDrawer({ req, requests, onClose, onApprove, onDecline, onCancel
         </Group>
       </>}
 
-      {overlapping.length > 0 && <>
-        <SectionHeader>Team impact</SectionHeader>
-        <Group>
-          <TableRow label="Team availability" icon="users">
-            <span style={{ display: 'flex', flexShrink: 0 }}>
-              {overlapping.slice(0, 3).map((r, i) => {
-                const oe = EMPLOYEES[r.employee];
-                return (
-                  <span key={r.id}
-                    style={{ marginLeft: i > 0 ? -8 : 0, borderRadius: '50%', border: `2px solid ${P.white}`, display: 'flex', lineHeight: 0 }}
-                    onMouseEnter={e => { const rect = e.currentTarget.getBoundingClientRect(); setAvatarTip({ name: oe?.name, x: rect.left + rect.width / 2, y: rect.top }); }}
-                    onMouseLeave={() => setAvatarTip(null)}
-                  >
-                    <Avatar employeeId={r.employee} size={24} />
-                  </span>
-                );
-              })}
-              {overlapping.length > 3 && (
-                <span style={{ marginLeft: -8, width: 24, height: 24, borderRadius: '50%', border: `2px solid ${P.white}`, background: P.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 9, color: P.inkSoft }}>
-                  +{overlapping.length - 3}
-                </span>
-              )}
-            </span>
-          </TableRow>
-        </Group>
-        {teamRisk && (
-          <div style={{ margin: '8px 20px 4px', padding: '12px 14px', borderRadius: 10, background: '#fffbeb', display: 'flex', gap: 10, alignItems: 'flex-start' }}>
-            <Icon name="triangle-alert" size={14} color="#d97706" strokeWidth={2} style={{ flexShrink: 0, marginTop: 1 }} />
-            <div>
-              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: '#92400e' }}>
-                {overlapping.length} of {teamSize} team members also off
+      <SectionHeader>Team impact</SectionHeader>
+      {(() => {
+        const offIds = new Set(overlapping.map(r => r.employee));
+        const sorted = [
+          ...allTeamMemberIds.filter(id => offIds.has(id)),
+          ...allTeamMemberIds.filter(id => !offIds.has(id)),
+        ];
+        const MAX_STACK = 3;
+        const stackIds = sorted.slice(0, MAX_STACK);
+        const hidden = sorted.length - MAX_STACK;
+        return (
+          <div>
+            {/* Collapsed row */}
+            <div onClick={hasOverlap ? () => setTeamExpanded(x => !x) : undefined} style={{ display: 'flex', alignItems: 'center', padding: '16px 24px', gap: 16, cursor: hasOverlap ? 'pointer' : 'default' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 7, flexShrink: 0 }}>
+                <Icon name="users" size={14} color={P.inkSoft} strokeWidth={1.75} style={{ flexShrink: 0 }} />
+                <div style={{ flexShrink: 0, fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.ink, whiteSpace: 'nowrap' }}>Team availability</div>
               </div>
-              <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: '#92400e', marginTop: 2, lineHeight: 1.4 }}>
-                {overlapNamesStr} {overlapping.length === 1 ? 'has' : 'have'} approved leave overlapping these dates.
+              <div style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 8 }}>
+                {hasOverlap
+                  ? <DotPill bg="#fef9c3" color="#92400e">{overlapping.length} of {teamSize} away</DotPill>
+                  : <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 13, color: P.inkSoft }}>All available</span>
+                }
+                {hasOverlap && (
+                  <span style={{ flexShrink: 0, width: 24, height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Icon name="chevron-down" size={14} color={P.inkSoft} strokeWidth={2} style={{ transition: 'transform 200ms ease', transform: teamExpanded ? 'rotate(180deg)' : 'rotate(0deg)' }} />
+                  </span>
+                )}
               </div>
             </div>
+
+            {/* Expanded member list */}
+            {teamExpanded && (
+              <div style={{ margin: '0 16px 12px', background: '#f9f9fa', borderRadius: 10, overflow: 'hidden' }}>
+                {sorted.filter(id => offIds.has(id)).map((empId, i) => {
+                  const oe = EMPLOYEES[empId];
+                  const offReq = overlapping.find(r => r.employee === empId);
+                  const dateStr = offReq.startDate === offReq.endDate ? offReq.startDate : `${offReq.startDate} – ${offReq.endDate}`;
+                  return (
+                    <React.Fragment key={empId}>
+                    {i > 0 && <div style={{ height: 1, background: P.border, margin: '0 12px' }} />}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px' }}>
+                      <span style={{ borderRadius: '50%', border: '2px solid #fcd34d', display: 'flex', lineHeight: 0, flexShrink: 0 }}>
+                        <Avatar employeeId={empId} size={18} />
+                      </span>
+                      <span style={{ flex: 1, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.ink }}>{oe?.name}</span>
+                      <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>{dateStr}</span>
+                    </div>
+                    </React.Fragment>
+                  );
+                })}
+              </div>
+            )}
           </div>
-        )}
-      </>}
+        );
+      })()}
 
       <SectionHeader>Admin</SectionHeader>
       <Group>
@@ -1501,8 +1576,15 @@ function CalendarDrawer({ req, requests, onClose, onApprove, onDecline, onCancel
       </div>
 
       {avatarTip && ReactDOM.createPortal(
-        <div style={{ position: 'fixed', zIndex: 9999, left: avatarTip.x, top: avatarTip.y - 8, transform: 'translate(-50%, -100%)', background: P.ink, color: P.white, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, padding: '4px 8px', borderRadius: 6, pointerEvents: 'none', whiteSpace: 'nowrap' }}>
-          {avatarTip.name}
+        <div style={{ position: 'fixed', zIndex: 9999, left: avatarTip.x, top: avatarTip.y - 8, transform: 'translate(-50%, -100%)', background: P.ink, color: P.white, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, padding: '6px 10px', borderRadius: 8, pointerEvents: 'none', whiteSpace: 'nowrap', lineHeight: 1.5 }}>
+          <div>{avatarTip.name}</div>
+          {avatarTip.offReq ? (
+            <div style={{ fontWeight: 400, color: 'rgba(255,255,255,0.65)', fontSize: 11, marginTop: 1 }}>
+              {avatarTip.offReq.type} · {avatarTip.offReq.startDate === avatarTip.offReq.endDate ? avatarTip.offReq.startDate : `${avatarTip.offReq.startDate} – ${avatarTip.offReq.endDate}`}
+            </div>
+          ) : (
+            <div style={{ fontWeight: 400, color: 'rgba(255,255,255,0.65)', fontSize: 11, marginTop: 1 }}>Available</div>
+          )}
         </div>,
         document.body
       )}
@@ -2444,6 +2526,351 @@ function OverlapPopover({ req, overlapping, empDept }) {
   );
 }
 
+// ── Expense drawer ─────────────────────────────────────────────────────────
+function ExpenseDrawer({ expense, onClose, onApprove, onReject }) {
+  const emp = EMPLOYEES[expense.employee] || { name: expense.employee, initials: '?', color: '#e5e7eb' };
+  const isPending = expense.status === 'pending';
+
+  const { visible, close, closing } = useModalTransition(onClose, SHEET_CLOSE_DUR);
+  const [rejectMode, setRejectMode] = React.useState(false);
+  const [rejectReason, setRejectReason] = React.useState('');
+
+  const SLIDE_DUR = 300;
+  const secondPanel = rejectMode;
+  const detailSlide = secondPanel ? 'translateX(-100%)' : 'translateX(0)';
+  const editSlide   = secondPanel ? 'translateX(0)'     : 'translateX(100%)';
+  const slideTransition = `transform ${SLIDE_DUR}ms ${EASE_DRAWER}`;
+
+  const labelStyle = { flexShrink: 0, fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.ink, whiteSpace: 'nowrap' };
+  const valueStyle = { flex: 1, minWidth: 0, fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.inkSoft, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 8 };
+
+  const TableRow = ({ label, icon, children }) => (
+    <div style={{ display: 'flex', alignItems: 'center', padding: '16px 24px', gap: 16 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 7, flexShrink: 0 }}>
+        {icon && <Icon name={icon} size={14} color={P.inkSoft} strokeWidth={1.75} style={{ flexShrink: 0 }} />}
+        <div style={labelStyle}>{label}</div>
+      </div>
+      <div style={valueStyle}>{children}</div>
+    </div>
+  );
+  const SectionHeader = ({ children }) => (
+    <div style={{ padding: '24px 24px 6px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 10, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+      {children}
+    </div>
+  );
+  const Group = ({ children }) => {
+    const items = React.Children.toArray(children).filter(Boolean);
+    return (
+      <div>
+        {items.map((child, i) => (
+          <React.Fragment key={i}>
+            {i > 0 && <div style={{ height: 1, background: P.border, marginLeft: 24, marginRight: 24 }} />}
+            {child}
+          </React.Fragment>
+        ))}
+      </div>
+    );
+  };
+
+  const amountStr = `€ ${expense.amount.toFixed(2).replace('.', ',')}`;
+  const sm = StatusMeta[expense.status] || StatusMeta.pending;
+
+  const detailContent = (
+    <div>
+      <SectionHeader>Expense</SectionHeader>
+      <Group>
+        <TableRow label="Submitted by" icon="user">
+          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{emp.name}</span>
+          <Avatar employeeId={expense.employee} size={22} />
+        </TableRow>
+        <TableRow label="Amount" icon="coins">
+          <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 14, color: P.ink }}>{amountStr}</span>
+        </TableRow>
+        <TableRow label="Category" icon="tag">
+          {expense.category}
+        </TableRow>
+      </Group>
+
+      <SectionHeader>Supporting</SectionHeader>
+      <Group>
+        <TableRow label="Description" icon="file-text">
+          <span style={{ textAlign: 'right', whiteSpace: 'normal', lineHeight: 1.4 }}>{expense.description || '—'}</span>
+        </TableRow>
+        <TableRow label="Receipt" icon="paperclip">
+          {expense.receipt
+            ? <AppLink>{expense.receipt}</AppLink>
+            : <span style={{ color: P.inkFaint }}>No receipt attached</span>
+          }
+        </TableRow>
+      </Group>
+
+      <SectionHeader>Admin</SectionHeader>
+      <Group>
+        <TableRow label="Status" icon="circle-dot">
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: sm.bg, color: sm.color, borderRadius: 20, padding: '2px 8px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12 }}>
+            <span style={{ width: 5, height: 5, borderRadius: '50%', background: 'currentColor', flexShrink: 0 }} />
+            {sm.label}
+          </span>
+        </TableRow>
+        <TableRow label="Submitted" icon="calendar">
+          {expense.submittedAt}
+        </TableRow>
+        {expense.status === 'rejected' && expense.rejectReason && (
+          <TableRow label="Reject reason" icon="message-square">
+            <span style={{ textAlign: 'right', whiteSpace: 'normal', lineHeight: 1.4, color: '#dc2626' }}>{expense.rejectReason}</span>
+          </TableRow>
+        )}
+      </Group>
+    </div>
+  );
+
+  return (
+    <React.Fragment>
+      <div onClick={close} style={{
+        position: 'fixed', inset: 0, zIndex: 200,
+        background: 'rgba(15,13,40,0.25)',
+        ...modalBackdropStyle(visible),
+      }}>
+      <div onClick={e => e.stopPropagation()} style={{
+        position: 'absolute', top: 16, bottom: 16, right: 16, width: 480,
+        background: P.white,
+        borderRadius: 20,
+        boxShadow: '0 24px 64px rgba(15,13,40,0.22), 0 0 0 1px rgba(15,13,40,0.06)',
+        display: 'flex', flexDirection: 'column', overflow: 'hidden',
+        ...sheetPanelStyle(visible, closing),
+      }}>
+        <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 24px', borderBottom: `1px solid ${P.border}` }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            {secondPanel && (
+              <button onClick={() => setRejectMode(false)} style={{ flexShrink: 0, width: 30, height: 30, borderRadius: '50%', background: 'rgba(60,60,67,0.1)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Icon name="arrow-left" size={15} color={P.ink} strokeWidth={2} />
+              </button>
+            )}
+            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18, color: P.ink }}>
+              {rejectMode ? 'Reject expense' : 'Expense details'}
+            </span>
+          </div>
+          <button onClick={close} style={{ border: 'none', cursor: 'pointer', width: 30, height: 30, borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(60,60,67,0.1)' }}>
+            <Icon name="X" size={14} color={P.ink} strokeWidth={2.5} />
+          </button>
+        </div>
+
+        <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
+          <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', transform: detailSlide, transition: slideTransition }}>
+            <div style={{ flex: 1, overflowY: 'auto' }}>
+              {detailContent}
+            </div>
+            {isPending && (
+              <div style={{ flexShrink: 0, padding: '12px 20px', borderTop: `1px solid ${P.border}`, display: 'flex', gap: 10 }}>
+                <button onClick={() => { setRejectReason(''); setRejectMode(true); }} style={{ flex: 1, padding: '10px 0', borderRadius: 10, border: '1px solid #fecaca', background: '#fef2f2', color: '#dc2626', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                  <Icon name="X" size={13} color="#dc2626" strokeWidth={2.5} /> Reject
+                </button>
+                <button onClick={() => { onApprove(expense.id); close(); }} style={{ flex: 1, padding: '10px 0', borderRadius: 10, border: 'none', background: P.ink, color: P.white, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                  <Icon name="Check" size={13} color={P.white} strokeWidth={2.5} /> Approve
+                </button>
+              </div>
+            )}
+          </div>
+
+          <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', transform: editSlide, transition: slideTransition }}>
+            <div style={{ flex: 1, overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, lineHeight: 1.5 }}>
+                You're rejecting <strong style={{ color: P.ink }}>{emp.name}</strong>'s {expense.category} expense ({amountStr}).
+              </p>
+              <div>
+                <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 10, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Reason <span style={{ textTransform: 'none', fontWeight: 400 }}>(optional)</span></label>
+                <textarea value={rejectReason} onChange={e => setRejectReason(e.target.value)} placeholder="Explain why this expense is being rejected…" rows={3} style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: `1px solid ${P.border}`, background: P.bg, fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink, resize: 'none', lineHeight: 1.5, boxSizing: 'border-box', outline: 'none' }} />
+              </div>
+            </div>
+            <div style={{ flexShrink: 0, padding: '12px 20px', borderTop: `1px solid ${P.border}`, display: 'flex', gap: 10 }}>
+              <button onClick={() => setRejectMode(false)} style={{ flex: 1, padding: '10px 0', borderRadius: 10, border: `1px solid ${P.border}`, background: 'transparent', color: P.inkSoft, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>Go back</button>
+              <button onClick={() => { onReject(expense.id, rejectReason); close(); }} style={{ flex: 2, padding: '10px 0', borderRadius: 10, border: 'none', background: '#dc2626', color: P.white, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>Confirm rejection</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      </div>
+    </React.Fragment>
+  );
+}
+
+// ── Choice drawer ─────────────────────────────────────────────────────────
+function ChoiceDrawer({ choice, onClose, onApprove, onDecline }) {
+  const emp = EMPLOYEES[choice.empId] || { name: choice.empId, initials: '?', color: '#e5e7eb' };
+  const isPending = choice.status === 'pending';
+  const { visible, close, closing } = useModalTransition(onClose, SHEET_CLOSE_DUR);
+  const [declineMode, setDeclineMode] = React.useState(false);
+  const [declineReason, setDeclineReason] = React.useState('');
+
+  const SLIDE_DUR = 300;
+  const detailSlide = declineMode ? 'translateX(-100%)' : 'translateX(0)';
+  const editSlide   = declineMode ? 'translateX(0)'     : 'translateX(100%)';
+  const slideTransition = `transform ${SLIDE_DUR}ms ${EASE_DRAWER}`;
+
+  const labelStyle = { flexShrink: 0, fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.ink, whiteSpace: 'nowrap' };
+  const valueStyle = { flex: 1, minWidth: 0, fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.inkSoft, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 8 };
+  const TableRow = ({ label, icon, children }) => (
+    <div style={{ display: 'flex', alignItems: 'center', padding: '16px 24px', gap: 16 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 7, flexShrink: 0 }}>
+        {icon && <Icon name={icon} size={14} color={P.inkSoft} strokeWidth={1.75} style={{ flexShrink: 0 }} />}
+        <div style={labelStyle}>{label}</div>
+      </div>
+      <div style={valueStyle}>{children}</div>
+    </div>
+  );
+  const SectionHeader = ({ children }) => (
+    <div style={{ padding: '24px 24px 6px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 10, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+      {children}
+    </div>
+  );
+  const Group = ({ children }) => {
+    const items = React.Children.toArray(children).filter(Boolean);
+    return (
+      <div>
+        {items.map((child, i) => (
+          <React.Fragment key={i}>
+            {i > 0 && <div style={{ height: 1, background: P.border, marginLeft: 24, marginRight: 24 }} />}
+            {child}
+          </React.Fragment>
+        ))}
+      </div>
+    );
+  };
+
+  const sm = StatusMeta[choice.status] || StatusMeta.pending;
+
+  return (
+    <React.Fragment>
+      <div onClick={close} style={{ position: 'fixed', inset: 0, zIndex: 200, background: 'rgba(15,13,40,0.25)', ...modalBackdropStyle(visible) }}>
+      <div onClick={e => e.stopPropagation()} style={{
+        position: 'absolute', top: 16, bottom: 16, right: 16, width: 480,
+        background: P.white, borderRadius: 20,
+        boxShadow: '0 24px 64px rgba(15,13,40,0.22), 0 0 0 1px rgba(15,13,40,0.06)',
+        display: 'flex', flexDirection: 'column', overflow: 'hidden',
+        ...sheetPanelStyle(visible, closing),
+      }}>
+        {/* Header */}
+        <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 24px', borderBottom: `1px solid ${P.border}` }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            {declineMode && (
+              <button onClick={() => setDeclineMode(false)} style={{ flexShrink: 0, width: 30, height: 30, borderRadius: '50%', background: 'rgba(60,60,67,0.1)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Icon name="arrow-left" size={15} color={P.ink} strokeWidth={2} />
+              </button>
+            )}
+            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18, color: P.ink }}>
+              {declineMode ? 'Decline choice' : 'Choice details'}
+            </span>
+          </div>
+          <button onClick={close} style={{ border: 'none', cursor: 'pointer', width: 30, height: 30, borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(60,60,67,0.1)' }}>
+            <Icon name="X" size={14} color={P.ink} strokeWidth={2.5} />
+          </button>
+        </div>
+
+        <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
+          {/* Panel 1 — Detail */}
+          <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', transform: detailSlide, transition: slideTransition }}>
+            <div style={{ flex: 1, overflowY: 'auto' }}>
+              <SectionHeader>Choice</SectionHeader>
+              <Group>
+                <TableRow label="Employee" icon="user">
+                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{emp.name}</span>
+                  <Avatar employeeId={choice.empId} size={22} />
+                </TableRow>
+                <TableRow label="Benefit" icon="gift">
+                  <span style={{ textAlign: 'right', whiteSpace: 'normal', lineHeight: 1.4 }}>{choice.name}</span>
+                </TableRow>
+                <TableRow label="Price" icon="coins">
+                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 14, color: P.ink }}>{choice.price}</span>
+                </TableRow>
+              </Group>
+              {choice.productName && (<>
+                <SectionHeader>Product</SectionHeader>
+                <Group>
+                  <TableRow label="Product" icon="package">
+                    {choice.productUrl
+                      ? <a href={choice.productUrl} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: P.ink, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, textDecoration: 'underline', textAlign: 'right' }}>
+                          <span style={{ whiteSpace: 'normal', lineHeight: 1.4 }}>{choice.productName}</span>
+                          <Icon name="ExternalLink" size={12} color={P.inkSoft} strokeWidth={2} style={{ flexShrink: 0 }} />
+                        </a>
+                      : <span style={{ textAlign: 'right', whiteSpace: 'normal', lineHeight: 1.4 }}>{choice.productName}</span>
+                    }
+                  </TableRow>
+                  {choice.productNumber && <TableRow label="Product number" icon="hash">{choice.productNumber}</TableRow>}
+                  {choice.orderId && <TableRow label="Order ID" icon="receipt">{choice.orderId}</TableRow>}
+                  {choice.orderDate && <TableRow label="Order date" icon="calendar">{choice.orderDate}</TableRow>}
+                  {choice.depreciation && <TableRow label="Depreciation" icon="trending-down">{choice.depreciation} months</TableRow>}
+                </Group>
+              </>)}
+              <SectionHeader>Dates</SectionHeader>
+              <Group>
+                <TableRow label="Start date" icon="calendar">{choice.sDate}</TableRow>
+                <TableRow label="End date" icon="calendar-x">{choice.eDate}</TableRow>
+                <TableRow label="Date of choice" icon="clock">{choice.cDate}</TableRow>
+              </Group>
+              {choice.transactions?.length > 0 && (<>
+                <SectionHeader>Future transactions</SectionHeader>
+                <Group>
+                  {choice.transactions.map((t, i) => (
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', padding: '10px 24px', gap: 16 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 7, flexShrink: 0 }}>
+                        <Icon name="arrow-right-left" size={14} color={P.inkSoft} strokeWidth={1.75} style={{ flexShrink: 0 }} />
+                        <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.ink, whiteSpace: 'nowrap' }}>{t.label}</span>
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+                        <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.ink }}>{t.amount}</span>
+                        <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkFaint }}>{t.date}</span>
+                      </div>
+                    </div>
+                  ))}
+                </Group>
+              </>)}
+              <SectionHeader>Admin</SectionHeader>
+              <Group>
+                <TableRow label="Status" icon="circle-dot">
+                  <StatusPill status={choice.status || 'approved'} />
+                </TableRow>
+                {choice.status === 'declined' && choice.declineReason && (
+                  <TableRow label="Decline reason" icon="message-square">
+                    <span style={{ textAlign: 'right', whiteSpace: 'normal', lineHeight: 1.4, color: '#dc2626' }}>{choice.declineReason}</span>
+                  </TableRow>
+                )}
+              </Group>
+            </div>
+            {isPending && (
+              <div style={{ flexShrink: 0, padding: '12px 20px', borderTop: `1px solid ${P.border}`, display: 'flex', gap: 10 }}>
+                <button onClick={() => { setDeclineReason(''); setDeclineMode(true); }} style={{ flex: 1, padding: '10px 0', borderRadius: 10, border: '1px solid #fecaca', background: '#fef2f2', color: '#dc2626', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                  <Icon name="X" size={13} color="#dc2626" strokeWidth={2.5} /> Decline
+                </button>
+                <button onClick={() => { onApprove(choice.id); close(); }} style={{ flex: 1, padding: '10px 0', borderRadius: 10, border: 'none', background: P.ink, color: P.white, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                  <Icon name="Check" size={13} color={P.white} strokeWidth={2.5} /> Approve
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Panel 2 — Decline with reason */}
+          <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', transform: editSlide, transition: slideTransition }}>
+            <div style={{ flex: 1, overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, lineHeight: 1.5 }}>
+                You're declining <strong style={{ color: P.ink }}>{emp.name}</strong>'s request for {choice.name}.
+              </p>
+              <div>
+                <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 10, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Reason <span style={{ textTransform: 'none', fontWeight: 400 }}>(optional)</span></label>
+                <textarea value={declineReason} onChange={e => setDeclineReason(e.target.value)} placeholder="Explain why this choice is being declined…" rows={3} style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: `1px solid ${P.border}`, background: P.bg, fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink, resize: 'none', lineHeight: 1.5, boxSizing: 'border-box', outline: 'none' }} />
+              </div>
+            </div>
+            <div style={{ flexShrink: 0, padding: '12px 20px', borderTop: `1px solid ${P.border}`, display: 'flex', gap: 10 }}>
+              <button onClick={() => setDeclineMode(false)} style={{ flex: 1, padding: '10px 0', borderRadius: 10, border: `1px solid ${P.border}`, background: 'transparent', color: P.inkSoft, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>Go back</button>
+              <button onClick={() => { onDecline(choice.id, declineReason); close(); }} style={{ flex: 2, padding: '10px 0', borderRadius: 10, border: 'none', background: '#dc2626', color: P.white, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>Confirm decline</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      </div>
+    </React.Fragment>
+  );
+}
+
 // ── Table row ──────────────────────────────────────────────────────────────
 const TH = ({ children, style }) => (
   <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.inkSoft, textTransform: 'uppercase', letterSpacing: '0.06em', ...style }}>{children}</div>
@@ -2453,7 +2880,7 @@ const AppLink = ({ children, onClick, style }) => (
   <span onClick={onClick} style={{ color: P.ink, textDecoration: 'underline', cursor: 'pointer', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', ...style }}>{children}</span>
 );
 
-function RequestRow({ req, requests, onApprove, onDecline, onDetail, onEdit, onCancel, selected, onToggle, onViewInCalendar, showStatus, removing }) {
+function RequestRow({ req, requests, onApprove, onDecline, onDetail, onDeclineDirectly, onEdit, onCancel, selected, onToggle, onViewInCalendar, showStatus, removing }) {
   const emp = EMPLOYEES[req.employee] || { name: req.employee, initials: '?', color: '#e5e7eb', entitlement: 20 };
   const [hover, setHover] = useState(false);
   const usedDays = requests
@@ -2488,8 +2915,9 @@ function RequestRow({ req, requests, onApprove, onDecline, onDetail, onEdit, onC
           </div>
           {showStatus && <StatusDot status={req.status} />}
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}>
-            <span style={{ width: 8, height: 8, borderRadius: 2, background: LEAVE_COLORS[req.type] || P.inkFaint, flexShrink: 0 }} />
+            <span style={{ width: 10, height: 10, borderRadius: '50%', background: LEAVE_COLORS[req.type] || P.inkFaint, border: `1.5px solid ${LEAVE_BORDER_COLORS[req.type] || P.border}`, flexShrink: 0 }} />
             <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink }}>{req.type}</span>
+            {req.document && <Icon name="paperclip" size={12} color={P.inkFaint} strokeWidth={1.75} style={{ flexShrink: 0 }} />}
           </span>
           <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink }}>{req.days} {req.days === 1 ? 'day' : 'days'}</span>
           <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink }}>{req.startDate}</span>
@@ -2501,7 +2929,7 @@ function RequestRow({ req, requests, onApprove, onDecline, onDetail, onEdit, onC
           </span>
           <div onClick={e => e.stopPropagation()} style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4 }}>
             {req.status === 'pending' && (<>
-              <button title="Decline" onClick={() => onDecline(req.id)}
+              <button title="Decline" onClick={e => { e.stopPropagation(); onDeclineDirectly ? onDeclineDirectly(req) : onDetail(req); }}
                 onMouseEnter={e => { e.currentTarget.style.background = '#fee2e2'; e.currentTarget.style.borderColor = '#fca5a5'; }}
                 onMouseLeave={e => { e.currentTarget.style.background = '#fef2f2'; e.currentTarget.style.borderColor = '#fecaca'; }}
                 style={{ width: 28, height: 28, borderRadius: 6, border: '1px solid #fecaca', background: '#fef2f2', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -2522,6 +2950,332 @@ function RequestRow({ req, requests, onApprove, onDecline, onDetail, onEdit, onC
   );
 }
 
+// ── Add expense modal ──────────────────────────────────────────────────────
+function AddExpenseModal({ categories, onClose, onSave }) {
+  const { visible, closing, close } = useModalTransition(onClose, SHEET_CLOSE_DUR);
+  const [empId, setEmpId] = useState('');
+  const [category, setCategory] = useState(categories[0] || '');
+  const [amount, setAmount] = useState('');
+  const [note, setNote] = useState('');
+  const [receiptFile, setReceiptFile] = useState(null);
+  const [receiptLeaving, setReceiptLeaving] = useState(false);
+  const [dropAccepted, setDropAccepted] = useState(false);
+  const [dragging, setDragging] = useState(false);
+  const fileInputRef = useRef(null);
+  const [errors, setErrors] = useState({});
+
+  const acceptFile = (f) => {
+    setDropAccepted(true);
+    setTimeout(() => { setDropAccepted(false); setReceiptFile(f); }, 180);
+  };
+  const removeFile = () => {
+    setReceiptLeaving(true);
+    setTimeout(() => { setReceiptLeaving(false); setReceiptFile(null); if (fileInputRef.current) fileInputRef.current.value = ''; }, 150);
+  };
+
+  useEffect(() => {
+    const handler = (e) => { if (e.key === 'Escape') close(); };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, [close]);
+
+  const validate = () => {
+    const errs = {};
+    if (!empId) errs.empId = true;
+    if (!category) errs.category = true;
+    if (!amount || isNaN(parseFloat(amount)) || parseFloat(amount) <= 0) errs.amount = true;
+    setErrors(errs);
+    return Object.keys(errs).length === 0;
+  };
+
+  const submit = () => {
+    if (!validate()) return;
+    const today = new Date();
+    const day = today.getDate();
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    onSave({ employee: empId, category, amount: parseFloat(amount), currency: 'EUR', description: note, receipt: receiptFile ? receiptFile.name : '', submittedAt: `${day} ${months[today.getMonth()]}` });
+    close();
+  };
+
+  const selectStyle = (hasErr) => ({
+    width: '100%', padding: '9px 12px', borderRadius: 8,
+    border: `1px solid ${hasErr ? '#ef4444' : P.border}`,
+    background: P.bg, fontFamily: 'var(--font-body)', fontSize: 14,
+    color: P.ink, outline: 'none', appearance: 'none', cursor: 'pointer',
+  });
+  const inputStyle = (hasErr) => ({
+    width: '100%', padding: '9px 12px', borderRadius: 8,
+    border: `1px solid ${hasErr ? '#ef4444' : P.border}`,
+    background: P.bg, fontFamily: 'var(--font-body)', fontSize: 14,
+    color: P.ink, outline: 'none', boxSizing: 'border-box',
+  });
+  const labelStyle = { fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, color: P.inkSoft, marginBottom: 6, display: 'block' };
+  const sortedEmps = Object.entries(EMPLOYEES).sort((a,b) => a[1].name.localeCompare(b[1].name));
+
+  return (
+    <div onClick={close} style={{ position: 'fixed', inset: 0, zIndex: 200, background: 'rgba(15,13,40,0.25)', ...modalBackdropStyle(visible) }}>
+      <div onClick={e => e.stopPropagation()} style={{
+        position: 'absolute', top: 16, bottom: 16, right: 16, width: 480,
+        background: P.white, borderRadius: 20,
+        boxShadow: '0 24px 64px rgba(15,13,40,0.22), 0 0 0 1px rgba(15,13,40,0.06)',
+        display: 'flex', flexDirection: 'column', overflow: 'hidden',
+        ...sheetPanelStyle(visible, closing),
+      }}>
+        <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 24px', borderBottom: `1px solid ${P.border}` }}>
+          <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18, color: P.ink }}>Add expense</span>
+          <button onClick={close} style={{ border: 'none', cursor: 'pointer', width: 30, height: 30, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(60,60,67,0.1)' }}>
+            <Icon name="X" size={14} color={P.ink} strokeWidth={2.5} />
+          </button>
+        </div>
+        <div style={{ flex: 1, overflowY: 'auto', padding: '24px', display: 'flex', flexDirection: 'column', gap: 18 }}>
+          <div>
+            <label style={labelStyle}>Employee <span style={{ color: '#ef4444' }}>*</span></label>
+            <div style={{ position: 'relative' }}>
+              <select value={empId} onChange={e => { setEmpId(e.target.value); setErrors(prev => ({ ...prev, empId: false })); }} style={selectStyle(errors.empId)}>
+                <option value="">Select employee…</option>
+                {sortedEmps.map(([id, emp]) => <option key={id} value={id}>{emp.name}</option>)}
+              </select>
+              <Icon name="chevron-down" size={14} color={P.inkFaint} style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
+            </div>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+            <div>
+              <label style={labelStyle}>Category <span style={{ color: '#ef4444' }}>*</span></label>
+              <div style={{ position: 'relative' }}>
+                <select value={category} onChange={e => setCategory(e.target.value)} style={selectStyle(errors.category)}>
+                  {categories.map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+                <Icon name="chevron-down" size={14} color={P.inkFaint} style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
+              </div>
+            </div>
+            <div>
+              <label style={labelStyle}>Amount (EUR) <span style={{ color: '#ef4444' }}>*</span></label>
+              <input type="number" min="0" step="0.01" value={amount} onChange={e => { setAmount(e.target.value); setErrors(prev => ({ ...prev, amount: false })); }} placeholder="0.00" style={inputStyle(errors.amount)} />
+            </div>
+          </div>
+          <div>
+            <label style={labelStyle}>Note / description</label>
+            <textarea value={note} onChange={e => setNote(e.target.value)} placeholder="What was this expense for?" rows={3} style={{ ...inputStyle(false), resize: 'none', lineHeight: 1.5 }} />
+          </div>
+          <div>
+            <label style={labelStyle}>Receipt <span style={{ fontWeight: 400, color: P.inkFaint }}>(optional)</span></label>
+            <input ref={fileInputRef} type="file" style={{ display: 'none' }} onChange={e => { if (e.target.files[0]) acceptFile(e.target.files[0]); }} />
+            {receiptFile ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', borderRadius: 8, border: `1px solid ${P.border}`, background: P.bg, opacity: receiptLeaving ? 0 : 1, transform: receiptLeaving ? 'translateX(6px)' : 'translateX(0)', transition: `opacity 150ms ${EASE_OUT}, transform 150ms ${EASE_OUT}`, animation: `fileRowIn 220ms ${EASE_OUT}` }}>
+                <Icon name="paperclip" size={14} color={P.inkFaint} />
+                <span style={{ flex: 1, fontFamily: 'var(--font-body)', fontSize: 13, color: P.ink, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{receiptFile.name}</span>
+                <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkFaint, flexShrink: 0 }}>{(receiptFile.size / 1024).toFixed(0)} KB</span>
+                <button onClick={removeFile} style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: 2, display: 'flex', alignItems: 'center', color: P.inkFaint }}>
+                  <Icon name="x" size={14} strokeWidth={2} />
+                </button>
+              </div>
+            ) : (
+              <div
+                onClick={() => fileInputRef.current.click()}
+                onDragOver={e => { e.preventDefault(); setDragging(true); }}
+                onDragLeave={() => setDragging(false)}
+                onDrop={e => { e.preventDefault(); setDragging(false); const f = e.dataTransfer.files[0]; if (f) acceptFile(f); }}
+                style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '20px 16px', borderRadius: 8, border: `1.5px dashed ${dragging || dropAccepted ? P.action : P.border}`, background: dragging ? '#f5f3ff' : dropAccepted ? '#ede9fe' : P.bg, cursor: 'pointer', transform: dropAccepted ? 'scale(1.02)' : 'scale(1)', transition: `border-color 120ms, background 120ms, transform 180ms ${EASE_OUT}` }}
+              >
+                <span style={{ display: 'inline-flex', alignItems: 'center', transform: dragging ? 'translateY(-3px)' : 'translateY(0)', transition: `transform ${dragging ? `200ms ${EASE_OUT}` : `150ms ${EASE_BOUNCE}`}` }}>
+                  <Icon name="upload" size={18} color={dragging || dropAccepted ? P.action : P.inkFaint} />
+                </span>
+                <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: dragging || dropAccepted ? P.action : P.inkSoft, transition: `color 120ms` }}>
+                  Drop a file or <span style={{ color: P.action, fontWeight: 600 }}>browse</span>
+                </span>
+                <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkFaint }}>PDF, PNG, JPG up to 10 MB</span>
+              </div>
+            )}
+          </div>
+        </div>
+        <div style={{ flexShrink: 0, display: 'flex', gap: 10, padding: '16px 24px', borderTop: `1px solid ${P.border}` }}>
+          <button onClick={close} style={{ flex: 1, padding: '10px 0', borderRadius: 8, border: `1px solid ${P.border}`, background: P.white, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.inkSoft }}>Cancel</button>
+          <button onClick={submit} style={{ flex: 2, padding: '10px 0', borderRadius: 8, border: 'none', background: P.action, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: '#fff' }}>Add expense</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Expense row ────────────────────────────────────────────────────────────
+function ExpenseRow({ exp, onApprove, onDetail, showStatus, selected, onToggle }) {
+  const emp = EMPLOYEES[exp.employee] || { name: exp.employee, initials: '?', color: '#e5e7eb' };
+  const [hover, setHover] = useState(false);
+  const gridCols = showStatus
+    ? '32px 1.8fr 1fr 1fr 2fr 0.8fr 0.7fr 96px'
+    : '32px 1.8fr 1fr 2fr 0.8fr 0.7fr 96px';
+
+  const amountStr = `€ ${exp.amount.toFixed(2).replace('.', ',')}`;
+
+  return (
+    <div onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)} onClick={() => onDetail(exp)}
+      style={{
+        display: 'grid', gridTemplateColumns: gridCols,
+        alignItems: 'center', gap: 12, padding: '0 20px', minHeight: 52,
+        borderBottom: `1px solid ${P.border}`,
+        background: selected ? '#f5f3ff' : hover ? P.bg : P.white,
+        cursor: 'pointer',
+        transition: `background 0.1s`,
+      }}>
+      <input type="checkbox" checked={!!selected} onClick={e => e.stopPropagation()} onChange={() => onToggle && onToggle(exp.id)} style={{ cursor: 'pointer', accentColor: P.action }} />
+      <div style={{ display: 'flex', alignItems: 'center', gap: 9, minWidth: 0 }}>
+        <Avatar employeeId={exp.employee} size={24} style={{ border: '2px solid #fff', boxSizing: 'content-box' }} />
+        <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, fontWeight: 500, color: P.ink, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{emp.name}</span>
+      </div>
+      {showStatus && <StatusDot status={exp.status} />}
+      <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink }}>{exp.category}</span>
+      <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{exp.description}</span>
+      <span style={{ fontFamily: 'var(--font-display)', fontSize: 14, fontWeight: 600, color: P.ink }}>{amountStr}</span>
+      <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkFaint }}>{exp.submittedAt}</span>
+      <div onClick={e => e.stopPropagation()} style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4 }}>
+        {exp.status === 'pending' && (<>
+          <button title="Reject" onClick={() => onDetail(exp)}
+            onMouseEnter={e => { e.currentTarget.style.background = '#fee2e2'; e.currentTarget.style.borderColor = '#fca5a5'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = '#fef2f2'; e.currentTarget.style.borderColor = '#fecaca'; }}
+            style={{ width: 28, height: 28, borderRadius: 6, border: '1px solid #fecaca', background: '#fef2f2', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <Icon name="X" size={14} color="#dc2626" strokeWidth={2.5} />
+          </button>
+          <button title="Approve" onClick={() => onApprove(exp.id)}
+            onMouseEnter={e => { e.currentTarget.style.background = '#dcfce7'; e.currentTarget.style.borderColor = '#86efac'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = '#f0fdf4'; e.currentTarget.style.borderColor = '#bbf7d0'; }}
+            style={{ width: 28, height: 28, borderRadius: 6, border: '1px solid #bbf7d0', background: '#f0fdf4', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <Icon name="Check" size={14} color="#16a34a" strokeWidth={2.5} />
+          </button>
+        </>)}
+      </div>
+    </div>
+  );
+}
+
+// ── Expenses screen ─────────────────────────────────────────────────────────
+function ExpensesScreen({ expenses, categories, onApprove, onDetail, onAdd }) {
+  const categoryOpts = [['all', 'All categories'], ...categories.map(c => [c, c])];
+  const [tab, setTab] = useState('pending');
+  const [addOpen, setAddOpen] = useState(false);
+  const [selected, setSelected] = useState(new Set());
+  const [pillLeaving, setPillLeaving] = useState(false);
+  const [searchText, setSearchText] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('all');
+  const [deptFilter, setDeptFilter] = useState('all');
+  useEffect(() => {
+    if (selected.size === 0 && !pillLeaving) return;
+    if (selected.size > 0) { setPillLeaving(false); return; }
+    setPillLeaving(true);
+    const t = setTimeout(() => setPillLeaving(false), 120);
+    return () => clearTimeout(t);
+  }, [selected.size]);
+  const pendingCount = expenses.filter(e => e.status === 'pending').length;
+  const filtered = (tab === 'pending' ? expenses.filter(e => e.status === 'pending')
+    : tab === 'approved' ? expenses.filter(e => e.status === 'approved')
+    : tab === 'declined' ? expenses.filter(e => e.status === 'rejected')
+    : expenses)
+    .filter(e => {
+      const emp = EMPLOYEES[e.employee];
+      if (searchText.trim() && !(emp?.name || e.employee).toLowerCase().includes(searchText.trim().toLowerCase())) return false;
+      if (categoryFilter !== 'all' && e.category !== categoryFilter) return false;
+      if (deptFilter !== 'all' && emp?.department !== deptFilter) return false;
+      return true;
+    });
+  const showStatus = tab === 'all';
+  const gridCols = showStatus
+    ? '32px 1.8fr 1fr 1fr 2fr 0.8fr 0.7fr 96px'
+    : '32px 1.8fr 1fr 2fr 0.8fr 0.7fr 96px';
+  const toggleSelect = (id) => setSelected(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
+  const allSelected = filtered.length > 0 && filtered.every(e => selected.has(e.id));
+  const toggleAll = () => {
+    if (allSelected) setSelected(prev => { const n = new Set(prev); filtered.forEach(e => n.delete(e.id)); return n; });
+    else setSelected(prev => new Set([...prev, ...filtered.map(e => e.id)]));
+  };
+  const selectedPending = [...selected].filter(id => expenses.find(e => e.id === id)?.status === 'pending');
+
+  return (
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, position: 'relative', animation: `screenEnter 180ms ${EASE_OUT}` }}>
+      <PageHeader
+        title="Expenses"
+        subtitle="Review and approve team expense claims"
+        tabs={
+          <TabBar
+            tabs={[
+              { id: 'pending', label: `Pending${pendingCount > 0 ? ` (${pendingCount})` : ''}` },
+              { id: 'approved', label: 'Approved' },
+              { id: 'declined', label: 'Declined' },
+              { id: 'all', label: 'All expenses' },
+            ]}
+            activeTab={tab}
+            onTabChange={(v) => { setTab(v); setSelected(new Set()); }}
+          />
+        }
+      >
+        <button onClick={() => setAddOpen(true)} style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '9px 18px', borderRadius: 8, border: 'none', background: P.action, color: '#fff', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>
+          <Icon name="Plus" size={14} color="#fff" strokeWidth={2.5} /> Add expense
+        </button>
+      </PageHeader>
+      <FilterToolbar
+        searchText={searchText} onSearch={v => { setSearchText(v); setSelected(new Set()); }}
+        filter={categoryFilter} onFilter={v => { setCategoryFilter(v); setSelected(new Set()); }} filterOpts={categoryOpts}
+        deptFilter={deptFilter} onDeptFilter={v => { setDeptFilter(v); setSelected(new Set()); }}
+      />
+      <div style={{ flex: 1, overflowY: 'auto', padding: '0 20px 20px' }}>
+        <div style={{ background: P.white, borderRadius: 12, border: `1px solid ${P.border}`, overflow: 'clip' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: gridCols, alignItems: 'center', gap: 12, padding: '0 20px', height: 38, borderBottom: `1px solid ${P.border}`, background: P.bg, position: 'sticky', top: 0, zIndex: 5 }}>
+            <input type="checkbox" checked={allSelected} onChange={toggleAll} style={{ cursor: 'pointer', accentColor: P.action }} />
+            <TH>Submitted by</TH>
+            {showStatus && <TH>Status</TH>}
+            <TH>Category</TH>
+            <TH>Note</TH>
+            <TH>Amount</TH>
+            <TH>Date</TH>
+            <div />
+          </div>
+          {filtered.length === 0 ? (
+            <div style={{ padding: '60px 24px', textAlign: 'center' }}>
+              <Icon name="receipt" size={32} color={P.border} style={{ marginBottom: 12 }} />
+              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.inkFaint }}>No {tab === 'pending' ? 'pending ' : tab === 'approved' ? 'approved ' : tab === 'declined' ? 'declined ' : ''}expenses</div>
+            </div>
+          ) : filtered.map(exp => (
+            <ExpenseRow key={exp.id} exp={exp} onApprove={onApprove} onDetail={onDetail} showStatus={showStatus} selected={selected.has(exp.id)} onToggle={toggleSelect} />
+          ))}
+        </div>
+      </div>
+      {/* Bulk action bar */}
+      {(selected.size > 0 || pillLeaving) && (
+        <div style={{ position: 'absolute', bottom: 16, left: 0, right: 0, display: 'flex', justifyContent: 'center', pointerEvents: 'none', zIndex: 10 }}>
+          <div style={{
+            pointerEvents: pillLeaving ? 'none' : 'auto',
+            background: P.action, borderRadius: 10, padding: '6px 14px',
+            display: 'flex', alignItems: 'center', gap: 10,
+            boxShadow: '0 6px 24px rgba(15,13,40,0.3)',
+            animation: pillLeaving
+              ? `pillFadeDown 120ms ${EASE_OUT} forwards`
+              : `pillFadeUp 0.15s ${EASE_OUT}`,
+          }}>
+            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, color: '#fff' }}>
+              {selected.size} selected
+            </span>
+            {selectedPending.length > 0 && (
+              <button onClick={() => { selectedPending.forEach(id => onApprove(id)); setSelected(new Set()); }} style={{
+                display: 'flex', alignItems: 'center', gap: 5,
+                padding: '5px 12px', borderRadius: 7, border: 'none',
+                background: '#22c55e', color: '#fff', cursor: 'pointer',
+                fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11,
+              }}>
+                <Icon name="CheckCircle" size={12} color="#fff" strokeWidth={2} />
+                Approve{selectedPending.length > 1 ? ` all ${selectedPending.length}` : ''}
+              </button>
+            )}
+            <button onClick={() => setSelected(new Set())} style={{
+              padding: '5px 10px', borderRadius: 7, border: '1px solid rgba(255,255,255,0.25)',
+              background: 'transparent', color: '#fff', cursor: 'pointer',
+              fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11,
+            }}>Clear</button>
+          </div>
+        </div>
+      )}
+      {addOpen && <AddExpenseModal categories={categories} onClose={() => setAddOpen(false)} onSave={(exp) => { onAdd(exp); setAddOpen(false); }} />}
+    </div>
+  );
+}
+
 // ── Requests screen ────────────────────────────────────────────────────────
 const PAGE_SIZE = 10;
 
@@ -2529,6 +3283,7 @@ function RequestsScreen({ requests, onApprove, onDecline, onSave, onCancel, onVi
   const [tab, setTab] = useState('pending');
   const [page, setPage] = useState(1);
   const [detail, setDetail] = useState(null);
+  const [detailDeclineMode, setDetailDeclineMode] = useState(false);
   const [editReq, setEditReq] = useState(null);
   const [addOpen, setAddOpen] = useState(false);
   const [selected, setSelected] = useState(new Set());
@@ -2565,7 +3320,9 @@ function RequestsScreen({ requests, onApprove, onDecline, onSave, onCancel, onVi
   const [leaveFilter, setLeaveFilter] = useState('all');
   const [deptFilter, setDeptFilter] = useState('all');
   const filtered = (tab === 'pending' ? requests.filter(r => r.status === 'pending')
-    : tab === 'approved' ? requests.filter(r => r.status === 'approved') : requests)
+    : tab === 'approved' ? requests.filter(r => r.status === 'approved')
+    : tab === 'declined' ? requests.filter(r => r.status === 'rejected')
+    : requests)
     .filter(r => {
       const emp = EMPLOYEES[r.employee];
       if (searchText.trim() && !(emp?.name || r.employee).toLowerCase().includes(searchText.trim().toLowerCase())) return false;
@@ -2597,6 +3354,7 @@ function RequestsScreen({ requests, onApprove, onDecline, onSave, onCancel, onVi
             tabs={[
               { id: 'pending', label: `Pending${pendingCount > 0 ? ` (${pendingCount})` : ''}` },
               { id: 'approved', label: 'Approved' },
+              { id: 'declined', label: 'Declined' },
               { id: 'all', label: 'All requests' },
             ]}
             activeTab={tab}
@@ -2610,23 +3368,23 @@ function RequestsScreen({ requests, onApprove, onDecline, onSave, onCancel, onVi
       </PageHeader>
       <FilterToolbar
         searchText={searchText} onSearch={v => { setSearchText(v); setPage(1); }}
-        leaveFilter={leaveFilter} onLeaveFilter={v => { setLeaveFilter(v); setPage(1); }}
+        filter={leaveFilter} onFilter={v => { setLeaveFilter(v); setPage(1); }}
         deptFilter={deptFilter} onDeptFilter={v => { setDeptFilter(v); setPage(1); }}
       />
       <div style={{ flex: 1, overflowY: 'auto', padding: '0 20px 20px' }}>
       <div style={{ background: P.white, borderRadius: 12, border: `1px solid ${P.border}`, overflow: 'clip' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: tab === 'all' ? '32px 1.8fr 1fr 0.9fr 0.7fr 0.7fr 1fr 1fr 96px' : '32px 1.8fr 0.9fr 0.7fr 0.7fr 1fr 1fr 96px', alignItems: 'center', gap: 12, padding: '0 20px', height: 38, borderBottom: `1px solid ${P.border}`, background: P.bg, position: 'sticky', top: 0, zIndex: 5 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: (tab === 'all' || tab === 'declined') ? '32px 1.8fr 1fr 0.9fr 0.7fr 0.7fr 1fr 1fr 96px' : '32px 1.8fr 0.9fr 0.7fr 0.7fr 1fr 1fr 96px', alignItems: 'center', gap: 12, padding: '0 20px', height: 38, borderBottom: `1px solid ${P.border}`, background: P.bg, position: 'sticky', top: 0, zIndex: 5 }}>
           <input type="checkbox" checked={allSelected} onChange={toggleAll} style={{ cursor: 'pointer', accentColor: P.action }} />
-          <TH>Requested by</TH>{tab === 'all' && <TH>Status</TH>}<TH>Leave type</TH><TH>Duration</TH><TH>Date from</TH><TH>Date to</TH><TH>Also off</TH><div />
+          <TH>Requested by</TH>{(tab === 'all' || tab === 'declined') && <TH>Status</TH>}<TH>Leave type</TH><TH>Duration</TH><TH>Date from</TH><TH>Date to</TH><TH>Also off</TH><div />
         </div>
         {displayRows.length === 0 ? (
           <div style={{ padding: '60px 24px', textAlign: 'center' }}>
             <Icon name="Inbox" size={32} color={P.border} style={{ marginBottom: 12 }} />
-            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.inkFaint }}>No {tab === 'pending' ? 'pending ' : tab === 'approved' ? 'approved ' : ''}requests</div>
+            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.inkFaint }}>No {tab === 'pending' ? 'pending ' : tab === 'approved' ? 'approved ' : tab === 'declined' ? 'declined ' : ''}requests</div>
             <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkFaint, marginTop: 4 }}>{tab === 'pending' ? 'New requests from your team will appear here.' : ''}</div>
           </div>
         ) : displayRows.map(req => (
-          <RequestRow key={req.id} req={req} requests={requests} onApprove={onApprove} onDecline={onDecline} onDetail={setDetail} onEdit={setEditReq} onCancel={onCancel} selected={selected.has(req.id)} onToggle={toggleSelect} onViewInCalendar={onViewInCalendar} showStatus={tab === 'all'} removing={removingIds.has(req.id)} />
+          <RequestRow key={req.id} req={req} requests={requests} onApprove={onApprove} onDecline={onDecline} onDetail={r => { setDetailDeclineMode(false); setDetail(r); }} onDeclineDirectly={r => { setDetailDeclineMode(true); setDetail(r); }} onEdit={setEditReq} onCancel={onCancel} selected={selected.has(req.id)} onToggle={toggleSelect} onViewInCalendar={onViewInCalendar} showStatus={tab === 'all' || tab === 'declined'} removing={removingIds.has(req.id)} />
         ))}
         {filtered.length > 0 && (
           <div style={{ padding: '8px 16px', borderTop: `1px solid ${P.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -2695,11 +3453,12 @@ function RequestsScreen({ requests, onApprove, onDecline, onSave, onCancel, onVi
         </div>
       )}
       {detail && (
-        <CalendarDrawer key={detail.id} req={detail} requests={requests} onClose={() => setDetail(null)}
+        <CalendarDrawer key={detail.id} req={detail} requests={requests} onClose={() => { setDetail(null); setDetailDeclineMode(false); }}
           onApprove={(id) => { onApprove(id); setDetail(null); }}
           onDecline={(id, reason) => { onDecline(id, reason); setDetail(null); }}
           onCancel={(id, reason) => { onCancel(id, reason); setDetail(null); }}
           onSave={(req) => { onSave(req); setDetail(req); }}
+          initialDeclineMode={detailDeclineMode}
         />
       )}
       {(addOpen || editReq) && (
@@ -2918,11 +3677,11 @@ function PageHeader({ title, subtitle, children, tabs }) {
   );
 }
 
-function FilterToolbar({ searchText, onSearch, leaveFilter, onLeaveFilter, deptFilter, onDeptFilter }) {
+function FilterToolbar({ searchText, onSearch, filter, onFilter, filterOpts, deptFilter, onDeptFilter }) {
   const deptOpts = [['all', 'All departments'], ...DEPARTMENTS.map(d => [d, d])];
+  const resolvedOpts = filterOpts || LEAVE_FILTER_OPTS;
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '24px 20px 14px' }}>
-      {/* Search */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 7, border: `1px solid ${P.border}`, borderRadius: 7, padding: '8px 12px', width: 240, background: P.white }}>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={P.inkFaint} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
           <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
@@ -2931,7 +3690,7 @@ function FilterToolbar({ searchText, onSearch, leaveFilter, onLeaveFilter, deptF
           border: 'none', outline: 'none', background: 'transparent', fontFamily: 'var(--font-body)', fontSize: 12, color: P.ink, width: '100%',
         }} />
       </div>
-      <FilterDropdown label="All time-off types" active={leaveFilter} opts={LEAVE_FILTER_OPTS} onSelect={onLeaveFilter} minWidth={170} />
+      <FilterDropdown label={resolvedOpts[0][1]} active={filter} opts={resolvedOpts} onSelect={onFilter} minWidth={170} />
       <FilterDropdown label="All departments" active={deptFilter} opts={deptOpts} onSelect={onDeptFilter} minWidth={160} />
     </div>
   );
@@ -3767,13 +4526,23 @@ function EditBalancesModal({ emp, balances, onSave, onClose, isNewEmployee, onCo
 }
 
 // ── Employee detail screen ────────────────────────────────────────────────
-function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, onApprove, onDecline, onViewTeamCalendar, employeeBalance, onUpdateBalance, needsSetup, confirmedDate, onConfirmBalances }) {
+function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, onApprove, onDecline, onViewTeamCalendar, employeeBalance, onUpdateBalance, needsSetup, confirmedDate, onConfirmBalances, onToast }) {
   const emp = EMPLOYEES[employeeId];
   const [activeTab, setActiveTab] = useState('choices');
   const [addModal, setAddModal] = useState(null); // null | 'add' | request object (edit)
   const [cancelAction, setCancelAction] = useState(null);
   const [editBalancesOpen, setEditBalancesOpen] = useState(false);
   const [detailReq, setDetailReq] = useState(null);
+  const [empMenuOpen, setEmpMenuOpen] = useState(false);
+  const [deactivateConfirm, setDeactivateConfirm] = useState(false);
+  const empMenuRef = useRef(null);
+  const { rendered: empMenuRendered, visible: empMenuVisible } = usePopoverTransition(empMenuOpen);
+  useEffect(() => {
+    if (!empMenuOpen) return;
+    const close = (e) => { if (empMenuRef.current && !empMenuRef.current.contains(e.target)) setEmpMenuOpen(false); };
+    document.addEventListener('mousedown', close);
+    return () => document.removeEventListener('mousedown', close);
+  }, [empMenuOpen]);
 
   if (!emp) return <div style={{ padding: 24 }}>Employee not found</div>;
 
@@ -3812,7 +4581,7 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, o
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'auto', animation: `screenEnter 180ms ${EASE_OUT}` }}>
       {/* Header */}
       <div style={{ borderBottom: `1px solid ${P.border}` }}>
-      <div style={{ maxWidth: 900, margin: '0 auto', padding: '24px 0 0' }}>
+      <div style={{ padding: '24px 32px 0' }}>
         <button onClick={() => onNav('employees')} style={{
           display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
           width: 32, height: 32, flexShrink: 0,
@@ -3823,10 +4592,44 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, o
             <path d="M19 12H5M12 5l-7 7 7 7"/>
           </svg>
         </button>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 18 }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 18 }}>
           <div>
             <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 28, color: P.ink, margin: 0, letterSpacing: '-0.02em' }}>{emp.name}</h1>
             <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, margin: '2px 0 0' }}>{emp.department}</p>
+          </div>
+          <div ref={empMenuRef} style={{ position: 'relative', marginTop: 4 }}>
+            <button onClick={() => setEmpMenuOpen(o => !o)} style={{
+              width: 32, height: 32, borderRadius: 8,
+              border: `1px solid ${empMenuOpen ? P.ink : P.border}`,
+              background: empMenuOpen ? '#f0f0f2' : P.white,
+              cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              <Icon name="Ellipsis" size={15} color={empMenuOpen ? P.ink : P.inkSoft} />
+            </button>
+            {empMenuRendered && (
+              <div style={{
+                position: 'absolute', right: 0, top: 38, zIndex: 50,
+                background: P.white, border: `1px solid ${P.border}`, borderRadius: 10,
+                boxShadow: '0 4px 20px rgba(0,0,0,0.10)', width: 180, overflow: 'hidden',
+                ...popoverStyle(empMenuVisible, 'top right'),
+              }}>
+                <button onClick={() => { setEmpMenuOpen(false); onToast && onToast({ message: `Impersonating ${emp.name.split(' ')[0]}…`, type: 'approve' }); }} style={{
+                  display: 'flex', alignItems: 'center', gap: 9,
+                  width: '100%', padding: '9px 12px', border: 'none', background: 'transparent', cursor: 'pointer', textAlign: 'left',
+                }} onMouseEnter={e => e.currentTarget.style.background = P.bg} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                  <Icon name="monitor-smartphone" size={14} color={P.ink} strokeWidth={1.75} />
+                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.ink }}>Impersonate user</span>
+                </button>
+                <div style={{ height: 1, background: P.border, margin: '0 12px' }} />
+                <button onClick={() => { setEmpMenuOpen(false); setDeactivateConfirm(true); }} style={{
+                  display: 'flex', alignItems: 'center', gap: 9,
+                  width: '100%', padding: '9px 12px', border: 'none', background: 'transparent', cursor: 'pointer', textAlign: 'left',
+                }} onMouseEnter={e => e.currentTarget.style.background = '#fef2f2'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                  <Icon name="user-x" size={14} color="#dc2626" strokeWidth={1.75} />
+                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: '#dc2626' }}>Deactivate employee</span>
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
@@ -3836,9 +4639,9 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, o
       </div>
 
       {/* Tab content */}
-      <div style={{ flex: 1, overflow: 'auto', padding: '40px 24px 24px' }}>
+      <div style={{ flex: 1, overflow: 'auto', padding: '40px 32px 32px' }}>
         {activeTab === 'timeoff' ? (
-          <div style={{ maxWidth: 900, margin: '0 auto' }}>
+          <div>
             {needsSetup && (
               <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 10, padding: '14px 18px', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 14 }}>
                 <div style={{ flex: 1 }}>
@@ -3850,6 +4653,81 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, o
                 </button>
               </div>
             )}
+            {/* Requested time off */}
+            <div style={{ marginBottom: 36 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 16, color: P.ink }}>Requested time off</span>
+                <button onClick={() => setAddModal('add')} style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '9px 18px', borderRadius: 8, border: 'none', background: P.action, color: '#fff', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>
+                  <Icon name="Plus" size={14} color="#fff" strokeWidth={2.5} />
+                  Add time off
+                </button>
+              </div>
+              {empReqs.filter(r => r.status === 'pending').length > 0 ? (
+                <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 12, overflow: 'visible' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-body)', fontSize: 13 }}>
+                    <thead>
+                      <tr style={{ borderBottom: `1px solid ${P.border}` }}>
+                        <th style={{ width: '20%', textAlign: 'left', padding: '9px 20px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Date from</th>
+                        <th style={{ width: '20%', textAlign: 'left', padding: '9px 16px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Date to</th>
+                        <th style={{ width: '25%', textAlign: 'left', padding: '9px 16px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Type</th>
+                        <th style={{ width: '15%', textAlign: 'center', padding: '9px 16px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Days</th>
+                        <th style={{ width: '15%', textAlign: 'left', padding: '9px 16px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Status</th>
+                        <th style={{ width: 40 }}></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {empReqs.filter(r => r.status === 'pending').map((req, idx, arr) => (
+                        <tr key={req.id} onClick={() => setDetailReq(req)} style={{ borderBottom: idx < arr.length - 1 ? `1px solid ${P.border}` : 'none', cursor: 'pointer' }}>
+                          <td style={{ padding: '12px 20px', fontSize: 14, color: P.ink }}>{req.startDate}</td>
+                          <td style={{ padding: '12px 16px', fontSize: 14, color: req.endDate && req.endDate !== req.startDate ? P.ink : P.inkFaint }}>
+                            {req.endDate && req.endDate !== req.startDate ? req.endDate : '—'}
+                          </td>
+                          <td style={{ padding: '12px 16px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                              <span style={{ width: 10, height: 10, borderRadius: '50%', background: LEAVE_COLORS[req.type] || P.inkFaint, border: `1.5px solid ${LEAVE_BORDER_COLORS[req.type] || P.border}`, flexShrink: 0 }} />
+                              <span style={{ fontSize: 14, color: P.ink }}>{req.type}</span>
+                            </div>
+                          </td>
+                          <td style={{ padding: '12px 16px', fontSize: 14, textAlign: 'center', color: P.ink }}>
+                            {req.days === 0.5 ? (
+                              <span>{'½'}<span style={{ fontSize: 11, color: P.inkFaint, marginLeft: 3 }}>{req.halfDay || ''}</span></span>
+                            ) : req.days || 1}
+                          </td>
+                          <td style={{ padding: '12px 16px' }}><StatusPill status={req.status} /></td>
+                          <td style={{ padding: '10px 16px' }} onClick={e => e.stopPropagation()}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4 }}>
+                              <button title="Decline" onClick={() => setDetailReq({ ...req, _declineMode: true })}
+                                onMouseEnter={e => { e.currentTarget.style.background = '#fee2e2'; e.currentTarget.style.borderColor = '#fca5a5'; }}
+                                onMouseLeave={e => { e.currentTarget.style.background = '#fef2f2'; e.currentTarget.style.borderColor = '#fecaca'; }}
+                                style={{ width: 28, height: 28, borderRadius: 6, border: '1px solid #fecaca', background: '#fef2f2', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                <Icon name="X" size={14} color="#dc2626" strokeWidth={2.5} />
+                              </button>
+                              <button title="Approve" onClick={() => onApprove(req.id)}
+                                onMouseEnter={e => { e.currentTarget.style.background = '#dcfce7'; e.currentTarget.style.borderColor = '#86efac'; }}
+                                onMouseLeave={e => { e.currentTarget.style.background = '#f0fdf4'; e.currentTarget.style.borderColor = '#bbf7d0'; }}
+                                style={{ width: 28, height: 28, borderRadius: 6, border: '1px solid #bbf7d0', background: '#f0fdf4', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                <Icon name="Check" size={14} color="#16a34a" strokeWidth={2.5} />
+                              </button>
+                              <ActionMenu req={req}
+                                onApprove={() => onApprove(req.id)}
+                                onDecline={() => onDecline(req.id)}
+                                onEdit={() => setAddModal(req)}
+                                onCancel={() => setCancelAction(req)}
+                              />
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 12, padding: '24px 20px', textAlign: 'center' }}>
+                  <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkFaint }}>No pending requests</div>
+                </div>
+              )}
+            </div>
+
             {/* Balances card */}
             <div style={{ marginBottom: 36 }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
@@ -3860,8 +4738,8 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, o
                   )}
                 </div>
                 {!needsSetup && (
-                  <button onClick={() => setEditBalancesOpen(true)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 14px', borderRadius: 8, border: 'none', background: P.action, color: '#fff', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12 }}>
-                    <Icon name="Pencil" size={12} color="#fff" />
+                  <button onClick={() => setEditBalancesOpen(true)} style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '9px 18px', borderRadius: 8, border: `1px solid ${P.border}`, background: P.white, color: P.inkSoft, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>
+                    <Icon name="Pencil" size={14} color={P.inkSoft} />
                     Edit balances
                   </button>
                 )}
@@ -3873,7 +4751,7 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, o
                   return (
                     <div key={b.type} style={{ flex: '1 1 160px', background: P.white, border: `1px solid ${P.border}`, borderRadius: 10, padding: '20px 24px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
-                        <span style={{ width: 7, height: 7, borderRadius: 2, background: LEAVE_COLORS[b.type], flexShrink: 0 }} />
+                        <span style={{ width: 10, height: 10, borderRadius: '50%', background: LEAVE_COLORS[b.type], border: `1.5px solid ${LEAVE_BORDER_COLORS[b.type] || P.border}`, flexShrink: 0 }} />
                         <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>{b.type}</span>
                       </div>
                       {isLimited ? (
@@ -3898,59 +4776,6 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, o
                 })}
               </div>
             </div>
-
-            {/* Requested time off */}
-            {empReqs.filter(r => r.status === 'pending').length > 0 && (
-              <div style={{ marginBottom: 36 }}>
-                <div style={{ marginBottom: 12 }}>
-                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 16, color: P.ink }}>Requested time off</span>
-                </div>
-                <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 12, overflow: 'visible' }}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-body)', fontSize: 13 }}>
-                    <thead>
-                      <tr style={{ borderBottom: `1px solid ${P.border}` }}>
-                        <th style={{ width: '20%', textAlign: 'left', padding: '9px 20px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Date from</th>
-                        <th style={{ width: '20%', textAlign: 'left', padding: '9px 16px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Date to</th>
-                        <th style={{ width: '25%', textAlign: 'left', padding: '9px 16px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Type</th>
-                        <th style={{ width: '15%', textAlign: 'center', padding: '9px 16px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Days</th>
-                        <th style={{ width: '15%', textAlign: 'left', padding: '9px 16px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Status</th>
-                        <th style={{ width: 40 }}></th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {empReqs.filter(r => r.status === 'pending').map((req, idx, arr) => (
-                        <tr key={req.id} onClick={() => setDetailReq(req)} style={{ borderBottom: idx < arr.length - 1 ? `1px solid ${P.border}` : 'none', cursor: 'pointer' }}>
-                          <td style={{ padding: '12px 20px', fontSize: 14, color: P.ink }}>{req.startDate}</td>
-                          <td style={{ padding: '12px 16px', fontSize: 14, color: req.endDate && req.endDate !== req.startDate ? P.ink : P.inkFaint }}>
-                            {req.endDate && req.endDate !== req.startDate ? req.endDate : '—'}
-                          </td>
-                          <td style={{ padding: '12px 16px' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                              <span style={{ width: 8, height: 8, borderRadius: 2, background: LEAVE_COLORS[req.type] || P.inkFaint, flexShrink: 0 }} />
-                              <span style={{ fontSize: 14, color: P.ink }}>{req.type}</span>
-                            </div>
-                          </td>
-                          <td style={{ padding: '12px 16px', fontSize: 14, textAlign: 'center', color: P.ink }}>
-                            {req.days === 0.5 ? (
-                              <span>{'½'}<span style={{ fontSize: 11, color: P.inkFaint, marginLeft: 3 }}>{req.halfDay || ''}</span></span>
-                            ) : req.days || 1}
-                          </td>
-                          <td style={{ padding: '12px 16px' }}><StatusDot status={req.status} /></td>
-                          <td style={{ padding: '10px 16px' }} onClick={e => e.stopPropagation()}>
-                            <ActionMenu req={req}
-                              onApprove={() => onApprove(req.id)}
-                              onDecline={() => onDecline(req.id)}
-                              onEdit={() => setAddModal(req)}
-                              onCancel={() => setCancelAction(req)}
-                            />
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            )}
 
             {/* Absence history */}
             <div>
@@ -3984,7 +4809,7 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, o
                         </td>
                         <td style={{ padding: '12px 16px' }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                            <span style={{ width: 8, height: 8, borderRadius: 2, background: LEAVE_COLORS[req.type] || P.inkFaint, flexShrink: 0 }} />
+                            <span style={{ width: 10, height: 10, borderRadius: '50%', background: LEAVE_COLORS[req.type] || P.inkFaint, border: `1.5px solid ${LEAVE_BORDER_COLORS[req.type] || P.border}`, flexShrink: 0 }} />
                             <span style={{ fontSize: 14, color: P.ink }}>{req.type}</span>
                           </div>
                         </td>
@@ -3993,7 +4818,7 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, o
                             <span>{'½'}<span style={{ fontSize: 11, color: P.inkFaint, marginLeft: 3 }}>{req.halfDay || ''}</span></span>
                           ) : req.days || 1}
                         </td>
-                        <td style={{ padding: '12px 16px' }}><StatusDot status={req.status} /></td>
+                        <td style={{ padding: '12px 16px' }}><StatusPill status={req.status} /></td>
                         <td style={{ padding: '10px 16px' }} onClick={e => e.stopPropagation()}>
                           <ActionMenu req={req}
                             onEdit={() => setAddModal(req)}
@@ -4009,13 +4834,13 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, o
             </div>
           </div>
         ) : activeTab === 'choices' ? (
-          <div style={{ maxWidth: 900, margin: '0 auto' }}><ChoicesTab empId={employeeId} /></div>
+          <div><ChoicesTab empId={employeeId} /></div>
         ) : activeTab === 'budgets' ? (
-          <div style={{ maxWidth: 900, margin: '0 auto' }}><BudgetsTab empId={employeeId} /></div>
+          <div><BudgetsTab empId={employeeId} /></div>
         ) : activeTab === 'salary' ? (
-          <div style={{ maxWidth: 900, margin: '0 auto' }}><SalaryTab empId={employeeId} /></div>
+          <div><SalaryTab empId={employeeId} /></div>
         ) : activeTab === 'details' ? (
-          <div style={{ maxWidth: 900, margin: '0 auto' }}><DetailsTab emp={emp} empId={employeeId} /></div>
+          <div><DetailsTab emp={emp} empId={employeeId} /></div>
         ) : (
           <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 12, padding: 24, maxWidth: 480, color: P.inkFaint, fontFamily: 'var(--font-body)', fontSize: 13 }}>
             Coming soon
@@ -4064,6 +4889,34 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, o
           onSave={(req) => { onSave(req); setDetailReq(req); }}
         />
       )}
+
+      {deactivateConfirm && (
+        <div onClick={() => setDeactivateConfirm(false)} style={{
+          position: 'fixed', inset: 0, zIndex: 300,
+          background: 'rgba(15,13,40,0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>
+          <div onClick={e => e.stopPropagation()} style={{
+            background: P.white, borderRadius: 14, width: 400, padding: '28px 28px 24px',
+            boxShadow: '0 8px 40px rgba(15,13,40,0.2)',
+          }}>
+            <div style={{ width: 40, height: 40, borderRadius: 10, background: '#fef2f2', border: '1px solid #fecaca', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
+              <Icon name="user-x" size={18} color="#dc2626" strokeWidth={1.75} />
+            </div>
+            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 16, color: P.ink, marginBottom: 6 }}>Deactivate {emp.name}?</div>
+            <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, marginBottom: 24, lineHeight: 1.5 }}>
+              {emp.name.split(' ')[0]} will lose access to Payflip immediately. Their data and history will be preserved.
+            </div>
+            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+              <button onClick={() => setDeactivateConfirm(false)} style={{ padding: '8px 16px', borderRadius: 8, border: `1px solid ${P.border}`, background: P.white, color: P.inkSoft, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>
+                Cancel
+              </button>
+              <button onClick={() => { setDeactivateConfirm(false); onToast && onToast({ message: `${emp.name.split(' ')[0]} deactivated`, type: 'decline' }); }} style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: '#dc2626', color: '#fff', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>
+                Deactivate
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -4082,7 +4935,481 @@ function DashboardListRow({ onClick, children }) {
   );
 }
 
-function DashboardScreen({ requests, onNav }) {
+const PAYFLIP_CARD_IMG = 'https://www.figma.com/api/mcp/asset/86118957-1a80-4819-b71b-65247513e641';
+const TWIKEY_LOGO_IMG = 'https://www.figma.com/api/mcp/asset/717eafe8-6673-4b0e-adb4-8fbbffe6a268';
+
+// Pointer tracked on the outer flat wrapper; inner card rotates via CSS custom props.
+// Per transitions-dev/19-card-tilt.md — MAX 14° is tasteful for a credit card.
+function CardTilt({ children }) {
+  const wrapperRef = useRef(null);
+  const [rx, setRx] = React.useState(0);
+  const [ry, setRy] = React.useState(0);
+  const [gx, setGx] = React.useState(50);
+  const [gy, setGy] = React.useState(50);
+  const [hover, setHover] = React.useState(false);
+  const [tilting, setTilting] = React.useState(false);
+  const MAX = 14;
+
+  const track = (e) => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const r = wrapperRef.current.getBoundingClientRect();
+    const px = Math.min(1, Math.max(0, (e.clientX - r.left) / r.width));
+    const py = Math.min(1, Math.max(0, (e.clientY - r.top) / r.height));
+    setHover(true); setTilting(true);
+    setRx((0.5 - py) * MAX); setRy((px - 0.5) * MAX);
+    setGx(px * 100); setGy(py * 100);
+  };
+  const reset = () => { setHover(false); setTilting(false); setRx(0); setRy(0); };
+
+  return (
+    <div ref={wrapperRef} onPointerMove={track} onPointerLeave={reset} style={{ touchAction: 'none', display: 'inline-block', filter: 'drop-shadow(0 20px 40px rgba(0,0,0,0.22)) drop-shadow(0 6px 16px rgba(0,0,0,0.14))' }}>
+      <div style={{
+        position: 'relative',
+        transform: `perspective(1000px) rotateX(${rx}deg) rotateY(${ry}deg)`,
+        transformStyle: 'preserve-3d',
+        transition: tilting
+          ? 'transform 400ms cubic-bezier(0.22, 1, 0.36, 1)'
+          : 'transform 1000ms cubic-bezier(0.22, 1, 0.36, 1)',
+        willChange: 'transform',
+      }}>
+        {children}
+        <div style={{
+          position: 'absolute', inset: 0, pointerEvents: 'none',
+          opacity: hover ? 0.32 : 0,
+          mixBlendMode: 'screen',
+          background: `
+            radial-gradient(circle 95px at ${gx}% ${gy}%, rgba(255,255,255,0.48), rgba(255,255,255,0.06) 52%, rgba(255,255,255,0) 84%),
+            radial-gradient(circle 200px at ${gx}% ${gy}%, rgba(255,255,255,0.22), rgba(255,255,255,0.04) 58%, rgba(255,255,255,0) 78%),
+            radial-gradient(circle 360px at ${gx}% ${gy}%, rgba(255,255,255,0.10), rgba(255,255,255,0) 88%)
+          `,
+          transition: 'opacity 300ms cubic-bezier(0.22, 1, 0.36, 1)',
+        }} />
+      </div>
+    </div>
+  );
+}
+
+function MobilityLaunchWidget({ onToast }) {
+  const [widgetMode, setWidgetMode] = useState('mobility');
+  const [step, setStep] = useState(1);
+  const [depositAmount, setDepositAmount] = useState('257');
+  const [allowPhysical, setAllowPhysical] = useState(false);
+  const [step1Open, setStep1Open] = useState(false);
+  const [socialSecretariat, setSocialSecretariat] = useState('SD Worx');
+  const [secOpen, setSecOpen] = useState(false);
+  const [secSearch, setSecSearch] = useState('');
+  const [secRect, setSecRect] = useState(null);
+  const secTriggerRef = React.useRef(null);
+  const [step3Open, setStep3Open] = useState(false);
+
+  const switchMode = (mode) => {
+    setWidgetMode(mode);
+    setStep(1);
+    setStep1Open(false);
+    setStep3Open(false);
+  };
+
+  // Mobility: simulate first deposit arriving 5s after step 3
+  React.useEffect(() => {
+    if (widgetMode !== 'mobility' || step !== 3) return;
+    const t = setTimeout(() => {
+      setStep(4);
+      onToast?.({ message: 'Funds received — your account is ready', type: 'approve' });
+    }, 5000);
+    return () => clearTimeout(t);
+  }, [widgetMode, step]);
+
+  // Food: simulate bank approval 5s after step 2
+  React.useEffect(() => {
+    if (widgetMode !== 'food' || step !== 2) return;
+    const t = setTimeout(() => {
+      setStep(3);
+      onToast?.({ message: 'Mandate approved — select your social secretariat', type: 'approve' });
+    }, 5000);
+    return () => clearTimeout(t);
+  }, [widgetMode, step]);
+
+  const mobilityBadgeLabels = ['Ready to launch', 'Authorise direct debit', 'Awaiting first deposit', 'Ready to invite'];
+  const foodBadgeLabels    = ['Ready to launch', 'Awaiting approval', 'Select secretariat', 'Ready to invite'];
+  const headerBadgeLabel = (widgetMode === 'mobility' ? mobilityBadgeLabels : foodBadgeLabels)[step - 1];
+
+  // State 1 uses circular badges; states 2+ use square badges
+  const badgeRadius = step === 1 ? '999px' : '4px';
+
+  const stepBadgeEl = (n, pop = false) => {
+    const done = n < step;
+    const active = n === step;
+    if (done) return (
+      <span style={{ width: 24, height: 24, borderRadius: '4px', background: '#008556', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, animation: pop ? `badgePopIn 400ms cubic-bezier(0.34, 1.36, 0.64, 1)` : undefined }}>
+        <Icon name="check" size={12} color="#fff" strokeWidth={2.5} />
+      </span>
+    );
+    return (
+      <span style={{ width: 24, height: 24, borderRadius: badgeRadius, background: active ? P.ink : P.white, border: active ? 'none' : `1px solid ${P.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 12, color: active ? '#fff' : P.ink }}>
+        {n}
+      </span>
+    );
+  };
+
+  const inactiveBg = '#fafafa';
+
+  return (
+    <div style={{ marginBottom: 24 }}>
+      {/* Prototype switcher — fixed floating pill, same layer as Employee App button */}
+      <div style={{ position: 'fixed', bottom: 20, right: 158, zIndex: 100, display: 'inline-flex', alignItems: 'center', gap: 6, padding: '7px 10px 7px 12px', borderRadius: 20, background: P.action, boxShadow: 'rgba(15,13,40,0.2) 0px 2px 12px' }}>
+        <Icon name="wrench" size={12} color="#fff" strokeWidth={2} />
+        <div style={{ display: 'flex' }}>
+          {['mobility', 'food'].map(m => (
+            <button key={m} onClick={() => switchMode(m)} style={{
+              padding: '2px 8px', borderRadius: 12, border: 'none',
+              background: widgetMode === m ? 'rgba(255,255,255,0.18)' : 'transparent',
+              cursor: 'pointer',
+              fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12,
+              color: widgetMode === m ? '#fff' : 'rgba(255,255,255,0.55)',
+              transition: 'background 150ms ease, color 150ms ease',
+              textTransform: 'capitalize',
+            }}>
+              {m === 'mobility' ? 'Mobility' : 'Food'}
+            </button>
+          ))}
+        </div>
+      </div>
+    <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 8, overflow: 'hidden' }}>
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 24px', borderBottom: `1px solid ${P.border}` }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.ink, letterSpacing: '-0.025px' }}>
+            Launch {widgetMode} card for your employees
+          </span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          <span style={{ background: P.ink, color: '#fff', borderRadius: 8, padding: '2px 8px', fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 12, letterSpacing: '0.06px', whiteSpace: 'nowrap' }}>
+            {headerBadgeLabel}
+          </span>
+          <Icon name="chevron-up" size={24} color={P.ink} strokeWidth={2} />
+        </div>
+      </div>
+
+      {/* Body */}
+      <div style={{ display: 'flex', alignItems: 'stretch' }}>
+        {/* Steps column — fixed 480px */}
+        <div style={{ width: 480, minWidth: 480, borderRight: `1px solid ${P.border}`, display: 'flex', flexDirection: 'column' }}>
+        {widgetMode === 'mobility' ? (<>
+
+          {/* Step 1 */}
+          <div style={{ background: step === 1 ? P.white : inactiveBg, borderBottom: `1px solid ${P.border}` }}>
+            {step === 1 ? (
+              <div key="step1-active" style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 24, animation: `stepContentEnter 250ms ${EASE_OUT}` }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  {stepBadgeEl(1)}
+                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.ink }}>Set deposit amount</span>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+                  <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink, lineHeight: '20px', margin: 0 }}>
+                    This is your initial deposit — we'll collect it now to fund your mobility account. After that, direct debit automatically tops up the account whenever the balance runs low, so your employees always have funds available.
+                  </p>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                      <label style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.ink, letterSpacing: '0.035px' }}>Recommended amount to collect</label>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, border: `1px solid #bec0c5`, borderRadius: 8, padding: '8px 12px', height: 40, background: P.white }}>
+                        <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink, flexShrink: 0 }}>€</span>
+                        <input value={depositAmount} onChange={e => setDepositAmount(e.target.value)} style={{ border: 'none', outline: 'none', fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink, width: '100%', background: 'transparent' }} />
+                      </div>
+                      <p style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, margin: 0, lineHeight: '16px' }}>
+                        Based on the employee's 2025 mobility spending for 19 employees with a mobility budget
+                      </p>
+                    </div>
+                    <a href="#" onClick={e => e.preventDefault()} style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.ink, textDecoration: 'underline', letterSpacing: '-0.035px' }}>
+                      How is this calculated?
+                    </a>
+                  </div>
+                  <button onClick={() => setStep(2)} style={{ width: '100%', padding: '8px 16px', minHeight: 36, borderRadius: 8, border: 'none', background: P.action, color: '#fff', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16 }}>
+                    Confirm amount
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div style={{ animation: `stepDoneEnter 200ms ${EASE_OUT}` }}>
+                <div
+                  onClick={step === 2 ? () => setStep1Open(v => !v) : undefined}
+                  style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 24, cursor: step === 2 ? 'pointer' : 'default' }}
+                >
+                  {stepBadgeEl(1)}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flex: 1 }}>
+                    <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.inkSoft }}>Deposit scheduled</span>
+                    {step === 2 && <Icon name="chevron-down" size={24} color={P.ink} strokeWidth={2} style={{ transform: step1Open ? 'rotate(180deg)' : 'rotate(0deg)', transition: `transform 200ms ${EASE_OUT}` }} />}
+                  </div>
+                </div>
+                {step === 2 && step1Open && (
+                  <div style={{ padding: '0 24px 20px 60px', display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink }}>€{depositAmount},00</span>
+                    <a href="#" onClick={e => { e.preventDefault(); setStep(1); setStep1Open(false); }} style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.ink, textDecoration: 'underline' }}>
+                      Edit amount
+                    </a>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Step 2 */}
+          <div style={{ background: step === 2 ? P.white : inactiveBg, borderBottom: `1px solid ${P.border}` }}>
+            {step === 2 ? (
+              <div key="step2-active" style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 24, animation: `stepContentEnter 250ms ${EASE_OUT}` }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  {stepBadgeEl(2)}
+                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.ink }}>Authorise direct debit</span>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <div style={{ display: 'flex', gap: 24, alignItems: 'flex-start' }}>
+                    <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink, lineHeight: '20px', margin: 0, flex: 1 }}>
+                      You're authorising Payflip to collect <strong>€{depositAmount},00</strong> now to fund your mobility account, and to automatically top it up when the balance runs low.
+                    </p>
+                    <img src={TWIKEY_LOGO_IMG} alt="twikey" style={{ width: 62, height: 27, flexShrink: 0, display: 'block' }} />
+                  </div>
+                  <a href="#" onClick={e => { e.preventDefault(); setStep(1); }} style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.ink, textDecoration: 'underline', letterSpacing: '-0.035px' }}>
+                    Edit amount
+                  </a>
+                </div>
+                <button onClick={() => setStep(3)} style={{ width: '100%', padding: '8px 16px', minHeight: 36, borderRadius: 8, border: 'none', background: P.action, color: '#fff', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16 }}>
+                  Sign mandate
+                </button>
+              </div>
+            ) : step < 2 ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 24 }}>
+                {stepBadgeEl(2)}
+                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 16, color: P.inkSoft }}>Authorise direct debit</span>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 24, animation: `stepDoneEnter 200ms ${EASE_OUT}` }}>
+                {stepBadgeEl(2)}
+                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.inkSoft }}>Mandate signed</span>
+              </div>
+            )}
+          </div>
+
+          {/* Step 3 */}
+          <div style={{ background: step === 3 ? P.white : inactiveBg, borderBottom: `1px solid ${P.border}` }}>
+            {step === 3 ? (
+              <div key="step3-active" style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16, animation: `stepContentEnter 250ms ${EASE_OUT}` }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  {stepBadgeEl(3)}
+                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.ink }}>Awaiting first deposit</span>
+                </div>
+                <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
+                  We're handling the bank approval and collecting your first deposit. We'll notify you when the funds are available — usually within 3 business days.
+                </p>
+              </div>
+            ) : step < 3 ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 24 }}>
+                {stepBadgeEl(3)}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 16, color: P.inkSoft }}>Awaiting bank approval</span>
+                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>~3 business days</span>
+                </div>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 24, animation: `stepDoneEnter 200ms ${EASE_OUT}` }}>
+                {stepBadgeEl(3, step === 4)}
+                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.inkSoft }}>Funds received</span>
+              </div>
+            )}
+          </div>
+
+          {/* Step 4 */}
+          <div style={{ background: step === 4 ? P.white : inactiveBg, borderBottom: `1px solid ${P.border}` }}>
+            {step === 4 ? (
+              <div key="step4-active" style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16, animation: `stepContentEnter 250ms ${EASE_OUT}` }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  {stepBadgeEl(4)}
+                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.ink }}>Invite your employees</span>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                  <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
+                    Your mobility account is funded. Employees will receive an email to download the Payflip app and request their own card.
+                  </p>
+                  {/* Physical card toggle */}
+                  <div style={{ border: `1px solid ${P.border}`, borderRadius: 9, padding: 16, display: 'flex', gap: 16, alignItems: 'flex-start', background: P.white }}>
+                    <div style={{ width: 40, height: 40, borderRadius: 8, background: '#f7f7f8', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <Icon name="credit-card" size={24} color={P.inkSoft} strokeWidth={1.75} />
+                    </div>
+                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                      <div style={{ display: 'flex', flexDirection: 'column' }}>
+                        <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: '#171717', lineHeight: '20px', letterSpacing: '-0.07px' }}>Allow physical card requests</span>
+                        <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, lineHeight: '16px', letterSpacing: '-0.06px' }}>Employees can request a physical card in addition to their virtual card.</span>
+                      </div>
+                      <span style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 12, color: P.ink, lineHeight: '16px', letterSpacing: '-0.06px' }}>A one-time fee of €8 applies per card.</span>
+                    </div>
+                    {/* Toggle */}
+                    <div
+                      onClick={() => setAllowPhysical(v => !v)}
+                      style={{ width: 33, height: 18, borderRadius: 999, background: allowPhysical ? P.ink : '#eaeaeb', position: 'relative', cursor: 'pointer', flexShrink: 0, marginTop: 1.5, transition: 'background 150ms ease' }}
+                    >
+                      <div style={{ position: 'absolute', top: 2, left: 2, width: 14, height: 14, borderRadius: '50%', background: '#fff', transform: allowPhysical ? 'translateX(15px)' : 'translateX(0)', transition: 'transform 150ms ease', boxShadow: '0 1px 2px rgba(0,0,0,0.2)' }} />
+                    </div>
+                  </div>
+                  <button onClick={() => {}} style={{ width: '100%', padding: '8px 16px', minHeight: 36, borderRadius: 8, border: 'none', background: P.action, color: '#fff', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16 }}>
+                    Review and send invites
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 24 }}>
+                {stepBadgeEl(4)}
+                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 16, color: P.inkSoft }}>Invite your employees</span>
+              </div>
+            )}
+          </div>
+
+        </>) : (<>
+
+          {/* Food Step 1 — Authorise direct debit */}
+          <div style={{ background: step === 1 ? P.white : inactiveBg, borderBottom: `1px solid ${P.border}` }}>
+            {step === 1 ? (
+              <div key="food-step1-active" style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 24, animation: `stepContentEnter 250ms ${EASE_OUT}` }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  {stepBadgeEl(1)}
+                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.ink }}>Authorise direct debit</span>
+                </div>
+                <img src={TWIKEY_LOGO_IMG} alt="twikey" style={{ width: 62, height: 27, display: 'block' }} />
+                <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink, lineHeight: '20px', margin: 0 }}>
+                  This allows Payflip to automatically collect funds from your company account when your employees' card balance runs low — so their budget is always available without manual top-ups. You only need to authorise this once.
+                </p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  <button onClick={() => setStep(2)} style={{ width: '100%', padding: '8px 16px', minHeight: 36, borderRadius: 8, border: 'none', background: P.action, color: '#fff', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16 }}>
+                    Sign mandate
+                  </button>
+                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, textAlign: 'center' }}>You'll be redirected to Twikey to sign the mandate.</span>
+                </div>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 24, animation: `stepDoneEnter 200ms ${EASE_OUT}` }}>
+                {stepBadgeEl(1)}
+                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.inkSoft }}>Mandate signed</span>
+              </div>
+            )}
+          </div>
+
+          {/* Food Step 2 — Awaiting bank approval (auto-advances after 5s) */}
+          <div style={{ background: step === 2 ? P.white : inactiveBg, borderBottom: `1px solid ${P.border}` }}>
+            {step === 2 ? (
+              <div key="food-step2-active" style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16, animation: `stepContentEnter 250ms ${EASE_OUT}` }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  {stepBadgeEl(2)}
+                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.ink }}>Awaiting bank approval</span>
+                </div>
+                <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink, lineHeight: '20px', margin: 0 }}>
+                  Your bank is reviewing the direct debit mandate. This usually takes a few hours but can take up to 24 hours. We'll notify you once it's approved.
+                </p>
+              </div>
+            ) : step < 2 ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 24 }}>
+                {stepBadgeEl(2)}
+                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 16, color: P.inkSoft }}>Awaiting bank approval</span>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 24, animation: `stepDoneEnter 200ms ${EASE_OUT}` }}>
+                {stepBadgeEl(2, step === 3)}
+                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.inkSoft }}>Mandate approved</span>
+              </div>
+            )}
+          </div>
+
+          {/* Food Step 3 — Select social secretariat */}
+          <div style={{ background: step === 3 ? P.white : inactiveBg, borderBottom: `1px solid ${P.border}` }}>
+            {step === 3 ? (
+              <div key="food-step3-active" style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16, animation: `stepContentEnter 250ms ${EASE_OUT}` }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  {stepBadgeEl(3)}
+                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.ink }}>Select your social secretariat</span>
+                </div>
+                <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink, lineHeight: '20px', margin: 0 }}>
+                  We use your social secretariat to sync employee data and ensure correct meal voucher calculations.
+                </p>
+                <div style={{ position: 'relative' }}>
+                  <button ref={secTriggerRef} onClick={() => { const r = secTriggerRef.current?.getBoundingClientRect(); setSecRect(r || null); setSecOpen(v => !v); setSecSearch(''); }} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', height: 40, border: `1px solid #bec0c5`, borderRadius: 8, background: P.white, cursor: 'pointer', fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink }}>
+                    <span>{socialSecretariat}</span>
+                    <Icon name="chevrons-up-down" size={16} color={P.inkSoft} strokeWidth={2} />
+                  </button>
+                  {secOpen && secRect && (
+                    <div style={{ position: 'fixed', top: secRect.bottom + 4, left: secRect.left, width: secRect.width, zIndex: 1000, background: P.white, border: `1px solid ${P.border}`, borderRadius: 8, boxShadow: '0 4px 16px rgba(0,0,0,0.1)', overflow: 'hidden' }}>
+                      <div style={{ padding: 8, borderBottom: `1px solid ${P.border}` }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, border: `1px solid #bec0c5`, borderRadius: 8, padding: '6px 10px' }}>
+                          <Icon name="search" size={14} color={P.inkSoft} strokeWidth={2} />
+                          <input autoFocus value={secSearch} onChange={e => setSecSearch(e.target.value)} placeholder="Search..." style={{ border: 'none', outline: 'none', fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink, background: 'transparent', width: '100%' }} />
+                        </div>
+                      </div>
+                      <div style={{ maxHeight: 220, overflowY: 'auto' }}>
+                        {['SD Worx', 'Securex', 'Partena Professional', 'Acerta', 'Liantis', 'Xerius', 'Group S', 'UCM', 'Zenito'].filter(s => s.toLowerCase().includes(secSearch.toLowerCase())).map(s => (
+                          <button key={s} onClick={() => { setSocialSecretariat(s); setSecOpen(false); setSecSearch(''); }} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px', border: 'none', background: s === socialSecretariat ? P.bg : P.white, cursor: 'pointer', textAlign: 'left', fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink }}>
+                            <span>{s}</span>
+                            {s === socialSecretariat && <Icon name="check" size={16} color={P.ink} strokeWidth={2} />}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <button onClick={() => { setSecOpen(false); setStep(4); }} style={{ width: '100%', padding: '8px 16px', minHeight: 36, borderRadius: 8, border: 'none', background: P.action, color: '#fff', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16 }}>
+                  Confirm
+                </button>
+              </div>
+            ) : step < 3 ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 24 }}>
+                {stepBadgeEl(3)}
+                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 16, color: P.inkSoft }}>Select your social secretariat</span>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 24, animation: `stepDoneEnter 200ms ${EASE_OUT}` }}>
+                {stepBadgeEl(3, step === 4)}
+                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.inkSoft }}>{socialSecretariat}</span>
+                <a href="#" onClick={e => { e.preventDefault(); setStep(3); }} style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.ink, textDecoration: 'underline', marginLeft: 'auto' }}>Edit</a>
+              </div>
+            )}
+          </div>
+
+          {/* Food Step 4 — Notify employees */}
+          <div style={{ background: step === 4 ? P.white : inactiveBg, borderBottom: `1px solid ${P.border}` }}>
+            {step === 4 ? (
+              <div key="food-step4-active" style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16, animation: `stepContentEnter 250ms ${EASE_OUT}` }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  {stepBadgeEl(4)}
+                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.ink }}>Notify your employees</span>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                  <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
+                    Invite your employees to download the Payflip app. They'll instantly receive their virtual meal voucher card and can order a physical card directly from the app.
+                  </p>
+                  <button onClick={() => {}} style={{ width: '100%', padding: '8px 16px', minHeight: 36, borderRadius: 8, border: 'none', background: P.action, color: '#fff', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16 }}>
+                    Notify employees
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 24 }}>
+                {stepBadgeEl(4)}
+                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 16, color: P.inkSoft }}>Notify your employees</span>
+              </div>
+            )}
+          </div>
+
+        </>)}
+
+        </div>
+
+        {/* Card image column */}
+        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '32px 24px' }}>
+          <CardTilt>
+            <img src={PAYFLIP_CARD_IMG} alt="Payflip mobility card" style={{ width: 347, height: 218, display: 'block' }} />
+          </CardTilt>
+        </div>
+      </div>
+    </div>
+    </div>
+  );
+}
+
+function DashboardScreen({ requests, onNav, onToast }) {
   const today = new Date(); today.setHours(0,0,0,0);
   return (
     <div style={{ flex: 1, overflow: 'auto', animation: `screenEnter 180ms ${EASE_OUT}` }}>
@@ -4090,11 +5417,759 @@ function DashboardScreen({ requests, onNav }) {
         title="Home"
         subtitle={today.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
       />
+      <div style={{ padding: '24px 32px' }}>
+        <MobilityLaunchWidget onToast={onToast} />
+      </div>
     </div>
   );
 }
 
 // ── Stub screens ──────────────────────────────────────────────────────────
+// ── Expense category settings ──────────────────────────────────────────────
+function CategoryModal({ title, initialVal, initialLimit, onSave, onDelete, onClose }) {
+  const { visible, close } = useModalTransition(onClose);
+  const [val, setVal] = useState(initialVal);
+  const [limitVal, setLimitVal] = useState(initialLimit != null ? String(initialLimit) : '');
+  const save = () => {
+    const t = val.trim();
+    if (!t) return;
+    const n = parseFloat(limitVal);
+    onSave(t, isNaN(n) ? null : n);
+    close();
+  };
+  return (
+    <div onClick={close} style={{ position: 'fixed', inset: 0, zIndex: 300, background: 'rgba(15,13,40,0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center', ...modalBackdropStyle(visible) }}>
+      <div onClick={e => e.stopPropagation()} style={{ background: P.white, borderRadius: 14, width: 420, boxShadow: '0 8px 40px rgba(15,13,40,0.2)', display: 'flex', flexDirection: 'column', ...modalPanelStyle(visible) }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 22px', borderBottom: `1px solid ${P.border}` }}>
+          <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 16, color: P.ink }}>{title}</span>
+          <button onClick={close} style={{ border: 'none', cursor: 'pointer', width: 30, height: 30, borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(60,60,67,0.1)' }}>
+            <Icon name="X" size={14} color={P.ink} strokeWidth={2.5} />
+          </button>
+        </div>
+        <div style={{ padding: '18px 22px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <div>
+            <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.inkSoft, marginBottom: 6 }}>Name</label>
+            <input autoFocus value={val} onChange={e => setVal(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter') save(); if (e.key === 'Escape') close(); }}
+              placeholder="Category name"
+              style={{ width: '100%', padding: '8px 10px', borderRadius: 7, border: `1px solid ${P.border}`, fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink, outline: 'none', boxSizing: 'border-box' }} />
+          </div>
+          <div>
+            <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.inkSoft, marginBottom: 6 }}>Spending limit</label>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, border: `1px solid ${P.border}`, borderRadius: 7, padding: '8px 10px' }}>
+              <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft }}>€</span>
+              <input type="number" min="0" value={limitVal} onChange={e => setLimitVal(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') save(); if (e.key === 'Escape') close(); }}
+                placeholder="No limit"
+                style={{ flex: 1, border: 'none', outline: 'none', fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink, background: 'transparent' }} />
+            </div>
+            <p style={{ margin: '4px 0 0', fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkFaint }}>Leave blank for no limit.</p>
+          </div>
+        </div>
+        <div style={{ padding: '14px 22px', borderTop: `1px solid ${P.border}`, display: 'flex', alignItems: 'center', gap: 10 }}>
+          {onDelete && (
+            <button onClick={() => { onDelete(); close(); }} style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: '#dc2626', padding: 0, marginRight: 'auto' }}>
+              Delete
+            </button>
+          )}
+          <button onClick={close} style={{ padding: '8px 18px', borderRadius: 8, border: `1px solid ${P.border}`, background: 'transparent', color: P.ink, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>Cancel</button>
+          <button onClick={save} style={{ padding: '8px 18px', borderRadius: 8, border: 'none', background: P.action, color: '#fff', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>Save</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PickModal({ title, options, value, onSave, onClose, extraField }) {
+  const { visible, close } = useModalTransition(onClose);
+  const [selected, setSelected] = useState(value);
+  const [extraVal, setExtraVal] = useState(extraField ? String(extraField.defaultValue) : '');
+  const save = () => { const n = parseFloat(extraVal); onSave(selected, extraField && selected === extraField.forValue ? (isNaN(n) ? extraField.defaultValue : n) : undefined); close(); };
+  return (
+    <div onClick={close} style={{ position: 'fixed', inset: 0, zIndex: 300, background: 'rgba(15,13,40,0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center', ...modalBackdropStyle(visible) }}>
+      <div onClick={e => e.stopPropagation()} style={{ background: P.white, borderRadius: 14, width: 420, boxShadow: '0 8px 40px rgba(15,13,40,0.2)', display: 'flex', flexDirection: 'column', ...modalPanelStyle(visible) }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 22px', borderBottom: `1px solid ${P.border}` }}>
+          <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 16, color: P.ink }}>{title}</span>
+          <button onClick={close} style={{ border: 'none', cursor: 'pointer', width: 30, height: 30, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(60,60,67,0.1)' }}>
+            <Icon name="X" size={14} color={P.ink} strokeWidth={2.5} />
+          </button>
+        </div>
+        <div style={{ padding: '8px 14px' }}>
+          {options.map(opt => (
+            <React.Fragment key={opt.value}>
+            <div onClick={() => setSelected(opt.value)}
+              style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '12px 10px', cursor: 'pointer', borderRadius: 8 }}>
+              <div style={{ width: 18, height: 18, borderRadius: '50%', border: `2px solid ${selected === opt.value ? P.action : P.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                {selected === opt.value && <div style={{ width: 8, height: 8, borderRadius: '50%', background: P.action }} />}
+              </div>
+              <div>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink }}>{opt.label}</div>
+                {opt.hint && <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, marginTop: 2 }}>{opt.hint}</div>}
+              </div>
+            </div>
+            {extraField && opt.value === extraField.forValue && selected === extraField.forValue && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '0 10px 8px 42px' }}>
+                <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>{extraField.label}</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, border: `1px solid ${P.border}`, borderRadius: 7, padding: '5px 8px', background: P.bg }}>
+                  <input type="number" min={extraField.min || 1} value={extraVal} onChange={e => setExtraVal(e.target.value)}
+                    style={{ width: 48, border: 'none', outline: 'none', fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink, background: 'transparent', textAlign: 'right' }} />
+                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>{extraField.suffix}</span>
+                </div>
+              </div>
+            )}
+            </React.Fragment>
+          ))}
+        </div>
+        <div style={{ padding: '14px 22px', borderTop: `1px solid ${P.border}`, display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+          <button onClick={close} style={{ padding: '8px 18px', borderRadius: 8, border: `1px solid ${P.border}`, background: 'transparent', color: P.ink, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>Cancel</button>
+          <button onClick={save} style={{ padding: '8px 18px', borderRadius: 8, border: 'none', background: P.action, color: '#fff', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>Save</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AmountModal({ title, label, value, onSave, onClose, nullable }) {
+  const { visible, close } = useModalTransition(onClose);
+  const [val, setVal] = useState(value != null ? String(value) : '');
+  const save = () => { const n = parseFloat(val); onSave(isNaN(n) ? null : n); close(); };
+  return (
+    <div onClick={close} style={{ position: 'fixed', inset: 0, zIndex: 300, background: 'rgba(15,13,40,0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center', ...modalBackdropStyle(visible) }}>
+      <div onClick={e => e.stopPropagation()} style={{ background: P.white, borderRadius: 14, width: 420, boxShadow: '0 8px 40px rgba(15,13,40,0.2)', display: 'flex', flexDirection: 'column', ...modalPanelStyle(visible) }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 22px', borderBottom: `1px solid ${P.border}` }}>
+          <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 16, color: P.ink }}>{title}</span>
+          <button onClick={close} style={{ border: 'none', cursor: 'pointer', width: 30, height: 30, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(60,60,67,0.1)' }}>
+            <Icon name="X" size={14} color={P.ink} strokeWidth={2.5} />
+          </button>
+        </div>
+        <div style={{ padding: '18px 22px' }}>
+          <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.inkSoft, marginBottom: 6 }}>{label}</label>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, border: `1px solid ${P.border}`, borderRadius: 7, padding: '8px 10px' }}>
+            <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft }}>€</span>
+            <input autoFocus type="number" min="0" value={val} onChange={e => setVal(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter') save(); if (e.key === 'Escape') close(); }}
+              placeholder="0"
+              style={{ flex: 1, border: 'none', outline: 'none', fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink, background: 'transparent' }} />
+          </div>
+          {nullable && <p style={{ margin: '6px 0 0', fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkFaint }}>Leave blank for no limit.</p>}
+        </div>
+        <div style={{ padding: '14px 22px', borderTop: `1px solid ${P.border}`, display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+          <button onClick={close} style={{ padding: '8px 18px', borderRadius: 8, border: `1px solid ${P.border}`, background: 'transparent', color: P.ink, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>Cancel</button>
+          <button onClick={save} style={{ padding: '8px 18px', borderRadius: 8, border: 'none', background: P.action, color: '#fff', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>Save</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const REIMBURSE_OPTS = [
+  { value: 'payroll', label: 'With next payroll run', hint: 'Included in the monthly payroll processing' },
+  { value: 'weekly',  label: 'Separate bank transfer', hint: 'Processed independently from the payroll cycle' },
+  { value: 'manual',  label: 'Manual (on request)', hint: 'Finance triggers payment manually' },
+];
+const APPROVAL_OPTS = [
+  { value: 'manager', label: 'Direct manager', hint: 'Employee\'s line manager receives the request' },
+  { value: 'finance', label: 'Finance approver', hint: 'Person assigned in Team & access' },
+  { value: 'auto',    label: 'Auto-approve under threshold', hint: 'Expenses below the receipt threshold auto-approve' },
+];
+
+function ExpenseCategorySettings({ categories, onSave }) {
+  const [items, setItems] = useState(categories);
+  const [catModal, setCatModal] = useState(null);       // { idx: number | 'new' }
+  const [settingModal, setSettingModal] = useState(null); // 'cycle' | 'threshold' | 'approval' | { limit: cat }
+
+  const [reimburseCycle, setReimburseCycle] = useState('payroll');
+  const [receiptThreshold, setReceiptThreshold] = useState(25);
+  const [approvalRouting, setApprovalRouting] = useState('manager');
+  const [spendingLimits, setSpendingLimits] = useState({});
+
+  const handleCatSave = (val, limit) => {
+    const next = catModal.idx === 'new'
+      ? [...items, val]
+      : items.map((c, i) => i === catModal.idx ? val : c);
+    setItems(next); onSave(next);
+    const oldName = catModal.idx !== 'new' ? items[catModal.idx] : val;
+    setSpendingLimits(prev => {
+      const updated = { ...prev };
+      if (catModal.idx !== 'new' && oldName !== val) { updated[val] = updated[oldName]; delete updated[oldName]; }
+      if (limit != null) updated[val] = limit; else delete updated[val];
+      return updated;
+    });
+  };
+  const handleCatDelete = () => {
+    const name = items[catModal.idx];
+    const next = items.filter((_, i) => i !== catModal.idx);
+    setItems(next); onSave(next);
+    setSpendingLimits(prev => { const u = { ...prev }; delete u[name]; return u; });
+  };
+
+  const SL = { fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 11, color: P.inkSoft, letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 10 };
+  const card = { border: `1px solid ${P.border}`, borderRadius: 16, overflow: 'clip', background: P.white };
+  const settingRow = (onClick, icon, label, value, last) => (
+    <div onClick={onClick} style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '14px 20px', borderBottom: last ? 'none' : `1px solid ${P.border}`, cursor: 'pointer' }}>
+      <Icon name={icon} size={18} color={P.inkFaint} strokeWidth={1.75} style={{ flexShrink: 0 }} />
+      <span style={{ flex: 1, fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.ink }}>{label}</span>
+      <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, marginRight: 6 }}>{value}</span>
+      <Icon name="chevron-right" size={16} color={P.inkFaint} strokeWidth={1.75} style={{ flexShrink: 0 }} />
+    </div>
+  );
+
+  const cycleLabel = (REIMBURSE_OPTS.find(o => o.value === reimburseCycle) || {}).label || '';
+  const approvalLabel = (APPROVAL_OPTS.find(o => o.value === approvalRouting) || {}).label || '';
+  const thresholdLabel = receiptThreshold != null ? `€ ${receiptThreshold}` : 'No threshold';
+
+  return (
+    <>
+    {catModal && (
+      <CategoryModal
+        title={catModal.idx === 'new' ? 'Add category' : 'Edit category'}
+        initialVal={catModal.idx === 'new' ? '' : items[catModal.idx]}
+        initialLimit={catModal.idx === 'new' ? null : (spendingLimits[items[catModal.idx]] ?? null)}
+        onSave={handleCatSave}
+        onDelete={catModal.idx !== 'new' ? handleCatDelete : null}
+        onClose={() => setCatModal(null)}
+      />
+    )}
+    {settingModal === 'cycle' && (
+      <PickModal title="Reimbursement cycle" options={REIMBURSE_OPTS} value={reimburseCycle} onSave={setReimburseCycle} onClose={() => setSettingModal(null)} />
+    )}
+    {settingModal === 'threshold' && (
+      <AmountModal title="Receipt threshold" label="Require receipt above" value={receiptThreshold} onSave={setReceiptThreshold} onClose={() => setSettingModal(null)} nullable />
+    )}
+    {settingModal === 'approval' && (
+      <PickModal title="Approval routing" options={APPROVAL_OPTS} value={approvalRouting} onSave={setApprovalRouting} onClose={() => setSettingModal(null)} />
+    )}
+    <div style={{ flex: 1, overflow: 'auto', animation: `screenEnter 180ms ${EASE_OUT}` }}>
+      <div style={{ maxWidth: 680, margin: '0 auto', padding: '40px 32px', display: 'flex', flexDirection: 'column', gap: 32 }}>
+        <div>
+          <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 22, color: P.ink, margin: 0, letterSpacing: '-0.02em' }}>Expenses</h1>
+          <p style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkFaint, margin: '4px 0 0' }}>Manage expense settings for your company</p>
+        </div>
+
+        <div>
+          <div style={SL}>Expense categories</div>
+          <div style={card}>
+            {items.map((cat, idx) => {
+              const lim = spendingLimits[cat];
+              return (
+                <div key={cat + idx} onClick={() => setCatModal({ idx })} style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '14px 20px', borderBottom: idx < items.length - 1 ? `1px solid ${P.border}` : 'none', cursor: 'pointer' }}>
+                  <Icon name="tag" size={18} color={P.inkFaint} strokeWidth={1.75} style={{ flexShrink: 0 }} />
+                  <span style={{ flex: 1, fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.ink }}>{cat}</span>
+                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: lim != null ? P.inkSoft : P.inkFaint, marginRight: 6 }}>{lim != null ? `€ ${lim}` : 'No limit'}</span>
+                  <Icon name="chevron-right" size={16} color={P.inkFaint} strokeWidth={1.75} style={{ flexShrink: 0 }} />
+                </div>
+              );
+            })}
+          </div>
+          <button onClick={() => setCatModal({ idx: 'new' })} style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12, padding: '9px 14px', borderRadius: 8, border: `1px solid ${P.border}`, background: P.white, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.ink }}>
+            <Icon name="plus" size={14} color={P.ink} strokeWidth={2.5} /> Add category
+          </button>
+        </div>
+
+        <div>
+          <div style={SL}>Reimbursement</div>
+          <div style={card}>
+            {settingRow(() => setSettingModal('cycle'), 'calendar', 'Reimbursement cycle', cycleLabel, true)}
+          </div>
+        </div>
+
+        <div>
+          <div style={SL}>Receipt policy</div>
+          <div style={card}>
+            {settingRow(() => setSettingModal('threshold'), 'paperclip', 'Receipt required above', thresholdLabel, true)}
+          </div>
+        </div>
+
+        <div>
+          <div style={SL}>Approval</div>
+          <div style={card}>
+            {settingRow(() => setSettingModal('approval'), 'check-circle', 'Who approves?', approvalLabel, true)}
+          </div>
+        </div>
+
+      </div>
+    </div>
+    </>
+  );
+}
+
+function PersonPickerModal({ title, value, onSave, onClose }) {
+  const { visible, close } = useModalTransition(onClose);
+  const [selected, setSelected] = useState(value || []);
+  const [search, setSearch] = useState('');
+  const save = () => { onSave(selected); close(); };
+
+  const toggle = (key) => setSelected(prev =>
+    prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]
+  );
+
+  const filtered = Object.entries(EMPLOYEES)
+    .filter(([, e]) => e.name.toLowerCase().includes(search.toLowerCase()) || e.department.toLowerCase().includes(search.toLowerCase()))
+    .map(([key, e]) => ({ value: key, name: e.name, dept: e.department, initials: e.initials, color: e.color }));
+
+  return (
+    <div onClick={close} style={{ position: 'fixed', inset: 0, zIndex: 300, background: 'rgba(15,13,40,0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center', ...modalBackdropStyle(visible) }}>
+      <div onClick={e => e.stopPropagation()} style={{ background: P.white, borderRadius: 14, width: 440, maxHeight: '70vh', boxShadow: '0 8px 40px rgba(15,13,40,0.2)', display: 'flex', flexDirection: 'column', ...modalPanelStyle(visible) }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 22px', borderBottom: `1px solid ${P.border}`, flexShrink: 0 }}>
+          <div>
+            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 16, color: P.ink }}>{title}</div>
+            {selected.length > 0 && <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, marginTop: 2 }}>{selected.length} selected</div>}
+          </div>
+          <button onClick={close} style={{ border: 'none', cursor: 'pointer', width: 30, height: 30, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(60,60,67,0.1)' }}>
+            <Icon name="X" size={14} color={P.ink} strokeWidth={2.5} />
+          </button>
+        </div>
+        <div style={{ padding: '12px 16px', borderBottom: `1px solid ${P.border}`, flexShrink: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: P.bg, borderRadius: 8, padding: '8px 12px' }}>
+            <Icon name="search" size={14} color={P.inkSoft} strokeWidth={2} />
+            <input autoFocus value={search} onChange={e => setSearch(e.target.value)} placeholder="Search by name or department"
+              style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink }} />
+          </div>
+        </div>
+        <div style={{ flex: 1, overflowY: 'auto', padding: '8px 14px' }}>
+          {filtered.map(emp => {
+            const on = selected.includes(emp.value);
+            return (
+              <div key={emp.value} onClick={() => toggle(emp.value)}
+                style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 10px', cursor: 'pointer', borderRadius: 8 }}>
+                <div style={{ width: 18, height: 18, borderRadius: 4, border: `2px solid ${on ? P.action : P.border}`, background: on ? P.action : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: `background 120ms, border-color 120ms` }}>
+                  {on && <Icon name="check" size={11} color="#fff" strokeWidth={3} />}
+                </div>
+                <div style={{ width: 30, height: 30, borderRadius: '50%', background: emp.color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 10, color: P.ink }}>{emp.initials}</span>
+                </div>
+                <div>
+                  <div style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink }}>{emp.name}</div>
+                  <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>{emp.dept}</div>
+                </div>
+              </div>
+            );
+          })}
+          {filtered.length === 0 && (
+            <div style={{ padding: '20px 10px', fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, textAlign: 'center' }}>No results</div>
+          )}
+        </div>
+        <div style={{ padding: '14px 22px', borderTop: `1px solid ${P.border}`, display: 'flex', gap: 10, justifyContent: 'flex-end', flexShrink: 0 }}>
+          <button onClick={close} style={{ padding: '8px 18px', borderRadius: 8, border: `1px solid ${P.border}`, background: 'transparent', color: P.ink, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>Cancel</button>
+          <button onClick={save} style={{ padding: '8px 18px', borderRadius: 8, border: 'none', background: P.action, color: '#fff', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>Save</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const ROLE_DEFS = [
+  { key: 'finance-approver', label: 'Finance approver', icon: 'banknote',    hint: 'Reviews and approves expense submissions' },
+  { key: 'hr-manager',       label: 'HR manager',       icon: 'user-check',  hint: 'Manages time off, people, and HR settings' },
+  { key: 'payroll-admin',    label: 'Payroll admin',    icon: 'calculator',  hint: 'Runs payroll and accesses salary data' },
+];
+
+const ADMIN_ACCESS = [
+  { key: 'full',    label: 'Full access',  hint: 'Can manage all settings and data' },
+  { key: 'limited', label: 'Limited',      hint: 'Can view and approve but not change settings' },
+];
+
+function TeamAccessSettings() {
+  const [roleAssignments, setRoleAssignments] = useState({
+    'finance-approver': [],
+    'hr-manager': [],
+    'payroll-admin': [],
+  });
+  const [admins, setAdmins] = useState([
+    { id: 'bruno-coen', name: 'Bruno Coen', initials: 'BC', color: '#c7d2fe', email: 'bruno@payflip.be', access: 'owner' },
+  ]);
+  const [roleModal, setRoleModal] = useState(null);
+  const [adminModal, setAdminModal] = useState(null);
+
+  const SL = { fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 11, color: P.inkSoft, letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 10 };
+  const card = { border: `1px solid ${P.border}`, borderRadius: 16, overflow: 'clip', background: P.white };
+
+  return (
+    <>
+    {roleModal && (
+      <PersonPickerModal
+        title={ROLE_DEFS.find(r => r.key === roleModal)?.label}
+        value={roleAssignments[roleModal]}
+        onSave={v => setRoleAssignments(prev => ({ ...prev, [roleModal]: v }))}
+        onClose={() => setRoleModal(null)}
+      />
+    )}
+    {adminModal && (
+      <PickModal
+        title="Access level"
+        options={ADMIN_ACCESS}
+        value={admins.find(a => a.id === adminModal)?.access || 'full'}
+        onSave={v => setAdmins(prev => prev.map(a => a.id === adminModal ? { ...a, access: v } : a))}
+        onClose={() => setAdminModal(null)}
+      />
+    )}
+    <div style={{ flex: 1, overflow: 'auto', animation: `screenEnter 180ms ${EASE_OUT}` }}>
+      <div style={{ maxWidth: 680, margin: '0 auto', padding: '40px 32px', display: 'flex', flexDirection: 'column', gap: 32 }}>
+        <div>
+          <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 22, color: P.ink, margin: 0, letterSpacing: '-0.02em' }}>Team & access</h1>
+          <p style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, margin: '4px 0 0' }}>Manage roles and administrator access for your company</p>
+        </div>
+
+        <div>
+          <div style={SL}>Roles</div>
+          <div style={card}>
+            {ROLE_DEFS.map((role, idx) => {
+              const assignees = roleAssignments[role.key];
+              const visible = assignees.slice(0, 3);
+              const overflow = assignees.length - 3;
+              return (
+                <div key={role.key} onClick={() => setRoleModal(role.key)}
+                  style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '14px 20px', borderBottom: idx < ROLE_DEFS.length - 1 ? `1px solid ${P.border}` : 'none', cursor: 'pointer' }}>
+                  <Icon name={role.icon} size={18} color={P.inkFaint} strokeWidth={1.75} style={{ flexShrink: 0 }} />
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.ink }}>{role.label}</div>
+                    <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, marginTop: 1 }}>{role.hint}</div>
+                  </div>
+                  {assignees.length > 0 ? (
+                    <div style={{ display: 'flex', alignItems: 'center', marginRight: 6 }}>
+                      <div style={{ display: 'flex', flexDirection: 'row-reverse' }}>
+                        {overflow > 0 && (
+                          <div style={{ width: 24, height: 24, borderRadius: '50%', background: P.bg, border: `2px solid ${P.white}`, display: 'flex', alignItems: 'center', justifyContent: 'center', marginLeft: -6 }}>
+                            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 9, color: P.inkSoft }}>+{overflow}</span>
+                          </div>
+                        )}
+                        {[...visible].reverse().map(id => {
+                          const e = EMPLOYEES[id];
+                          return e ? (
+                            <div key={id} style={{ width: 24, height: 24, borderRadius: '50%', background: e.color, border: `2px solid ${P.white}`, display: 'flex', alignItems: 'center', justifyContent: 'center', marginLeft: -6, flexShrink: 0 }}>
+                              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 9, color: P.ink }}>{e.initials}</span>
+                            </div>
+                          ) : null;
+                        })}
+                      </div>
+                      <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, marginLeft: 10 }}>
+                        {assignees.length === 1 ? EMPLOYEES[assignees[0]]?.name.split(' ')[0] : `${assignees.length} people`}
+                      </span>
+                    </div>
+                  ) : (
+                    <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkFaint, marginRight: 6 }}>Not assigned</span>
+                  )}
+                  <Icon name="chevron-right" size={16} color={P.inkFaint} strokeWidth={1.75} style={{ flexShrink: 0 }} />
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        <div>
+          <div style={SL}>Administrators</div>
+          <div style={card}>
+            {admins.map((admin, idx) => (
+              <div key={admin.id}
+                onClick={admin.access !== 'owner' ? () => setAdminModal(admin.id) : undefined}
+                style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '14px 20px', borderBottom: idx < admins.length - 1 ? `1px solid ${P.border}` : 'none', cursor: admin.access !== 'owner' ? 'pointer' : 'default' }}>
+                <div style={{ width: 32, height: 32, borderRadius: '50%', background: admin.color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 11, color: P.ink }}>{admin.initials}</span>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.ink }}>{admin.name}</div>
+                  <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>{admin.email}</div>
+                </div>
+                {admin.access === 'owner'
+                  ? <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, color: P.inkSoft, background: P.bg, padding: '3px 10px', borderRadius: 20, border: `1px solid ${P.border}` }}>Owner</span>
+                  : <>
+                      <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, marginRight: 6 }}>{ADMIN_ACCESS.find(a => a.key === admin.access)?.label}</span>
+                      <Icon name="chevron-right" size={16} color={P.inkFaint} strokeWidth={1.75} style={{ flexShrink: 0 }} />
+                    </>
+                }
+              </div>
+            ))}
+          </div>
+          <button style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12, padding: '9px 14px', borderRadius: 8, border: `1px solid ${P.border}`, background: P.white, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.ink }}>
+            <Icon name="plus" size={14} color={P.ink} strokeWidth={2.5} /> Invite admin
+          </button>
+        </div>
+
+      </div>
+    </div>
+    </>
+  );
+}
+
+const TIMEOFF_APPROVAL_OPTS = [
+  { value: 'manager', label: 'Direct manager',  hint: "Employee's line manager receives the request" },
+  { value: 'hr',      label: 'HR manager',       hint: 'Person assigned in Team & access' },
+  { value: 'auto',    label: 'Auto-approve',     hint: 'Requests under 3 days are approved automatically' },
+];
+const ENTITLEMENT_OPTS = [
+  { value: 'legal',   label: 'Legal minimum',    hint: 'Belgian statutory: 20 days for full-time, prorated for part-time' },
+  { value: 'company', label: 'Company policy',   hint: 'Set a custom entitlement above the legal minimum' },
+];
+const CARRYOVER_OPTS = [
+  { value: 'forfeit',   label: 'No carry-over',          hint: 'Unused days are forfeited at year end' },
+  { value: 'cap',       label: 'Limited carry-over',       hint: 'Set a maximum number of days that roll over to January' },
+  { value: 'unlimited', label: 'Carry over all unused',   hint: 'All remaining days roll over' },
+  { value: 'payout',    label: 'Pay out unused days',     hint: 'Remaining balance is included in the last payroll of the year' },
+];
+const STATUTORY_MAX_TYPES = new Set(['Sick leave', 'Funeral leave', 'Paternity leave', 'Maternity leave', 'Special leave']);
+const DEFAULT_LEAVE_CONFIGS = Object.fromEntries(
+  Object.keys(LEAVE_COLORS).map(name => [name, {
+    docRequired: ['Sick leave', 'Funeral leave', 'Paternity leave', 'Maternity leave', 'Special leave'].includes(name),
+    maxDays: name === 'Time off' ? 20 : null,
+  }])
+);
+
+function LeaveTypeModal({ name, color, config, onSave, onClose, showMaxDays = true }) {
+  const { visible, close } = useModalTransition(onClose);
+  const [cfg, setCfg] = useState({ ...config });
+  const save = () => { onSave(cfg); close(); };
+  const toggle = (field) => setCfg(prev => ({ ...prev, [field]: !prev[field] }));
+
+  const ToggleRow = ({ label, hint, field, last }) => (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '14px 0', borderBottom: last ? 'none' : `1px solid ${P.border}` }}>
+      <div style={{ flex: 1 }}>
+        <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.ink }}>{label}</div>
+        {hint && <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, marginTop: 2 }}>{hint}</div>}
+      </div>
+      <div onClick={() => toggle(field)} style={{ width: 38, height: 22, borderRadius: 11, background: cfg[field] ? P.action : P.border, cursor: 'pointer', position: 'relative', transition: `background 180ms ${EASE_OUT}`, flexShrink: 0 }}>
+        <div style={{ position: 'absolute', top: 3, left: cfg[field] ? 19 : 3, width: 16, height: 16, borderRadius: '50%', background: '#fff', transition: `left 180ms ${EASE_OUT}`, boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }} />
+      </div>
+    </div>
+  );
+
+  return (
+    <div onClick={close} style={{ position: 'fixed', inset: 0, zIndex: 300, background: 'rgba(15,13,40,0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center', ...modalBackdropStyle(visible) }}>
+      <div onClick={e => e.stopPropagation()} style={{ background: P.white, borderRadius: 14, width: 440, boxShadow: '0 8px 40px rgba(15,13,40,0.2)', display: 'flex', flexDirection: 'column', ...modalPanelStyle(visible) }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 22px', borderBottom: `1px solid ${P.border}` }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div style={{ width: 10, height: 10, borderRadius: '50%', background: color, border: `1.5px solid ${LEAVE_BORDER_COLORS[name] || P.border}`, flexShrink: 0 }} />
+            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 16, color: P.ink }}>{name}</span>
+          </div>
+          <button onClick={close} style={{ border: 'none', cursor: 'pointer', width: 30, height: 30, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(60,60,67,0.1)' }}>
+            <Icon name="X" size={14} color={P.ink} strokeWidth={2.5} />
+          </button>
+        </div>
+        <div style={{ padding: '0 22px' }}>
+          <ToggleRow label="Document required" hint="Employee must upload proof when submitting this request" field="docRequired" last={!showMaxDays} />
+          {showMaxDays && (
+          <div style={{ padding: '14px 0' }}>
+            <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.inkSoft, marginBottom: 6 }}>Max days per year</label>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, border: `1px solid ${P.border}`, borderRadius: 7, padding: '8px 10px' }}>
+              <input type="number" min="0" value={cfg.maxDays ?? ''} onChange={e => setCfg(prev => ({ ...prev, maxDays: e.target.value === '' ? null : parseFloat(e.target.value) }))}
+                placeholder="No limit"
+                style={{ flex: 1, border: 'none', outline: 'none', fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink, background: 'transparent' }} />
+              <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>days</span>
+            </div>
+            <p style={{ margin: '4px 0 0', fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>Leave blank for no limit.</p>
+          </div>
+          )}
+        </div>
+        <div style={{ padding: '14px 22px', borderTop: `1px solid ${P.border}`, display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+          <button onClick={close} style={{ padding: '8px 18px', borderRadius: 8, border: `1px solid ${P.border}`, background: 'transparent', color: P.ink, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>Cancel</button>
+          <button onClick={save} style={{ padding: '8px 18px', borderRadius: 8, border: 'none', background: P.action, color: '#fff', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>Save</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function TimeOffSettings() {
+  const [leaveConfigs, setLeaveConfigs] = useState(DEFAULT_LEAVE_CONFIGS);
+  const [entitlement, setEntitlement] = useState('legal');
+  const [companyDays, setCompanyDays] = useState(25);
+  const [carryover, setCarryover] = useState('cap');
+  const [carryoverCap, setCarryoverCap] = useState(5);
+  const [approval, setApproval] = useState('manager');
+  const [leaveModal, setLeaveModal] = useState(null);
+  const [settingModal, setSettingModal] = useState(null);
+
+  const SL = { fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 11, color: P.inkSoft, letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 10 };
+  const card = { border: `1px solid ${P.border}`, borderRadius: 16, overflow: 'clip', background: P.white };
+
+  const settingRow = (onClick, icon, label, value, last) => (
+    <div onClick={onClick} style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '14px 20px', borderBottom: last ? 'none' : `1px solid ${P.border}`, cursor: 'pointer' }}>
+      <Icon name={icon} size={18} color={P.inkFaint} strokeWidth={1.75} style={{ flexShrink: 0 }} />
+      <span style={{ flex: 1, fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.ink }}>{label}</span>
+      <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, marginRight: 6 }}>{value}</span>
+      <Icon name="chevron-right" size={16} color={P.inkFaint} strokeWidth={1.75} style={{ flexShrink: 0 }} />
+    </div>
+  );
+
+  return (
+    <>
+    {leaveModal && (
+      <LeaveTypeModal
+        name={leaveModal}
+        color={LEAVE_COLORS[leaveModal]}
+        config={leaveConfigs[leaveModal]}
+        onSave={cfg => setLeaveConfigs(prev => ({ ...prev, [leaveModal]: cfg }))}
+        onClose={() => setLeaveModal(null)}
+        showMaxDays={!STATUTORY_MAX_TYPES.has(leaveModal)}
+      />
+    )}
+    {settingModal === 'entitlement' && <PickModal title="Entitlement" options={ENTITLEMENT_OPTS} value={entitlement} onSave={(val, extra) => { setEntitlement(val); if (extra !== undefined) setCompanyDays(extra); }} onClose={() => setSettingModal(null)} extraField={{ forValue: 'company', label: 'Days', defaultValue: companyDays, suffix: 'days', min: 20 }} />}
+    {settingModal === 'carryover' && <PickModal title="Unused days" options={CARRYOVER_OPTS} value={carryover} onSave={(val, extra) => { setCarryover(val); if (extra !== undefined) setCarryoverCap(extra); }} onClose={() => setSettingModal(null)} extraField={{ forValue: 'cap', label: 'Max', defaultValue: carryoverCap, suffix: 'days', min: 1 }} />}
+    {settingModal === 'approval' && <PickModal title="Who approves?" options={TIMEOFF_APPROVAL_OPTS} value={approval} onSave={setApproval} onClose={() => setSettingModal(null)} />}
+
+    <div style={{ flex: 1, overflow: 'auto', animation: `screenEnter 180ms ${EASE_OUT}` }}>
+      <div style={{ maxWidth: 680, margin: '0 auto', padding: '40px 32px', display: 'flex', flexDirection: 'column', gap: 32 }}>
+        <div>
+          <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 22, color: P.ink, margin: 0, letterSpacing: '-0.02em' }}>Time off</h1>
+          <p style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, margin: '4px 0 0' }}>Manage leave types, entitlement and approval for your company</p>
+        </div>
+
+        <div>
+          <div style={SL}>Leave types</div>
+          <div style={card}>
+            {Object.keys(LEAVE_COLORS).map((name, idx, arr) => {
+              const cfg = leaveConfigs[name];
+              const summary = [cfg.docRequired && 'Doc required', cfg.maxDays != null && `${cfg.maxDays}d max`].filter(Boolean).join(' · ') || 'No limits';
+              return (
+                <div key={name} onClick={() => setLeaveModal(name)}
+                  style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '14px 20px', borderBottom: idx < arr.length - 1 ? `1px solid ${P.border}` : 'none', cursor: 'pointer' }}>
+                  <div style={{ width: 10, height: 10, borderRadius: '50%', background: LEAVE_COLORS[name], border: `1.5px solid ${LEAVE_BORDER_COLORS[name] || P.border}`, flexShrink: 0 }} />
+                  <span style={{ flex: 1, fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.ink }}>{name}</span>
+                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, marginRight: 6 }}>{summary}</span>
+                  <Icon name="chevron-right" size={16} color={P.inkFaint} strokeWidth={1.75} style={{ flexShrink: 0 }} />
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        <div>
+          <div style={SL}>Accrual & carry-over</div>
+          <div style={card}>
+            {settingRow(() => setSettingModal('entitlement'), 'calendar-days', 'Entitlement', entitlement === 'company' ? `${companyDays}d / year` : 'Legal minimum', false)}
+            {settingRow(() => setSettingModal('carryover'), 'arrow-right', 'Unused days', carryover === 'cap' ? `Up to ${carryoverCap} days` : (CARRYOVER_OPTS.find(o => o.value === carryover) || {}).label, true)}
+          </div>
+        </div>
+
+        <div>
+          <div style={SL}>Approval</div>
+          <div style={card}>
+            {settingRow(() => setSettingModal('approval'), 'check-circle', 'Who approves?', (TIMEOFF_APPROVAL_OPTS.find(o => o.value === approval) || {}).label, true)}
+          </div>
+        </div>
+
+      </div>
+    </div>
+    </>
+  );
+}
+
+// ── Choices screen ─────────────────────────────────────────────────────────
+function ChoiceRow({ choice, onApprove, onDecline, onDetail, showStatus }) {
+  const emp = EMPLOYEES[choice.empId] || { name: choice.empId, initials: '?', color: '#e5e7eb' };
+  const [hover, setHover] = useState(false);
+  const isPending = choice.status === 'pending';
+  const gridCols = showStatus
+    ? '1.8fr 2fr 1fr 1fr 1fr 0.9fr 80px'
+    : '1.8fr 2fr 1fr 1fr 1fr 80px';
+  return (
+    <div onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}
+      onClick={() => onDetail && onDetail(choice)}
+      style={{
+        display: 'grid', gridTemplateColumns: gridCols,
+        alignItems: 'center', gap: 12, padding: '0 20px', minHeight: 52,
+        borderBottom: `1px solid ${P.border}`,
+        background: hover ? P.bg : P.white,
+        transition: 'background 0.1s',
+        cursor: 'pointer',
+      }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 9, minWidth: 0 }}>
+        <Avatar employeeId={choice.empId} size={24} style={{ border: '2px solid #fff', boxSizing: 'content-box' }} />
+        <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, fontWeight: 500, color: P.ink, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{emp.name}</span>
+      </div>
+      <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{choice.name}</span>
+      <span style={{ fontFamily: 'var(--font-display)', fontSize: 14, fontWeight: 600, color: P.ink, whiteSpace: 'nowrap' }}>{choice.price}</span>
+      <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft }}>{choice.sDate}</span>
+      <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft }}>{choice.eDate}</span>
+      {showStatus && <div style={{ display: 'flex' }}><StatusPill status={choice.status || 'approved'} /></div>}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4 }}>
+        {isPending && (<>
+          <button title="Decline" onClick={e => { e.stopPropagation(); onDecline(choice.id); }}
+            onMouseEnter={e => { e.currentTarget.style.background = '#fee2e2'; e.currentTarget.style.borderColor = '#fca5a5'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = '#fef2f2'; e.currentTarget.style.borderColor = '#fecaca'; }}
+            style={{ width: 28, height: 28, borderRadius: 6, border: '1px solid #fecaca', background: '#fef2f2', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <Icon name="X" size={14} color="#dc2626" strokeWidth={2.5} />
+          </button>
+          <button title="Approve" onClick={e => { e.stopPropagation(); onApprove(choice.id); }}
+            onMouseEnter={e => { e.currentTarget.style.background = '#dcfce7'; e.currentTarget.style.borderColor = '#86efac'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = '#f0fdf4'; e.currentTarget.style.borderColor = '#bbf7d0'; }}
+            style={{ width: 28, height: 28, borderRadius: 6, border: '1px solid #bbf7d0', background: '#f0fdf4', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <Icon name="Check" size={14} color="#16a34a" strokeWidth={2.5} />
+          </button>
+        </>)}
+      </div>
+    </div>
+  );
+}
+
+function ChoicesScreen({ choices, onApprove, onDecline, onDetail }) {
+  const [tab, setTab] = useState('pending');
+  const [searchText, setSearchText] = useState('');
+  const [deptFilter, setDeptFilter] = useState('all');
+  const pendingCount = choices.filter(c => c.status === 'pending').length;
+  const tabFiltered = tab === 'pending' ? choices.filter(c => c.status === 'pending')
+    : tab === 'approved' ? choices.filter(c => c.status === 'approved')
+    : tab === 'declined' ? choices.filter(c => c.status === 'declined')
+    : choices;
+  const filtered = tabFiltered.filter(c => {
+    const emp = EMPLOYEES[c.empId];
+    if (searchText.trim() && !emp?.name.toLowerCase().includes(searchText.trim().toLowerCase())) return false;
+    if (deptFilter !== 'all' && emp?.department !== deptFilter) return false;
+    return true;
+  });
+  const showStatus = tab === 'all';
+  const gridCols = showStatus
+    ? '1.8fr 2fr 1fr 1fr 1fr 0.9fr 80px'
+    : '1.8fr 2fr 1fr 1fr 1fr 80px';
+  return (
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, animation: `screenEnter 180ms ${EASE_OUT}` }}>
+      <PageHeader
+        title="Choices"
+        subtitle="Review and approve employee benefit elections"
+        tabs={
+          <TabBar
+            tabs={[
+              { id: 'pending', label: `Pending${pendingCount > 0 ? ` (${pendingCount})` : ''}` },
+              { id: 'approved', label: 'Approved' },
+              { id: 'declined', label: 'Declined' },
+              { id: 'all', label: 'All choices' },
+            ]}
+            activeTab={tab}
+            onTabChange={v => { setTab(v); }}
+          />
+        }
+      />
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '24px 20px 14px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 7, border: `1px solid ${P.border}`, borderRadius: 7, padding: '8px 12px', width: 240, background: P.white }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={P.inkFaint} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input value={searchText} onChange={e => setSearchText(e.target.value)} placeholder="Search employee" style={{ border: 'none', outline: 'none', background: 'transparent', fontFamily: 'var(--font-body)', fontSize: 12, color: P.ink, width: '100%' }} />
+        </div>
+        <FilterDropdown label="All departments" active={deptFilter} opts={[['all', 'All departments'], ...DEPARTMENTS.map(d => [d, d])]} onSelect={setDeptFilter} minWidth={160} />
+      </div>
+      <div style={{ flex: 1, overflowY: 'auto', padding: '0 20px 20px' }}>
+        <div style={{ background: P.white, borderRadius: 12, border: `1px solid ${P.border}`, overflow: 'clip' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: gridCols, alignItems: 'center', gap: 12, padding: '0 20px', height: 38, borderBottom: `1px solid ${P.border}`, background: P.bg, position: 'sticky', top: 0, zIndex: 5 }}>
+            <TH>Employee</TH>
+            <TH>Choice</TH>
+            <TH>Price</TH>
+            <TH>Start date</TH>
+            <TH>End date</TH>
+            {showStatus && <TH>Status</TH>}
+            <div />
+          </div>
+          {filtered.length === 0 ? (
+            <div style={{ padding: '60px 24px', textAlign: 'center' }}>
+              <Icon name="ListChecks" size={32} color={P.border} />
+              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.inkFaint, marginTop: 12 }}>
+                No {tab === 'pending' ? 'pending ' : tab === 'approved' ? 'approved ' : tab === 'declined' ? 'declined ' : ''}choices
+              </div>
+            </div>
+          ) : filtered.map(c => <ChoiceRow key={c.id} choice={c} onApprove={onApprove} onDecline={onDecline} onDetail={onDetail} showStatus={showStatus} />)}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function StubScreen({ title, description }) {
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, overflow: 'hidden', animation: `screenEnter 180ms ${EASE_OUT}` }}>
@@ -4118,6 +6193,7 @@ const SETTINGS_TITLES = {
   'settings-documents': 'Documents',
   'settings-timeoff': 'Time off',
   'settings-payroll': 'Payroll settings',
+  'settings-expenses': 'Expenses',
   'settings-cardrules': 'Card rules',
   'settings-integrations': 'Integrations',
   'settings-team': 'Team & access',
@@ -4126,7 +6202,7 @@ const SETTINGS_TITLES = {
 // ── App switcher pill ──────────────────────────────────────────────────────
 function AppSwitcher() {
   return (
-    <a href="../employee-app/" style={{
+    <a href="/employee-app/" style={{
       position: 'fixed', bottom: 20, right: 20, zIndex: 100,
       display: 'inline-flex', alignItems: 'center', gap: 7,
       padding: '8px 14px', borderRadius: 20,
@@ -4238,6 +6314,41 @@ function App() {
     if (id === 'team-absences') setCalendarJumpDate(null);
     setScreen(id);
   };
+  const [choices, setChoices] = useState(CHOICES_SEED);
+  const [choiceDetail, setChoiceDetail] = useState(null);
+  const approveChoice = (id) => {
+    setChoices(prev => prev.map(c => c.id === id ? { ...c, status: 'approved' } : c));
+    const ch = choices.find(c => c.id === id);
+    if (ch) setToast({ message: `${(EMPLOYEES[ch.empId] || {}).name?.split(' ')[0]}'s choice approved`, type: 'approve' });
+  };
+  const declineChoice = (id, reason) => {
+    setChoices(prev => prev.map(c => c.id === id ? { ...c, status: 'declined', declineReason: reason } : c));
+    const ch = choices.find(c => c.id === id);
+    if (ch) setToast({ message: `${(EMPLOYEES[ch.empId] || {}).name?.split(' ')[0]}'s choice declined`, type: 'decline' });
+  };
+
+  const [expenses, setExpenses] = useState(EXPENSES_SEED);
+  const [expenseCategories, setExpenseCategories] = useState(EXPENSE_CATEGORIES_SEED);
+  const [expDetail, setExpDetail] = useState(null);
+
+  const approveExpense = (id) => {
+    setExpenses(prev => prev.map(e => e.id === id ? { ...e, status: 'approved' } : e));
+    const exp = expenses.find(e => e.id === id);
+    if (exp) setToast({ message: `${(EMPLOYEES[exp.employee] || { name: exp.employee }).name.split(' ')[0]}'s expense approved`, type: 'approve' });
+  };
+
+  const rejectExpense = (id, reason) => {
+    setExpenses(prev => prev.map(e => e.id === id ? { ...e, status: 'rejected', rejectReason: reason } : e));
+    const exp = expenses.find(e => e.id === id);
+    if (exp) setToast({ message: `${(EMPLOYEES[exp.employee] || { name: exp.employee }).name.split(' ')[0]}'s expense rejected`, type: 'decline' });
+  };
+  const addExpense = (exp) => {
+    const id = `exp-${Date.now()}`;
+    setExpenses(prev => [{ id, ...exp, status: 'pending' }, ...prev]);
+    const name = (EMPLOYEES[exp.employee] || { name: exp.employee }).name.split(' ')[0];
+    setToast({ message: `Expense added for ${name}`, type: 'approve' });
+  };
+
   const [pendingAction, setPendingAction] = useState(null); // { type: 'decline'|'cancel', id, empName }
   const [followUpPrompt, setFollowUpPrompt] = useState(null); // { empId, iso, half }
   const [followUpModalOpen, setFollowUpModalOpen] = useState(false);
@@ -4362,7 +6473,10 @@ function App() {
     setBalanceConfirmedDates(prev => ({ ...prev, [empId]: '15 Jul 2026' }));
   };
 
-  const pendingCount = requests.filter(r => r.status === 'pending').length;
+  const pendingRequestsCount = requests.filter(r => r.status === 'pending').length;
+  const pendingExpensesCount = expenses.filter(e => e.status === 'pending').length;
+  const pendingChoicesCount = choices.filter(c => c.status === 'pending').length;
+  const pendingCount = { requests: pendingRequestsCount, expenses: pendingExpensesCount, choices: pendingChoicesCount };
 
   return (
     <div style={{ display: 'flex', height: '100vh', background: P.bg }}>
@@ -4387,6 +6501,18 @@ function App() {
           from { opacity: 0; transform: translateY(6px); }
           to   { opacity: 1; transform: translateY(0); }
         }
+        @keyframes fileRowIn {
+          from { opacity: 0; transform: translateY(5px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes stepContentEnter {
+          from { opacity: 0; transform: scale(0.97) translateY(4px); }
+          to   { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        @keyframes stepDoneEnter {
+          from { opacity: 0; transform: translateY(-4px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
         * { box-sizing: border-box; }
         ::placeholder { color: #9ca3af; opacity: 1; }
       `}</style>
@@ -4394,15 +6520,19 @@ function App() {
       <Sidebar active={screen} onNav={handleNav} pendingCount={pendingCount} sidebarMode={sidebarMode} onSetSidebarMode={setSidebarMode} />
 
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, overflow: 'hidden' }}>
-        {screen === 'dashboard' && <DashboardScreen requests={requests} onNav={setScreen} />}
-        {screen === 'team-absences' && <TeamAbsencesScreen requests={requests} pendingCount={pendingCount} onNav={setScreen} onShowDetail={setCalDetail} activeReqId={calDetail?.id} onSave={saveRequest} companyEvents={companyEvents} onCancelCompanyEvent={cancelCompanyEvent} initialDate={calendarJumpDate} initialDeptFilter={calendarDeptFilter} />}
+        {screen === 'dashboard' && <DashboardScreen requests={requests} onNav={setScreen} onToast={setToast} />}
+        {screen === 'team-absences' && <TeamAbsencesScreen requests={requests} pendingCount={pendingRequestsCount} onNav={setScreen} onShowDetail={setCalDetail} activeReqId={calDetail?.id} onSave={saveRequest} companyEvents={companyEvents} onCancelCompanyEvent={cancelCompanyEvent} initialDate={calendarJumpDate} initialDeptFilter={calendarDeptFilter} />}
         {screen === 'requests' && <RequestsScreen requests={requests} onApprove={approve} onDecline={requestDecline} onSave={saveRequest} onCancel={requestCancel} onNav={setScreen} onViewInCalendar={(req) => { const d = req._selectedDates?.[0] || req.startDate; if (d) { const iso = typeof d === 'string' && d.match(/^\d{4}-/) ? d : null; setCalendarJumpDate(iso ? new Date(iso) : parseDisplayDate(d)); } setCalDetail(req); setScreen('team-absences'); }} />}
         {screen === 'employees' && <EmployeesScreen requests={requests} onNav={setScreen} />}
-        {screen.startsWith('employee-detail:') && <EmployeeDetailScreen employeeId={screen.split(':')[1]} requests={requests} onNav={setScreen} onSave={saveRequest} onCancel={cancelRequest} onApprove={approve} onDecline={requestDecline} onViewTeamCalendar={(dept) => { setCalendarDeptFilter(dept || null); setScreen('team-absences'); }} employeeBalance={employeeBalances[screen.split(':')[1]]} onUpdateBalance={(newBal) => updateBalances(screen.split(':')[1], newBal)} needsSetup={needsBalanceSetup.has(screen.split(':')[1])} confirmedDate={balanceConfirmedDates[screen.split(':')[1]]} onConfirmBalances={() => confirmBalancesFor(screen.split(':')[1])} />}
-        {screen === 'choices' && <StubScreen title="Choices" description="Employee benefit choices overview" />}
+        {screen.startsWith('employee-detail:') && <EmployeeDetailScreen employeeId={screen.split(':')[1]} requests={requests} onNav={setScreen} onSave={saveRequest} onCancel={cancelRequest} onApprove={approve} onDecline={requestDecline} onViewTeamCalendar={(dept) => { setCalendarDeptFilter(dept || null); setScreen('team-absences'); }} employeeBalance={employeeBalances[screen.split(':')[1]]} onUpdateBalance={(newBal) => updateBalances(screen.split(':')[1], newBal)} needsSetup={needsBalanceSetup.has(screen.split(':')[1])} confirmedDate={balanceConfirmedDates[screen.split(':')[1]]} onConfirmBalances={() => confirmBalancesFor(screen.split(':')[1])} onToast={setToast} />}
+        {screen === 'expenses' && <ExpensesScreen expenses={expenses} categories={expenseCategories} onApprove={approveExpense} onDetail={(exp) => setExpDetail(exp)} onAdd={addExpense} />}
+        {screen === 'choices' && <ChoicesScreen choices={choices} onApprove={approveChoice} onDecline={declineChoice} onDetail={setChoiceDetail} />}
         {screen === 'payroll-overview' && <StubScreen title="Payroll Overview" description="Monthly payroll run and submission" />}
         {screen === 'payroll-reports' && <StubScreen title="Payroll Reports" description="Reporting and exports" />}
-        {screen.startsWith('settings-') && <StubScreen title={SETTINGS_TITLES[screen] || 'Settings'} description={`Configure ${(SETTINGS_TITLES[screen] || 'settings').toLowerCase()}`} />}
+        {screen === 'settings-expenses' && <ExpenseCategorySettings categories={expenseCategories} onSave={setExpenseCategories} />}
+        {screen === 'settings-team' && <TeamAccessSettings />}
+        {screen === 'settings-timeoff' && <TimeOffSettings />}
+        {screen.startsWith('settings-') && screen !== 'settings-expenses' && screen !== 'settings-team' && screen !== 'settings-timeoff' && <StubScreen title={SETTINGS_TITLES[screen] || 'Settings'} description={`Configure ${(SETTINGS_TITLES[screen] || 'settings').toLowerCase()}`} />}
       </div>
 
       {calDetail && (
@@ -4411,10 +6541,29 @@ function App() {
           req={calDetail}
           requests={requests}
           onClose={() => setCalDetail(null)}
-          onApprove={(id) => { approve(id); setCalDetail(prev => prev && prev.id === id ? { ...prev, status: 'approved' } : prev); }}
+          onApprove={(id) => { approve(id); setCalDetail(null); }}
           onDecline={(id, reason) => requestDecline(id, reason)}
           onCancel={(id, reason) => requestCancel(id, reason)}
           onSave={(req) => { saveRequest(req); setCalDetail(req); }}
+        />
+      )}
+
+      {expDetail && (
+        <ExpenseDrawer
+          key={expDetail.id}
+          expense={expDetail}
+          onClose={() => setExpDetail(null)}
+          onApprove={(id) => { approveExpense(id); setExpDetail(null); }}
+          onReject={(id, reason) => { rejectExpense(id, reason); setExpDetail(null); }}
+        />
+      )}
+      {choiceDetail && (
+        <ChoiceDrawer
+          key={choiceDetail.id}
+          choice={choices.find(c => c.id === choiceDetail.id) || choiceDetail}
+          onClose={() => setChoiceDetail(null)}
+          onApprove={(id) => { approveChoice(id); setChoiceDetail(null); }}
+          onDecline={(id, reason) => { declineChoice(id, reason); setChoiceDetail(null); }}
         />
       )}
 

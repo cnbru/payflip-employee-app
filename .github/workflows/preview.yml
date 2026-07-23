@@ -1,17 +1,20 @@
-name: Deploy to GitHub Pages
+name: Deploy Branch Preview
 
 on:
   push:
-    branches: [main]
+    branches: ['feature/**']
 
 permissions:
   contents: write
 
 jobs:
-  deploy:
+  preview:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Get branch slug
+        id: slug
+        run: echo "slug=$(echo ${GITHUB_REF_NAME} | sed 's/[^a-zA-Z0-9]/-/g')" >> $GITHUB_OUTPUT
       - name: Prepare site
         run: |
           mkdir -p _site
@@ -20,4 +23,5 @@ jobs:
       - uses: JamesIves/github-pages-deploy-action@v4
         with:
           folder: _site
-          clean-exclude: preview/
+          target-folder: preview/${{ steps.slug.outputs.slug }}
+          clean: false
