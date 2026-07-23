@@ -6200,22 +6200,6 @@ const SETTINGS_TITLES = {
 };
 
 // ── App switcher pill ──────────────────────────────────────────────────────
-function AppSwitcher() {
-  return (
-    <a href="/employee-app/" style={{
-      position: 'fixed', bottom: 20, right: 20, zIndex: 100,
-      display: 'inline-flex', alignItems: 'center', gap: 7,
-      padding: '8px 14px', borderRadius: 20,
-      background: P.action, color: '#fff', textDecoration: 'none',
-      fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12,
-      boxShadow: '0 2px 12px rgba(15,13,40,0.2)',
-    }}>
-      <Icon name="Smartphone" size={13} color="#fff" strokeWidth={2} />
-      Employee App
-    </a>
-  );
-}
-
 // ── Toast ──────────────────────────────────────────────────────────────────
 function Toast({ toast, onDone }) {
   const [exiting, setExiting] = useState(false);
@@ -6590,7 +6574,6 @@ function App() {
         />
       )}
 
-      <AppSwitcher />
       {toast && <Toast toast={toast} onDone={() => setToast(null)} />}
       {followUpPrompt && !followUpModalOpen && (
         <FollowUpBanner
