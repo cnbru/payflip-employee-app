@@ -27,7 +27,7 @@
       "runtimeExecutable": "npx",
       "runtimeArgs": ["serve", "/Users/brunocoen/Documents/payflip-mobile-app-v1/project", "--no-clipboard"],
       "port": 8083,
-"autoPort": true
-    },
+      "autoPort": true
+    }
   ]
 }
