@@ -54,7 +54,7 @@ function ExpenseTypeScreen() {
     {
       img: EXPENSE_TYPE_ICONS.cash,
       title: 'Expenses',
-      subtitle: 'Work-related expenses like hotels, restaurants,.. to be reimbursed by your employer',
+      subtitle: 'Ask your employer for a reimbursement for hotels, restaurant,..',
       onClick: () => push('expense-wizard'),
     },
     {
