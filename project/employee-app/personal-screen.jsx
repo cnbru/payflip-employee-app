@@ -434,6 +434,13 @@ const NAV_ITEMS = [
     subtitle: 'Balance, requests & history',
     external: false,
   },
+  {
+    id:       'my-expenses',
+    icon:     'Receipt',
+    label:    'My expenses',
+    subtitle: 'Submitted expenses & status',
+    external: false,
+  },
 ];
 
 function PersonalNavRow({ item, onClick }) {
@@ -473,7 +480,7 @@ function PersonalScreen() {
   const handlePress = (id) => {
     if (!nav) return;
     if (id === 'time-off') nav.push('time-off-hub');
-    // other items: placeholders
+    if (id === 'my-expenses') nav.push('my-expenses');
   };
 
   return (
@@ -2872,12 +2879,12 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
               onClick={() => nav && nav.pop()}
               aria-label="Close"
               style={{
-                width: 36, height: 36, borderRadius: 8,
-                background: P.surface, border: 'none',
+                width: 36, height: 36, borderRadius: 999,
+                border: `1px solid ${P.border}`, background: 'transparent',
                 cursor: 'pointer', padding: 0,
                 display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
               }}>
-              <LucideIcon name="X" size={22} color={P.ink} strokeWidth={2} />
+              <LucideIcon name="X" size={18} color={P.ink} strokeWidth={2} />
             </button>
           </div>
         )}
@@ -4029,6 +4036,77 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
 }
 
 window.registerScreen('request-time-off', RequestTimeOffScreen);
+
+// ─────────────────────────────────────────────────────────────
+// Absence Type Screen — entry point for the add absence flow
+// ─────────────────────────────────────────────────────────────
+function AbsenceTypeScreen() {
+  const { pop, push } = window.useNav ? window.useNav() : {};
+
+  const rows = [
+    {
+      iconName: 'Palmtree',
+      title: 'Time off',
+      subtitle: '14 days available',
+      onClick: () => push && push('request-time-off', { prefillReason: 'timeoff' }),
+    },
+    {
+      iconName: 'Stethoscope',
+      title: 'Sick leave',
+      subtitle: '1 day without certificate, 2+ days requires one',
+      onClick: () => push && push('request-time-off', { prefillReason: 'sick' }),
+    },
+    {
+      iconName: 'Gift',
+      title: 'Special leave',
+      subtitle: 'Wedding, funeral, moving…',
+      onClick: () => push && push('request-time-off', { prefillReason: 'special' }),
+    },
+  ];
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: '#fff' }}>
+      {/* Top bar with X */}
+      <div style={{ padding: '8px 16px 0' }}>
+        <button onClick={() => pop && pop()} style={{
+          width: 36, height: 36, borderRadius: 999,
+          border: `1px solid ${P.border}`, background: 'transparent',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          cursor: 'pointer',
+        }}>
+          <LucideIcon name="X" size={18} color={P.ink} strokeWidth={2} />
+        </button>
+      </div>
+
+      {/* Content */}
+      <div style={{ padding: '24px 16px 0', display: 'flex', flexDirection: 'column', gap: 32 }}>
+        <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 28, lineHeight: '36px', letterSpacing: '-0.04em', color: P.ink }}>What type of leave?</span>
+
+        <div>
+          {rows.map(({ iconName, title, subtitle, onClick }) => (
+            <button key={title} onClick={onClick} style={{
+              width: '100%', appearance: 'none', background: 'transparent',
+              border: 'none', borderBottom: `1px solid #e3e2e7`,
+              padding: '16px 0', cursor: 'pointer', textAlign: 'left',
+              display: 'flex', alignItems: 'center', gap: 16,
+            }}>
+              <div style={{ width: 52, height: 52, borderRadius: 14, flexShrink: 0, background: '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <LucideIcon name={iconName} size={24} color={P.ink} strokeWidth={1.75} />
+              </div>
+              <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 3 }}>
+                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 17, lineHeight: '24px', color: P.ink, display: 'block' }}>{title}</span>
+                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 400, fontSize: 14, lineHeight: '20px', color: P.inkSoft, display: 'block' }}>{subtitle}</span>
+              </div>
+              <LucideIcon name="ChevronRight" size={20} color={P.inkSoft} strokeWidth={2} style={{ flexShrink: 0 }} />
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+window.registerScreen('absence-type', AbsenceTypeScreen);
 
 // ─────────────────────────────────────────────────────────────
 // Time Off Detail — full-page view with details + timeline

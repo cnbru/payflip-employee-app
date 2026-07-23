@@ -307,7 +307,7 @@ function Field({
   const hasErr = !!error;
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8, width: '100%' }}>
-      {label && <Body16 color={PFC.inkSoft} weight={500}>{label}</Body16>}
+      {label && <Body14 color={PFC.ink} weight={600}>{label}</Body14>}
       <div style={{
         display: 'flex', alignItems: 'center',
         background: hasErr ? PFC.errorBg : '#fff',
@@ -364,12 +364,13 @@ function fmtEUR(n) {
 
 // Filter pills (used by Transactions screen)
 function FilterPill({ label, active, onClick }) {
+  const blue = 'rgb(37,99,235)';
   return (
     <button onClick={onClick} className="pf-pressable" style={{
       appearance: 'none',
-      background: active ? PFC.ink : '#fff',
+      background: active ? blue : '#fff',
       color: active ? '#fff' : PFC.ink,
-      border: `1px solid ${active ? PFC.ink : PFC.borderHard}`,
+      border: `1px solid ${active ? blue : PFC.borderHard}`,
       borderRadius: 8, padding: '6px 12px',
       fontFamily: _font, fontWeight: 700, fontSize: 14, lineHeight: '20px',
       cursor: 'pointer', flex: 'none',
