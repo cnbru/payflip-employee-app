@@ -5000,11 +5000,13 @@ function MobilityLaunchWidget({ onToast }) {
   const [secSearch, setSecSearch] = useState('');
   const [secRect, setSecRect] = useState(null);
   const secTriggerRef = React.useRef(null);
+  const [step3Open, setStep3Open] = useState(false);
 
   const switchMode = (mode) => {
     setWidgetMode(mode);
     setStep(1);
     setStep1Open(false);
+    setStep3Open(false);
   };
 
   // Mobility: simulate first deposit arriving 5s after step 3
@@ -5303,10 +5305,7 @@ function MobilityLaunchWidget({ onToast }) {
             ) : step < 2 ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 24 }}>
                 {stepBadgeEl(2)}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 16, color: P.inkSoft }}>Awaiting bank approval</span>
-                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>a few hours</span>
-                </div>
+                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 16, color: P.inkSoft }}>Awaiting bank approval</span>
               </div>
             ) : (
               <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 24, animation: `stepDoneEnter 200ms ${EASE_OUT}` }}>
@@ -5364,6 +5363,7 @@ function MobilityLaunchWidget({ onToast }) {
               <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 24, animation: `stepDoneEnter 200ms ${EASE_OUT}` }}>
                 {stepBadgeEl(3, step === 4)}
                 <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.inkSoft }}>{socialSecretariat}</span>
+                <a href="#" onClick={e => { e.preventDefault(); setStep(3); }} style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.ink, textDecoration: 'underline', marginLeft: 'auto' }}>Edit</a>
               </div>
             )}
           </div>
