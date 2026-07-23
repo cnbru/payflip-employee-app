@@ -1260,7 +1260,7 @@ function CalendarDrawer({ req, requests, onClose, onApprove, onDecline, onCancel
   );
 
   const SectionHeader = ({ children }) => (
-    <div style={{ padding: '16px 24px 6px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 10, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+    <div style={{ padding: '24px 24px 6px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 10, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
       {children}
     </div>
   );
@@ -1309,7 +1309,10 @@ function CalendarDrawer({ req, requests, onClose, onApprove, onDecline, onCancel
           {heroDateStr} · {durationStr}
         </TableRow>
         <TableRow label="Type" icon="tag">
-          {req.type}
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}>
+            <span style={{ width: 10, height: 10, borderRadius: '50%', background: LEAVE_COLORS[req.type] || P.inkFaint, border: `1.5px solid ${LEAVE_BORDER_COLORS[req.type] || P.border}`, flexShrink: 0 }} />
+            {req.type}
+          </span>
         </TableRow>
         <TableRow label="Department" icon="building-2">
           {emp.department}
@@ -1352,44 +1355,40 @@ function CalendarDrawer({ req, requests, onClose, onApprove, onDecline, onCancel
         return (
           <div>
             {/* Collapsed row */}
-            <div style={{ display: 'flex', alignItems: 'center', padding: '16px 24px', gap: 16 }}>
+            <div onClick={hasOverlap ? () => setTeamExpanded(x => !x) : undefined} style={{ display: 'flex', alignItems: 'center', padding: '16px 24px', gap: 16, cursor: hasOverlap ? 'pointer' : 'default' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 7, flexShrink: 0 }}>
                 <Icon name="users" size={14} color={P.inkSoft} strokeWidth={1.75} style={{ flexShrink: 0 }} />
                 <div style={{ flexShrink: 0, fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.ink, whiteSpace: 'nowrap' }}>Team availability</div>
               </div>
               <div style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 8 }}>
-                {/* Summary label */}
                 {hasOverlap
-                  ? <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: '#92400e' }}>{overlapping.length}/{teamSize} off</span>
+                  ? <DotPill bg="#fef9c3" color="#92400e">{overlapping.length} of {teamSize} away</DotPill>
                   : <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 13, color: P.inkSoft }}>All available</span>
                 }
-                {/* Chevron — only shown when there are conflicts */}
                 {hasOverlap && (
-                  <button onClick={() => setTeamExpanded(x => !x)} style={{ flexShrink: 0, width: 24, height: 24, borderRadius: '50%', border: 'none', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}>
+                  <span style={{ flexShrink: 0, width: 24, height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <Icon name="chevron-down" size={14} color={P.inkSoft} strokeWidth={2} style={{ transition: 'transform 200ms ease', transform: teamExpanded ? 'rotate(180deg)' : 'rotate(0deg)' }} />
-                  </button>
+                  </span>
                 )}
               </div>
             </div>
 
             {/* Expanded member list */}
             {teamExpanded && (
-              <div style={{ paddingBottom: 4 }}>
+              <div style={{ margin: '0 16px 12px', background: '#f9f9fa', borderRadius: 10, overflow: 'hidden' }}>
                 {sorted.filter(id => offIds.has(id)).map((empId, i) => {
                   const oe = EMPLOYEES[empId];
                   const offReq = overlapping.find(r => r.employee === empId);
                   const dateStr = offReq.startDate === offReq.endDate ? offReq.startDate : `${offReq.startDate} – ${offReq.endDate}`;
                   return (
                     <React.Fragment key={empId}>
-                    {i > 0 && <div style={{ height: 1, background: P.border, margin: '0 24px' }} />}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 24px' }}>
+                    {i > 0 && <div style={{ height: 1, background: P.border, margin: '0 12px' }} />}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px' }}>
                       <span style={{ borderRadius: '50%', border: '2px solid #fcd34d', display: 'flex', lineHeight: 0, flexShrink: 0 }}>
-                        <Avatar employeeId={empId} size={22} />
+                        <Avatar employeeId={empId} size={18} />
                       </span>
-                      <div>
-                        <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.ink }}>{oe?.name}</div>
-                        <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, marginTop: 2 }}>{offReq.type} · {dateStr}</div>
-                      </div>
+                      <span style={{ flex: 1, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.ink }}>{oe?.name}</span>
+                      <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>{dateStr}</span>
                     </div>
                     </React.Fragment>
                   );
@@ -2555,7 +2554,7 @@ function ExpenseDrawer({ expense, onClose, onApprove, onReject }) {
     </div>
   );
   const SectionHeader = ({ children }) => (
-    <div style={{ padding: '16px 24px 6px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 10, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+    <div style={{ padding: '24px 24px 6px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 10, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
       {children}
     </div>
   );
@@ -2720,7 +2719,7 @@ function ChoiceDrawer({ choice, onClose, onApprove, onDecline }) {
     </div>
   );
   const SectionHeader = ({ children }) => (
-    <div style={{ padding: '16px 24px 6px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 10, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+    <div style={{ padding: '24px 24px 6px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 10, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
       {children}
     </div>
   );
@@ -2916,8 +2915,9 @@ function RequestRow({ req, requests, onApprove, onDecline, onDetail, onDeclineDi
           </div>
           {showStatus && <StatusDot status={req.status} />}
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}>
-            <span style={{ width: 8, height: 8, borderRadius: 2, background: LEAVE_COLORS[req.type] || P.inkFaint, flexShrink: 0 }} />
+            <span style={{ width: 10, height: 10, borderRadius: '50%', background: LEAVE_COLORS[req.type] || P.inkFaint, border: `1.5px solid ${LEAVE_BORDER_COLORS[req.type] || P.border}`, flexShrink: 0 }} />
             <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink }}>{req.type}</span>
+            {req.document && <Icon name="paperclip" size={12} color={P.inkFaint} strokeWidth={1.75} style={{ flexShrink: 0 }} />}
           </span>
           <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink }}>{req.days} {req.days === 1 ? 'day' : 'days'}</span>
           <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink }}>{req.startDate}</span>
@@ -4526,13 +4526,23 @@ function EditBalancesModal({ emp, balances, onSave, onClose, isNewEmployee, onCo
 }
 
 // ── Employee detail screen ────────────────────────────────────────────────
-function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, onApprove, onDecline, onViewTeamCalendar, employeeBalance, onUpdateBalance, needsSetup, confirmedDate, onConfirmBalances }) {
+function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, onApprove, onDecline, onViewTeamCalendar, employeeBalance, onUpdateBalance, needsSetup, confirmedDate, onConfirmBalances, onToast }) {
   const emp = EMPLOYEES[employeeId];
   const [activeTab, setActiveTab] = useState('choices');
   const [addModal, setAddModal] = useState(null); // null | 'add' | request object (edit)
   const [cancelAction, setCancelAction] = useState(null);
   const [editBalancesOpen, setEditBalancesOpen] = useState(false);
   const [detailReq, setDetailReq] = useState(null);
+  const [empMenuOpen, setEmpMenuOpen] = useState(false);
+  const [deactivateConfirm, setDeactivateConfirm] = useState(false);
+  const empMenuRef = useRef(null);
+  const { rendered: empMenuRendered, visible: empMenuVisible } = usePopoverTransition(empMenuOpen);
+  useEffect(() => {
+    if (!empMenuOpen) return;
+    const close = (e) => { if (empMenuRef.current && !empMenuRef.current.contains(e.target)) setEmpMenuOpen(false); };
+    document.addEventListener('mousedown', close);
+    return () => document.removeEventListener('mousedown', close);
+  }, [empMenuOpen]);
 
   if (!emp) return <div style={{ padding: 24 }}>Employee not found</div>;
 
@@ -4582,10 +4592,44 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, o
             <path d="M19 12H5M12 5l-7 7 7 7"/>
           </svg>
         </button>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 18 }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 18 }}>
           <div>
             <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 28, color: P.ink, margin: 0, letterSpacing: '-0.02em' }}>{emp.name}</h1>
             <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, margin: '2px 0 0' }}>{emp.department}</p>
+          </div>
+          <div ref={empMenuRef} style={{ position: 'relative', marginTop: 4 }}>
+            <button onClick={() => setEmpMenuOpen(o => !o)} style={{
+              width: 32, height: 32, borderRadius: 8,
+              border: `1px solid ${empMenuOpen ? P.ink : P.border}`,
+              background: empMenuOpen ? '#f0f0f2' : P.white,
+              cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              <Icon name="Ellipsis" size={15} color={empMenuOpen ? P.ink : P.inkSoft} />
+            </button>
+            {empMenuRendered && (
+              <div style={{
+                position: 'absolute', right: 0, top: 38, zIndex: 50,
+                background: P.white, border: `1px solid ${P.border}`, borderRadius: 10,
+                boxShadow: '0 4px 20px rgba(0,0,0,0.10)', width: 180, overflow: 'hidden',
+                ...popoverStyle(empMenuVisible, 'top right'),
+              }}>
+                <button onClick={() => { setEmpMenuOpen(false); onToast && onToast({ message: `Impersonating ${emp.name.split(' ')[0]}…`, type: 'approve' }); }} style={{
+                  display: 'flex', alignItems: 'center', gap: 9,
+                  width: '100%', padding: '9px 12px', border: 'none', background: 'transparent', cursor: 'pointer', textAlign: 'left',
+                }} onMouseEnter={e => e.currentTarget.style.background = P.bg} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                  <Icon name="monitor-smartphone" size={14} color={P.ink} strokeWidth={1.75} />
+                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.ink }}>Impersonate user</span>
+                </button>
+                <div style={{ height: 1, background: P.border, margin: '0 12px' }} />
+                <button onClick={() => { setEmpMenuOpen(false); setDeactivateConfirm(true); }} style={{
+                  display: 'flex', alignItems: 'center', gap: 9,
+                  width: '100%', padding: '9px 12px', border: 'none', background: 'transparent', cursor: 'pointer', textAlign: 'left',
+                }} onMouseEnter={e => e.currentTarget.style.background = '#fef2f2'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                  <Icon name="user-x" size={14} color="#dc2626" strokeWidth={1.75} />
+                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: '#dc2626' }}>Deactivate employee</span>
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
@@ -4609,6 +4653,81 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, o
                 </button>
               </div>
             )}
+            {/* Requested time off */}
+            <div style={{ marginBottom: 36 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 16, color: P.ink }}>Requested time off</span>
+                <button onClick={() => setAddModal('add')} style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '9px 18px', borderRadius: 8, border: 'none', background: P.action, color: '#fff', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>
+                  <Icon name="Plus" size={14} color="#fff" strokeWidth={2.5} />
+                  Add time off
+                </button>
+              </div>
+              {empReqs.filter(r => r.status === 'pending').length > 0 ? (
+                <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 12, overflow: 'visible' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-body)', fontSize: 13 }}>
+                    <thead>
+                      <tr style={{ borderBottom: `1px solid ${P.border}` }}>
+                        <th style={{ width: '20%', textAlign: 'left', padding: '9px 20px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Date from</th>
+                        <th style={{ width: '20%', textAlign: 'left', padding: '9px 16px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Date to</th>
+                        <th style={{ width: '25%', textAlign: 'left', padding: '9px 16px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Type</th>
+                        <th style={{ width: '15%', textAlign: 'center', padding: '9px 16px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Days</th>
+                        <th style={{ width: '15%', textAlign: 'left', padding: '9px 16px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Status</th>
+                        <th style={{ width: 40 }}></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {empReqs.filter(r => r.status === 'pending').map((req, idx, arr) => (
+                        <tr key={req.id} onClick={() => setDetailReq(req)} style={{ borderBottom: idx < arr.length - 1 ? `1px solid ${P.border}` : 'none', cursor: 'pointer' }}>
+                          <td style={{ padding: '12px 20px', fontSize: 14, color: P.ink }}>{req.startDate}</td>
+                          <td style={{ padding: '12px 16px', fontSize: 14, color: req.endDate && req.endDate !== req.startDate ? P.ink : P.inkFaint }}>
+                            {req.endDate && req.endDate !== req.startDate ? req.endDate : '—'}
+                          </td>
+                          <td style={{ padding: '12px 16px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                              <span style={{ width: 10, height: 10, borderRadius: '50%', background: LEAVE_COLORS[req.type] || P.inkFaint, border: `1.5px solid ${LEAVE_BORDER_COLORS[req.type] || P.border}`, flexShrink: 0 }} />
+                              <span style={{ fontSize: 14, color: P.ink }}>{req.type}</span>
+                            </div>
+                          </td>
+                          <td style={{ padding: '12px 16px', fontSize: 14, textAlign: 'center', color: P.ink }}>
+                            {req.days === 0.5 ? (
+                              <span>{'½'}<span style={{ fontSize: 11, color: P.inkFaint, marginLeft: 3 }}>{req.halfDay || ''}</span></span>
+                            ) : req.days || 1}
+                          </td>
+                          <td style={{ padding: '12px 16px' }}><StatusPill status={req.status} /></td>
+                          <td style={{ padding: '10px 16px' }} onClick={e => e.stopPropagation()}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4 }}>
+                              <button title="Decline" onClick={() => setDetailReq({ ...req, _declineMode: true })}
+                                onMouseEnter={e => { e.currentTarget.style.background = '#fee2e2'; e.currentTarget.style.borderColor = '#fca5a5'; }}
+                                onMouseLeave={e => { e.currentTarget.style.background = '#fef2f2'; e.currentTarget.style.borderColor = '#fecaca'; }}
+                                style={{ width: 28, height: 28, borderRadius: 6, border: '1px solid #fecaca', background: '#fef2f2', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                <Icon name="X" size={14} color="#dc2626" strokeWidth={2.5} />
+                              </button>
+                              <button title="Approve" onClick={() => onApprove(req.id)}
+                                onMouseEnter={e => { e.currentTarget.style.background = '#dcfce7'; e.currentTarget.style.borderColor = '#86efac'; }}
+                                onMouseLeave={e => { e.currentTarget.style.background = '#f0fdf4'; e.currentTarget.style.borderColor = '#bbf7d0'; }}
+                                style={{ width: 28, height: 28, borderRadius: 6, border: '1px solid #bbf7d0', background: '#f0fdf4', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                <Icon name="Check" size={14} color="#16a34a" strokeWidth={2.5} />
+                              </button>
+                              <ActionMenu req={req}
+                                onApprove={() => onApprove(req.id)}
+                                onDecline={() => onDecline(req.id)}
+                                onEdit={() => setAddModal(req)}
+                                onCancel={() => setCancelAction(req)}
+                              />
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 12, padding: '24px 20px', textAlign: 'center' }}>
+                  <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkFaint }}>No pending requests</div>
+                </div>
+              )}
+            </div>
+
             {/* Balances card */}
             <div style={{ marginBottom: 36 }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
@@ -4619,8 +4738,8 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, o
                   )}
                 </div>
                 {!needsSetup && (
-                  <button onClick={() => setEditBalancesOpen(true)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 14px', borderRadius: 8, border: 'none', background: P.action, color: '#fff', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12 }}>
-                    <Icon name="Pencil" size={12} color="#fff" />
+                  <button onClick={() => setEditBalancesOpen(true)} style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '9px 18px', borderRadius: 8, border: `1px solid ${P.border}`, background: P.white, color: P.inkSoft, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>
+                    <Icon name="Pencil" size={14} color={P.inkSoft} />
                     Edit balances
                   </button>
                 )}
@@ -4632,7 +4751,7 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, o
                   return (
                     <div key={b.type} style={{ flex: '1 1 160px', background: P.white, border: `1px solid ${P.border}`, borderRadius: 10, padding: '20px 24px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
-                        <span style={{ width: 7, height: 7, borderRadius: 2, background: LEAVE_COLORS[b.type], flexShrink: 0 }} />
+                        <span style={{ width: 10, height: 10, borderRadius: '50%', background: LEAVE_COLORS[b.type], border: `1.5px solid ${LEAVE_BORDER_COLORS[b.type] || P.border}`, flexShrink: 0 }} />
                         <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>{b.type}</span>
                       </div>
                       {isLimited ? (
@@ -4657,59 +4776,6 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, o
                 })}
               </div>
             </div>
-
-            {/* Requested time off */}
-            {empReqs.filter(r => r.status === 'pending').length > 0 && (
-              <div style={{ marginBottom: 36 }}>
-                <div style={{ marginBottom: 12 }}>
-                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 16, color: P.ink }}>Requested time off</span>
-                </div>
-                <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 12, overflow: 'visible' }}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-body)', fontSize: 13 }}>
-                    <thead>
-                      <tr style={{ borderBottom: `1px solid ${P.border}` }}>
-                        <th style={{ width: '20%', textAlign: 'left', padding: '9px 20px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Date from</th>
-                        <th style={{ width: '20%', textAlign: 'left', padding: '9px 16px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Date to</th>
-                        <th style={{ width: '25%', textAlign: 'left', padding: '9px 16px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Type</th>
-                        <th style={{ width: '15%', textAlign: 'center', padding: '9px 16px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Days</th>
-                        <th style={{ width: '15%', textAlign: 'left', padding: '9px 16px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Status</th>
-                        <th style={{ width: 40 }}></th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {empReqs.filter(r => r.status === 'pending').map((req, idx, arr) => (
-                        <tr key={req.id} onClick={() => setDetailReq(req)} style={{ borderBottom: idx < arr.length - 1 ? `1px solid ${P.border}` : 'none', cursor: 'pointer' }}>
-                          <td style={{ padding: '12px 20px', fontSize: 14, color: P.ink }}>{req.startDate}</td>
-                          <td style={{ padding: '12px 16px', fontSize: 14, color: req.endDate && req.endDate !== req.startDate ? P.ink : P.inkFaint }}>
-                            {req.endDate && req.endDate !== req.startDate ? req.endDate : '—'}
-                          </td>
-                          <td style={{ padding: '12px 16px' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                              <span style={{ width: 8, height: 8, borderRadius: 2, background: LEAVE_COLORS[req.type] || P.inkFaint, flexShrink: 0 }} />
-                              <span style={{ fontSize: 14, color: P.ink }}>{req.type}</span>
-                            </div>
-                          </td>
-                          <td style={{ padding: '12px 16px', fontSize: 14, textAlign: 'center', color: P.ink }}>
-                            {req.days === 0.5 ? (
-                              <span>{'½'}<span style={{ fontSize: 11, color: P.inkFaint, marginLeft: 3 }}>{req.halfDay || ''}</span></span>
-                            ) : req.days || 1}
-                          </td>
-                          <td style={{ padding: '12px 16px' }}><StatusDot status={req.status} /></td>
-                          <td style={{ padding: '10px 16px' }} onClick={e => e.stopPropagation()}>
-                            <ActionMenu req={req}
-                              onApprove={() => onApprove(req.id)}
-                              onDecline={() => onDecline(req.id)}
-                              onEdit={() => setAddModal(req)}
-                              onCancel={() => setCancelAction(req)}
-                            />
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            )}
 
             {/* Absence history */}
             <div>
@@ -4743,7 +4809,7 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, o
                         </td>
                         <td style={{ padding: '12px 16px' }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                            <span style={{ width: 8, height: 8, borderRadius: 2, background: LEAVE_COLORS[req.type] || P.inkFaint, flexShrink: 0 }} />
+                            <span style={{ width: 10, height: 10, borderRadius: '50%', background: LEAVE_COLORS[req.type] || P.inkFaint, border: `1.5px solid ${LEAVE_BORDER_COLORS[req.type] || P.border}`, flexShrink: 0 }} />
                             <span style={{ fontSize: 14, color: P.ink }}>{req.type}</span>
                           </div>
                         </td>
@@ -4752,7 +4818,7 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, o
                             <span>{'½'}<span style={{ fontSize: 11, color: P.inkFaint, marginLeft: 3 }}>{req.halfDay || ''}</span></span>
                           ) : req.days || 1}
                         </td>
-                        <td style={{ padding: '12px 16px' }}><StatusDot status={req.status} /></td>
+                        <td style={{ padding: '12px 16px' }}><StatusPill status={req.status} /></td>
                         <td style={{ padding: '10px 16px' }} onClick={e => e.stopPropagation()}>
                           <ActionMenu req={req}
                             onEdit={() => setAddModal(req)}
@@ -4823,6 +4889,34 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, o
           onSave={(req) => { onSave(req); setDetailReq(req); }}
         />
       )}
+
+      {deactivateConfirm && (
+        <div onClick={() => setDeactivateConfirm(false)} style={{
+          position: 'fixed', inset: 0, zIndex: 300,
+          background: 'rgba(15,13,40,0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>
+          <div onClick={e => e.stopPropagation()} style={{
+            background: P.white, borderRadius: 14, width: 400, padding: '28px 28px 24px',
+            boxShadow: '0 8px 40px rgba(15,13,40,0.2)',
+          }}>
+            <div style={{ width: 40, height: 40, borderRadius: 10, background: '#fef2f2', border: '1px solid #fecaca', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
+              <Icon name="user-x" size={18} color="#dc2626" strokeWidth={1.75} />
+            </div>
+            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 16, color: P.ink, marginBottom: 6 }}>Deactivate {emp.name}?</div>
+            <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, marginBottom: 24, lineHeight: 1.5 }}>
+              {emp.name.split(' ')[0]} will lose access to Payflip immediately. Their data and history will be preserved.
+            </div>
+            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+              <button onClick={() => setDeactivateConfirm(false)} style={{ padding: '8px 16px', borderRadius: 8, border: `1px solid ${P.border}`, background: P.white, color: P.inkSoft, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>
+                Cancel
+              </button>
+              <button onClick={() => { setDeactivateConfirm(false); onToast && onToast({ message: `${emp.name.split(' ')[0]} deactivated`, type: 'decline' }); }} style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: '#dc2626', color: '#fff', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>
+                Deactivate
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -4841,7 +4935,481 @@ function DashboardListRow({ onClick, children }) {
   );
 }
 
-function DashboardScreen({ requests, onNav }) {
+const PAYFLIP_CARD_IMG = 'https://www.figma.com/api/mcp/asset/86118957-1a80-4819-b71b-65247513e641';
+const TWIKEY_LOGO_IMG = 'https://www.figma.com/api/mcp/asset/717eafe8-6673-4b0e-adb4-8fbbffe6a268';
+
+// Pointer tracked on the outer flat wrapper; inner card rotates via CSS custom props.
+// Per transitions-dev/19-card-tilt.md — MAX 14° is tasteful for a credit card.
+function CardTilt({ children }) {
+  const wrapperRef = useRef(null);
+  const [rx, setRx] = React.useState(0);
+  const [ry, setRy] = React.useState(0);
+  const [gx, setGx] = React.useState(50);
+  const [gy, setGy] = React.useState(50);
+  const [hover, setHover] = React.useState(false);
+  const [tilting, setTilting] = React.useState(false);
+  const MAX = 14;
+
+  const track = (e) => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const r = wrapperRef.current.getBoundingClientRect();
+    const px = Math.min(1, Math.max(0, (e.clientX - r.left) / r.width));
+    const py = Math.min(1, Math.max(0, (e.clientY - r.top) / r.height));
+    setHover(true); setTilting(true);
+    setRx((0.5 - py) * MAX); setRy((px - 0.5) * MAX);
+    setGx(px * 100); setGy(py * 100);
+  };
+  const reset = () => { setHover(false); setTilting(false); setRx(0); setRy(0); };
+
+  return (
+    <div ref={wrapperRef} onPointerMove={track} onPointerLeave={reset} style={{ touchAction: 'none', display: 'inline-block', filter: 'drop-shadow(0 20px 40px rgba(0,0,0,0.22)) drop-shadow(0 6px 16px rgba(0,0,0,0.14))' }}>
+      <div style={{
+        position: 'relative',
+        transform: `perspective(1000px) rotateX(${rx}deg) rotateY(${ry}deg)`,
+        transformStyle: 'preserve-3d',
+        transition: tilting
+          ? 'transform 400ms cubic-bezier(0.22, 1, 0.36, 1)'
+          : 'transform 1000ms cubic-bezier(0.22, 1, 0.36, 1)',
+        willChange: 'transform',
+      }}>
+        {children}
+        <div style={{
+          position: 'absolute', inset: 0, pointerEvents: 'none',
+          opacity: hover ? 0.32 : 0,
+          mixBlendMode: 'screen',
+          background: `
+            radial-gradient(circle 95px at ${gx}% ${gy}%, rgba(255,255,255,0.48), rgba(255,255,255,0.06) 52%, rgba(255,255,255,0) 84%),
+            radial-gradient(circle 200px at ${gx}% ${gy}%, rgba(255,255,255,0.22), rgba(255,255,255,0.04) 58%, rgba(255,255,255,0) 78%),
+            radial-gradient(circle 360px at ${gx}% ${gy}%, rgba(255,255,255,0.10), rgba(255,255,255,0) 88%)
+          `,
+          transition: 'opacity 300ms cubic-bezier(0.22, 1, 0.36, 1)',
+        }} />
+      </div>
+    </div>
+  );
+}
+
+function MobilityLaunchWidget({ onToast }) {
+  const [widgetMode, setWidgetMode] = useState('mobility');
+  const [step, setStep] = useState(1);
+  const [depositAmount, setDepositAmount] = useState('257');
+  const [allowPhysical, setAllowPhysical] = useState(false);
+  const [step1Open, setStep1Open] = useState(false);
+  const [socialSecretariat, setSocialSecretariat] = useState('SD Worx');
+  const [secOpen, setSecOpen] = useState(false);
+  const [secSearch, setSecSearch] = useState('');
+  const [secRect, setSecRect] = useState(null);
+  const secTriggerRef = React.useRef(null);
+
+  const switchMode = (mode) => {
+    setWidgetMode(mode);
+    setStep(1);
+    setStep1Open(false);
+  };
+
+  // Mobility: simulate first deposit arriving 5s after step 3
+  React.useEffect(() => {
+    if (widgetMode !== 'mobility' || step !== 3) return;
+    const t = setTimeout(() => {
+      setStep(4);
+      onToast?.({ message: 'Funds received — your account is ready', type: 'approve' });
+    }, 5000);
+    return () => clearTimeout(t);
+  }, [widgetMode, step]);
+
+  // Food: simulate bank approval 5s after step 2
+  React.useEffect(() => {
+    if (widgetMode !== 'food' || step !== 2) return;
+    const t = setTimeout(() => {
+      setStep(3);
+      onToast?.({ message: 'Mandate approved — select your social secretariat', type: 'approve' });
+    }, 5000);
+    return () => clearTimeout(t);
+  }, [widgetMode, step]);
+
+  const mobilityBadgeLabels = ['Ready to launch', 'Authorise direct debit', 'Awaiting first deposit', 'Ready to invite'];
+  const foodBadgeLabels    = ['Ready to launch', 'Awaiting approval', 'Select secretariat', 'Ready to invite'];
+  const headerBadgeLabel = (widgetMode === 'mobility' ? mobilityBadgeLabels : foodBadgeLabels)[step - 1];
+
+  // State 1 uses circular badges; states 2+ use square badges
+  const badgeRadius = step === 1 ? '999px' : '4px';
+
+  const stepBadgeEl = (n, pop = false) => {
+    const done = n < step;
+    const active = n === step;
+    if (done) return (
+      <span style={{ width: 24, height: 24, borderRadius: '4px', background: '#008556', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, animation: pop ? `badgePopIn 400ms cubic-bezier(0.34, 1.36, 0.64, 1)` : undefined }}>
+        <Icon name="check" size={12} color="#fff" strokeWidth={2.5} />
+      </span>
+    );
+    return (
+      <span style={{ width: 24, height: 24, borderRadius: badgeRadius, background: active ? P.ink : P.white, border: active ? 'none' : `1px solid ${P.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 12, color: active ? '#fff' : P.ink }}>
+        {n}
+      </span>
+    );
+  };
+
+  const inactiveBg = '#fafafa';
+
+  return (
+    <div style={{ marginBottom: 24 }}>
+      {/* Prototype switcher — fixed floating pill, same layer as Employee App button */}
+      <div style={{ position: 'fixed', bottom: 20, right: 158, zIndex: 100, display: 'inline-flex', alignItems: 'center', gap: 6, padding: '7px 10px 7px 12px', borderRadius: 20, background: P.action, boxShadow: 'rgba(15,13,40,0.2) 0px 2px 12px' }}>
+        <Icon name="wrench" size={12} color="#fff" strokeWidth={2} />
+        <div style={{ display: 'flex' }}>
+          {['mobility', 'food'].map(m => (
+            <button key={m} onClick={() => switchMode(m)} style={{
+              padding: '2px 8px', borderRadius: 12, border: 'none',
+              background: widgetMode === m ? 'rgba(255,255,255,0.18)' : 'transparent',
+              cursor: 'pointer',
+              fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12,
+              color: widgetMode === m ? '#fff' : 'rgba(255,255,255,0.55)',
+              transition: 'background 150ms ease, color 150ms ease',
+              textTransform: 'capitalize',
+            }}>
+              {m === 'mobility' ? 'Mobility' : 'Food'}
+            </button>
+          ))}
+        </div>
+      </div>
+    <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 8, overflow: 'hidden' }}>
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 24px', borderBottom: `1px solid ${P.border}` }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.ink, letterSpacing: '-0.025px' }}>
+            Launch {widgetMode} card for your employees
+          </span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          <span style={{ background: P.ink, color: '#fff', borderRadius: 8, padding: '2px 8px', fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 12, letterSpacing: '0.06px', whiteSpace: 'nowrap' }}>
+            {headerBadgeLabel}
+          </span>
+          <Icon name="chevron-up" size={24} color={P.ink} strokeWidth={2} />
+        </div>
+      </div>
+
+      {/* Body */}
+      <div style={{ display: 'flex', alignItems: 'stretch' }}>
+        {/* Steps column — fixed 480px */}
+        <div style={{ width: 480, minWidth: 480, borderRight: `1px solid ${P.border}`, display: 'flex', flexDirection: 'column' }}>
+        {widgetMode === 'mobility' ? (<>
+
+          {/* Step 1 */}
+          <div style={{ background: step === 1 ? P.white : inactiveBg, borderBottom: `1px solid ${P.border}` }}>
+            {step === 1 ? (
+              <div key="step1-active" style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 24, animation: `stepContentEnter 250ms ${EASE_OUT}` }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  {stepBadgeEl(1)}
+                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.ink }}>Set deposit amount</span>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+                  <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink, lineHeight: '20px', margin: 0 }}>
+                    This is your initial deposit — we'll collect it now to fund your mobility account. After that, direct debit automatically tops up the account whenever the balance runs low, so your employees always have funds available.
+                  </p>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                      <label style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.ink, letterSpacing: '0.035px' }}>Recommended amount to collect</label>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, border: `1px solid #bec0c5`, borderRadius: 8, padding: '8px 12px', height: 40, background: P.white }}>
+                        <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink, flexShrink: 0 }}>€</span>
+                        <input value={depositAmount} onChange={e => setDepositAmount(e.target.value)} style={{ border: 'none', outline: 'none', fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink, width: '100%', background: 'transparent' }} />
+                      </div>
+                      <p style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, margin: 0, lineHeight: '16px' }}>
+                        Based on the employee's 2025 mobility spending for 19 employees with a mobility budget
+                      </p>
+                    </div>
+                    <a href="#" onClick={e => e.preventDefault()} style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.ink, textDecoration: 'underline', letterSpacing: '-0.035px' }}>
+                      How is this calculated?
+                    </a>
+                  </div>
+                  <button onClick={() => setStep(2)} style={{ width: '100%', padding: '8px 16px', minHeight: 36, borderRadius: 8, border: 'none', background: P.action, color: '#fff', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16 }}>
+                    Confirm amount
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div style={{ animation: `stepDoneEnter 200ms ${EASE_OUT}` }}>
+                <div
+                  onClick={step === 2 ? () => setStep1Open(v => !v) : undefined}
+                  style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 24, cursor: step === 2 ? 'pointer' : 'default' }}
+                >
+                  {stepBadgeEl(1)}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flex: 1 }}>
+                    <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.inkSoft }}>Deposit scheduled</span>
+                    {step === 2 && <Icon name="chevron-down" size={24} color={P.ink} strokeWidth={2} style={{ transform: step1Open ? 'rotate(180deg)' : 'rotate(0deg)', transition: `transform 200ms ${EASE_OUT}` }} />}
+                  </div>
+                </div>
+                {step === 2 && step1Open && (
+                  <div style={{ padding: '0 24px 20px 60px', display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink }}>€{depositAmount},00</span>
+                    <a href="#" onClick={e => { e.preventDefault(); setStep(1); setStep1Open(false); }} style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.ink, textDecoration: 'underline' }}>
+                      Edit amount
+                    </a>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Step 2 */}
+          <div style={{ background: step === 2 ? P.white : inactiveBg, borderBottom: `1px solid ${P.border}` }}>
+            {step === 2 ? (
+              <div key="step2-active" style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 24, animation: `stepContentEnter 250ms ${EASE_OUT}` }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  {stepBadgeEl(2)}
+                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.ink }}>Authorise direct debit</span>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <div style={{ display: 'flex', gap: 24, alignItems: 'flex-start' }}>
+                    <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink, lineHeight: '20px', margin: 0, flex: 1 }}>
+                      You're authorising Payflip to collect <strong>€{depositAmount},00</strong> now to fund your mobility account, and to automatically top it up when the balance runs low.
+                    </p>
+                    <img src={TWIKEY_LOGO_IMG} alt="twikey" style={{ width: 62, height: 27, flexShrink: 0, display: 'block' }} />
+                  </div>
+                  <a href="#" onClick={e => { e.preventDefault(); setStep(1); }} style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.ink, textDecoration: 'underline', letterSpacing: '-0.035px' }}>
+                    Edit amount
+                  </a>
+                </div>
+                <button onClick={() => setStep(3)} style={{ width: '100%', padding: '8px 16px', minHeight: 36, borderRadius: 8, border: 'none', background: P.action, color: '#fff', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16 }}>
+                  Sign mandate
+                </button>
+              </div>
+            ) : step < 2 ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 24 }}>
+                {stepBadgeEl(2)}
+                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 16, color: P.inkSoft }}>Authorise direct debit</span>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 24, animation: `stepDoneEnter 200ms ${EASE_OUT}` }}>
+                {stepBadgeEl(2)}
+                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.inkSoft }}>Mandate signed</span>
+              </div>
+            )}
+          </div>
+
+          {/* Step 3 */}
+          <div style={{ background: step === 3 ? P.white : inactiveBg, borderBottom: `1px solid ${P.border}` }}>
+            {step === 3 ? (
+              <div key="step3-active" style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16, animation: `stepContentEnter 250ms ${EASE_OUT}` }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  {stepBadgeEl(3)}
+                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.ink }}>Awaiting first deposit</span>
+                </div>
+                <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
+                  We're handling the bank approval and collecting your first deposit. We'll notify you when the funds are available — usually within 3 business days.
+                </p>
+              </div>
+            ) : step < 3 ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 24 }}>
+                {stepBadgeEl(3)}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 16, color: P.inkSoft }}>Awaiting bank approval</span>
+                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>~3 business days</span>
+                </div>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 24, animation: `stepDoneEnter 200ms ${EASE_OUT}` }}>
+                {stepBadgeEl(3, step === 4)}
+                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.inkSoft }}>Funds received</span>
+              </div>
+            )}
+          </div>
+
+          {/* Step 4 */}
+          <div style={{ background: step === 4 ? P.white : inactiveBg, borderBottom: `1px solid ${P.border}` }}>
+            {step === 4 ? (
+              <div key="step4-active" style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16, animation: `stepContentEnter 250ms ${EASE_OUT}` }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  {stepBadgeEl(4)}
+                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.ink }}>Invite your employees</span>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                  <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
+                    Your mobility account is funded. Employees will receive an email to download the Payflip app and request their own card.
+                  </p>
+                  {/* Physical card toggle */}
+                  <div style={{ border: `1px solid ${P.border}`, borderRadius: 9, padding: 16, display: 'flex', gap: 16, alignItems: 'flex-start', background: P.white }}>
+                    <div style={{ width: 40, height: 40, borderRadius: 8, background: '#f7f7f8', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <Icon name="credit-card" size={24} color={P.inkSoft} strokeWidth={1.75} />
+                    </div>
+                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                      <div style={{ display: 'flex', flexDirection: 'column' }}>
+                        <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: '#171717', lineHeight: '20px', letterSpacing: '-0.07px' }}>Allow physical card requests</span>
+                        <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, lineHeight: '16px', letterSpacing: '-0.06px' }}>Employees can request a physical card in addition to their virtual card.</span>
+                      </div>
+                      <span style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 12, color: P.ink, lineHeight: '16px', letterSpacing: '-0.06px' }}>A one-time fee of €8 applies per card.</span>
+                    </div>
+                    {/* Toggle */}
+                    <div
+                      onClick={() => setAllowPhysical(v => !v)}
+                      style={{ width: 33, height: 18, borderRadius: 999, background: allowPhysical ? P.ink : '#eaeaeb', position: 'relative', cursor: 'pointer', flexShrink: 0, marginTop: 1.5, transition: 'background 150ms ease' }}
+                    >
+                      <div style={{ position: 'absolute', top: 2, left: 2, width: 14, height: 14, borderRadius: '50%', background: '#fff', transform: allowPhysical ? 'translateX(15px)' : 'translateX(0)', transition: 'transform 150ms ease', boxShadow: '0 1px 2px rgba(0,0,0,0.2)' }} />
+                    </div>
+                  </div>
+                  <button onClick={() => {}} style={{ width: '100%', padding: '8px 16px', minHeight: 36, borderRadius: 8, border: 'none', background: P.action, color: '#fff', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16 }}>
+                    Review and send invites
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 24 }}>
+                {stepBadgeEl(4)}
+                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 16, color: P.inkSoft }}>Invite your employees</span>
+              </div>
+            )}
+          </div>
+
+        </>) : (<>
+
+          {/* Food Step 1 — Authorise direct debit */}
+          <div style={{ background: step === 1 ? P.white : inactiveBg, borderBottom: `1px solid ${P.border}` }}>
+            {step === 1 ? (
+              <div key="food-step1-active" style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 24, animation: `stepContentEnter 250ms ${EASE_OUT}` }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  {stepBadgeEl(1)}
+                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.ink }}>Authorise direct debit</span>
+                </div>
+                <img src={TWIKEY_LOGO_IMG} alt="twikey" style={{ width: 62, height: 27, display: 'block' }} />
+                <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink, lineHeight: '20px', margin: 0 }}>
+                  This allows Payflip to automatically collect funds from your company account when your employees' card balance runs low — so their budget is always available without manual top-ups. You only need to authorise this once.
+                </p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  <button onClick={() => setStep(2)} style={{ width: '100%', padding: '8px 16px', minHeight: 36, borderRadius: 8, border: 'none', background: P.action, color: '#fff', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16 }}>
+                    Sign mandate
+                  </button>
+                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, textAlign: 'center' }}>You'll be redirected to Twikey to sign the mandate.</span>
+                </div>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 24, animation: `stepDoneEnter 200ms ${EASE_OUT}` }}>
+                {stepBadgeEl(1)}
+                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.inkSoft }}>Mandate signed</span>
+              </div>
+            )}
+          </div>
+
+          {/* Food Step 2 — Awaiting bank approval (auto-advances after 5s) */}
+          <div style={{ background: step === 2 ? P.white : inactiveBg, borderBottom: `1px solid ${P.border}` }}>
+            {step === 2 ? (
+              <div key="food-step2-active" style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16, animation: `stepContentEnter 250ms ${EASE_OUT}` }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  {stepBadgeEl(2)}
+                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.ink }}>Awaiting bank approval</span>
+                </div>
+                <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink, lineHeight: '20px', margin: 0 }}>
+                  Your bank is reviewing the direct debit mandate. This usually takes a few hours but can take up to 24 hours. We'll notify you once it's approved.
+                </p>
+              </div>
+            ) : step < 2 ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 24 }}>
+                {stepBadgeEl(2)}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 16, color: P.inkSoft }}>Awaiting bank approval</span>
+                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>a few hours</span>
+                </div>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 24, animation: `stepDoneEnter 200ms ${EASE_OUT}` }}>
+                {stepBadgeEl(2, step === 3)}
+                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.inkSoft }}>Mandate approved</span>
+              </div>
+            )}
+          </div>
+
+          {/* Food Step 3 — Select social secretariat */}
+          <div style={{ background: step === 3 ? P.white : inactiveBg, borderBottom: `1px solid ${P.border}` }}>
+            {step === 3 ? (
+              <div key="food-step3-active" style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16, animation: `stepContentEnter 250ms ${EASE_OUT}` }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  {stepBadgeEl(3)}
+                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.ink }}>Select your social secretariat</span>
+                </div>
+                <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink, lineHeight: '20px', margin: 0 }}>
+                  We use your social secretariat to sync employee data and ensure correct meal voucher calculations.
+                </p>
+                <div style={{ position: 'relative' }}>
+                  <button ref={secTriggerRef} onClick={() => { const r = secTriggerRef.current?.getBoundingClientRect(); setSecRect(r || null); setSecOpen(v => !v); setSecSearch(''); }} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', height: 40, border: `1px solid #bec0c5`, borderRadius: 8, background: P.white, cursor: 'pointer', fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink }}>
+                    <span>{socialSecretariat}</span>
+                    <Icon name="chevrons-up-down" size={16} color={P.inkSoft} strokeWidth={2} />
+                  </button>
+                  {secOpen && secRect && (
+                    <div style={{ position: 'fixed', top: secRect.bottom + 4, left: secRect.left, width: secRect.width, zIndex: 1000, background: P.white, border: `1px solid ${P.border}`, borderRadius: 8, boxShadow: '0 4px 16px rgba(0,0,0,0.1)', overflow: 'hidden' }}>
+                      <div style={{ padding: 8, borderBottom: `1px solid ${P.border}` }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, border: `1px solid #bec0c5`, borderRadius: 8, padding: '6px 10px' }}>
+                          <Icon name="search" size={14} color={P.inkSoft} strokeWidth={2} />
+                          <input autoFocus value={secSearch} onChange={e => setSecSearch(e.target.value)} placeholder="Search..." style={{ border: 'none', outline: 'none', fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink, background: 'transparent', width: '100%' }} />
+                        </div>
+                      </div>
+                      <div style={{ maxHeight: 220, overflowY: 'auto' }}>
+                        {['SD Worx', 'Securex', 'Partena Professional', 'Acerta', 'Liantis', 'Xerius', 'Group S', 'UCM', 'Zenito'].filter(s => s.toLowerCase().includes(secSearch.toLowerCase())).map(s => (
+                          <button key={s} onClick={() => { setSocialSecretariat(s); setSecOpen(false); setSecSearch(''); }} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px', border: 'none', background: s === socialSecretariat ? P.bg : P.white, cursor: 'pointer', textAlign: 'left', fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink }}>
+                            <span>{s}</span>
+                            {s === socialSecretariat && <Icon name="check" size={16} color={P.ink} strokeWidth={2} />}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <button onClick={() => { setSecOpen(false); setStep(4); }} style={{ width: '100%', padding: '8px 16px', minHeight: 36, borderRadius: 8, border: 'none', background: P.action, color: '#fff', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16 }}>
+                  Confirm
+                </button>
+              </div>
+            ) : step < 3 ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 24 }}>
+                {stepBadgeEl(3)}
+                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 16, color: P.inkSoft }}>Select your social secretariat</span>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 24, animation: `stepDoneEnter 200ms ${EASE_OUT}` }}>
+                {stepBadgeEl(3, step === 4)}
+                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.inkSoft }}>{socialSecretariat}</span>
+              </div>
+            )}
+          </div>
+
+          {/* Food Step 4 — Notify employees */}
+          <div style={{ background: step === 4 ? P.white : inactiveBg, borderBottom: `1px solid ${P.border}` }}>
+            {step === 4 ? (
+              <div key="food-step4-active" style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16, animation: `stepContentEnter 250ms ${EASE_OUT}` }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  {stepBadgeEl(4)}
+                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.ink }}>Notify your employees</span>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                  <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
+                    Invite your employees to download the Payflip app. They'll instantly receive their virtual meal voucher card and can order a physical card directly from the app.
+                  </p>
+                  <button onClick={() => {}} style={{ width: '100%', padding: '8px 16px', minHeight: 36, borderRadius: 8, border: 'none', background: P.action, color: '#fff', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16 }}>
+                    Notify employees
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 24 }}>
+                {stepBadgeEl(4)}
+                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 16, color: P.inkSoft }}>Notify your employees</span>
+              </div>
+            )}
+          </div>
+
+        </>)}
+
+        </div>
+
+        {/* Card image column */}
+        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '32px 24px' }}>
+          <CardTilt>
+            <img src={PAYFLIP_CARD_IMG} alt="Payflip mobility card" style={{ width: 347, height: 218, display: 'block' }} />
+          </CardTilt>
+        </div>
+      </div>
+    </div>
+    </div>
+  );
+}
+
+function DashboardScreen({ requests, onNav, onToast }) {
   const today = new Date(); today.setHours(0,0,0,0);
   return (
     <div style={{ flex: 1, overflow: 'auto', animation: `screenEnter 180ms ${EASE_OUT}` }}>
@@ -4849,6 +5417,9 @@ function DashboardScreen({ requests, onNav }) {
         title="Home"
         subtitle={today.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
       />
+      <div style={{ padding: '24px 32px' }}>
+        <MobilityLaunchWidget onToast={onToast} />
+      </div>
     </div>
   );
 }
@@ -5934,6 +6505,14 @@ function App() {
           from { opacity: 0; transform: translateY(5px); }
           to   { opacity: 1; transform: translateY(0); }
         }
+        @keyframes stepContentEnter {
+          from { opacity: 0; transform: scale(0.97) translateY(4px); }
+          to   { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        @keyframes stepDoneEnter {
+          from { opacity: 0; transform: translateY(-4px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
         * { box-sizing: border-box; }
         ::placeholder { color: #9ca3af; opacity: 1; }
       `}</style>
@@ -5941,11 +6520,11 @@ function App() {
       <Sidebar active={screen} onNav={handleNav} pendingCount={pendingCount} sidebarMode={sidebarMode} onSetSidebarMode={setSidebarMode} />
 
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, overflow: 'hidden' }}>
-        {screen === 'dashboard' && <DashboardScreen requests={requests} onNav={setScreen} />}
+        {screen === 'dashboard' && <DashboardScreen requests={requests} onNav={setScreen} onToast={setToast} />}
         {screen === 'team-absences' && <TeamAbsencesScreen requests={requests} pendingCount={pendingRequestsCount} onNav={setScreen} onShowDetail={setCalDetail} activeReqId={calDetail?.id} onSave={saveRequest} companyEvents={companyEvents} onCancelCompanyEvent={cancelCompanyEvent} initialDate={calendarJumpDate} initialDeptFilter={calendarDeptFilter} />}
         {screen === 'requests' && <RequestsScreen requests={requests} onApprove={approve} onDecline={requestDecline} onSave={saveRequest} onCancel={requestCancel} onNav={setScreen} onViewInCalendar={(req) => { const d = req._selectedDates?.[0] || req.startDate; if (d) { const iso = typeof d === 'string' && d.match(/^\d{4}-/) ? d : null; setCalendarJumpDate(iso ? new Date(iso) : parseDisplayDate(d)); } setCalDetail(req); setScreen('team-absences'); }} />}
         {screen === 'employees' && <EmployeesScreen requests={requests} onNav={setScreen} />}
-        {screen.startsWith('employee-detail:') && <EmployeeDetailScreen employeeId={screen.split(':')[1]} requests={requests} onNav={setScreen} onSave={saveRequest} onCancel={cancelRequest} onApprove={approve} onDecline={requestDecline} onViewTeamCalendar={(dept) => { setCalendarDeptFilter(dept || null); setScreen('team-absences'); }} employeeBalance={employeeBalances[screen.split(':')[1]]} onUpdateBalance={(newBal) => updateBalances(screen.split(':')[1], newBal)} needsSetup={needsBalanceSetup.has(screen.split(':')[1])} confirmedDate={balanceConfirmedDates[screen.split(':')[1]]} onConfirmBalances={() => confirmBalancesFor(screen.split(':')[1])} />}
+        {screen.startsWith('employee-detail:') && <EmployeeDetailScreen employeeId={screen.split(':')[1]} requests={requests} onNav={setScreen} onSave={saveRequest} onCancel={cancelRequest} onApprove={approve} onDecline={requestDecline} onViewTeamCalendar={(dept) => { setCalendarDeptFilter(dept || null); setScreen('team-absences'); }} employeeBalance={employeeBalances[screen.split(':')[1]]} onUpdateBalance={(newBal) => updateBalances(screen.split(':')[1], newBal)} needsSetup={needsBalanceSetup.has(screen.split(':')[1])} confirmedDate={balanceConfirmedDates[screen.split(':')[1]]} onConfirmBalances={() => confirmBalancesFor(screen.split(':')[1])} onToast={setToast} />}
         {screen === 'expenses' && <ExpensesScreen expenses={expenses} categories={expenseCategories} onApprove={approveExpense} onDetail={(exp) => setExpDetail(exp)} onAdd={addExpense} />}
         {screen === 'choices' && <ChoicesScreen choices={choices} onApprove={approveChoice} onDecline={declineChoice} onDetail={setChoiceDetail} />}
         {screen === 'payroll-overview' && <StubScreen title="Payroll Overview" description="Monthly payroll run and submission" />}
