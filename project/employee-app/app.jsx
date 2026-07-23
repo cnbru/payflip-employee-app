@@ -248,7 +248,7 @@ function DesktopAppShell() {
 // ─────────────────────────────────────────────────────────────
 // App shell
 // ─────────────────────────────────────────────────────────────
-const FULLSCREEN_SCREENS = ['withdraw-cash', 'simulate-cash-out', 'pension-detail', 'edit-active-benefit', 'sign-addendum', 'bike-lease', 'pension-savings-detail', 'pension-savings-choice', 'time-off-hub', 'time-off-detail', 'time-off-history', 'request-time-off', 'report-illness'];
+const FULLSCREEN_SCREENS = ['withdraw-cash', 'simulate-cash-out', 'pension-detail', 'edit-active-benefit', 'sign-addendum', 'bike-lease', 'pension-savings-detail', 'pension-savings-choice', 'time-off-hub', 'time-off-detail', 'time-off-history', 'request-time-off', 'report-illness', 'expense-type', 'expense-wizard', 'mobility-expense', 'my-expenses', 'expense-detail', 'absence-type'];
 
 function AppShell() {
   const { activeTab, current } = useNav();
@@ -258,7 +258,7 @@ function AppShell() {
       data-app-shell
       style={{
         height: '100%', display: 'flex', flexDirection: 'column',
-        background: '#F2F2F2',
+        background: isFullscreen ? '#fff' : '#F2F2F2',
         position: 'relative',
       }}>
       <div style={{
@@ -420,12 +420,23 @@ function App() {
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           background: 'var(--gray-100)', padding: 24,
         }}>
-          <IOSDevice width={402} height={874}>
-            {!splashDone && <SplashScreen onDone={() => setSplashDone(true)} />}
-            <NavProvider>
-              <AppShell />
-            </NavProvider>
-          </IOSDevice>
+          {(() => {
+            const scale = Math.min(1, (window.innerHeight - 48) / 874);
+            const sw = Math.round(402 * scale);
+            const sh = Math.round(874 * scale);
+            return (
+              <div style={{ width: sw, height: sh, flexShrink: 0, overflow: 'hidden' }}>
+                <div style={{ transform: `scale(${scale})`, transformOrigin: 'top left', width: 402, height: 874 }}>
+                  <IOSDevice width={402} height={874}>
+                    {!splashDone && <SplashScreen onDone={() => setSplashDone(true)} />}
+                    <NavProvider>
+                      <AppShell />
+                    </NavProvider>
+                  </IOSDevice>
+                </div>
+              </div>
+            );
+          })()}
         </div>
       ) : (
         <NavProvider>

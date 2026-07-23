@@ -192,7 +192,7 @@ function IOSDevice({
   title, keyboard = false,
 }) {
   return (
-    <div style={{
+    <div data-ios-frame style={{
       width, height, borderRadius: 48, overflow: 'hidden',
       position: 'relative', background: dark ? '#000' : '#F2F2F7',
       boxShadow: '0 40px 80px rgba(0,0,0,0.18), 0 0 0 1px rgba(0,0,0,0.12)',

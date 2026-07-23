@@ -188,9 +188,9 @@ function ScreenRenderer() {
 // ─────────────────────────────────────────────────────────────
 // Shared screen chrome: back-arrow nav-bar, title, etc.
 // ─────────────────────────────────────────────────────────────
-function NavBar({ title, trailing, onBack }) {
+function NavBar({ title, trailing, onBack, hideBack }) {
   const { pop, canGoBack } = useNav();
-  const back = onBack || (canGoBack ? pop : null);
+  const back = hideBack ? null : (onBack || (canGoBack ? pop : null));
   return (
     <div style={{
       display: 'flex', alignItems: 'center', justifyContent: 'space-between',

@@ -2,32 +2,18 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "Payflip Employee App",
+      "name": "employee-app",
       "runtimeExecutable": "npx",
-      "runtimeArgs": ["serve", "/Users/brunocoen/Documents/payflip-mobile-app-v1/project/employee-app", "--no-clipboard"],
-      "port": 8081,
+      "runtimeArgs": ["-y", "http-server", "project/employee-app", "-c-1", "--cors"],
+      "port": 4488,
       "autoPort": true
     },
     {
-      "name": "Payflip Onboarding",
+      "name": "hr-admin",
       "runtimeExecutable": "npx",
-      "runtimeArgs": ["serve", "/Users/brunocoen/Documents/payflip-mobile-app-v1/project", "--no-clipboard"],
-      "port": 8080,
+      "runtimeArgs": ["-y", "http-server", "project", "-c-1", "--cors"],
+      "port": 4489,
       "autoPort": true
-    },
-    {
-      "name": "Payflip Apps",
-      "runtimeExecutable": "npx",
-      "runtimeArgs": ["serve", "/Users/brunocoen/Documents/payflip-mobile-app-v1/project", "--no-clipboard"],
-      "port": 8082,
-      "autoPort": true
-    },
-    {
-      "name": "Payflip HR Admin",
-      "runtimeExecutable": "npx",
-      "runtimeArgs": ["serve", "/Users/brunocoen/Documents/payflip-mobile-app-v1/project", "--no-clipboard"],
-      "port": 8083,
-"autoPort": true
-    },
+    }
   ]
 }

@@ -198,14 +198,6 @@ function HomeHeader() {
         fontWeight: 700, fontSize: 28, lineHeight: '36px',
         letterSpacing: '-0.007em', color: C.ink, margin: 0
       }}>Hi David</h1>
-      <button aria-label="Help" onClick={() => {}} style={{
-        width: 32, height: 32, borderRadius: 999,
-        background: C.purpleSoft, border: 'none', cursor: 'pointer',
-        display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-        color: C.inkDarker, padding: 0
-      }}>
-        <LucideIcon name="CircleHelp" size={18} color={C.inkDarker} strokeWidth={2} />
-      </button>
     </div>);
 
 }
@@ -420,40 +412,49 @@ function EoyOptimiseCard({ onClick }) {
 // Review Card — larger card for items that need user review
 // (e.g. bike lease drafts, rejected pension savings).
 // ─────────────────────────────────────────────────────────────
-function ReviewCard({ icon, title, subtitle, badge, onClick }) {
+function ReviewCard({ icon, title, subtitle, badge, onClick, tileVariant = 'default' }) {
+  const tileSx = tileVariant === 'draft'
+    ? { background: 'transparent', border: '1.3px dashed #c42bfc' }
+    : tileVariant === 'rejected'
+    ? { background: '#ffebeb', border: '1.3px dashed #de1c22' }
+    : { background: '#ddebff' };
+
   return (
-    <Card onClick={onClick} style={{
-      padding: 0, cursor: 'pointer', overflow: 'hidden',
-      display: 'flex', flexDirection: 'column',
+    <button onClick={onClick} style={{
+      width: '100%', appearance: 'none', border: 'none', background: 'transparent',
+      cursor: 'pointer', textAlign: 'left',
+      display: 'flex', alignItems: 'center', gap: 16,
+      padding: '16px 8px 16px 16px',
     }}>
-      <div style={{ padding: '16px', display: 'flex', alignItems: 'flex-start', gap: 14 }}>
-        <IconTile name={icon} size={44} iconSize={22} />
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{
-            fontFamily: 'var(--font-display)',
-            fontWeight: 700, fontSize: 16, lineHeight: '22px',
-            letterSpacing: '-0.003em', color: C.ink
-          }}>{title}</div>
-          {subtitle && <div style={{
-            marginTop: 2,
-            fontFamily: 'var(--font-display)',
-            fontWeight: 500, fontSize: 13, lineHeight: '18px',
-            color: C.inkSoft
-          }}>{subtitle}</div>}
-        </div>
-        <LucideIcon name="ChevronRight" size={20} color={C.inkSoft} strokeWidth={2}
-          style={{ marginTop: 2, flex: 'none' }} />
+      <div style={{
+        width: 48, height: 48, borderRadius: 14, flex: 'none',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        ...tileSx,
+      }}>
+        <LucideIcon name={icon} size={22} color={C.ink} strokeWidth={1.75} />
       </div>
-      {badge && (
+      <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{
-          borderTop: '1px solid rgba(143,20,20,0.12)',
-          padding: '10px 16px',
-          background: 'rgba(255,235,235,0.6)',
-          fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 13, lineHeight: '18px',
-          color: 'rgb(143,20,20)',
-        }}>{badge}</div>
-      )}
-    </Card>);
+          fontFamily: 'var(--font-display)',
+          fontWeight: 500, fontSize: 16, lineHeight: '24px',
+          color: C.ink
+        }}>{title}</div>
+        {subtitle && <div style={{
+          marginTop: 2,
+          fontFamily: 'var(--font-display)',
+          fontWeight: 400, fontSize: 13, lineHeight: '18px',
+          color: C.inkSoft
+        }}>{subtitle}</div>}
+        {badge && (
+          <div style={{
+            marginTop: 4,
+            fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 13, lineHeight: '18px',
+            color: 'rgb(143,20,20)',
+          }}>{badge}</div>
+        )}
+      </div>
+      <LucideIcon name="ChevronRight" size={20} color={C.inkSoft} strokeWidth={2} style={{ flex: 'none' }} />
+    </button>);
 }
 
 // Red rejection badge for review cards.
@@ -466,8 +467,8 @@ function SectionLabel({ title }) {
   return (
     <div style={{
       fontFamily: 'var(--font-display)',
-      fontWeight: 700, fontSize: 20, lineHeight: '28px',
-      letterSpacing: '-0.003em', color: C.ink
+      fontWeight: 600, fontSize: 28, lineHeight: '36px',
+      letterSpacing: '-0.75px', color: C.ink
     }}>{title}</div>);
 }
 
@@ -500,8 +501,9 @@ function HomeScreen() {
   // Bike-lease drafts (filter from DRAFTS for review section)
   const bikeDrafts = drafts.filter(d => d.kind === 'bike' || d.id === 'bike-1');
   const pensionRejected = drafts.find(d => d.id === 'pension-1') && !window.__pensionResubmitted;
+  const rejectedExpenses = (window.__expensesMockData || []).filter(e => e.status === 'rejected');
 
-  const hasReviewItems = !window.__eoyUnlocked || bikeDrafts.length > 0 || pensionRejected;
+  const hasReviewItems = !window.__eoyUnlocked || bikeDrafts.length > 0 || pensionRejected || rejectedExpenses.length > 0;
 
   return (
     <div style={{
@@ -510,34 +512,72 @@ function HomeScreen() {
     }}>
       <HomeHeader />
 
-      {/* To review section — sign addendum + bike lease drafts + rejected pension */}
+      {/* Quick action buttons */}
+      <div style={{ display: 'flex', gap: 16 }}>
+        {[
+          { icon: 'Receipt', label: 'Submit expense', onClick: () => nav && nav.push('expense-type') },
+          { icon: 'CalendarDays', label: 'Add absence', onClick: () => nav && nav.push('absence-type') },
+        ].map(({ icon, label, onClick }) => (
+          <button key={label} onClick={onClick} style={{
+            flex: 1, appearance: 'none', cursor: 'pointer',
+            background: 'white', border: `1px solid ${C.border}`,
+            borderRadius: 24, padding: 16,
+            display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 24,
+            textAlign: 'left',
+          }}>
+            <LucideIcon name={icon} size={24} color={C.ink} strokeWidth={1.75} />
+            <div style={{
+              fontFamily: 'var(--font-display)',
+              fontWeight: 600, fontSize: 16, lineHeight: '24px',
+              letterSpacing: '-0.015625px', color: C.ink,
+            }}>{label}</div>
+          </button>
+        ))}
+      </div>
+
+      {/* To do's section — sign addendum + bike lease drafts + rejected pension */}
       {hasReviewItems && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          <SectionLabel title="To review" />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <SectionLabel title="To do's" />
 
-          {!window.__eoyUnlocked && (
-            <ReviewCard
-              icon="PenLine"
-              title="Sign addendum"
-              subtitle="To unlock your end of year premium"
-              onClick={() => nav && nav.push('sign-addendum')} />
-          )}
+          <div style={{
+            background: 'rgba(255,255,255,0.7)', borderRadius: 40, padding: 8,
+            display: 'flex', flexDirection: 'column',
+          }}>
+            {!window.__eoyUnlocked && (
+              <ReviewCard
+                icon="PenLine"
+                title="Sign addendum to unlock end of year premium"
+                tileVariant="default"
+                onClick={() => nav && nav.push('sign-addendum')} />
+            )}
 
-          {bikeDrafts.length > 0 && (
-            <ReviewCard
-              icon="Link"
-              title={`${bikeDrafts.length} bike lease in draft`}
-              subtitle="Review it to submit"
-              onClick={() => nav && window.navigateToItem(nav.push, bikeDrafts[0].id)} />
-          )}
+            {bikeDrafts.length > 0 && (
+              <ReviewCard
+                icon="Bike"
+                title="Bike lease in draft"
+                tileVariant="draft"
+                onClick={() => nav && window.navigateToItem(nav.push, bikeDrafts[0].id)} />
+            )}
 
-          {pensionRejected && (
-            <ReviewCard
-              icon="HeartPulse"
-              title="Pension savings have been rejected"
-              badge={<RejectedBadge reason="The actual amount mentioned on your attest is €900. Please edit your choice." />}
-              onClick={() => nav && window.navigateToItem(nav.push, 'pension-1')} />
-          )}
+            {pensionRejected && (
+              <ReviewCard
+                icon="HeartPulse"
+                title="Pension savings choice rejected"
+                tileVariant="rejected"
+                badge={<RejectedBadge reason="The actual amount mentioned on your attest is €900. Please edit your choice." />}
+                onClick={() => nav && window.navigateToItem(nav.push, 'pension-1')} />
+            )}
+
+            {rejectedExpenses.length > 0 && (
+              <ReviewCard
+                icon="Receipt"
+                title={`${rejectedExpenses.length} expense${rejectedExpenses.length > 1 ? 's' : ''} rejected`}
+                tileVariant="rejected"
+                badge={<RejectedBadge reason={rejectedExpenses[0].adminNote || 'Needs your attention'} />}
+                onClick={() => nav && nav.push('my-expenses')} />
+            )}
+          </div>
         </div>
       )}
 
@@ -575,6 +615,7 @@ function HomeScreen() {
           onClick={() => nav && nav.push('benefit-flow-start', { name: 'Warrants' })} />
         }
       </div>
+
     </div>);
 
 }

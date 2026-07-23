@@ -103,18 +103,18 @@ function BudgetsScreen() {
           {/* Segmented toggle */}
           <div style={{
             display: 'inline-flex', alignSelf: 'flex-start',
-            background: 'rgba(15,13,40,0.08)', borderRadius: 999,
+            background: 'rgba(37,99,235,0.1)', borderRadius: 999,
             padding: 2, gap: 0, marginTop: 6,
           }}>
             {[['yearly', 'This year'], ['total', 'All-time']].map(([m, label]) => (
               <button key={m} onClick={() => setAdvantageMode(m)} style={{
                 appearance: 'none', cursor: 'pointer', border: 'none',
-                background: advantageMode === m ? '#fff' : 'transparent',
-                color: advantageMode === m ? PFC.ink : PFC.inkSoft,
+                background: advantageMode === m ? 'rgb(37,99,235)' : 'transparent',
+                color: advantageMode === m ? '#fff' : 'rgb(37,99,235)',
                 fontFamily: 'var(--font-display)', fontWeight: 600,
                 fontSize: 11, letterSpacing: '0.01em',
                 padding: '3px 9px', borderRadius: 999,
-                boxShadow: advantageMode === m ? '0 1px 3px rgba(0,0,0,0.12)' : 'none',
+                boxShadow: advantageMode === m ? '0 1px 3px rgba(37,99,235,0.25)' : 'none',
                 transition: 'all 150ms ease-out',
               }}>{label}</button>
             ))}
