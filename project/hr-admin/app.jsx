@@ -287,6 +287,8 @@ const DEPARTMENTS = ['Design','Engineering','Marketing'];
 const AVATAR_COLORS = ['#bfdbfe','#ddd6fe','#fde68a','#a7f3d0','#fecdd3','#fed7aa','#c7d2fe','#fca5a5','#d9f99d','#99f6e4'];
 
 const EMPLOYEES = {
+  // Admin-only (not an employee — contractor)
+  'bruno-coen':        { name: 'Bruno Coen',          initials: 'BC', color: '#c7d2fe', email: 'bruno@payflip.be', isEmployee: false, adminAccess: 'full' },
   // Design
   'bram-goossens':     { name: 'Bram Goossens',     initials: 'BG', color: '#bfdbfe', entitlement: 23, department: 'Design',       email: 'bram.goossens@lumiogroup.be',     entity: 'Lumio Group', budget: 3750,  role: 'Employee', status: 'Active', gender: 'm' },
   'emma-martens':      { name: 'Emma Martens',       initials: 'EM', color: '#ddd6fe', entitlement: 29, department: 'Design',       email: 'emma.martens@lumiogroup.be',      entity: 'Lumio Group', budget: 0,     role: 'Employee', status: 'Active', gender: 'f', photo: true },
@@ -302,34 +304,35 @@ const EMPLOYEES = {
   'sara-verbeke':        { name: 'Sara Verbeke',        initials: 'SV', color: '#bfdbfe', entitlement: 20, department: 'Design',    email: 'sara.verbeke@lumiogroup.be',    entity: 'Lumio Group', budget: 3100, role: 'Employee', status: 'Active', gender: 'f' },
   'wout-desmet':         { name: 'Wout Desmet',         initials: 'WD', color: '#99f6e4', entitlement: 22, department: 'Design',    email: 'wout.desmet@lumiogroup.be',     entity: 'Lumio Group', budget: 4200, role: 'Employee', status: 'Active', gender: 'm' },
   'amber-claes':         { name: 'Amber Claes',         initials: 'AC', color: '#fca5a5', entitlement: 20, department: 'Design',    email: 'amber.claes@lumiogroup.be',     entity: 'Lumio Group', budget: 2900, role: 'Employee', status: 'Active', gender: 'f' },
-  'pieter-verheyen':     { name: 'Pieter Verheyen',     initials: 'PV', color: '#d9f99d', entitlement: 25, department: 'Design',    email: 'pieter.verheyen@lumiogroup.be', entity: 'Lumio Group', budget: 6000, role: 'Manager',  status: 'Active', gender: 'm' },
+  'pieter-verheyen':     { name: 'Pieter Verheyen',     initials: 'PV', color: '#d9f99d', entitlement: 25, department: 'Design',    email: 'pieter.verheyen@lumiogroup.be', entity: 'Lumio Group', budget: 6000, role: 'Admin',  status: 'Active', gender: 'm' },
   // Engineering
-  'david':             { name: 'David Laurent',      initials: 'DL', color: '#fecdd3', entitlement: 20, department: 'Engineering', email: 'david.laurent@lumiogroup.be',     entity: 'Lumio Group', budget: 4500,  role: 'Employee', status: 'Active', gender: 'm', photo: true },
+  'david':             { name: 'David Laurent',      initials: 'DL', color: '#fecdd3', entitlement: 20, department: 'Engineering', email: 'david.laurent@lumiogroup.be',     entity: 'Lumio Group', budget: 4500,  role: 'Employee', status: 'Active', gender: 'm', photo: true, adminAccess: 'full' },
   'stijn-laurent':     { name: 'Stijn Laurent',      initials: 'SL', color: '#a7f3d0', entitlement: 29, department: 'Engineering', email: 'stijn.laurent@lumiogroup.be',     entity: 'Lumio Group', budget: 1500,  role: 'Employee', status: 'Active', gender: 'm' },
   'jana-goossens':     { name: 'Jana Goossens',      initials: 'JG', color: '#c7d2fe', entitlement: 20, department: 'Engineering', email: 'jana.goossens@lumiogroup.be',     entity: 'Lumio Group', budget: 2000,  role: 'Employee', status: 'Active', gender: 'f' },
   'laura-mertens':     { name: 'Laura Mertens',      initials: 'LM', color: '#fca5a5', entitlement: 20, department: 'Engineering', email: 'laura.mertens@lumiogroup.be',     entity: 'Lumio Group', budget: 750,   role: 'Employee', status: 'Active', gender: 'f' },
   // Marketing
-  'pieter-mertens':    { name: 'Pieter Mertens',     initials: 'PM', color: '#a7f3d0', entitlement: 29, department: 'Marketing',   email: 'pieter.mertens@lumiogroup.be',    entity: 'Lumio Group', budget: 8500,  role: 'Manager',  status: 'Active', gender: 'm' },
+  'pieter-mertens':    { name: 'Pieter Mertens',     initials: 'PM', color: '#a7f3d0', entitlement: 29, department: 'Marketing',   email: 'pieter.mertens@lumiogroup.be',    entity: 'Lumio Group', budget: 8500,  role: 'Admin',  status: 'Active', gender: 'm', adminAccess: 'full' },
   'sarah-de-smedt':    { name: 'Sarah De Smedt',     initials: 'SD', color: '#fecdd3', entitlement: 23, department: 'Marketing',   email: 'sarah.de-smedt@lumiogroup.be',   entity: 'Lumio Group', budget: 2750,  role: 'Employee', status: 'Active', gender: 'f' },
-  'julie-goossens':    { name: 'Julie Goossens',     initials: 'JG', color: '#fed7aa', entitlement: 20, department: 'Marketing',   email: 'julie.goossens@lumiogroup.be',    entity: 'Lumio Group', budget: 5000,  role: 'Manager',  status: 'Active', gender: 'f' },
+  'julie-goossens':    { name: 'Julie Goossens',     initials: 'JG', color: '#fed7aa', entitlement: 20, department: 'Marketing',   email: 'julie.goossens@lumiogroup.be',    entity: 'Lumio Group', budget: 5000,  role: 'Admin',  status: 'Active', gender: 'f', adminAccess: 'limited' },
   'noor-de-smedt':     { name: 'Noor De Smedt',      initials: 'ND', color: '#fde68a', entitlement: 20, department: 'Marketing',   email: 'noor.de-smedt@lumiogroup.be',    entity: 'Lumio Group', budget: 0,     role: 'Employee', status: 'Active', gender: 'f' },
 };
+const CURRENT_USER = EMPLOYEES['bruno-coen'];
 
 // ── Per-employee supplemental data ────────────────────────────────────────
 const EMP_EXTRA = {
-  'bram-goossens':       { payrollId: '000041', hireDate: '15/03/2023', lang: 'Dutch',   admin: false },
-  'emma-martens':        { payrollId: '000040', hireDate: '12/05/2025', lang: 'English', admin: false },
-  'mathias-de-smedt':    { payrollId: '000032', hireDate: '01/09/2022', lang: 'Dutch',   admin: false },
-  'thomas-vandenberghe': { payrollId: '000028', hireDate: '04/02/2022', lang: 'Dutch',   admin: false },
-  'thomas-janssens':     { payrollId: '000044', hireDate: '10/01/2023', lang: 'Dutch',   admin: false },
-  'david':               { payrollId: '000015', hireDate: '07/11/2020', lang: 'French',  admin: true  },
-  'stijn-laurent':       { payrollId: '000019', hireDate: '14/04/2021', lang: 'Dutch',   admin: false },
-  'jana-goossens':       { payrollId: '000033', hireDate: '02/11/2022', lang: 'Dutch',   admin: false },
-  'laura-mertens':       { payrollId: '000038', hireDate: '07/03/2024', lang: 'Dutch',   admin: false },
-  'pieter-mertens':      { payrollId: '000009', hireDate: '01/06/2019', lang: 'Dutch',   admin: true  },
-  'sarah-de-smedt':      { payrollId: '000025', hireDate: '16/08/2021', lang: 'French',  admin: false },
-  'julie-goossens':      { payrollId: '000011', hireDate: '03/09/2019', lang: 'Dutch',   admin: true  },
-  'noor-de-smedt':       { payrollId: '000043', hireDate: '22/09/2025', lang: 'Dutch',   admin: false },
+  'bram-goossens':       { payrollId: '000041', hireDate: '15/03/2023', lang: 'Dutch'   },
+  'emma-martens':        { payrollId: '000040', hireDate: '12/05/2025', lang: 'English' },
+  'mathias-de-smedt':    { payrollId: '000032', hireDate: '01/09/2022', lang: 'Dutch'   },
+  'thomas-vandenberghe': { payrollId: '000028', hireDate: '04/02/2022', lang: 'Dutch'   },
+  'thomas-janssens':     { payrollId: '000044', hireDate: '10/01/2023', lang: 'Dutch'   },
+  'david':               { payrollId: '000015', hireDate: '07/11/2020', lang: 'French'  },
+  'stijn-laurent':       { payrollId: '000019', hireDate: '14/04/2021', lang: 'Dutch'   },
+  'jana-goossens':       { payrollId: '000033', hireDate: '02/11/2022', lang: 'Dutch'   },
+  'laura-mertens':       { payrollId: '000038', hireDate: '07/03/2024', lang: 'Dutch'   },
+  'pieter-mertens':      { payrollId: '000009', hireDate: '01/06/2019', lang: 'Dutch'   },
+  'sarah-de-smedt':      { payrollId: '000025', hireDate: '16/08/2021', lang: 'French'  },
+  'julie-goossens':      { payrollId: '000011', hireDate: '03/09/2019', lang: 'Dutch'   },
+  'noor-de-smedt':       { payrollId: '000043', hireDate: '22/09/2025', lang: 'Dutch'   },
 };
 function _eseed(id, s) { let h = 0; const k = id + s; for (let i = 0; i < k.length; i++) h = ((h * 31) + k.charCodeAt(i)) >>> 0; return h; }
 function _eur(n) { const [i, d] = (n / 100).toFixed(2).split('.'); return i.replace(/\B(?=(\d{3})+(?!\d))/g, ' ') + ',' + d + ' EUR'; }
@@ -366,13 +369,13 @@ function genBudgets(id) {
 }
 const _CPOOL = [
   { name: 'Smartphone accessories via Coolblue', price: '249,00 EUR', cDate: '24/06/2026', sDate: '24/06/2026', eDate: '24/06/2028' },
-  { name: 'L&D expenses (Payflip)', price: '158,60 EUR', cDate: '19/06/2026', sDate: '19/06/2026', eDate: '—' },
-  { name: 'Tablet via Coolblue', price: '369,00 EUR', cDate: '13/05/2026', sDate: '13/05/2026', eDate: '13/05/2028' },
-  { name: 'Individual pension savings', price: '939,96 EUR', cDate: '02/03/2026', sDate: '05/03/2026', eDate: '01/01/2027' },
+  { name: 'L&D expenses (Payflip)', price: '158,60 EUR', cDate: '19/06/2026', sDate: '19/06/2026', eDate: '—', illustration: '../assets/benefit-learn.png' },
+  { name: 'Tablet via Coolblue', price: '369,00 EUR', cDate: '13/05/2026', sDate: '13/05/2026', eDate: '13/05/2028', illustration: '../assets/benefit-tablet.png' },
+  { name: 'Individual pension savings', price: '939,96 EUR', cDate: '02/03/2026', sDate: '05/03/2026', eDate: '01/01/2027', illustration: '../assets/benefit-pension.png' },
   { name: 'Alan', price: '1 467,60 EUR', cDate: '26/01/2026', sDate: '01/01/2026', eDate: '31/12/2026' },
-  { name: 'L&D expenses (Payflip)', price: '21,78 EUR', cDate: '23/01/2026', sDate: '23/01/2026', eDate: '—' },
+  { name: 'L&D expenses (Payflip)', price: '21,78 EUR', cDate: '23/01/2026', sDate: '23/01/2026', eDate: '—', illustration: '../assets/benefit-learn.png' },
   { name: 'Mortgage', price: '844,90 EUR', cDate: '01/01/2026', sDate: '01/01/2026', eDate: '31/12/2026' },
-  { name: 'Bike lease via Cowboy', price: '89,00 EUR', cDate: '01/04/2026', sDate: '01/04/2026', eDate: '01/04/2028' },
+  { name: 'Bike lease via Cowboy', price: '89,00 EUR', cDate: '01/04/2026', sDate: '01/04/2026', eDate: '01/04/2028', illustration: '../assets/benefit-bike.png' },
   { name: 'Company car (Tesla Model 3)', price: '620,00 EUR', cDate: '01/01/2026', sDate: '01/01/2026', eDate: '01/01/2029' },
   { name: 'Public transport pass', price: '285,40 EUR', cDate: '01/02/2026', sDate: '01/02/2026', eDate: '—' },
 ];
@@ -578,7 +581,7 @@ function SalaryTab({ empId }) {
     </div>
   );
 }
-function DetailsTab({ emp, empId }) {
+function DetailsTab({ emp, empId, onNav }) {
   const ex = EMP_EXTRA[empId] || {};
   const parts = emp.name.split(' ');
   const first = parts[0], last = parts.slice(1).join(' ');
@@ -607,15 +610,19 @@ function DetailsTab({ emp, empId }) {
           <label style={labelStyle}>Employee Payroll ID *</label><div style={fieldStyle}>{ex.payrollId || '—'}</div>
         </div>
       </div>
-      <div>
-        <h3 style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18, color: P.ink, margin: '0 0 20px' }}>Admin settings</h3>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{ width: 18, height: 18, borderRadius: 4, background: ex.admin ? P.accent : P.white, border: ex.admin ? 'none' : `1.5px solid ${P.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            {ex.admin && <Icon name="Check" size={12} color="#fff" strokeWidth={3} />}
+      {emp.adminAccess && (
+        <div>
+          <h3 style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18, color: P.ink, margin: '0 0 12px' }}>Admin access</h3>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Icon name="shield-check" size={15} color={P.inkSoft} strokeWidth={1.75} />
+            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 13, color: P.ink }}>
+              {emp.adminAccess === 'full' ? 'Full admin' : 'Role-based'}
+            </span>
+            <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>—</span>
+            <span onClick={() => onNav('settings-team')} style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.ink, textDecoration: 'underline', cursor: 'pointer' }}>Manage in Team & access</span>
           </div>
-          <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.ink }}>Admin</span>
         </div>
-      </div>
+      )}
     </div>
   );
 }
@@ -849,12 +856,12 @@ function AdminProfileFooter() {
   return (
     <div style={{ borderTop: `1px solid ${P.border}`, padding: '10px 20px 12px', display: 'flex', alignItems: 'center', gap: 10 }}>
       <div style={{
-        width: 28, height: 28, borderRadius: '50%', background: '#ddd6fe', flexShrink: 0,
+        width: 28, height: 28, borderRadius: '50%', background: CURRENT_USER.color, flexShrink: 0,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 10, color: P.ink,
-      }}>BC</div>
+      }}>{CURRENT_USER.initials}</div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-        <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 13, color: P.ink }}>Bruno Coen</span>
+        <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 13, color: P.ink }}>{CURRENT_USER.name}</span>
         <button style={{
           border: 'none', background: 'transparent', padding: 0, cursor: 'pointer', textAlign: 'left',
           fontFamily: 'var(--font-display)', fontWeight: 400, fontSize: 11, color: P.inkFaint,
@@ -4533,7 +4540,8 @@ function EmployeesScreen({ requests, onNav }) {
   const [statusFilter, setStatusFilter] = useState('Active');
 
   const empList = useMemo(() => {
-    return Object.entries(EMPLOYEES).map(([id, emp]) => ({ id, ...emp }))
+    return Object.entries(EMPLOYEES).filter(([, emp]) => emp.isEmployee !== false)
+      .map(([id, emp]) => ({ id, ...emp }))
       .sort((a, b) => a.name.localeCompare(b.name));
   }, []);
 
@@ -4574,7 +4582,6 @@ function EmployeesScreen({ requests, onNav }) {
           <select value={roleFilter} onChange={e => setRoleFilter(e.target.value)} style={selectStyle}>
             <option value="All">Role: All</option>
             <option value="Employee">Role: Employee</option>
-            <option value="Manager">Role: Manager</option>
             <option value="Admin">Role: Admin</option>
           </select>
           <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} style={selectStyle}>
@@ -5046,7 +5053,7 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, o
         ) : activeTab === 'salary' ? (
           <div><SalaryTab empId={employeeId} /></div>
         ) : activeTab === 'details' ? (
-          <div><DetailsTab emp={emp} empId={employeeId} /></div>
+          <div><DetailsTab emp={emp} empId={employeeId} onNav={onNav} /></div>
         ) : (
           <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 12, padding: 24, maxWidth: 480, color: P.inkFaint, fontFamily: 'var(--font-body)', fontSize: 13 }}>
             Coming soon
@@ -5899,7 +5906,7 @@ function ExpenseCategorySettings({ categories, onSave }) {
   );
 }
 
-function PersonPickerModal({ title, value, onSave, onClose }) {
+function PersonPickerModal({ title, value, candidates, onSave, onClose }) {
   const { visible, close } = useModalTransition(onClose);
   const [selected, setSelected] = useState(value || []);
   const [search, setSearch] = useState('');
@@ -5909,9 +5916,11 @@ function PersonPickerModal({ title, value, onSave, onClose }) {
     prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]
   );
 
-  const filtered = Object.entries(EMPLOYEES)
-    .filter(([, e]) => e.name.toLowerCase().includes(search.toLowerCase()) || e.department.toLowerCase().includes(search.toLowerCase()))
-    .map(([key, e]) => ({ value: key, name: e.name, dept: e.department, initials: e.initials, color: e.color }));
+  const pool = candidates || Object.entries(EMPLOYEES)
+    .filter(([, e]) => e.adminAccess)
+    .map(([key, e]) => ({ value: key, name: e.name, dept: e.department || (e.isEmployee === false ? 'External' : ''), initials: e.initials, color: e.color }));
+
+  const filtered = pool.filter(e => e.name.toLowerCase().includes(search.toLowerCase()) || (e.dept || '').toLowerCase().includes(search.toLowerCase()));
 
   return (
     <div onClick={close} style={{ position: 'fixed', inset: 0, zIndex: 300, background: 'rgba(15,13,40,0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center', ...modalBackdropStyle(visible) }}>
@@ -5966,49 +5975,166 @@ function PersonPickerModal({ title, value, onSave, onClose }) {
 
 const ROLE_DEFS = [
   { key: 'finance-approver', label: 'Finance approver', icon: 'banknote',    hint: 'Reviews and approves expense submissions' },
-  { key: 'hr-manager',       label: 'HR manager',       icon: 'user-check',  hint: 'Manages time off, people, and HR settings' },
-  { key: 'payroll-admin',    label: 'Payroll admin',    icon: 'calculator',  hint: 'Runs payroll and accesses salary data' },
+  { key: 'hr-manager',       label: 'HR manager',       icon: 'user-check',  hint: 'Manages time off requests and employee records' },
+  { key: 'payroll-admin',    label: 'Payroll admin',    icon: 'calculator',  hint: 'Processes payroll and views salary data' },
 ];
 
 const ADMIN_ACCESS = [
-  { key: 'full',    label: 'Full access',  hint: 'Can manage all settings and data' },
-  { key: 'limited', label: 'Limited',      hint: 'Can view and approve but not change settings' },
+  { value: 'full',    label: 'Full admin',  hint: 'Can access and configure everything in the tool' },
+  { value: 'limited', label: 'Role-based',  hint: 'Access is limited to their assigned roles' },
 ];
+
+function AdminAccessModal({ admin, access, roleAssignments, onSave, onClose }) {
+  const { visible, close } = useModalTransition(onClose);
+  const [selectedAccess, setSelectedAccess] = useState(access);
+  const [selectedRoles, setSelectedRoles] = useState(
+    ROLE_DEFS.filter(r => roleAssignments[r.key]?.includes(admin.id)).map(r => r.key)
+  );
+  const toggleRole = key => setSelectedRoles(prev =>
+    prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]
+  );
+  const save = () => { onSave(selectedAccess, selectedRoles); close(); };
+  return (
+    <div onClick={close} style={{ position: 'fixed', inset: 0, zIndex: 300, background: 'rgba(15,13,40,0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center', ...modalBackdropStyle(visible) }}>
+      <div onClick={e => e.stopPropagation()} style={{ background: P.white, borderRadius: 14, width: 420, boxShadow: '0 8px 40px rgba(15,13,40,0.2)', display: 'flex', flexDirection: 'column', ...modalPanelStyle(visible) }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 22px', borderBottom: `1px solid ${P.border}` }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ width: 36, height: 36, borderRadius: '50%', background: admin.color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 12, color: P.ink }}>{admin.initials}</span>
+            </div>
+            <div>
+              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 15, color: P.ink }}>{admin.name}</div>
+              <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>{admin.email}</div>
+            </div>
+          </div>
+          <button onClick={close} style={{ border: 'none', cursor: 'pointer', width: 30, height: 30, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(60,60,67,0.1)' }}>
+            <Icon name="X" size={14} color={P.ink} strokeWidth={2.5} />
+          </button>
+        </div>
+        <div style={{ padding: '8px 14px 0' }}>
+          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 11, color: P.inkSoft, letterSpacing: '0.06em', textTransform: 'uppercase', padding: '8px 10px 6px' }}>Access level</div>
+          {[
+            { value: 'full',    label: 'Full admin',   hint: 'Full access to all settings, tools, and approvals' },
+            { value: 'limited', label: 'Role-based',   hint: 'Can only access what\'s assigned to them' },
+          ].map(opt => (
+            <div key={opt.value} onClick={() => setSelectedAccess(opt.value)}
+              style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '9px 10px', cursor: 'pointer', borderRadius: 8 }}>
+              <div style={{ width: 16, height: 16, borderRadius: '50%', border: `2px solid ${selectedAccess === opt.value ? P.action : P.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'border-color 120ms ease', marginTop: 1 }}>
+                {selectedAccess === opt.value && <div style={{ width: 7, height: 7, borderRadius: '50%', background: P.action }} />}
+              </div>
+              <div>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink, fontWeight: 500 }}>{opt.label}</div>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>{opt.hint}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div style={{ overflow: 'hidden', maxHeight: selectedAccess === 'limited' ? 300 : 0, opacity: selectedAccess === 'limited' ? 1 : 0, transition: 'max-height 220ms cubic-bezier(0.22,1,0.36,1), opacity 180ms ease' }}>
+          <div style={{ margin: '0 14px', borderTop: `1px solid ${P.border}` }} />
+          <div style={{ padding: '6px 14px 14px' }}>
+            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 11, color: P.inkSoft, letterSpacing: '0.06em', textTransform: 'uppercase', padding: '8px 10px 6px' }}>Roles</div>
+            {ROLE_DEFS.map(role => {
+              const checked = selectedRoles.includes(role.key);
+              return (
+                <div key={role.key} onClick={() => toggleRole(role.key)}
+                  style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '9px 10px', cursor: 'pointer', borderRadius: 8 }}>
+                  <div style={{ width: 16, height: 16, borderRadius: 4, border: `2px solid ${checked ? P.action : P.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, background: checked ? P.action : 'transparent', transition: 'all 120ms ease', marginTop: 1 }}>
+                    {checked && <Icon name="check" size={10} color="#fff" strokeWidth={3} />}
+                  </div>
+                  <div>
+                    <div style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink, fontWeight: 500 }}>{role.label}</div>
+                    <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>{role.hint}</div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+        <div style={{ padding: '14px 22px', borderTop: `1px solid ${P.border}`, display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+          <button onClick={close} style={{ padding: '8px 18px', borderRadius: 8, border: `1px solid ${P.border}`, background: 'transparent', color: P.ink, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>Cancel</button>
+          <button onClick={save} style={{ padding: '8px 18px', borderRadius: 8, border: 'none', background: P.action, color: '#fff', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>Save</button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function TeamAccessSettings() {
   const [roleAssignments, setRoleAssignments] = useState({
-    'finance-approver': [],
+    'finance-approver': ['julie-goossens'],
     'hr-manager': [],
     'payroll-admin': [],
   });
-  const [admins, setAdmins] = useState([
-    { id: 'bruno-coen', name: 'Bruno Coen', initials: 'BC', color: '#c7d2fe', email: 'bruno@payflip.be', access: 'owner' },
-  ]);
-  const [roleModal, setRoleModal] = useState(null);
+  const [adminAccess, setAdminAccess] = useState(() =>
+    Object.entries(EMPLOYEES)
+      .filter(([, u]) => u.adminAccess)
+      .reduce((acc, [id, u]) => ({ ...acc, [id]: u.adminAccess }), {})
+  );
+  const admins = useMemo(() =>
+    Object.entries(EMPLOYEES)
+      .filter(([id, u]) => u.adminAccess || adminAccess[id])
+      .map(([id, u]) => ({ id, name: u.name, initials: u.initials, color: u.color, email: u.email, access: adminAccess[id] || u.adminAccess, isEmployee: u.isEmployee !== false })),
+    [adminAccess]
+  );
   const [adminModal, setAdminModal] = useState(null);
+  const [showGrantPicker, setShowGrantPicker] = useState(false);
+
+  const nonAdminCandidates = useMemo(() =>
+    Object.entries(EMPLOYEES)
+      .filter(([id, e]) => e.isEmployee !== false && !adminAccess[id])
+      .map(([key, e]) => ({ value: key, name: e.name, dept: e.department || '', initials: e.initials, color: e.color })),
+    [adminAccess]
+  );
+
+  const handleGrantAccess = (ids) => {
+    if (!ids.length) return;
+    setAdminAccess(prev => {
+      const next = { ...prev };
+      ids.forEach(id => { next[id] = 'full'; });
+      return next;
+    });
+  };
+
+  const handleAdminSave = (adminId, newAccess, newRoles) => {
+    setAdminAccess(prev => ({ ...prev, [adminId]: newAccess }));
+    setRoleAssignments(prev => {
+      const updated = {};
+      ROLE_DEFS.forEach(role => {
+        const current = prev[role.key] || [];
+        if (newAccess === 'limited' && newRoles.includes(role.key)) {
+          updated[role.key] = current.includes(adminId) ? current : [...current, adminId];
+        } else {
+          updated[role.key] = current.filter(id => id !== adminId);
+        }
+      });
+      return updated;
+    });
+    setAdminModal(null);
+  };
 
   const SL = { fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 11, color: P.inkSoft, letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 10 };
   const card = { border: `1px solid ${P.border}`, borderRadius: 16, overflow: 'clip', background: P.white };
 
   return (
     <>
-    {roleModal && (
+    {showGrantPicker && (
       <PersonPickerModal
-        title={ROLE_DEFS.find(r => r.key === roleModal)?.label}
-        value={roleAssignments[roleModal]}
-        onSave={v => setRoleAssignments(prev => ({ ...prev, [roleModal]: v }))}
-        onClose={() => setRoleModal(null)}
+        title="Grant admin access"
+        value={[]}
+        candidates={nonAdminCandidates}
+        onSave={handleGrantAccess}
+        onClose={() => setShowGrantPicker(false)}
       />
     )}
-    {adminModal && (
-      <PickModal
-        title="Access level"
-        options={ADMIN_ACCESS}
-        value={admins.find(a => a.id === adminModal)?.access || 'full'}
-        onSave={v => setAdmins(prev => prev.map(a => a.id === adminModal ? { ...a, access: v } : a))}
+    {adminModal && (() => { const admin = admins.find(a => a.id === adminModal); return admin ? (
+      <AdminAccessModal
+        admin={admin}
+        access={admin.access}
+        roleAssignments={roleAssignments}
+        onSave={(newAccess, newRoles) => handleAdminSave(adminModal, newAccess, newRoles)}
         onClose={() => setAdminModal(null)}
       />
-    )}
+    ) : null; })()}
     <div style={{ flex: 1, overflow: 'auto', animation: `screenEnter 180ms ${EASE_OUT}` }}>
       <div style={{ maxWidth: 680, margin: '0 auto', padding: '40px 32px', display: 'flex', flexDirection: 'column', gap: 32 }}>
         <div>
@@ -6017,58 +6143,14 @@ function TeamAccessSettings() {
         </div>
 
         <div>
-          <div style={SL}>Roles</div>
-          <div style={card}>
-            {ROLE_DEFS.map((role, idx) => {
-              const assignees = roleAssignments[role.key];
-              const visible = assignees.slice(0, 3);
-              const overflow = assignees.length - 3;
-              return (
-                <div key={role.key} onClick={() => setRoleModal(role.key)}
-                  style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '14px 20px', borderBottom: idx < ROLE_DEFS.length - 1 ? `1px solid ${P.border}` : 'none', cursor: 'pointer' }}>
-                  <Icon name={role.icon} size={18} color={P.inkFaint} strokeWidth={1.75} style={{ flexShrink: 0 }} />
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.ink }}>{role.label}</div>
-                    <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, marginTop: 1 }}>{role.hint}</div>
-                  </div>
-                  {assignees.length > 0 ? (
-                    <div style={{ display: 'flex', alignItems: 'center', marginRight: 6 }}>
-                      <div style={{ display: 'flex', flexDirection: 'row-reverse' }}>
-                        {overflow > 0 && (
-                          <div style={{ width: 24, height: 24, borderRadius: '50%', background: P.bg, border: `2px solid ${P.white}`, display: 'flex', alignItems: 'center', justifyContent: 'center', marginLeft: -6 }}>
-                            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 9, color: P.inkSoft }}>+{overflow}</span>
-                          </div>
-                        )}
-                        {[...visible].reverse().map(id => {
-                          const e = EMPLOYEES[id];
-                          return e ? (
-                            <div key={id} style={{ width: 24, height: 24, borderRadius: '50%', background: e.color, border: `2px solid ${P.white}`, display: 'flex', alignItems: 'center', justifyContent: 'center', marginLeft: -6, flexShrink: 0 }}>
-                              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 9, color: P.ink }}>{e.initials}</span>
-                            </div>
-                          ) : null;
-                        })}
-                      </div>
-                      <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, marginLeft: 10 }}>
-                        {assignees.length === 1 ? EMPLOYEES[assignees[0]]?.name.split(' ')[0] : `${assignees.length} people`}
-                      </span>
-                    </div>
-                  ) : (
-                    <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkFaint, marginRight: 6 }}>Not assigned</span>
-                  )}
-                  <Icon name="chevron-right" size={16} color={P.inkFaint} strokeWidth={1.75} style={{ flexShrink: 0 }} />
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        <div>
           <div style={SL}>Administrators</div>
           <div style={card}>
-            {admins.map((admin, idx) => (
+            {admins.map((admin, idx) => {
+              const assignedRoles = ROLE_DEFS.filter(r => roleAssignments[r.key]?.includes(admin.id));
+              return (
               <div key={admin.id}
-                onClick={admin.access !== 'owner' ? () => setAdminModal(admin.id) : undefined}
-                style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '14px 20px', borderBottom: idx < admins.length - 1 ? `1px solid ${P.border}` : 'none', cursor: admin.access !== 'owner' ? 'pointer' : 'default' }}>
+                onClick={() => setAdminModal(admin.id)}
+                style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '14px 20px', borderBottom: idx < admins.length - 1 ? `1px solid ${P.border}` : 'none', cursor: 'pointer' }}>
                 <div style={{ width: 32, height: 32, borderRadius: '50%', background: admin.color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                   <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 11, color: P.ink }}>{admin.initials}</span>
                 </div>
@@ -6076,18 +6158,25 @@ function TeamAccessSettings() {
                   <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.ink }}>{admin.name}</div>
                   <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>{admin.email}</div>
                 </div>
-                {admin.access === 'owner'
-                  ? <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, color: P.inkSoft, background: P.bg, padding: '3px 10px', borderRadius: 20, border: `1px solid ${P.border}` }}>Owner</span>
-                  : <>
-                      <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, marginRight: 6 }}>{ADMIN_ACCESS.find(a => a.key === admin.access)?.label}</span>
+                <>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                        {admin.access === 'full'
+                          ? <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, color: '#fff', background: P.action, padding: '3px 10px', borderRadius: 20 }}>Full admin</span>
+                          : assignedRoles.length > 0
+                          ? assignedRoles.map(r => (
+                              <span key={r.key} style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 11, color: P.inkSoft, background: P.bg, padding: '3px 8px', borderRadius: 20, border: `1px solid ${P.border}`, whiteSpace: 'nowrap' }}>{r.label}</span>
+                            ))
+                          : <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkFaint }}>No roles assigned</span>
+                        }
+                      </div>
                       <Icon name="chevron-right" size={16} color={P.inkFaint} strokeWidth={1.75} style={{ flexShrink: 0 }} />
                     </>
-                }
               </div>
-            ))}
+              );
+            })}
           </div>
-          <button style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12, padding: '9px 14px', borderRadius: 8, border: `1px solid ${P.border}`, background: P.white, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.ink }}>
-            <Icon name="plus" size={14} color={P.ink} strokeWidth={2.5} /> Invite admin
+          <button onClick={() => setShowGrantPicker(true)} style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12, padding: '9px 14px', borderRadius: 8, border: `1px solid ${P.border}`, background: P.white, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.ink }}>
+            <Icon name="plus" size={14} color={P.ink} strokeWidth={2.5} /> Grant admin access
           </button>
         </div>
 
