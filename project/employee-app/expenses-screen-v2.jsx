@@ -39,26 +39,13 @@ function ExpenseTypeScreenV2() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: '#fff' }}>
       {/* Top bar */}
-      <div style={{ padding: '8px 16px 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <div style={{ padding: '8px 16px 0', display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
         <button onClick={pop} style={{
           width: 36, height: 36, borderRadius: 999,
           border: `1px solid ${PFC.border}`, background: 'transparent',
           display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
         }}>
           <LucideIcon name="X" size={18} color={PFC.ink} strokeWidth={2} />
-        </button>
-        {/* Prototype variant toggle */}
-        <button
-          onClick={() => { window.__pfExpFlow = 'v1'; pop(); push('expense-type'); }}
-          style={{
-            appearance: 'none', border: `1px solid ${PFC.border}`, background: '#f7f7f8',
-            borderRadius: 999, padding: '4px 10px', cursor: 'pointer',
-            fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 11,
-            color: PFC.inkSoft, display: 'flex', alignItems: 'center', gap: 4,
-          }}
-        >
-          <LucideIcon name="Shuffle" size={11} color={PFC.inkSoft} strokeWidth={2} />
-          Classic flow
         </button>
       </div>
 
@@ -75,13 +62,13 @@ function ExpenseTypeScreenV2() {
                 border: `1px solid ${PFC.border}`, borderRadius: 12,
                 padding: '16px', cursor: 'pointer', textAlign: 'left',
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
-                fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 16, color: PFC.ink,
               }}
             >
-              <span>{label}</span>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 16, color: PFC.ink }}>{label}</span>
                 {badge && (
                   <span style={{
+                    alignSelf: 'flex-start',
                     background: '#ddebff', color: '#1568cd',
                     borderRadius: 999, padding: '3px 8px',
                     fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 12,
@@ -92,10 +79,27 @@ function ExpenseTypeScreenV2() {
                     {note}
                   </span>
                 )}
+              </div>
+              <div style={{ flexShrink: 0 }}>
                 <LucideIcon name="ChevronRight" size={18} color={PFC.inkSoft} strokeWidth={2} />
               </div>
             </button>
           ))}
+        </div>
+
+        {/* Prototype toggle — below the cards */}
+        <div style={{ display: 'flex', justifyContent: 'center' }}>
+          <button
+            onClick={() => { window.__pfExpFlow = 'v1'; pop(); push('expense-type'); }}
+            style={{
+              appearance: 'none', border: 'none', background: 'none', cursor: 'pointer',
+              fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 11,
+              color: PFC.inkSoft, display: 'flex', alignItems: 'center', gap: 4, padding: '4px 8px',
+            }}
+          >
+            <LucideIcon name="Shuffle" size={11} color={PFC.inkSoft} strokeWidth={2} />
+            Classic flow
+          </button>
         </div>
       </div>
     </div>
@@ -113,13 +117,20 @@ function ExpenseCategoryScreenV2({ type }) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: '#fff' }}>
-      <div style={{ padding: '8px 16px 0' }}>
+      <div style={{ padding: '8px 16px 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <button onClick={pop} style={{
           width: 36, height: 36, borderRadius: 999,
           border: `1px solid ${PFC.border}`, background: 'transparent',
           display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
         }}>
           <LucideIcon name="ChevronLeft" size={20} color={PFC.ink} strokeWidth={2} />
+        </button>
+        <button onClick={() => { pop(); pop(); }} style={{
+          width: 36, height: 36, borderRadius: 999,
+          border: `1px solid ${PFC.border}`, background: 'transparent',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
+        }}>
+          <LucideIcon name="X" size={18} color={PFC.ink} strokeWidth={2} />
         </button>
       </div>
 
@@ -204,7 +215,13 @@ function ExpenseFormScreenV2({ type, category }) {
         <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 13, color: PFC.inkSoft }}>
           {category}
         </span>
-        <div style={{ width: 36 }} />
+        <button onClick={() => { pop(); pop(); pop(); }} style={{
+          width: 36, height: 36, borderRadius: 999,
+          border: `1px solid ${PFC.border}`, background: 'transparent',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
+        }}>
+          <LucideIcon name="X" size={18} color={PFC.ink} strokeWidth={2} />
+        </button>
       </div>
 
       {/* Scrollable content */}
