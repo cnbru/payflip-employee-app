@@ -19,6 +19,7 @@ const StatusMeta = {
   pending:  { dot: '#f59e0b', label: 'Pending',  icon: 'Clock', color: '#92400e', bg: '#fde68a' },
   approved: { dot: '#22c55e', label: 'Approved', icon: 'Check', color: '#14532d', bg: '#bbf7d0' },
   rejected: { dot: '#ef4444', label: 'Declined', icon: 'X',     color: '#7f1d1d', bg: '#fecaca' },
+  declined: { dot: '#ef4444', label: 'Declined', icon: 'X',     color: '#7f1d1d', bg: '#fecaca' },
   ended:    { dot: '#9ca3af', label: 'Ended',    icon: 'Minus', color: '#374151', bg: '#f3f4f6' },
 };
 
@@ -2698,14 +2699,55 @@ function ExpenseDrawer({ expense, onClose, onApprove, onReject }) {
 function ChoiceDrawer({ choice, onClose, onApprove, onDecline }) {
   const emp = EMPLOYEES[choice.empId] || { name: choice.empId, initials: '?', color: '#e5e7eb' };
   const isPending = choice.status === 'pending';
+  const isApproved = choice.status === 'approved';
   const { visible, close, closing } = useModalTransition(onClose, SHEET_CLOSE_DUR);
-  const [declineMode, setDeclineMode] = React.useState(false);
+
+  // null | 'decline' | 'payslip' | 'activity' | 'terminate'
+  const [activePanel, setActivePanel] = React.useState(null);
   const [declineReason, setDeclineReason] = React.useState('');
+  const [terminateDate, setTerminateDate] = React.useState('2026-07-24');
+  const [terminateReason, setTerminateReason] = React.useState('');
+  const [terminateAcknowledged, setTerminateAcknowledged] = React.useState(false);
 
   const SLIDE_DUR = 300;
-  const detailSlide = declineMode ? 'translateX(-100%)' : 'translateX(0)';
-  const editSlide   = declineMode ? 'translateX(0)'     : 'translateX(100%)';
+  const isSecondary = activePanel !== null;
+  const detailSlide = isSecondary ? 'translateX(-100%)' : 'translateX(0)';
+  const panel2Slide = isSecondary ? 'translateX(0)' : 'translateX(100%)';
   const slideTransition = `transform ${SLIDE_DUR}ms ${EASE_DRAWER}`;
+
+  const panelTitles = { decline: isPending ? 'Decline choice' : 'Reject choice', payslip: 'Impact on payslip', activity: 'Activity log', terminate: 'Terminate early' };
+  const headerTitle = activePanel ? panelTitles[activePanel] : 'Choice details';
+
+  // Generate monthly payslip rows from choice dates
+  const payslipRows = React.useMemo(() => {
+    if (!choice.sDate || !choice.eDate) return [];
+    const parts = d => d.split('/').map(Number);
+    const [, sm, sy] = parts(choice.sDate);
+    const [, em, ey] = parts(choice.eDate);
+    const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    const totalMonths = choice.depreciation || Math.max(1, (ey - sy) * 12 + (em - sm) + 1);
+    const priceNum = parseFloat((choice.price || '0').replace(',', '.').replace(/[^0-9.]/g, '')) || 0;
+    const monthly = (priceNum / totalMonths).toFixed(2).replace('.', ',');
+    const rows = [];
+    let y = sy, m = sm;
+    while (y < ey || (y === ey && m <= em)) {
+      const past = y < 2026 || (y === 2026 && m < 7);
+      rows.push({ period: `${MONTHS[m - 1]} ${y}`, amount: `${monthly} EUR`, past });
+      if (++m > 12) { m = 1; y++; }
+    }
+    return rows;
+  }, [choice]);
+
+  // Activity log, most recent first
+  const activityLog = React.useMemo(() => {
+    const events = [
+      { icon: 'pencil', label: 'Created', actor: 'Bruno Coen', date: `${choice.cDate || '—'} 17:58` },
+      { icon: 'upload', label: 'Submitted', actor: 'Bruno Coen', date: `${choice.cDate || '—'} 17:58` },
+    ];
+    if (choice.status === 'approved') events.push({ icon: 'check', label: 'Approved', actor: 'Bruno Coen', date: `${choice.cDate || '—'} 17:58` });
+    if (choice.status === 'declined') events.push({ icon: 'x', label: 'Declined', actor: 'Bruno Coen', date: `${choice.cDate || '—'} 17:58` });
+    return events.reverse();
+  }, [choice]);
 
   const labelStyle = { flexShrink: 0, fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.ink, whiteSpace: 'nowrap' };
   const valueStyle = { flex: 1, minWidth: 0, fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.inkSoft, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 8 };
@@ -2716,6 +2758,13 @@ function ChoiceDrawer({ choice, onClose, onApprove, onDecline }) {
         <div style={labelStyle}>{label}</div>
       </div>
       <div style={valueStyle}>{children}</div>
+    </div>
+  );
+  const ActionRow = ({ icon, label, onClick }) => (
+    <div onClick={onClick} style={{ display: 'flex', alignItems: 'center', padding: '14px 24px', cursor: 'pointer', gap: 12 }}>
+      <Icon name={icon} size={15} color={P.inkSoft} strokeWidth={1.75} style={{ flexShrink: 0 }} />
+      <span style={{ flex: 1, fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.ink }}>{label}</span>
+      <Icon name="chevron-right" size={14} color={P.inkFaint} strokeWidth={2} />
     </div>
   );
   const SectionHeader = ({ children }) => (
@@ -2737,8 +2786,6 @@ function ChoiceDrawer({ choice, onClose, onApprove, onDecline }) {
     );
   };
 
-  const sm = StatusMeta[choice.status] || StatusMeta.pending;
-
   return (
     <React.Fragment>
       <div onClick={close} style={{ position: 'fixed', inset: 0, zIndex: 200, background: 'rgba(15,13,40,0.25)', ...modalBackdropStyle(visible) }}>
@@ -2752,13 +2799,13 @@ function ChoiceDrawer({ choice, onClose, onApprove, onDecline }) {
         {/* Header */}
         <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 24px', borderBottom: `1px solid ${P.border}` }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            {declineMode && (
-              <button onClick={() => setDeclineMode(false)} style={{ flexShrink: 0, width: 30, height: 30, borderRadius: '50%', background: 'rgba(60,60,67,0.1)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            {isSecondary && (
+              <button onClick={() => setActivePanel(null)} style={{ flexShrink: 0, width: 30, height: 30, borderRadius: '50%', background: 'rgba(60,60,67,0.1)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <Icon name="arrow-left" size={15} color={P.ink} strokeWidth={2} />
               </button>
             )}
             <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18, color: P.ink }}>
-              {declineMode ? 'Decline choice' : 'Choice details'}
+              {headerTitle}
             </span>
           </div>
           <button onClick={close} style={{ border: 'none', cursor: 'pointer', width: 30, height: 30, borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(60,60,67,0.1)' }}>
@@ -2775,13 +2822,12 @@ function ChoiceDrawer({ choice, onClose, onApprove, onDecline }) {
               <div style={{ padding: '20px 24px 16px' }}>
                 <div style={{ background: P.bg, borderRadius: 16, padding: '20px 20px 20px', overflow: 'hidden' }}>
                   <div style={{ display: 'flex', alignItems: 'flex-end', gap: 16 }}>
-                    {/* Text */}
                     <div style={{ flex: 1, minWidth: 0, paddingBottom: 20, display: 'flex', flexDirection: 'column' }}>
                       <div style={{ marginBottom: 32 }}>
                         <StatusPill status={choice.status || 'approved'} />
                       </div>
                       <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 15, color: P.ink, lineHeight: 1.35, marginBottom: 8 }}>
-                        {choice.productName || choice.name}
+                        {choice.name}
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
                         <span style={{ fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: 12, color: P.inkSoft }}>via</span>
@@ -2793,7 +2839,6 @@ function ChoiceDrawer({ choice, onClose, onApprove, onDecline }) {
                         <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.inkSoft }}>EUR</span>
                       </div>
                     </div>
-                    {/* Illustration */}
                     {choice.illustration
                       ? <img src={choice.illustration} alt="" style={{ width: 110, height: 110, objectFit: 'contain', flexShrink: 0, display: 'block' }} />
                       : <div style={{ width: 90, height: 90, flexShrink: 0, background: P.white, borderRadius: 14, border: `1px solid ${P.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
@@ -2801,16 +2846,15 @@ function ChoiceDrawer({ choice, onClose, onApprove, onDecline }) {
                         </div>
                     }
                   </div>
-                  {/* Divider */}
                   <div style={{ height: 1, background: P.border, margin: '16px -20px 0 -20px' }} />
-                  {/* Employee strip */}
-                  <div style={{ display: 'flex', alignItems: 'center', padding: '12px 0', marginTop: 12 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <Avatar employeeId={choice.empId} size={28} />
-                      <div>
-                        <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.ink }}>{emp.name}</div>
-                        <div style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkSoft }}>Requested by</div>
-                      </div>
+                  <div style={{ display: 'flex', alignItems: 'center', padding: '16px 0 0', gap: 16 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 7, flexShrink: 0 }}>
+                      <Icon name="user" size={14} color={P.inkSoft} strokeWidth={1.75} />
+                      <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.ink }}>Requested by</span>
+                    </div>
+                    <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 8 }}>
+                      <Avatar employeeId={choice.empId} size={20} />
+                      <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.inkSoft }}>{emp.name}</span>
                     </div>
                   </div>
                 </div>
@@ -2836,8 +2880,8 @@ function ChoiceDrawer({ choice, onClose, onApprove, onDecline }) {
               </>)}
               <SectionHeader>Dates</SectionHeader>
               <Group>
-                <TableRow label="Start date" icon="calendar">{choice.sDate}</TableRow>
-                <TableRow label="End date" icon="calendar-x">{choice.eDate}</TableRow>
+                <TableRow label="Start date" icon="calendar">{isPending ? '—' : (choice.sDate || '—')}</TableRow>
+                <TableRow label="End date" icon="calendar-x">{isPending ? '—' : (choice.eDate || '—')}</TableRow>
                 <TableRow label="Date of choice" icon="clock">{choice.cDate}</TableRow>
               </Group>
               {choice.transactions?.length > 0 && (<>
@@ -2858,17 +2902,30 @@ function ChoiceDrawer({ choice, onClose, onApprove, onDecline }) {
                 </Group>
               </>)}
               {choice.status === 'declined' && choice.declineReason && (<>
-                <SectionHeader>Admin</SectionHeader>
+                <SectionHeader>Decline reason</SectionHeader>
                 <Group>
-                  <TableRow label="Decline reason" icon="message-square">
+                  <TableRow label="Reason" icon="message-square">
                     <span style={{ textAlign: 'right', whiteSpace: 'normal', lineHeight: 1.4, color: '#dc2626' }}>{choice.declineReason}</span>
                   </TableRow>
                 </Group>
               </>)}
+
+              {/* Admin actions — approved or declined choices */}
+              {!isPending && (<>
+                <SectionHeader>Admin</SectionHeader>
+                <Group>
+                  <ActionRow icon="file-text" label="Impact on payslip" onClick={() => setActivePanel('payslip')} />
+                  <ActionRow icon="clock" label="Activity log" onClick={() => setActivePanel('activity')} />
+                  {isApproved && <ActionRow icon="calendar-x" label="Terminate early" onClick={() => { setTerminateReason(''); setTerminateAcknowledged(false); setActivePanel('terminate'); }} />}
+                </Group>
+                <div style={{ height: 24 }} />
+              </>)}
             </div>
+
+            {/* Footer */}
             {isPending && (
               <div style={{ flexShrink: 0, padding: '12px 20px', borderTop: `1px solid ${P.border}`, display: 'flex', gap: 10 }}>
-                <button onClick={() => { setDeclineReason(''); setDeclineMode(true); }} style={{ flex: 1, padding: '10px 0', borderRadius: 10, border: '1px solid #fecaca', background: '#fef2f2', color: '#dc2626', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                <button onClick={() => { setDeclineReason(''); setActivePanel('decline'); }} style={{ flex: 1, padding: '10px 0', borderRadius: 10, border: '1px solid #fecaca', background: '#fef2f2', color: '#dc2626', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
                   <Icon name="X" size={13} color="#dc2626" strokeWidth={2.5} /> Decline
                 </button>
                 <button onClick={() => { onApprove(choice.id); close(); }} style={{ flex: 1, padding: '10px 0', borderRadius: 10, border: 'none', background: P.ink, color: P.white, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
@@ -2876,23 +2933,142 @@ function ChoiceDrawer({ choice, onClose, onApprove, onDecline }) {
                 </button>
               </div>
             )}
+            {isApproved && (
+              <div style={{ flexShrink: 0, padding: '12px 20px', borderTop: `1px solid ${P.border}` }}>
+                <button onClick={() => { setDeclineReason(''); setActivePanel('decline'); }} style={{ width: '100%', padding: '10px 0', borderRadius: 10, border: '1px solid #fecaca', background: '#fef2f2', color: '#dc2626', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                  <Icon name="X" size={13} color="#dc2626" strokeWidth={2.5} /> Reject choice
+                </button>
+              </div>
+            )}
           </div>
 
-          {/* Panel 2 — Decline with reason */}
-          <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', transform: editSlide, transition: slideTransition }}>
-            <div style={{ flex: 1, overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column', gap: 16 }}>
-              <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, lineHeight: 1.5 }}>
-                You're declining <strong style={{ color: P.ink }}>{emp.name}</strong>'s request for {choice.name}.
-              </p>
-              <div>
-                <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 10, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Reason <span style={{ textTransform: 'none', fontWeight: 400 }}>(optional)</span></label>
-                <textarea value={declineReason} onChange={e => setDeclineReason(e.target.value)} placeholder="Explain why this choice is being declined…" rows={3} style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: `1px solid ${P.border}`, background: P.bg, fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink, resize: 'none', lineHeight: 1.5, boxSizing: 'border-box', outline: 'none' }} />
+          {/* Panel 2 — content switches based on activePanel */}
+          <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', transform: panel2Slide, transition: slideTransition }}>
+
+            {/* Decline / Reject panel */}
+            {activePanel === 'decline' && (<>
+              <div style={{ flex: 1, overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+                <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, lineHeight: 1.5 }}>
+                  {isPending
+                    ? <>You're declining <strong style={{ color: P.ink }}>{emp.name}</strong>'s request for {choice.name}.</>
+                    : <>You're revoking the approval for <strong style={{ color: P.ink }}>{emp.name}</strong>'s {choice.name}. This cannot be undone.</>
+                  }
+                </p>
+                <div>
+                  <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 10, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Reason <span style={{ textTransform: 'none', fontWeight: 400 }}>(optional)</span></label>
+                  <textarea value={declineReason} onChange={e => setDeclineReason(e.target.value)} placeholder="Explain why this choice is being declined…" rows={3} style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: `1px solid ${P.border}`, background: P.bg, fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink, resize: 'none', lineHeight: 1.5, boxSizing: 'border-box', outline: 'none' }} />
+                </div>
               </div>
-            </div>
-            <div style={{ flexShrink: 0, padding: '12px 20px', borderTop: `1px solid ${P.border}`, display: 'flex', gap: 10 }}>
-              <button onClick={() => setDeclineMode(false)} style={{ flex: 1, padding: '10px 0', borderRadius: 10, border: `1px solid ${P.border}`, background: 'transparent', color: P.inkSoft, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>Go back</button>
-              <button onClick={() => { onDecline(choice.id, declineReason); close(); }} style={{ flex: 2, padding: '10px 0', borderRadius: 10, border: 'none', background: '#dc2626', color: P.white, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>Confirm decline</button>
-            </div>
+              <div style={{ flexShrink: 0, padding: '12px 20px', borderTop: `1px solid ${P.border}`, display: 'flex', gap: 10 }}>
+                <button onClick={() => setActivePanel(null)} style={{ flex: 1, padding: '10px 0', borderRadius: 10, border: `1px solid ${P.border}`, background: 'transparent', color: P.inkSoft, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>Go back</button>
+                <button onClick={() => { onDecline(choice.id, declineReason); close(); }} style={{ flex: 2, padding: '10px 0', borderRadius: 10, border: 'none', background: '#dc2626', color: P.white, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>
+                  {isPending ? 'Confirm decline' : 'Confirm rejection'}
+                </button>
+              </div>
+            </>)}
+
+            {/* Impact on payslip panel */}
+            {activePanel === 'payslip' && (
+              <div style={{ flex: 1, overflowY: 'auto' }}>
+                <div style={{ padding: '16px 24px 12px' }}>
+                  <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, lineHeight: 1.5 }}>
+                    Benefits may affect your payslip by either boosting your gross salary with reimbursements or reducing it through deductions such as Benefit in Kind.
+                  </p>
+                </div>
+                {payslipRows.length === 0
+                  ? <div style={{ padding: '32px 0', textAlign: 'center', color: P.inkFaint, fontFamily: 'var(--font-body)', fontSize: 13 }}>No payslip data available</div>
+                  : (() => {
+                      const todayIdx = payslipRows.findIndex(r => !r.past);
+                      return (
+                        <div style={{ paddingBottom: 24 }}>
+                          {/* Section header */}
+                          <div style={{ padding: '4px 24px 8px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 10, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                            Benefit in Kind
+                          </div>
+                          {payslipRows.map((row, i) => (
+                            <React.Fragment key={i}>
+                              {/* "Today" divider between past and future */}
+                              {i === todayIdx && todayIdx > 0 && (
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 24px' }}>
+                                  <div style={{ flex: 1, height: 1, background: P.border }} />
+                                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 10, color: P.inkSoft, textTransform: 'uppercase', letterSpacing: '0.06em', flexShrink: 0 }}>Today</span>
+                                  <div style={{ flex: 1, height: 1, background: P.border }} />
+                                </div>
+                              )}
+                              {i > 0 && i !== todayIdx && (
+                                <div style={{ height: 1, background: P.border, marginLeft: 24 }} />
+                              )}
+                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '11px 24px' }}>
+                                <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: row.past ? P.inkSoft : P.ink }}>{row.period}</span>
+                                <span style={{ fontFamily: 'var(--font-display)', fontWeight: row.past ? 400 : 600, fontSize: 14, color: row.past ? P.inkSoft : P.ink, flexShrink: 0 }}>{row.amount}</span>
+                              </div>
+                            </React.Fragment>
+                          ))}
+                        </div>
+                      );
+                    })()
+                }
+              </div>
+            )}
+
+            {/* Activity log panel */}
+            {activePanel === 'activity' && (
+              <div style={{ flex: 1, overflowY: 'auto' }}>
+                <div style={{ padding: '16px 24px 12px' }}>
+                  <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, lineHeight: 1.5 }}>
+                    Track all changes and updates to this choice.
+                  </p>
+                </div>
+                <Group>
+                  {activityLog.map((event, i) => (
+                    <TableRow key={i} icon={event.icon} label={`${event.label} by ${event.actor}`}>
+                      {event.date}
+                    </TableRow>
+                  ))}
+                </Group>
+              </div>
+            )}
+
+            {/* Terminate early panel */}
+            {activePanel === 'terminate' && (<>
+              <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 20 }}>
+                <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, lineHeight: 1.5 }}>
+                  Set the termination date and provide a reason to end this choice early.
+                </p>
+                <div>
+                  <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.ink, marginBottom: 4 }}>Termination date</label>
+                  <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, marginBottom: 10 }}>When should this choice officially end?</div>
+                  <input type="date" value={terminateDate} onChange={e => setTerminateDate(e.target.value)} style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: `1px solid ${P.border}`, fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink, boxSizing: 'border-box', outline: 'none', background: P.white }} />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.ink, marginBottom: 10 }}>Reason for termination</label>
+                  <select value={terminateReason} onChange={e => setTerminateReason(e.target.value)} style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: `1px solid ${terminateReason ? P.border : P.border}`, fontFamily: 'var(--font-body)', fontSize: 14, color: terminateReason ? P.ink : P.inkSoft, boxSizing: 'border-box', outline: 'none', background: P.white, appearance: 'none', cursor: 'pointer' }}>
+                    <option value="" disabled>Select a reason</option>
+                    {['Broken', 'Other', 'Stolen', 'Terminated by benefit partner'].map(r => (
+                      <option key={r} value={r}>{r}</option>
+                    ))}
+                  </select>
+                </div>
+                <div style={{ background: '#fff7ed', border: '1px solid #fed7aa', borderRadius: 10, padding: '12px 14px', display: 'flex', gap: 10 }}>
+                  <Icon name="triangle-alert" size={16} color="#ea580c" strokeWidth={1.75} style={{ flexShrink: 0, marginTop: 1 }} />
+                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: '#9a3412', lineHeight: 1.5 }}>This action cannot be undone. The choice will be permanently terminated on the date specified.</span>
+                </div>
+                <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, cursor: 'pointer' }}>
+                  <input type="checkbox" checked={terminateAcknowledged} onChange={e => setTerminateAcknowledged(e.target.checked)} style={{ marginTop: 2, flexShrink: 0, accentColor: P.action }} />
+                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, lineHeight: 1.5 }}>I understand that this does not automatically recalculate payment amounts and that manual changes are still needed.</span>
+                </label>
+              </div>
+              <div style={{ flexShrink: 0, padding: '12px 20px', borderTop: `1px solid ${P.border}`, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <button
+                  disabled={!terminateReason || !terminateAcknowledged}
+                  onClick={() => close()}
+                  style={{ width: '100%', padding: '10px 0', borderRadius: 10, border: 'none', background: (!terminateReason || !terminateAcknowledged) ? P.border : P.ink, color: (!terminateReason || !terminateAcknowledged) ? P.inkSoft : P.white, cursor: (!terminateReason || !terminateAcknowledged) ? 'not-allowed' : 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>
+                  Confirm termination
+                </button>
+                <button onClick={() => setActivePanel(null)} style={{ width: '100%', padding: '10px 0', borderRadius: 10, border: '1px solid #fecaca', background: 'transparent', color: '#dc2626', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>Cancel</button>
+              </div>
+            </>)}
+
           </div>
         </div>
       </div>
@@ -3030,13 +3206,13 @@ function AddExpenseModal({ categories, onClose, onSave }) {
   const selectStyle = (hasErr) => ({
     width: '100%', padding: '9px 12px', borderRadius: 8,
     border: `1px solid ${hasErr ? '#ef4444' : P.border}`,
-    background: P.bg, fontFamily: 'var(--font-body)', fontSize: 14,
+    background: P.white, fontFamily: 'var(--font-body)', fontSize: 14,
     color: P.ink, outline: 'none', appearance: 'none', cursor: 'pointer',
   });
   const inputStyle = (hasErr) => ({
     width: '100%', padding: '9px 12px', borderRadius: 8,
     border: `1px solid ${hasErr ? '#ef4444' : P.border}`,
-    background: P.bg, fontFamily: 'var(--font-body)', fontSize: 14,
+    background: P.white, fontFamily: 'var(--font-body)', fontSize: 14,
     color: P.ink, outline: 'none', boxSizing: 'border-box',
   });
   const labelStyle = { fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, color: P.inkSoft, marginBottom: 6, display: 'block' };
