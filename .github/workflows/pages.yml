@@ -16,7 +16,6 @@ jobs:
         run: |
           mkdir -p _site
           cp -r project/employee-app/. _site/
-          cp -r project/hr-admin _site/hr-admin
       - uses: JamesIves/github-pages-deploy-action@v4
         with:
           folder: _site

@@ -387,7 +387,7 @@ function genChoices(id) {
 }
 const CHOICES_SEED = (() => {
   const hardcoded = [
-    { id: 'tablet-coolblue-pending', empId: 'charlotte-pieters', name: 'Tablet via Coolblue', price: '369,00 EUR', cDate: '13/05/2026', sDate: '13/05/2026', eDate: '13/05/2028', status: 'pending', productName: 'Apple iPad (2025) 11 Pouces 128 Go Wifi Argent', productUrl: 'https://www.coolblue.be/nl/product/960489', productNumber: '960489', orderId: '97190251', orderDate: '13/05/2026', depreciation: 24, transactions: [{ label: 'Home office budget', amount: '233,73 EUR', date: '13/05/2026' }, { label: 'End of year premium', amount: '180,55 EUR', date: '13/05/2026' }] },
+    { id: 'tablet-coolblue-approved', empId: 'charlotte-pieters', name: 'Tablet via Coolblue', price: '369,00 EUR', cDate: '13/05/2026', sDate: '13/05/2026', eDate: '13/05/2028', status: 'approved', illustration: '../assets/benefit-tablet.png', productName: 'Apple iPad (2025) 11 Pouces 128 Go Wifi Argent', productUrl: 'https://www.coolblue.be/nl/product/960489', productNumber: '960489', orderId: '97190251', orderDate: '13/05/2026', depreciation: 24, transactions: [{ label: 'Home office budget', amount: '233,73 EUR', date: '13/05/2026' }, { label: 'End of year premium', amount: '180,55 EUR', date: '13/05/2026' }] },
   ];
   const generated = Object.entries(EMPLOYEES).flatMap(([empId]) =>
     genChoices(empId).map((c, i) => ({ ...c, empId, id: `${empId}-cho-${i}` }))
@@ -2770,19 +2770,52 @@ function ChoiceDrawer({ choice, onClose, onApprove, onDecline }) {
           {/* Panel 1 — Detail */}
           <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', transform: detailSlide, transition: slideTransition }}>
             <div style={{ flex: 1, overflowY: 'auto' }}>
-              <SectionHeader>Choice</SectionHeader>
-              <Group>
-                <TableRow label="Employee" icon="user">
-                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{emp.name}</span>
-                  <Avatar employeeId={choice.empId} size={22} />
-                </TableRow>
-                <TableRow label="Benefit" icon="gift">
-                  <span style={{ textAlign: 'right', whiteSpace: 'normal', lineHeight: 1.4 }}>{choice.name}</span>
-                </TableRow>
-                <TableRow label="Price" icon="coins">
-                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 14, color: P.ink }}>{choice.price}</span>
-                </TableRow>
-              </Group>
+
+              {/* Hero */}
+              <div style={{ padding: '20px 24px 16px' }}>
+                <div style={{ background: P.bg, borderRadius: 16, padding: '20px 20px 20px', overflow: 'hidden' }}>
+                  <div style={{ display: 'flex', alignItems: 'flex-end', gap: 16 }}>
+                    {/* Text */}
+                    <div style={{ flex: 1, minWidth: 0, paddingBottom: 20, display: 'flex', flexDirection: 'column' }}>
+                      <div style={{ marginBottom: 32 }}>
+                        <StatusPill status={choice.status || 'approved'} />
+                      </div>
+                      <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 15, color: P.ink, lineHeight: 1.35, marginBottom: 8 }}>
+                        {choice.productName || choice.name}
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
+                        <span style={{ fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: 12, color: P.inkSoft }}>via</span>
+                        <img src="../assets/coolblue-logo.png" alt="Coolblue" style={{ height: 14, objectFit: 'contain', display: 'block' }} />
+                        <span style={{ fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: 12, color: P.inkSoft }}>Coolblue</span>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'baseline', gap: 5 }}>
+                        <span style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 26, color: P.ink, letterSpacing: '-0.02em' }}>{choice.price.replace(' EUR', '')}</span>
+                        <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.inkSoft }}>EUR</span>
+                      </div>
+                    </div>
+                    {/* Illustration */}
+                    {choice.illustration
+                      ? <img src={choice.illustration} alt="" style={{ width: 110, height: 110, objectFit: 'contain', flexShrink: 0, display: 'block' }} />
+                      : <div style={{ width: 90, height: 90, flexShrink: 0, background: P.white, borderRadius: 14, border: `1px solid ${P.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
+                          <Icon name="gift" size={36} color={P.inkFaint} strokeWidth={1.25} />
+                        </div>
+                    }
+                  </div>
+                  {/* Divider */}
+                  <div style={{ height: 1, background: P.border, margin: '16px -20px 0 -20px' }} />
+                  {/* Employee strip */}
+                  <div style={{ display: 'flex', alignItems: 'center', padding: '12px 0', marginTop: 12 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <Avatar employeeId={choice.empId} size={28} />
+                      <div>
+                        <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.ink }}>{emp.name}</div>
+                        <div style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkSoft }}>Requested by</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               {choice.productName && (<>
                 <SectionHeader>Product</SectionHeader>
                 <Group>
@@ -2824,17 +2857,14 @@ function ChoiceDrawer({ choice, onClose, onApprove, onDecline }) {
                   ))}
                 </Group>
               </>)}
-              <SectionHeader>Admin</SectionHeader>
-              <Group>
-                <TableRow label="Status" icon="circle-dot">
-                  <StatusPill status={choice.status || 'approved'} />
-                </TableRow>
-                {choice.status === 'declined' && choice.declineReason && (
+              {choice.status === 'declined' && choice.declineReason && (<>
+                <SectionHeader>Admin</SectionHeader>
+                <Group>
                   <TableRow label="Decline reason" icon="message-square">
                     <span style={{ textAlign: 'right', whiteSpace: 'normal', lineHeight: 1.4, color: '#dc2626' }}>{choice.declineReason}</span>
                   </TableRow>
-                )}
-              </Group>
+                </Group>
+              </>)}
             </div>
             {isPending && (
               <div style={{ flexShrink: 0, padding: '12px 20px', borderTop: `1px solid ${P.border}`, display: 'flex', gap: 10 }}>
@@ -6200,22 +6230,6 @@ const SETTINGS_TITLES = {
 };
 
 // ── App switcher pill ──────────────────────────────────────────────────────
-function AppSwitcher() {
-  return (
-    <a href="/employee-app/" style={{
-      position: 'fixed', bottom: 20, right: 20, zIndex: 100,
-      display: 'inline-flex', alignItems: 'center', gap: 7,
-      padding: '8px 14px', borderRadius: 20,
-      background: P.action, color: '#fff', textDecoration: 'none',
-      fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12,
-      boxShadow: '0 2px 12px rgba(15,13,40,0.2)',
-    }}>
-      <Icon name="Smartphone" size={13} color="#fff" strokeWidth={2} />
-      Employee App
-    </a>
-  );
-}
-
 // ── Toast ──────────────────────────────────────────────────────────────────
 function Toast({ toast, onDone }) {
   const [exiting, setExiting] = useState(false);
@@ -6590,7 +6604,6 @@ function App() {
         />
       )}
 
-      <AppSwitcher />
       {toast && <Toast toast={toast} onDone={() => setToast(null)} />}
       {followUpPrompt && !followUpModalOpen && (
         <FollowUpBanner
