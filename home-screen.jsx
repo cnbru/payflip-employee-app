@@ -490,6 +490,42 @@ function BikingSeasonHighlight({ onClick }) {
 }
 
 // ─────────────────────────────────────────────────────────────
+// HomeToast — inline version so it stays in this script scope
+// ─────────────────────────────────────────────────────────────
+function HomeToast({ title, onDismiss, onAction }) {
+  React.useEffect(() => {
+    if (!document.getElementById('home-toast-kf')) {
+      const el = document.createElement('style');
+      el.id = 'home-toast-kf';
+      el.textContent = '@keyframes homeToastUp { from { opacity:0; transform:translateX(-50%) translateY(12px); } to { opacity:1; transform:translateX(-50%) translateY(0); } }';
+      document.head.appendChild(el);
+    }
+    const t = setTimeout(onDismiss, 4000);
+    return () => clearTimeout(t);
+  }, []);
+  return (
+    <div style={{
+      position: 'fixed', bottom: 32, left: '50%', transform: 'translateX(-50%)',
+      zIndex: 500, background: '#16a34a', borderRadius: 999,
+      boxShadow: '0 4px 16px rgba(22,163,74,0.35)',
+      padding: '10px 10px 10px 14px',
+      display: 'inline-flex', alignItems: 'center', gap: 8, whiteSpace: 'nowrap',
+      animation: 'homeToastUp 0.3s cubic-bezier(0.22,1,0.36,1) both',
+    }}>
+      <LucideIcon name="Check" size={18} color="#fff" strokeWidth={2.5} />
+      <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 15, lineHeight: '22px', color: '#fff' }}>{title}</span>
+      {onAction && (
+        <button onClick={onAction} style={{
+          marginLeft: 4, background: 'rgba(255,255,255,0.22)', border: 'none', borderRadius: 8,
+          padding: '4px 12px', cursor: 'pointer',
+          fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: '#fff',
+        }}>View</button>
+      )}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
 // HomeScreen — the full scroll surface.
 // ─────────────────────────────────────────────────────────────
 function HomeScreen() {
@@ -497,6 +533,18 @@ function HomeScreen() {
   const drafts = (window.DRAFTS || []).filter(d => !(window.__deletedDrafts || []).includes(d.id));
   const [dismissed, setDismissed] = React.useState({});
   const dismiss = (key) => setDismissed((d) => ({ ...d, [key]: true }));
+
+  const [toast, setToast] = React.useState(null);
+  const [toastExpense, setToastExpense] = React.useState(null);
+  // Read pending toast only when home is the active top-of-stack screen (not during exit transitions).
+  const homeStackLen = nav ? (nav.stacks[nav.activeTab] || []).length : 1;
+  React.useEffect(() => {
+    if (homeStackLen === 1 && window.__pendingToast) {
+      setToast(window.__pendingToast);
+      setToastExpense(window.__lastSubmittedExpense || null);
+      window.__pendingToast = null;
+    }
+  }, [homeStackLen]);
 
   // Bike-lease drafts (filter from DRAFTS for review section)
   const bikeDrafts = drafts.filter(d => d.kind === 'bike' || d.id === 'bike-1');
@@ -515,7 +563,7 @@ function HomeScreen() {
       {/* Quick action buttons */}
       <div style={{ display: 'flex', gap: 16 }}>
         {[
-          { icon: 'Receipt', label: 'Submit expense', onClick: () => nav && nav.push('expense-type') },
+          { icon: 'Receipt', label: 'Submit expense', onClick: () => nav && nav.push('expense-type-v2') },
           { icon: 'CalendarDays', label: 'Add absence', onClick: () => nav && nav.push('absence-type') },
         ].map(({ icon, label, onClick }) => (
           <button key={label} onClick={onClick} style={{
@@ -616,7 +664,15 @@ function HomeScreen() {
         }
       </div>
 
-    </div>);
+      {toast && (
+        <HomeToast
+          title={toast.title}
+          onDismiss={() => setToast(null)}
+          onAction={toastExpense && nav ? () => { setToast(null); nav.push('expense-detail', { expense: toastExpense }); } : null}
+        />
+      )}
+    </div>
+  );
 
 }
 
