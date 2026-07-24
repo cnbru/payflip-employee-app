@@ -19,6 +19,7 @@ const StatusMeta = {
   pending:  { dot: '#f59e0b', label: 'Pending',  icon: 'Clock', color: '#92400e', bg: '#fde68a' },
   approved: { dot: '#22c55e', label: 'Approved', icon: 'Check', color: '#14532d', bg: '#bbf7d0' },
   rejected: { dot: '#ef4444', label: 'Declined', icon: 'X',     color: '#7f1d1d', bg: '#fecaca' },
+  declined: { dot: '#ef4444', label: 'Declined', icon: 'X',     color: '#7f1d1d', bg: '#fecaca' },
   ended:    { dot: '#9ca3af', label: 'Ended',    icon: 'Minus', color: '#374151', bg: '#f3f4f6' },
 };
 
@@ -2846,13 +2847,14 @@ function ChoiceDrawer({ choice, onClose, onApprove, onDecline }) {
                     }
                   </div>
                   <div style={{ height: 1, background: P.border, margin: '16px -20px 0 -20px' }} />
-                  <div style={{ display: 'flex', alignItems: 'center', padding: '12px 0', marginTop: 12 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <Avatar employeeId={choice.empId} size={28} />
-                      <div>
-                        <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.ink }}>{emp.name}</div>
-                        <div style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkSoft }}>Requested by</div>
-                      </div>
+                  <div style={{ display: 'flex', alignItems: 'center', padding: '16px 0 0', gap: 16 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 7, flexShrink: 0 }}>
+                      <Icon name="user" size={14} color={P.inkSoft} strokeWidth={1.75} />
+                      <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.ink }}>Requested by</span>
+                    </div>
+                    <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 8 }}>
+                      <Avatar employeeId={choice.empId} size={20} />
+                      <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.inkSoft }}>{emp.name}</span>
                     </div>
                   </div>
                 </div>
