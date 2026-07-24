@@ -2772,8 +2772,8 @@ function ChoiceDrawer({ choice, onClose, onApprove, onDecline }) {
             <div style={{ flex: 1, overflowY: 'auto' }}>
 
               {/* Hero */}
-              <div style={{ padding: '20px 24px 0' }}>
-                <div style={{ background: P.bg, borderRadius: 16, padding: '20px 20px 0', overflow: 'hidden' }}>
+              <div style={{ padding: '20px 24px 16px' }}>
+                <div style={{ background: P.bg, borderRadius: 16, padding: '20px 20px 20px', overflow: 'hidden' }}>
                   {/* Benefit pill */}
                   <div style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: P.white, border: `1px solid ${P.border}`, borderRadius: 20, padding: '4px 10px 4px 7px', marginBottom: 14 }}>
                     <Icon name="gift" size={12} color={P.inkSoft} strokeWidth={1.75} />
