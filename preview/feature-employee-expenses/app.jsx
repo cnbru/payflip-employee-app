@@ -366,7 +366,7 @@ function ProtoSwitcher({ viewMode, switchMode, protoData, setProtoData }) {
             menuBtn(protoData === id, () => { setProtoData(id); setOpen(false); }, icon, label, null)
           )}
           {divider}
-          <a href="hr-admin/" target="_blank" rel="noreferrer" onClick={() => setOpen(false)} style={{
+          <a href="https://cnbru.github.io/payflip-hr-admin/" target="_blank" rel="noreferrer" onClick={() => setOpen(false)} style={{
             display: 'flex', alignItems: 'center', gap: 9,
             padding: '8px 12px', borderRadius: 8,
             color: ink, textDecoration: 'none',
