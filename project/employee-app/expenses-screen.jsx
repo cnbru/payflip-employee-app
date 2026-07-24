@@ -46,20 +46,20 @@ function ExpenseTypeScreen() {
   const rows = [
     {
       img: EXPENSE_TYPE_ICONS.mobility,
-      title: 'Mobility expenses',
+      title: 'Commute & transport',
       subtitle: 'Get reimbursed for your commutes',
       pill: 'Mobility budget',
       onClick: () => push('mobility-expense'),
     },
     {
       img: EXPENSE_TYPE_ICONS.cash,
-      title: 'Expenses',
+      title: 'Work expenses',
       subtitle: 'Ask your employer for a reimbursement for hotels, restaurant,..',
       onClick: () => push('expense-wizard'),
     },
     {
       img: EXPENSE_TYPE_ICONS.ld,
-      title: 'Learning and development',
+      title: 'Learning & development',
       subtitle: 'Get courses, books, and certifications reimbursed.',
       pill: 'L&D budget',
       onClick: () => { pop(); navigate('benefits', 'benefit-flow-start', { name: 'Learning and development' }); },
@@ -68,8 +68,8 @@ function ExpenseTypeScreen() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: '#fff' }}>
-      {/* Top bar with X */}
-      <div style={{ padding: '8px 16px 0' }}>
+      {/* Top bar with X + flow toggle */}
+      <div style={{ padding: '8px 16px 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <button onClick={pop} style={{
           width: 36, height: 36, borderRadius: 999,
           border: `1px solid ${PFC.border}`, background: 'transparent',
@@ -77,6 +77,18 @@ function ExpenseTypeScreen() {
           cursor: 'pointer',
         }}>
           <LucideIcon name="X" size={18} color={PFC.ink} strokeWidth={2} />
+        </button>
+        <button
+          onClick={() => { window.__pfExpFlow = 'v2'; pop(); push('expense-type-v2'); }}
+          style={{
+            appearance: 'none', border: `1px solid ${PFC.border}`, background: '#f7f7f8',
+            borderRadius: 999, padding: '4px 10px', cursor: 'pointer',
+            fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 11,
+            color: PFC.inkSoft, display: 'flex', alignItems: 'center', gap: 4,
+          }}
+        >
+          <LucideIcon name="Shuffle" size={11} color={PFC.inkSoft} strokeWidth={2} />
+          New flow
         </button>
       </div>
 
@@ -126,11 +138,11 @@ function ExpenseTypeScreen() {
 }
 
 // ─────────────────────────────────────────────────────────────
-// Expense Wizard — frictionless employer expense (2 steps + review + success)
-// Steps: 0=Upload, 1=Details, 2=Review → 3=Success
+// Expense Wizard — frictionless employer expense (2 steps + review)
+// Steps: 0=Upload, 1=Details, 2=Review
 // ─────────────────────────────────────────────────────────────
 function ExpenseWizardScreen() {
-  const { pop, push, reset, switchTab } = useNav();
+  const { pop, push } = useNav();
   const [step, setStep] = React.useState(0);
   const [uploading, setUploading] = React.useState(false);
   const [uploaded, setUploaded] = React.useState(false);
@@ -161,40 +173,11 @@ function ExpenseWizardScreen() {
       status: 'pending',
     };
     window.__submittedExpenses = [newExpense, ...(window.__submittedExpenses || [])];
-    setStep(3);
+    window.__pendingToast = { title: 'Expense submitted' };
+    window.__lastSubmittedExpense = newExpense;
+    pop();
+    pop();
   };
-
-  // ── Success ──
-  if (step === 3) {
-    const amtNum = parseFloat((amount || '0').replace(/[^0-9.,]/g, '').replace(',', '.'));
-    const displayAmt = amtNum > 0 ? `€${amtNum.toFixed(2)}` : '€110.25';
-    return (
-      <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: '#fff', animation: 'expFadeSlideIn 0.35s ease-out both' }}>
-        <div style={{ padding: 16 }}>
-          <button onClick={() => { reset('home'); switchTab('home'); }} style={{ width: 36, height: 36, borderRadius: 999, border: `1px solid ${PFC.border}`, background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-            <LucideIcon name="X" size={18} color={PFC.ink} strokeWidth={2} />
-          </button>
-        </div>
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '0 32px 80px', gap: 16 }}>
-          <div style={{ width: 52, height: 52, borderRadius: 999, border: `2px solid ${PFC.successText}`, display: 'flex', alignItems: 'center', justifyContent: 'center', animation: 'expPopIn 0.5s ease-out 0.1s both' }}>
-            <LucideIcon name="Check" size={26} color={PFC.successText} strokeWidth={2.5} />
-          </div>
-          <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 22, lineHeight: '30px', letterSpacing: '-0.005em', color: PFC.inkDeep, textAlign: 'center', animation: 'expFadeSlideIn 0.4s ease-out 0.2s both' }}>Expense submitted</span>
-          <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 15, lineHeight: '22px', color: PFC.inkSoft, textAlign: 'center', maxWidth: 260, animation: 'expFadeSlideIn 0.4s ease-out 0.3s both' }}>{displayAmt} under review</span>
-          <div style={{ width: '100%', marginTop: 8, display: 'flex', flexDirection: 'column', gap: 8, animation: 'expFadeSlideIn 0.4s ease-out 0.4s both' }}>
-            <Button variant="primary" size="large" fullWidth onClick={() => push('my-expenses')}>View expenses</Button>
-            <Button variant="outline" size="large" fullWidth onClick={() => { reset('home'); switchTab('home'); }}>Back to home</Button>
-          </div>
-        </div>
-        <style>{`
-          @keyframes expFadeSlideIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
-          @keyframes expPopIn { 0% { opacity: 0; transform: scale(0.5); } 60% { transform: scale(1.12); } 100% { opacity: 1; transform: scale(1); } }
-          @keyframes expUploadProgress { from { width: 0%; } to { width: 100%; } }
-          @keyframes expUploadSlideIn { from { opacity: 0; transform: translateY(8px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
-        `}</style>
-      </div>
-    );
-  }
 
   const cancelTrailing = (
     <button onClick={() => setShowCancelConfirm(true)} style={{ width: 36, height: 36, borderRadius: 999, border: `1px solid ${PFC.border}`, background: 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
@@ -226,7 +209,7 @@ function ExpenseWizardScreen() {
                   <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 13, color: PFC.inkSoft, marginBottom: 2 }}>{label}</div>
                   <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 15, color: PFC.ink }}>{value}</div>
                 </div>
-                <button onClick={() => setEditField(editKey)} style={{ appearance: 'none', border: 'none', background: 'none', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: PFC.purple, padding: '0 0 0 8px' }}>Edit</button>
+                <button onClick={() => setEditField(editKey)} style={{ appearance: 'none', border: 'none', background: 'none', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, color: '#a3a1aa', padding: '0 0 0 8px' }}>Edit</button>
               </div>
             ))}
           </div>
@@ -347,7 +330,7 @@ function ExpenseWizardScreen() {
                 }}>
                   <LucideIcon name="UploadCloud" size={32} color={PFC.inkSoft} strokeWidth={1.75} />
                   <Body14 color={PFC.ink} weight={400}>
-                    Drag and drop or <strong style={{ fontWeight: 700 }}>choose file</strong> to upload
+                    Take a photo or <strong style={{ fontWeight: 700 }}>choose file</strong>
                   </Body14>
                 </button>
               )
@@ -384,6 +367,16 @@ function ExpenseWizardScreen() {
               Fill in the details for your expense.
             </Body16>
 
+            <Field
+              label="Amount"
+              value={amount}
+              onChange={setAmount}
+              placeholder="0.00"
+              leftAdornment={
+                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 16, color: PFC.inkSoft, marginRight: 2 }}>€</span>
+              }
+            />
+
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               <Body14 color={PFC.ink} weight={600}>Category</Body14>
               <div style={{ border: `1px solid ${PFC.borderHard}`, borderRadius: 12, overflow: 'hidden' }}>
@@ -410,16 +403,6 @@ function ExpenseWizardScreen() {
                 ))}
               </div>
             </div>
-
-            <Field
-              label="Amount"
-              value={amount}
-              onChange={setAmount}
-              placeholder="0.00"
-              leftAdornment={
-                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 16, color: PFC.inkSoft, marginRight: 2 }}>€</span>
-              }
-            />
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               <Body14 color={PFC.ink} weight={600}>Date of expense</Body14>
@@ -686,6 +669,9 @@ function ExpenseDetailScreen({ expense }) {
             <div>
               <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 13, color: '#dc2626', marginBottom: 2 }}>Expense rejected</div>
               <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 13, color: '#b91c1c', lineHeight: '18px' }}>{expense.adminNote}</div>
+              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 400, fontSize: 12, color: '#b91c1c', lineHeight: '18px', marginTop: 6, opacity: 0.75 }}>
+                Tip: Try uploading a clearer photo in good lighting.
+              </div>
             </div>
           </div>
         )}
@@ -713,10 +699,15 @@ function ExpenseDetailScreen({ expense }) {
         {/* Actions for pending and rejected */}
         {canEdit && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <Button variant="outline" size="large" fullWidth onClick={() => push('expense-wizard')}>
-              Edit expense
+            <Button
+              variant={expense.status === 'rejected' ? 'primary' : 'outline'}
+              size="large"
+              fullWidth
+              onClick={() => push('expense-wizard')}
+            >
+              {expense.status === 'rejected' ? 'Edit & resubmit' : 'Edit expense'}
             </Button>
-            <button onClick={pop} style={{ appearance: 'none', border: 'none', background: 'none', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 15, color: '#dc2626', padding: '10px 0', textAlign: 'center' }}>
+            <button onClick={pop} style={{ appearance: 'none', border: 'none', background: 'none', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: '#dc2626', padding: '8px 0', textAlign: 'center', opacity: 0.7 }}>
               Delete expense
             </button>
           </div>
@@ -743,13 +734,164 @@ function DiscardConfirmModal({ onDiscard, onCancel }) {
 }
 
 // ─────────────────────────────────────────────────────────────
+// Toast — lightweight success notification (auto-dismisses after 4s)
+// Driven by window.__pendingToast; read and cleared by the receiving screen.
+// ─────────────────────────────────────────────────────────────
+function Toast({ title, onDismiss, onAction }) {
+  React.useEffect(() => {
+    if (!document.getElementById('toast-keyframes')) {
+      const el = document.createElement('style');
+      el.id = 'toast-keyframes';
+      el.textContent = '@keyframes toastSlideUp { from { opacity: 0; transform: translateY(16px) scale(0.96); } to { opacity: 1; transform: translateY(0) scale(1); } }';
+      document.head.appendChild(el);
+    }
+    const timer = setTimeout(onDismiss, 4000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  return (
+    <div style={{
+      position: 'fixed', bottom: 32, left: '50%', transform: 'translateX(-50%)',
+      zIndex: 500,
+      background: '#16a34a', borderRadius: 999,
+      boxShadow: '0 4px 16px rgba(22,163,74,0.35)',
+      padding: '10px 10px 10px 14px',
+      display: 'inline-flex', alignItems: 'center', gap: 8, whiteSpace: 'nowrap',
+      animation: 'toastSlideUp 0.3s cubic-bezier(0.22,1,0.36,1) both',
+    }}>
+      <LucideIcon name="Check" size={18} color="#fff" strokeWidth={2.5} />
+      <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 15, lineHeight: '22px', color: '#fff' }}>{title}</span>
+      {onAction && (
+        <button onClick={onAction} style={{
+          marginLeft: 4,
+          background: 'rgba(255,255,255,0.22)', border: 'none', borderRadius: 8,
+          padding: '4px 12px', cursor: 'pointer',
+          fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: '#fff',
+        }}>View</button>
+      )}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// Payflip Advantage Modal — bottom sheet explaining the tax advantage
+// ─────────────────────────────────────────────────────────────
+function PayflipAdvantageModal({ amtNum, onClose }) {
+  const hasAmount = (amtNum || 0) > 0;
+  const payflipNet = hasAmount ? amtNum : 548;
+  const advantage = Math.round(payflipNet * 0.19);
+  const cashNet = payflipNet - advantage;
+  const fmt = (n) => `€${n % 1 === 0 ? n : n.toFixed(2)}`;
+
+  const COL_W = 90;
+  const EXEMPT = (
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: '#16a34a', fontWeight: 700, fontSize: 13 }}>
+      <LucideIcon name="Check" size={13} color="#16a34a" strokeWidth={2.5} />
+      Exempt
+    </span>
+  );
+
+  const rows = [
+    { label: 'Employer NSSO', cash: '−8.86%', payflip: '−8.86%', payflipIsExempt: false },
+    { label: 'Employee NSSO', cash: '−13.07%', payflip: null, payflipIsExempt: true },
+    { label: 'Income tax',    cash: '−53.3%',  payflip: null, payflipIsExempt: true },
+  ];
+
+  return (
+    <div
+      onClick={onClose}
+      style={{ position: 'fixed', inset: 0, zIndex: 400, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'flex-end' }}
+    >
+      <div
+        onClick={e => e.stopPropagation()}
+        style={{ width: '100%', background: '#fff', borderRadius: '20px 20px 0 0', maxHeight: 'calc(100% - 60px)', overflowY: 'auto', boxSizing: 'border-box' }}
+      >
+      <div style={{ padding: '24px 16px 40px', display: 'flex', flexDirection: 'column', gap: 20 }}>
+        {/* Header */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 20, lineHeight: '28px', color: PFC.ink }}>How is this calculated?</span>
+          <span style={{ fontFamily: 'var(--font-display)', fontWeight: 400, fontSize: 14, lineHeight: '20px', color: PFC.inkSoft }}>
+            Here's why going through Payflip beats taking the same amount as cash.
+          </span>
+        </div>
+
+        {/* Amount chip */}
+        <div style={{ alignSelf: 'flex-start', background: '#f3e8ff', borderRadius: 999, padding: '6px 14px' }}>
+          <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 15, color: '#7c3aed' }}>{fmt(payflipNet)}</span>
+        </div>
+
+        {/* Comparison table */}
+        <div style={{ border: `1px solid ${PFC.border}`, borderRadius: 14, overflow: 'hidden' }}>
+          {/* Table header */}
+          <div style={{ display: 'flex', background: '#f7f7f8', padding: '10px 16px', borderBottom: `1px solid ${PFC.border}` }}>
+            <div style={{ flex: 1 }} />
+            <div style={{ width: COL_W, textAlign: 'center', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 12, color: PFC.inkSoft, letterSpacing: '0.04em' }}>CASH</div>
+            <div style={{ width: COL_W, textAlign: 'center', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 12, color: '#7c3aed', letterSpacing: '0.04em' }}>PAYFLIP</div>
+          </div>
+
+          {/* Deduction rows */}
+          {rows.map((row, i) => (
+            <div key={row.label} style={{ display: 'flex', alignItems: 'center', padding: '12px 16px', borderBottom: `1px solid ${PFC.border}` }}>
+              <div style={{ flex: 1, fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 13, color: PFC.inkSoft }}>{row.label}</div>
+              <div style={{ width: COL_W, textAlign: 'center', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: PFC.ink }}>{row.cash}</div>
+              <div style={{ width: COL_W, textAlign: 'center' }}>
+                {row.payflipIsExempt ? EXEMPT : (
+                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: PFC.ink }}>{row.payflip}</span>
+                )}
+              </div>
+            </div>
+          ))}
+
+          {/* Net total row */}
+          <div style={{ display: 'flex', alignItems: 'center', padding: '14px 16px', background: '#fafafa' }}>
+            <div style={{ flex: 1, fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 14, color: PFC.ink }}>Net</div>
+            <div style={{ width: COL_W, textAlign: 'center', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 16, color: PFC.ink }}>{fmt(cashNet)}</div>
+            <div style={{ width: COL_W, textAlign: 'center', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 16, color: '#7c3aed' }}>{fmt(payflipNet)}</div>
+          </div>
+        </div>
+
+        {/* Payflip advantage callout */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, color: PFC.inkSoft, letterSpacing: '0.06em', textTransform: 'uppercase' }}>Estimated Payflip advantage</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <img src={PAYFLIP_ADV_ICON} alt="" style={{ width: 11, height: 18, display: 'block', flexShrink: 0 }} />
+            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 28, lineHeight: '36px', letterSpacing: '-0.01em', color: '#c42bfc' }}>{fmt(advantage)}</span>
+          </div>
+          <span style={{ fontFamily: 'var(--font-display)', fontWeight: 400, fontSize: 13, color: PFC.inkSoft, lineHeight: '18px' }}>
+            That's how much more you keep by claiming this expense through Payflip instead of taking it as extra salary.
+          </span>
+        </div>
+
+        {/* Info note */}
+        <div style={{ background: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: 10, padding: '12px 14px', display: 'flex', gap: 8 }}>
+          <LucideIcon name="Info" size={16} color="#0369a1" strokeWidth={2} style={{ flexShrink: 0, marginTop: 1 }} />
+          <span style={{ fontFamily: 'var(--font-display)', fontWeight: 400, fontSize: 13, color: '#0c4a6e', lineHeight: '18px' }}>
+            A 30% government tax reduction can stack on top — ask your employer for details.
+          </span>
+        </div>
+
+        {/* Close button */}
+        <button
+          onClick={onClose}
+          style={{ appearance: 'none', border: 'none', borderRadius: 12, background: PFC.ink, color: '#fff', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, lineHeight: '24px', padding: '14px 24px', cursor: 'pointer', minHeight: 52 }}
+        >
+          Close
+        </button>
+      </div>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
 // MobilityFooter — Figma-matched footer: stats + action buttons
 // ─────────────────────────────────────────────────────────────
 const PAYFLIP_ADV_ICON = 'https://www.figma.com/api/mcp/asset/6fa2e40e-e8fd-48f9-9d84-a6f9e4656c0a';
 
-function MobilityFooter({ amtNum, onBack, onContinue, continueLabel = 'Continue', continueDisabled = false, extra }) {
+function MobilityFooter({ amtNum, onBack, onContinue, continueLabel = 'Continue', continueDisabled = false, extra, onAdvantageInfo }) {
   const hasAmount = (amtNum || 0) > 0;
   const impact = hasAmount ? `€${amtNum.toFixed(2)}` : '—';
+  const advantageAmt = hasAmount ? Math.round(amtNum * 0.19) : null;
   return (
     <div style={{ background: '#fff', borderTop: `1px solid ${PFC.border}`, padding: '16px 16px 24px' }}>
       {/* Two-column stats — only shown when amount is known */}
@@ -771,11 +913,16 @@ function MobilityFooter({ amtNum, onBack, onContinue, continueLabel = 'Continue'
           <div style={{ flex: 1, paddingLeft: 16 }}>
             <div style={{ display: 'flex', gap: 4, alignItems: 'center', marginBottom: 6 }}>
               <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, lineHeight: '20px', letterSpacing: '0.025px', color: PFC.ink }}>Payflip advantage</span>
-              <LucideIcon name="Info" size={12} color={PFC.inkSoft} strokeWidth={2} />
+              <button
+                onClick={onAdvantageInfo}
+                style={{ appearance: 'none', border: 'none', background: 'none', padding: 0, cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+              >
+                <LucideIcon name="Info" size={12} color={PFC.inkSoft} strokeWidth={2} />
+              </button>
             </div>
             <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
               <img src={PAYFLIP_ADV_ICON} alt="" style={{ width: 13, height: 22, display: 'block', flexShrink: 0 }} />
-              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 24, lineHeight: '32px', letterSpacing: '-0.12px', color: '#c42bfc' }}>€104</span>
+              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 24, lineHeight: '32px', letterSpacing: '-0.12px', color: '#c42bfc' }}>€{advantageAmt}</span>
             </div>
           </div>
         </div>
@@ -799,13 +946,13 @@ function MobilityFooter({ amtNum, onBack, onContinue, continueLabel = 'Continue'
 }
 
 // ─────────────────────────────────────────────────────────────
-// Mobility Expense — benefit-style (3 steps + review + success)
-// Steps: 0=Upload, 1=Details, 2=Budget, 3=Review → 4=Success
+// Mobility Expense — benefit-style (3 steps + review)
+// Steps: 0=Upload, 1=Details, 2=Budget, 3=Review
 // ─────────────────────────────────────────────────────────────
 const MOB_CATEGORIES = ['Private transport', 'Public transport', 'Shared mobility', 'Mobility subscription'];
 
 function MobilityExpenseScreen() {
-  const { pop, push, reset, switchTab } = useNav();
+  const { pop, push } = useNav();
   const [step, setStep]                     = React.useState(0);
   const [uploading, setUploading]           = React.useState(false);
   const [uploaded, setUploaded]             = React.useState(false);
@@ -815,6 +962,7 @@ function MobilityExpenseScreen() {
   const [endDate, setEndDate]               = React.useState('');
   const [editField, setEditField]           = React.useState(null);
   const [showCancelConfirm, setShowCancelConfirm] = React.useState(false);
+  const [showAdvantageModal, setShowAdvantageModal] = React.useState(false);
 
   const MOB_STEPS = [
     { label: 'Upload',  n: 1, total: 3 },
@@ -836,40 +984,11 @@ function MobilityExpenseScreen() {
       status: 'pending',
     };
     window.__submittedExpenses = [newExpense, ...(window.__submittedExpenses || [])];
-    setStep(4);
+    window.__pendingToast = { title: 'Mobility expense submitted' };
+    window.__lastSubmittedExpense = newExpense;
+    pop();
+    pop();
   };
-
-  // ── Success ──
-  if (step === 4) {
-    const amtNum = parseFloat((amount || '0').replace(/[^0-9.,]/g, '').replace(',', '.'));
-    const displayAmt = amtNum > 0 ? `€${amtNum.toFixed(2)}` : '€110.25';
-    return (
-      <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: '#fff', animation: 'expFadeSlideIn 0.35s ease-out both' }}>
-        <div style={{ padding: 16 }}>
-          <button onClick={() => { reset('home'); switchTab('home'); }} style={{ width: 36, height: 36, borderRadius: 999, border: `1px solid ${PFC.border}`, background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-            <LucideIcon name="X" size={18} color={PFC.ink} strokeWidth={2} />
-          </button>
-        </div>
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '0 32px 80px', gap: 16 }}>
-          <div style={{ width: 52, height: 52, borderRadius: 999, border: `2px solid ${PFC.successText}`, display: 'flex', alignItems: 'center', justifyContent: 'center', animation: 'expPopIn 0.5s ease-out 0.1s both' }}>
-            <LucideIcon name="Check" size={26} color={PFC.successText} strokeWidth={2.5} />
-          </div>
-          <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 22, lineHeight: '30px', letterSpacing: '-0.005em', color: PFC.inkDeep, textAlign: 'center', animation: 'expFadeSlideIn 0.4s ease-out 0.2s both' }}>Mobility expense submitted</span>
-          <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 15, lineHeight: '22px', color: PFC.inkSoft, textAlign: 'center', maxWidth: 260, animation: 'expFadeSlideIn 0.4s ease-out 0.3s both' }}>{displayAmt} under review</span>
-          <div style={{ width: '100%', marginTop: 8, display: 'flex', flexDirection: 'column', gap: 8, animation: 'expFadeSlideIn 0.4s ease-out 0.4s both' }}>
-            <Button variant="primary" size="large" fullWidth onClick={() => push('my-expenses')}>View choice</Button>
-            <Button variant="outline" size="large" fullWidth onClick={() => { reset('home'); switchTab('home'); }}>Back to home</Button>
-          </div>
-        </div>
-        <style>{`
-          @keyframes expFadeSlideIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
-          @keyframes expPopIn { 0% { opacity: 0; transform: scale(0.5); } 60% { transform: scale(1.12); } 100% { opacity: 1; transform: scale(1); } }
-          @keyframes expUploadProgress { from { width: 0%; } to { width: 100%; } }
-          @keyframes expUploadSlideIn { from { opacity: 0; transform: translateY(8px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
-        `}</style>
-      </div>
-    );
-  }
 
   const mobCancelTrailing = (
     <button onClick={() => setShowCancelConfirm(true)} style={{ width: 36, height: 36, borderRadius: 999, border: `1px solid ${PFC.border}`, background: 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
@@ -908,7 +1027,7 @@ function MobilityExpenseScreen() {
                   <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 15, color: PFC.ink }}>{value}</div>
                   {sub && <div style={{ fontFamily: 'var(--font-display)', fontWeight: 400, fontSize: 12, color: PFC.inkSoft, marginTop: 2 }}>{sub}</div>}
                 </div>
-                <button onClick={() => setEditField(editKey)} style={{ appearance: 'none', border: 'none', background: 'none', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: PFC.purple, padding: '0 0 0 8px' }}>Edit</button>
+                <button onClick={() => setEditField(editKey)} style={{ appearance: 'none', border: 'none', background: 'none', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, color: '#a3a1aa', padding: '0 0 0 8px' }}>Edit</button>
               </div>
             ))}
           </div>
@@ -918,6 +1037,7 @@ function MobilityExpenseScreen() {
           amtNum={amtNumGlobal}
           onContinue={handleSubmit}
           continueLabel="Submit"
+          onAdvantageInfo={() => setShowAdvantageModal(true)}
         />
 
         {editField && (
@@ -1031,7 +1151,7 @@ function MobilityExpenseScreen() {
               ) : (
                 <button onClick={handleUpload} style={{ width: '100%', appearance: 'none', cursor: 'pointer', background: '#F7F7F8', border: `1.5px dashed ${PFC.border}`, borderRadius: 16, padding: '32px 16px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
                   <LucideIcon name="UploadCloud" size={32} color={PFC.inkSoft} strokeWidth={1.75} />
-                  <Body14 color={PFC.ink} weight={400}>Drag and drop or <strong style={{ fontWeight: 700 }}>choose file</strong> to upload</Body14>
+                  <Body14 color={PFC.ink} weight={400}>Take a photo or <strong style={{ fontWeight: 700 }}>choose file</strong></Body14>
                 </button>
               )
             ) : (
@@ -1057,6 +1177,14 @@ function MobilityExpenseScreen() {
             <Heading24>Add expense details</Heading24>
             <Body16 color={PFC.inkSoft} weight={400} style={{ lineHeight: '24px' }}>Fill in the details for your mobility expense.</Body16>
 
+            <Field
+              label="Amount"
+              value={amount}
+              onChange={setAmount}
+              placeholder="0.00"
+              leftAdornment={<span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 16, color: PFC.inkSoft, marginRight: 2 }}>€</span>}
+            />
+
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               <Body14 color={PFC.ink} weight={600}>Category</Body14>
               <div style={{ border: `1px solid ${PFC.borderHard}`, borderRadius: 12, overflow: 'hidden' }}>
@@ -1070,14 +1198,6 @@ function MobilityExpenseScreen() {
                 ))}
               </div>
             </div>
-
-            <Field
-              label="Amount"
-              value={amount}
-              onChange={setAmount}
-              placeholder="0.00"
-              leftAdornment={<span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 16, color: PFC.inkSoft, marginRight: 2 }}>€</span>}
-            />
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               <Body14 color={PFC.ink} weight={600}>Date of expense</Body14>
@@ -1149,6 +1269,7 @@ function MobilityExpenseScreen() {
         onBack={step === 0 ? pop : () => setStep(step - 1)}
         onContinue={step === 0 ? () => setStep(1) : step === 1 ? () => setStep(2) : () => setStep(3)}
         continueDisabled={step === 0 ? !uploaded : step === 1 ? !amount : false}
+        onAdvantageInfo={() => setShowAdvantageModal(true)}
       />
 
       <style>{`
@@ -1157,6 +1278,12 @@ function MobilityExpenseScreen() {
         @keyframes expUploadSlideIn { from { opacity: 0; transform: translateY(8px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
       `}</style>
       {showCancelConfirm && <DiscardConfirmModal onDiscard={pop} onCancel={() => setShowCancelConfirm(false)} />}
+      {showAdvantageModal && (
+        <PayflipAdvantageModal
+          amtNum={amtNumGlobal}
+          onClose={() => setShowAdvantageModal(false)}
+        />
+      )}
     </div>
   );
 }
@@ -1166,3 +1293,4 @@ registerScreen('expense-wizard', ExpenseWizardScreen);
 registerScreen('mobility-expense', MobilityExpenseScreen);
 registerScreen('my-expenses', MyExpensesScreen);
 registerScreen('expense-detail', ExpenseDetailScreen);
+window.Toast = Toast;
