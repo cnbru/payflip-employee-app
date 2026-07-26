@@ -610,13 +610,13 @@ function DetailsTab({ emp, empId, onNav }) {
           <label style={labelStyle}>Employee Payroll ID *</label><div style={fieldStyle}>{ex.payrollId || '—'}</div>
         </div>
       </div>
-      {emp.adminAccess && (
+      {(emp.adminAccess || emp.role === 'Admin') && (
         <div>
           <h3 style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18, color: P.ink, margin: '0 0 12px' }}>Admin access</h3>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <Icon name="shield-check" size={15} color={P.inkSoft} strokeWidth={1.75} />
             <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 13, color: P.ink }}>
-              {emp.adminAccess === 'full' ? 'Full admin' : 'Role-based'}
+              {emp.adminAccess === 'full' ? 'Full admin' : emp.adminAccess ? 'Custom access' : 'Not configured'}
             </span>
             <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>—</span>
             <span onClick={() => onNav('settings-team')} style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.ink, textDecoration: 'underline', cursor: 'pointer' }}>Manage in Team & access</span>
@@ -896,7 +896,7 @@ function AppModeSidebar({ active, onNav, pendingCount, onEnterSettings }) {
 
       <nav style={{ flex: 1, padding: '10px 0', display: 'flex', flexDirection: 'column', gap: 3, overflow: 'auto' }}>
         <SidebarItem icon="house" label="Home" isActive={active === 'dashboard'} onClick={() => onNav('dashboard')} />
-        <SidebarItem icon="users" label="People" isActive={active === 'employees' || active?.startsWith('employee-detail')} onClick={() => onNav('employees')} />
+        <SidebarItem icon="users" label="People" isActive={active === 'employees' || active === 'employees:admin' || active?.startsWith('employee-detail')} onClick={() => onNav('employees')} />
         <SidebarItem icon="list-checks" label="Choices" isActive={active === 'choices'} onClick={() => onNav('choices')} badgeDot={pendingCount?.choices || null} />
 
         <SidebarItem icon="calendar-days" label="Time off" onClick={() => setTimeoffOpen(o => !o)} chevron chevronOpen={timeoffOpen} isActive={active === 'requests' || active === 'team-absences'} badgeDot={!timeoffOpen && (pendingCount?.requests ?? pendingCount) > 0 ? (pendingCount?.requests ?? pendingCount) : null} />
@@ -4534,9 +4534,9 @@ function EmployeeRow({ emp, onNav }) {
 }
 
 // ── Employees screen ──────────────────────────────────────────────────────
-function EmployeesScreen({ requests, onNav }) {
+function EmployeesScreen({ requests, onNav, initialRoleFilter = 'All' }) {
   const [search, setSearch] = useState('');
-  const [roleFilter, setRoleFilter] = useState('All');
+  const [roleFilter, setRoleFilter] = useState(initialRoleFilter);
   const [statusFilter, setStatusFilter] = useState('Active');
 
   const empList = useMemo(() => {
@@ -6068,7 +6068,7 @@ function AdminAccessModal({ admin, access, onSave, onClose }) {
                 {Array.isArray(access) && <div style={{ width: 7, height: 7, borderRadius: '50%', background: P.action }} />}
               </div>
               <div style={{ flex: 1 }}>
-                <div style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink, fontWeight: 500 }}>Limited access</div>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink, fontWeight: 500 }}>Custom access</div>
                 <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>
                   {Array.isArray(access) && access.length > 0
                     ? access.map(a => AREA_LABELS[a] || a).join(' · ')
@@ -6102,30 +6102,19 @@ function AdminAccessModal({ admin, access, onSave, onClose }) {
         )}
 
         {/* Footer */}
-        {!revoking
-          ? <div style={{ padding: '12px 22px 16px', borderTop: `1px solid ${P.border}`, display: 'flex', alignItems: 'center' }}>
-              <button onClick={() => setRevoking(true)} style={{ border: 'none', background: 'transparent', padding: '6px 0', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: '#dc2626' }}>
-                Revoke access
-              </button>
-              <div style={{ flex: 1 }} />
-              <button onClick={close} style={{ padding: '8px 18px', borderRadius: 8, border: `1px solid ${P.border}`, background: 'transparent', color: P.ink, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, marginRight: 8 }}>Cancel</button>
-              {step === 2 && (
-                <button onClick={() => { onSave(selectedAreas); close(); }} style={{ padding: '8px 18px', borderRadius: 8, border: 'none', background: P.action, color: '#fff', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>Save</button>
-              )}
-            </div>
-          : <div style={{ padding: '12px 22px 16px', borderTop: `1px solid ${P.border}`, display: 'flex', alignItems: 'center', gap: 10 }}>
-              <span style={{ flex: 1, fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>Remove {admin.name.split(' ')[0]}'s admin access?</span>
-              <button onClick={() => setRevoking(false)} style={{ border: 'none', background: 'transparent', padding: '6px 0', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.inkSoft }}>Cancel</button>
-              <button onClick={() => { onSave(null); close(); }} style={{ padding: '8px 18px', borderRadius: 8, border: 'none', background: '#dc2626', color: '#fff', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>Revoke</button>
-            </div>
-        }
+        <div style={{ padding: '12px 22px 16px', borderTop: `1px solid ${P.border}`, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 8 }}>
+          <button onClick={close} style={{ padding: '8px 18px', borderRadius: 8, border: `1px solid ${P.border}`, background: 'transparent', color: P.ink, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>Cancel</button>
+          {step === 2 && (
+            <button onClick={() => { onSave(selectedAreas); close(); }} style={{ padding: '8px 18px', borderRadius: 8, border: 'none', background: P.action, color: '#fff', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>Save</button>
+          )}
+        </div>
       </div>
     </div>
   );
 }
 
 
-function TeamAccessSettings() {
+function TeamAccessSettings({ onNav }) {
   const [adminAccess, setAdminAccess] = useState(() =>
     Object.entries(EMPLOYEES)
       .filter(([, u]) => u.adminAccess)
@@ -6199,6 +6188,9 @@ function TeamAccessSettings() {
               </div>
               );
             })}
+          </div>
+          <div style={{ marginTop: 10 }}>
+            <span onClick={() => onNav('employees:admin')} style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.ink, textDecoration: 'underline', cursor: 'pointer' }}>Manage admin roles in People</span>
           </div>
         </div>
 
@@ -6824,14 +6816,14 @@ function App() {
         {screen === 'dashboard' && <DashboardScreen requests={requests} onNav={setScreen} onToast={setToast} />}
         {screen === 'team-absences' && <TeamAbsencesScreen requests={requests} pendingCount={pendingRequestsCount} onNav={setScreen} onShowDetail={setCalDetail} activeReqId={calDetail?.id} onSave={saveRequest} companyEvents={companyEvents} onCancelCompanyEvent={cancelCompanyEvent} initialDate={calendarJumpDate} initialDeptFilter={calendarDeptFilter} />}
         {screen === 'requests' && <RequestsScreen requests={requests} onApprove={approve} onDecline={requestDecline} onSave={saveRequest} onCancel={requestCancel} onNav={setScreen} onViewInCalendar={(req) => { const d = req._selectedDates?.[0] || req.startDate; if (d) { const iso = typeof d === 'string' && d.match(/^\d{4}-/) ? d : null; setCalendarJumpDate(iso ? new Date(iso) : parseDisplayDate(d)); } setCalDetail(req); setScreen('team-absences'); }} />}
-        {screen === 'employees' && <EmployeesScreen requests={requests} onNav={setScreen} />}
+        {(screen === 'employees' || screen === 'employees:admin') && <EmployeesScreen requests={requests} onNav={setScreen} initialRoleFilter={screen === 'employees:admin' ? 'Admin' : 'All'} />}
         {screen.startsWith('employee-detail:') && <EmployeeDetailScreen employeeId={screen.split(':')[1]} requests={requests} onNav={setScreen} onSave={saveRequest} onCancel={cancelRequest} onApprove={approve} onDecline={requestDecline} onViewTeamCalendar={(dept) => { setCalendarDeptFilter(dept || null); setScreen('team-absences'); }} employeeBalance={employeeBalances[screen.split(':')[1]]} onUpdateBalance={(newBal) => updateBalances(screen.split(':')[1], newBal)} needsSetup={needsBalanceSetup.has(screen.split(':')[1])} confirmedDate={balanceConfirmedDates[screen.split(':')[1]]} onConfirmBalances={() => confirmBalancesFor(screen.split(':')[1])} onToast={setToast} />}
         {screen === 'expenses' && <ExpensesScreen expenses={expenses} categories={expenseCategories} onApprove={approveExpense} onDetail={(exp) => setExpDetail(exp)} onAdd={addExpense} />}
         {screen === 'choices' && <ChoicesScreen choices={choices} onApprove={approveChoice} onDecline={declineChoice} onDetail={setChoiceDetail} />}
         {screen === 'payroll-overview' && <StubScreen title="Payroll Overview" description="Monthly payroll run and submission" />}
         {screen === 'payroll-reports' && <StubScreen title="Payroll Reports" description="Reporting and exports" />}
         {screen === 'settings-expenses' && <ExpenseCategorySettings categories={expenseCategories} onSave={setExpenseCategories} />}
-        {screen === 'settings-team' && <TeamAccessSettings />}
+        {screen === 'settings-team' && <TeamAccessSettings onNav={setScreen} />}
         {screen === 'settings-timeoff' && <TimeOffSettings />}
         {screen.startsWith('settings-') && screen !== 'settings-expenses' && screen !== 'settings-team' && screen !== 'settings-timeoff' && <StubScreen title={SETTINGS_TITLES[screen] || 'Settings'} description={`Configure ${(SETTINGS_TITLES[screen] || 'settings').toLowerCase()}`} />}
       </div>
