@@ -583,7 +583,6 @@ function SalaryTab({ empId }) {
 }
 function DetailsTab({ emp, empId, onNav, adminAccess, onAdminSave }) {
   const ex = EMP_EXTRA[empId] || {};
-  const [detailAdminModal, setDetailAdminModal] = React.useState(false);
   const parts = emp.name.split(' ');
   const first = parts[0], last = parts.slice(1).join(' ');
   const fieldStyle = { background: P.white, border: `1px solid ${P.border}`, borderRadius: 8, padding: '10px 14px', fontFamily: 'var(--font-body)', fontSize: 13, color: P.ink };
@@ -611,42 +610,36 @@ function DetailsTab({ emp, empId, onNav, adminAccess, onAdminSave }) {
           <label style={labelStyle}>Employee Payroll ID *</label><div style={fieldStyle}>{ex.payrollId || '—'}</div>
         </div>
       </div>
-      {(emp.adminAccess || emp.role === 'Admin') && (() => {
+      {(() => {
         const AREA_LABELS = { 'time-off': 'Time off', 'expenses': 'Expenses', 'payroll': 'Payroll' };
+        const isAdmin = (adminAccess && empId in adminAccess) || emp.role === 'Admin';
         const currentAccess = adminAccess ? (adminAccess[empId] ?? emp.adminAccess ?? null) : (emp.adminAccess ?? null);
         const accessLabel = currentAccess === 'full'
           ? 'Full admin'
           : Array.isArray(currentAccess) && currentAccess.length > 0
             ? currentAccess.map(a => AREA_LABELS[a] || a).join(' · ')
             : null;
-        const adminObj = { id: empId, name: emp.name, initials: emp.initials, color: emp.color, email: emp.email };
         return (
-          <>
-          {detailAdminModal && (
-            <AdminAccessModal
-              admin={adminObj}
-              access={currentAccess}
-              onSave={newAccess => { onAdminSave(empId, newAccess); setDetailAdminModal(false); }}
-              onClose={() => setDetailAdminModal(false)}
-            />
-          )}
           <div>
             <h3 style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18, color: P.ink, margin: '0 0 12px' }}>Admin access</h3>
-            <div onClick={() => setDetailAdminModal(true)}
-              style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', background: P.white, border: `1px solid ${P.border}`, borderRadius: 10, cursor: 'pointer', maxWidth: 380 }}>
-              <Icon name="shield-check" size={16} color={currentAccess ? P.action : P.inkSoft} strokeWidth={1.75} style={{ flexShrink: 0 }} />
-              <div style={{ flex: 1 }}>
-                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 13, color: P.ink }}>
+            {isAdmin ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <Icon name="shield-check" size={15} color={P.action} strokeWidth={1.75} />
+                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 13, color: P.ink }}>
                   {accessLabel || 'Not configured'}
-                </div>
-                {Array.isArray(currentAccess) && currentAccess.length > 0 && (
-                  <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, marginTop: 1 }}>Custom access</div>
-                )}
+                </span>
+                <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>—</span>
+                <span onClick={() => onNav('settings-team')} style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.ink, textDecoration: 'underline', cursor: 'pointer' }}>Configure in Team & access</span>
               </div>
-              <Icon name="chevron-right" size={15} color={P.inkFaint} strokeWidth={1.75} style={{ flexShrink: 0 }} />
-            </div>
+            ) : (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <Icon name="shield" size={15} color={P.inkFaint} strokeWidth={1.75} />
+                <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>No admin access</span>
+                <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>—</span>
+                <span onClick={() => onAdminSave(empId, null)} style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.ink, textDecoration: 'underline', cursor: 'pointer' }}>Grant admin access</span>
+              </div>
+            )}
           </div>
-          </>
         );
       })()}
     </div>
@@ -6134,7 +6127,7 @@ function AdminAccessModal({ admin, access, onSave, onClose }) {
 function TeamAccessSettings({ onNav, adminAccess, onAdminSave }) {
   const admins = useMemo(() =>
     Object.entries(EMPLOYEES)
-      .filter(([, u]) => u.role === 'Admin' || u.isEmployee === false)
+      .filter(([id, u]) => u.role === 'Admin' || u.isEmployee === false || id in adminAccess)
       .map(([id, u]) => ({ id, name: u.name, initials: u.initials, color: u.color, email: u.email, access: id in adminAccess ? adminAccess[id] : (u.adminAccess || null) })),
     [adminAccess]
   );
@@ -6606,7 +6599,7 @@ function App() {
   );
   const handleAdminSave = (adminId, newAccess) => {
     setAdminAccess(prev => {
-      if (newAccess === null) { const next = { ...prev }; delete next[adminId]; return next; }
+      if (newAccess === 'revoke') { const next = { ...prev }; delete next[adminId]; return next; }
       return { ...prev, [adminId]: newAccess };
     });
   };
