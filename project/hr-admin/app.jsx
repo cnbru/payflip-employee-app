@@ -6178,9 +6178,7 @@ function TeamAccessSettings() {
               const badge = admin.access === 'full'
                 ? { label: 'Full admin', filled: true }
                 : areas && areas.length > 0
-                  ? areas.length === 1
-                    ? { label: AREA_LABELS[areas[0]] || areas[0], filled: false }
-                    : { label: `${areas.length} areas`, filled: false }
+                  ? { label: areas.map(a => AREA_LABELS[a] || a).join(' · '), filled: false }
                   : null;
               return (
               <div key={admin.id}
