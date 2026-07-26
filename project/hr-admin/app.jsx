@@ -6006,16 +6006,12 @@ const ADMIN_AREAS = [
 function AdminAccessModal({ admin, access, onSave, onClose }) {
   const { visible, close } = useModalTransition(onClose);
   const [step, setStep] = useState(Array.isArray(access) ? 2 : 1);
-  const [selectedAreas, setSelectedAreas] = useState(Array.isArray(access) ? access : ['time-off']);
-  const [revoking, setRevoking] = useState(false);
+  const [selectedAreas, setSelectedAreas] = useState(Array.isArray(access) ? access : []);
 
   const AREA_LABELS = { 'time-off': 'Time off', 'expenses': 'Expenses', 'payroll': 'Payroll' };
 
   const toggleArea = (value) => {
-    setSelectedAreas(prev => {
-      const next = prev.includes(value) ? prev.filter(a => a !== value) : [...prev, value];
-      return next.length === 0 ? prev : next;
-    });
+    setSelectedAreas(prev => prev.includes(value) ? prev.filter(a => a !== value) : [...prev, value]);
   };
 
   const headerAvatarAndName = (
@@ -6053,20 +6049,15 @@ function AdminAccessModal({ admin, access, onSave, onClose }) {
         {step === 1 && (
           <div style={{ padding: '8px 14px 4px' }}>
             <div onClick={() => { onSave('full'); close(); }}
-              style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '11px 10px', cursor: 'pointer', borderRadius: 8 }}>
-              <div style={{ width: 16, height: 16, borderRadius: '50%', border: `2px solid ${access === 'full' ? P.action : P.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 2 }}>
-                {access === 'full' && <div style={{ width: 7, height: 7, borderRadius: '50%', background: P.action }} />}
-              </div>
+              style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '11px 10px', cursor: 'pointer', borderRadius: 8 }}>
               <div style={{ flex: 1 }}>
                 <div style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink, fontWeight: 500 }}>Full admin</div>
                 <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>Full access to all settings, tools, and approvals</div>
               </div>
+              <Icon name="chevron-right" size={16} color={P.inkFaint} strokeWidth={1.75} style={{ flexShrink: 0 }} />
             </div>
             <div onClick={() => setStep(2)}
-              style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '11px 10px', cursor: 'pointer', borderRadius: 8 }}>
-              <div style={{ width: 16, height: 16, borderRadius: '50%', border: `2px solid ${Array.isArray(access) ? P.action : P.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 2 }}>
-                {Array.isArray(access) && <div style={{ width: 7, height: 7, borderRadius: '50%', background: P.action }} />}
-              </div>
+              style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '11px 10px', cursor: 'pointer', borderRadius: 8 }}>
               <div style={{ flex: 1 }}>
                 <div style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink, fontWeight: 500 }}>Custom access</div>
                 <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>
@@ -6075,7 +6066,7 @@ function AdminAccessModal({ admin, access, onSave, onClose }) {
                     : 'Select which areas to manage'}
                 </div>
               </div>
-              <Icon name="chevron-right" size={16} color={P.inkFaint} strokeWidth={1.75} style={{ flexShrink: 0, marginTop: 2 }} />
+              <Icon name="chevron-right" size={16} color={P.inkFaint} strokeWidth={1.75} style={{ flexShrink: 0 }} />
             </div>
           </div>
         )}
@@ -6105,7 +6096,7 @@ function AdminAccessModal({ admin, access, onSave, onClose }) {
         <div style={{ padding: '12px 22px 16px', borderTop: `1px solid ${P.border}`, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 8 }}>
           <button onClick={close} style={{ padding: '8px 18px', borderRadius: 8, border: `1px solid ${P.border}`, background: 'transparent', color: P.ink, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>Cancel</button>
           {step === 2 && (
-            <button onClick={() => { onSave(selectedAreas); close(); }} style={{ padding: '8px 18px', borderRadius: 8, border: 'none', background: P.action, color: '#fff', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>Save</button>
+            <button onClick={() => { if (selectedAreas.length > 0) { onSave(selectedAreas); close(); } }} style={{ padding: '8px 18px', borderRadius: 8, border: 'none', background: selectedAreas.length > 0 ? P.action : P.border, color: selectedAreas.length > 0 ? '#fff' : P.inkSoft, cursor: selectedAreas.length > 0 ? 'pointer' : 'default', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>Save</button>
           )}
         </div>
       </div>
