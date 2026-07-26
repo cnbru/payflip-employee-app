@@ -581,8 +581,9 @@ function SalaryTab({ empId }) {
     </div>
   );
 }
-function DetailsTab({ emp, empId, onNav }) {
+function DetailsTab({ emp, empId, onNav, adminAccess, onAdminSave }) {
   const ex = EMP_EXTRA[empId] || {};
+  const [detailAdminModal, setDetailAdminModal] = React.useState(false);
   const parts = emp.name.split(' ');
   const first = parts[0], last = parts.slice(1).join(' ');
   const fieldStyle = { background: P.white, border: `1px solid ${P.border}`, borderRadius: 8, padding: '10px 14px', fontFamily: 'var(--font-body)', fontSize: 13, color: P.ink };
@@ -610,19 +611,44 @@ function DetailsTab({ emp, empId, onNav }) {
           <label style={labelStyle}>Employee Payroll ID *</label><div style={fieldStyle}>{ex.payrollId || '—'}</div>
         </div>
       </div>
-      {(emp.adminAccess || emp.role === 'Admin') && (
-        <div>
-          <h3 style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18, color: P.ink, margin: '0 0 12px' }}>Admin access</h3>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Icon name="shield-check" size={15} color={P.inkSoft} strokeWidth={1.75} />
-            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 13, color: P.ink }}>
-              {emp.adminAccess === 'full' ? 'Full admin' : emp.adminAccess ? 'Custom access' : 'Not configured'}
-            </span>
-            <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>—</span>
-            <span onClick={() => onNav('settings-team')} style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.ink, textDecoration: 'underline', cursor: 'pointer' }}>Manage in Team & access</span>
+      {(emp.adminAccess || emp.role === 'Admin') && (() => {
+        const AREA_LABELS = { 'time-off': 'Time off', 'expenses': 'Expenses', 'payroll': 'Payroll' };
+        const currentAccess = adminAccess ? (adminAccess[empId] ?? emp.adminAccess ?? null) : (emp.adminAccess ?? null);
+        const accessLabel = currentAccess === 'full'
+          ? 'Full admin'
+          : Array.isArray(currentAccess) && currentAccess.length > 0
+            ? currentAccess.map(a => AREA_LABELS[a] || a).join(' · ')
+            : null;
+        const adminObj = { id: empId, name: emp.name, initials: emp.initials, color: emp.color, email: emp.email };
+        return (
+          <>
+          {detailAdminModal && (
+            <AdminAccessModal
+              admin={adminObj}
+              access={currentAccess}
+              onSave={newAccess => { onAdminSave(empId, newAccess); setDetailAdminModal(false); }}
+              onClose={() => setDetailAdminModal(false)}
+            />
+          )}
+          <div>
+            <h3 style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18, color: P.ink, margin: '0 0 12px' }}>Admin access</h3>
+            <div onClick={() => setDetailAdminModal(true)}
+              style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', background: P.white, border: `1px solid ${P.border}`, borderRadius: 10, cursor: 'pointer', maxWidth: 380 }}>
+              <Icon name="shield-check" size={16} color={currentAccess ? P.action : P.inkSoft} strokeWidth={1.75} style={{ flexShrink: 0 }} />
+              <div style={{ flex: 1 }}>
+                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 13, color: P.ink }}>
+                  {accessLabel || 'Not configured'}
+                </div>
+                {Array.isArray(currentAccess) && currentAccess.length > 0 && (
+                  <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, marginTop: 1 }}>Custom access</div>
+                )}
+              </div>
+              <Icon name="chevron-right" size={15} color={P.inkFaint} strokeWidth={1.75} style={{ flexShrink: 0 }} />
+            </div>
           </div>
-        </div>
-      )}
+          </>
+        );
+      })()}
     </div>
   );
 }
@@ -4739,7 +4765,7 @@ function EditBalancesModal({ emp, balances, onSave, onClose, isNewEmployee, onCo
 }
 
 // ── Employee detail screen ────────────────────────────────────────────────
-function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, onApprove, onDecline, onViewTeamCalendar, employeeBalance, onUpdateBalance, needsSetup, confirmedDate, onConfirmBalances, onToast }) {
+function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, onApprove, onDecline, onViewTeamCalendar, employeeBalance, onUpdateBalance, needsSetup, confirmedDate, onConfirmBalances, onToast, adminAccess, onAdminSave }) {
   const emp = EMPLOYEES[employeeId];
   const [activeTab, setActiveTab] = useState('choices');
   const [addModal, setAddModal] = useState(null); // null | 'add' | request object (edit)
@@ -5053,7 +5079,7 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, o
         ) : activeTab === 'salary' ? (
           <div><SalaryTab empId={employeeId} /></div>
         ) : activeTab === 'details' ? (
-          <div><DetailsTab emp={emp} empId={employeeId} onNav={onNav} /></div>
+          <div><DetailsTab emp={emp} empId={employeeId} onNav={onNav} adminAccess={adminAccess} onAdminSave={onAdminSave} /></div>
         ) : (
           <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 12, padding: 24, maxWidth: 480, color: P.inkFaint, fontFamily: 'var(--font-body)', fontSize: 13 }}>
             Coming soon
@@ -6105,13 +6131,7 @@ function AdminAccessModal({ admin, access, onSave, onClose }) {
 }
 
 
-function TeamAccessSettings({ onNav }) {
-  const [adminAccess, setAdminAccess] = useState(() =>
-    Object.entries(EMPLOYEES)
-      .filter(([, u]) => u.adminAccess)
-      .reduce((acc, [id, u]) => ({ ...acc, [id]: u.adminAccess }), {})
-  );
-
+function TeamAccessSettings({ onNav, adminAccess, onAdminSave }) {
   const admins = useMemo(() =>
     Object.entries(EMPLOYEES)
       .filter(([, u]) => u.role === 'Admin' || u.isEmployee === false)
@@ -6120,14 +6140,6 @@ function TeamAccessSettings({ onNav }) {
   );
 
   const [adminModal, setAdminModal] = useState(null);
-
-  const handleAdminSave = (adminId, newAccess) => {
-    setAdminAccess(prev => {
-      if (newAccess === null) { const next = { ...prev }; delete next[adminId]; return next; }
-      return { ...prev, [adminId]: newAccess };
-    });
-    setAdminModal(null);
-  };
 
   const AREA_LABELS = { 'time-off': 'Time off', 'expenses': 'Expenses', 'payroll': 'Payroll' };
   const SL = { fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 11, color: P.inkSoft, letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 10 };
@@ -6139,7 +6151,7 @@ function TeamAccessSettings({ onNav }) {
       <AdminAccessModal
         admin={admin}
         access={admin.access}
-        onSave={newAccess => handleAdminSave(adminModal, newAccess)}
+        onSave={newAccess => { onAdminSave(adminModal, newAccess); setAdminModal(null); }}
         onClose={() => setAdminModal(null)}
       />
     ) : null; })()}
@@ -6587,6 +6599,17 @@ function FollowUpBanner({ prompt, onLog, onDismiss }) {
 // ── Root App ───────────────────────────────────────────────────────────────
 function App() {
   const [screen, setScreen] = useState('dashboard');
+  const [adminAccess, setAdminAccess] = useState(() =>
+    Object.entries(EMPLOYEES)
+      .filter(([, u]) => u.adminAccess)
+      .reduce((acc, [id, u]) => ({ ...acc, [id]: u.adminAccess }), {})
+  );
+  const handleAdminSave = (adminId, newAccess) => {
+    setAdminAccess(prev => {
+      if (newAccess === null) { const next = { ...prev }; delete next[adminId]; return next; }
+      return { ...prev, [adminId]: newAccess };
+    });
+  };
   const [sidebarMode, setSidebarMode] = useState('app');
   const [requests, setRequests] = useState(() => mergeRequests(generatedRequests, readLS()));
   const [companyEvents, setCompanyEvents] = useState([]);
@@ -6808,13 +6831,13 @@ function App() {
         {screen === 'team-absences' && <TeamAbsencesScreen requests={requests} pendingCount={pendingRequestsCount} onNav={setScreen} onShowDetail={setCalDetail} activeReqId={calDetail?.id} onSave={saveRequest} companyEvents={companyEvents} onCancelCompanyEvent={cancelCompanyEvent} initialDate={calendarJumpDate} initialDeptFilter={calendarDeptFilter} />}
         {screen === 'requests' && <RequestsScreen requests={requests} onApprove={approve} onDecline={requestDecline} onSave={saveRequest} onCancel={requestCancel} onNav={setScreen} onViewInCalendar={(req) => { const d = req._selectedDates?.[0] || req.startDate; if (d) { const iso = typeof d === 'string' && d.match(/^\d{4}-/) ? d : null; setCalendarJumpDate(iso ? new Date(iso) : parseDisplayDate(d)); } setCalDetail(req); setScreen('team-absences'); }} />}
         {(screen === 'employees' || screen === 'employees:admin') && <EmployeesScreen requests={requests} onNav={setScreen} initialRoleFilter={screen === 'employees:admin' ? 'Admin' : 'All'} />}
-        {screen.startsWith('employee-detail:') && <EmployeeDetailScreen employeeId={screen.split(':')[1]} requests={requests} onNav={setScreen} onSave={saveRequest} onCancel={cancelRequest} onApprove={approve} onDecline={requestDecline} onViewTeamCalendar={(dept) => { setCalendarDeptFilter(dept || null); setScreen('team-absences'); }} employeeBalance={employeeBalances[screen.split(':')[1]]} onUpdateBalance={(newBal) => updateBalances(screen.split(':')[1], newBal)} needsSetup={needsBalanceSetup.has(screen.split(':')[1])} confirmedDate={balanceConfirmedDates[screen.split(':')[1]]} onConfirmBalances={() => confirmBalancesFor(screen.split(':')[1])} onToast={setToast} />}
+        {screen.startsWith('employee-detail:') && <EmployeeDetailScreen employeeId={screen.split(':')[1]} requests={requests} onNav={setScreen} onSave={saveRequest} onCancel={cancelRequest} onApprove={approve} onDecline={requestDecline} onViewTeamCalendar={(dept) => { setCalendarDeptFilter(dept || null); setScreen('team-absences'); }} employeeBalance={employeeBalances[screen.split(':')[1]]} onUpdateBalance={(newBal) => updateBalances(screen.split(':')[1], newBal)} needsSetup={needsBalanceSetup.has(screen.split(':')[1])} confirmedDate={balanceConfirmedDates[screen.split(':')[1]]} onConfirmBalances={() => confirmBalancesFor(screen.split(':')[1])} onToast={setToast} adminAccess={adminAccess} onAdminSave={handleAdminSave} />}
         {screen === 'expenses' && <ExpensesScreen expenses={expenses} categories={expenseCategories} onApprove={approveExpense} onDetail={(exp) => setExpDetail(exp)} onAdd={addExpense} />}
         {screen === 'choices' && <ChoicesScreen choices={choices} onApprove={approveChoice} onDecline={declineChoice} onDetail={setChoiceDetail} />}
         {screen === 'payroll-overview' && <StubScreen title="Payroll Overview" description="Monthly payroll run and submission" />}
         {screen === 'payroll-reports' && <StubScreen title="Payroll Reports" description="Reporting and exports" />}
         {screen === 'settings-expenses' && <ExpenseCategorySettings categories={expenseCategories} onSave={setExpenseCategories} />}
-        {screen === 'settings-team' && <TeamAccessSettings onNav={setScreen} />}
+        {screen === 'settings-team' && <TeamAccessSettings onNav={setScreen} adminAccess={adminAccess} onAdminSave={handleAdminSave} />}
         {screen === 'settings-timeoff' && <TimeOffSettings />}
         {screen.startsWith('settings-') && screen !== 'settings-expenses' && screen !== 'settings-team' && screen !== 'settings-timeoff' && <StubScreen title={SETTINGS_TITLES[screen] || 'Settings'} description={`Configure ${(SETTINGS_TITLES[screen] || 'settings').toLowerCase()}`} />}
       </div>
