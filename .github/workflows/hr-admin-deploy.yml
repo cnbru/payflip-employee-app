@@ -23,6 +23,6 @@ jobs:
         with:
           token: ${{ secrets.HR_ADMIN_DEPLOY_TOKEN }}
           repository-name: cnbru/payflip-hr-admin
-          branch: gh-pages
+          branch: main
           folder: _hr_site
           clean: true
