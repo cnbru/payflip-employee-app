@@ -1,0 +1,28 @@
+name: Deploy HR Admin to payflip-hr-admin
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepare hr-admin site
+        run: |
+          mkdir -p _hr_site
+          cp -r project/hr-admin/. _hr_site/
+          # Resolve fonts symlink — copy real font files
+          rm -rf _hr_site/fonts
+          cp -r project/employee-app/fonts/. _hr_site/fonts/
+      - uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          token: ${{ secrets.HR_ADMIN_DEPLOY_TOKEN }}
+          repository-name: cnbru/payflip-hr-admin
+          branch: gh-pages
+          folder: _hr_site
+          clean: true
