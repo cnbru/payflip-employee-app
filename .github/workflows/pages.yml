@@ -16,6 +16,11 @@ jobs:
         run: |
           mkdir -p _site
           cp -r project/employee-app/. _site/
+          # Copy hr-admin as a real directory (not via the local symlink)
+          cp -r project/hr-admin/. _site/hr-admin/
+          # Resolve fonts symlink so hr-admin has real font files
+          rm -rf _site/hr-admin/fonts
+          cp -r project/employee-app/fonts/. _site/hr-admin/fonts/
       - uses: JamesIves/github-pages-deploy-action@v4
         with:
           folder: _site
