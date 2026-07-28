@@ -21,6 +21,8 @@ jobs:
           # Resolve fonts symlink so hr-admin has real font files
           rm -rf _site/hr-admin/fonts
           cp -r project/employee-app/fonts/. _site/hr-admin/fonts/
+          # Copy benefit/choice images (referenced as assets/ in app.jsx)
+          cp -r project/assets/. _site/hr-admin/assets/
       - uses: JamesIves/github-pages-deploy-action@v4
         with:
           folder: _site
