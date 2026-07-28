@@ -10,6 +10,7 @@
 | 006 | [Screen entrance animation — Team calendar](006-screen-enter-team-calendar.md) | MEDIUM | DONE |
 | 007 | [Animate RequestRow exit on approve/decline](007-requestrow-exit-on-approve-decline.md) | MEDIUM | DONE |
 | 008 | [Sheet animation overhaul](008-sheet-animation-overhaul.md) | HIGH | DONE |
+| 009 | [Entity switch enter animation](009-entity-switch-enter.md) | MEDIUM | TODO |
 
 ## Execution order
 
@@ -18,3 +19,4 @@
 3. **006** — standalone. Proof-of-concept for screen entrance; extend to all screens once feel is validated.
 4. **007** — standalone. No dependencies on 001–006; touches `RequestsScreen`/`RequestRow` only.
 5. **008** — standalone. Touches `useModalTransition`, `sheetPanelStyle`, `DetailModal`, `AddTimeOffModal` only. No dependencies on earlier plans.
+6. **009** — standalone. Touches only screen component call sites in the App render (~lines 7588–7602). No dependencies on earlier plans.
