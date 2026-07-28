@@ -544,7 +544,7 @@ function SalaryTab({ empId }) {
                 <td style={{ padding: '12px 16px', color: P.inkSoft }}>{row.start}</td>
                 <td style={{ padding: '12px 16px', color: P.inkSoft }}>{row.end}</td>
                 <td style={{ padding: '12px 16px' }}>
-                  <span style={{ background: row.active ? '#dcfce7' : P.bg, color: row.active ? '#16a34a' : P.inkSoft, borderRadius: 6, padding: '3px 8px', fontSize: 11, fontFamily: 'var(--font-display)', fontWeight: 600 }}>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', background: row.active ? '#f0fdf4' : P.white, color: row.active ? '#16a34a' : P.inkSoft, border: `1px solid ${row.active ? '#bbf7d0' : P.border}`, borderRadius: 6, padding: '2px 6px', fontSize: 11, fontFamily: 'var(--font-display)', fontWeight: 500 }}>
                     {row.active ? 'Active' : 'Inactive'}
                   </span>
                 </td>
@@ -6851,13 +6851,11 @@ function EntitiesSettings({ onNav, appEntity = null }) {
   );
 }
 
-const DOC_TEMPLATES = [];
-const DOC_COMPANY = [];
-
-function AddDocumentModal({ entityName, title, saveLabel, onSave, onClose, initialValues, onDeactivate, isDeactivated, readOnly }) {
+function AddDocumentModal({ appEntity, title, saveLabel, onSave, onClose, initialValues, onDeactivate, isDeactivated, readOnly }) {
   const [name, setName] = useState(initialValues?.name || '');
   const [language, setLanguage] = useState(initialValues?.language && initialValues.language !== '—' ? initialValues.language : '');
   const [type, setType] = useState(initialValues?.type || 'File');
+  const [scope, setScope] = useState(initialValues?.scope !== undefined ? initialValues.scope : (appEntity || ''));
   const [file, setFile] = useState(initialValues?.fileName ? { name: initialValues.fileName, size: 0 } : null);
   const { visible, close } = useModalTransition(onClose);
 
@@ -6870,7 +6868,7 @@ function AddDocumentModal({ entityName, title, saveLabel, onSave, onClose, initi
   const handleSave = () => {
     if (!name.trim()) return;
     const id = initialValues?.id || `doc-${Date.now()}`;
-    onSave({ ...(initialValues || {}), id, name: name.trim(), language: language || '—', type, fileName: file?.name });
+    onSave({ ...(initialValues || {}), id, name: name.trim(), language: language || '—', type, fileName: file?.name, scope: scope || null });
     close();
   };
 
@@ -6888,6 +6886,14 @@ function AddDocumentModal({ entityName, title, saveLabel, onSave, onClose, initi
             <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 12, color: P.inkSoft, marginBottom: 6 }}>Name</label>
             <input autoFocus={!readOnly} value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Work authorization" disabled={readOnly}
               style={{ width: '100%', border: `1px solid ${P.border}`, borderRadius: 8, padding: '8px 12px', fontFamily: 'var(--font-body)', fontSize: 13, color: P.ink, outline: 'none', background: readOnly ? P.bg : P.white, boxSizing: 'border-box' }} />
+          </div>
+          <div>
+            <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 12, color: P.inkSoft, marginBottom: 6 }}>Scope</label>
+            <select value={scope} onChange={e => setScope(e.target.value)} disabled={readOnly}
+              style={{ width: '100%', border: `1px solid ${P.border}`, borderRadius: 8, padding: '8px 12px', fontFamily: 'var(--font-body)', fontSize: 13, color: P.ink, outline: 'none', background: readOnly ? P.bg : P.white }}>
+              <option value="">Company-wide</option>
+              {ENTITIES.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
+            </select>
           </div>
           <div style={{ display: 'flex', gap: 12 }}>
             <div style={{ flex: 1 }}>
@@ -6962,32 +6968,14 @@ function TableFadeIn({ children }) {
   );
 }
 
-function DocumentsSettings({ appEntity = null }) {
+function DocumentsSettings({ appEntity = null, documents = [], onDocumentsChange }) {
+  const setDocuments = onDocumentsChange;
   const [tab, setTab] = useState('templates');
-  const [templates, setTemplates] = useState([]);
-  const [companyDocs, setCompanyDocs] = useState([]);
-  const [entityDocs, setEntityDocs] = useState({});
-  const [entityDeactivated, setEntityDeactivated] = useState({});
   const [addOpen, setAddOpen] = useState(false);
   const [editDoc, setEditDoc] = useState(null);
   const [docFilter, setDocFilter] = useState('active');
 
   const entityName = appEntity ? (ENTITIES.find(e => e.id === appEntity) || {}).name : null;
-
-  const updateDoc = (saved) => {
-    const patch = (arr) => arr.map(d => d.id === saved.id ? { ...d, ...saved } : d);
-    if (tab === 'templates') setTemplates(prev => patch(prev));
-    else if (appEntity) setEntityDocs(prev => ({ ...prev, [appEntity]: patch(prev[appEntity] || []) }));
-    else setCompanyDocs(prev => patch(prev));
-    setEditDoc(null);
-  };
-
-  const toggleDeactivate = (docId) => {
-    const toggle = (arr) => arr.map(d => d.id === docId ? { ...d, deactivated: !d.deactivated } : d);
-    if (tab === 'templates') setTemplates(prev => toggle(prev));
-    else if (appEntity) setEntityDocs(prev => ({ ...prev, [appEntity]: toggle(prev[appEntity] || []) }));
-    else setCompanyDocs(prev => toggle(prev));
-  };
 
   const th = { textAlign: 'left', padding: '9px 16px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em', whiteSpace: 'nowrap' };
   const td = { padding: '14px 16px', color: P.ink, verticalAlign: 'middle', fontFamily: 'var(--font-body)', fontSize: 13 };
@@ -7004,11 +6992,12 @@ function DocumentsSettings({ appEntity = null }) {
 
   const iconBtn = { border: 'none', background: 'transparent', cursor: 'pointer', padding: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 4 };
 
-  const DocTable = ({ rows, onEdit, onDeactivate }) => (
+  const DocTable = ({ rows, onEdit, showScope }) => (
     <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-body)', fontSize: 13 }}>
       <thead>
         <tr style={{ borderBottom: `1px solid ${P.border}` }}>
           <th style={th}>Name</th>
+          {showScope && <th style={th}>Scope</th>}
           <th style={th}>Language</th>
           <th style={th}>Type</th>
           <th style={th}></th>
@@ -7017,21 +7006,28 @@ function DocumentsSettings({ appEntity = null }) {
       <tbody>
         {rows.map((doc, idx) => {
           const isLast = idx === rows.length - 1;
+          const scopeEntity = doc.scope ? ENTITIES.find(e => e.id === doc.scope) : null;
           return (
             <tr key={doc.id} style={{ borderBottom: isLast ? 'none' : `1px solid ${P.border}` }}>
               <td style={td}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                   <Icon name={doc.type === 'Url' ? 'link' : 'file-text'} size={14} color={P.inkSoft} strokeWidth={1.75} />
                   {doc.name}
-                  {doc.inherited && <span style={badge}>Inherited</span>}
                   {doc.deactivated && <span style={badge}>Deactivated</span>}
                 </div>
               </td>
+              {showScope && (
+                <td style={td}>
+                  {scopeEntity
+                    ? <span style={badge}>{scopeEntity.name}</span>
+                    : <span style={{ color: P.inkFaint, fontSize: 12 }}>—</span>}
+                </td>
+              )}
               <td style={td}>{doc.language || '—'}</td>
               <td style={td}>{doc.type}</td>
               <td style={{ ...td, textAlign: 'right' }}>
                 <div style={{ display: 'flex', gap: 4, justifyContent: 'flex-end', alignItems: 'center' }}>
-                  {!doc.deactivated && !doc.inherited && (
+                  {!doc.deactivated && (
                     doc.type === 'Url'
                       ? <button style={iconBtn}><Icon name="external-link" size={14} color={P.inkSoft} strokeWidth={1.75} /></button>
                       : <button style={iconBtn}><Icon name="download" size={14} color={P.inkSoft} strokeWidth={1.75} /></button>
@@ -7069,37 +7065,25 @@ function DocumentsSettings({ appEntity = null }) {
     { id: 'company',   label: 'Documents' },
   ];
 
-  // All rows for current tab (unfiltered by active/deactivated)
-  const allTemplateRows = templates.filter(d => !d.entityId || d.entityId === appEntity);
-  const entityDeactivatedSet = appEntity ? new Set(entityDeactivated[appEntity] || []) : new Set();
-  const allCompanyRows = appEntity
-    ? [...(entityDocs[appEntity] || []), ...companyDocs.map(d => ({ ...d, inherited: true, deactivated: entityDeactivatedSet.has(d.id) || d.deactivated }))]
-    : companyDocs;
-
   const applyFilter = (rows) => docFilter === 'deactivated'
     ? rows.filter(d => d.deactivated)
     : rows.filter(d => !d.deactivated);
 
-  const templateRows = applyFilter(allTemplateRows);
-  const companyRows = applyFilter(allCompanyRows);
-
-  const hasDeactivated = tab === 'templates'
-    ? allTemplateRows.some(d => d.deactivated)
-    : allCompanyRows.some(d => d.deactivated);
+  const tabDocs = documents.filter(d => d.tab === tab);
+  const visibleDocs = appEntity
+    ? tabDocs.filter(d => !d.scope || d.scope === appEntity)
+    : tabDocs;
+  const rows = applyFilter(visibleDocs);
+  const hasDeactivated = visibleDocs.some(d => d.deactivated);
 
   return (
     <div style={{ flex: 1, overflow: 'auto', animation: `screenEnter 180ms ${EASE_OUT}` }}>
       {addOpen && (
         <AddDocumentModal
-          title={tab === 'templates' ? `Add template${appEntity ? ` for ${entityName}` : ''}` : `Add document${appEntity ? ` for ${entityName}` : ''}`}
+          appEntity={appEntity}
+          title={tab === 'templates' ? 'Add template' : 'Add document'}
           onSave={doc => {
-            if (tab === 'templates') {
-              setTemplates(prev => [...prev, { ...doc, entityId: appEntity }]);
-            } else if (appEntity) {
-              setEntityDocs(prev => ({ ...prev, [appEntity]: [...(prev[appEntity] || []), doc] }));
-            } else {
-              setCompanyDocs(prev => [...prev, doc]);
-            }
+            setDocuments(prev => [...prev, { ...doc, tab }]);
             setAddOpen(false);
           }}
           onClose={() => setAddOpen(false)}
@@ -7107,27 +7091,16 @@ function DocumentsSettings({ appEntity = null }) {
       )}
       {editDoc && (
         <AddDocumentModal
-          title={editDoc.inherited ? editDoc.name : `Edit ${tab === 'templates' ? 'template' : 'document'}`}
+          appEntity={appEntity}
+          title={`Edit ${tab === 'templates' ? 'template' : 'document'}`}
           saveLabel="Save changes"
           initialValues={editDoc}
-          readOnly={!!editDoc.inherited}
-          onSave={editDoc.inherited ? undefined : updateDoc}
+          onSave={doc => {
+            setDocuments(prev => [...prev.filter(d => d.id !== doc.id), { ...doc, tab }]);
+            setEditDoc(null);
+          }}
           onDeactivate={() => {
-            if (tab === 'templates') {
-              setTemplates(prev => prev.map(d => d.id === editDoc.id ? { ...d, deactivated: !d.deactivated } : d));
-            } else {
-              const isInherited = companyDocs.some(d => d.id === editDoc.id);
-              if (isInherited && appEntity) {
-                setEntityDeactivated(prev => {
-                  const cur = prev[appEntity] || [];
-                  return { ...prev, [appEntity]: cur.includes(editDoc.id) ? cur.filter(x => x !== editDoc.id) : [...cur, editDoc.id] };
-                });
-              } else {
-                const toggle = (arr) => arr.map(d => d.id === editDoc.id ? { ...d, deactivated: !d.deactivated } : d);
-                if (appEntity) setEntityDocs(prev => ({ ...prev, [appEntity]: toggle(prev[appEntity] || []) }));
-                else setCompanyDocs(prev => toggle(prev));
-              }
-            }
+            setDocuments(prev => prev.map(d => d.id === editDoc.id ? { ...d, deactivated: !d.deactivated } : d));
             if (editDoc.deactivated) setDocFilter('active');
           }}
           isDeactivated={editDoc.deactivated}
@@ -7145,21 +7118,6 @@ function DocumentsSettings({ appEntity = null }) {
           )}
           <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 22, color: P.ink, margin: 0, letterSpacing: '-0.02em' }}>Documents</h1>
           <p style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, margin: '4px 0 0' }}>Manage document templates and employee requirements</p>
-        </div>
-
-        {/* Inheritance banner */}
-        <div style={{ background: '#f5f3ff', border: `1px solid #e4dcff`, borderRadius: 10, padding: '14px 18px', display: 'flex', gap: 12, alignItems: 'flex-start' }}>
-          <Icon name="info" size={15} color={P.action} strokeWidth={1.75} style={{ flexShrink: 0, marginTop: 1 }} />
-          <div>
-            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.ink }}>
-              {appEntity ? `${entityName} inherits all company-wide documents` : 'Documents are shared across all entities by default'}
-            </div>
-            <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, marginTop: 3 }}>
-              {appEntity
-                ? `Documents added here only apply to ${entityName} and override the company-wide default.`
-                : 'Documents added here are automatically available to all entities.'}
-            </div>
-          </div>
         </div>
 
         {/* Tabs */}
@@ -7182,18 +7140,18 @@ function DocumentsSettings({ appEntity = null }) {
 
         {/* Templates tab */}
         {tab === 'templates' && (
-          templateRows.length === 0 ? <EmptyState tabId="templates" /> : (
+          rows.length === 0 ? <EmptyState tabId="templates" /> : (
             <React.Fragment>
               <TableFadeIn key={appEntity ?? 'all'}>
                 <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 12, overflow: 'clip' }}>
-                  <DocTable rows={templateRows} onEdit={setEditDoc} />
+                  <DocTable rows={rows} onEdit={setEditDoc} showScope={!appEntity} />
                 </div>
               </TableFadeIn>
               {docFilter === 'active' && (
                 <div>
                   <button onClick={() => setAddOpen(true)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, border: `1px solid ${P.border}`, borderRadius: 8, padding: '7px 14px', background: P.white, fontFamily: 'var(--font-body)', fontSize: 13, color: P.ink, cursor: 'pointer' }}>
                     <Icon name="plus" size={14} color={P.inkSoft} strokeWidth={2} />
-                    Add template{appEntity ? ` for ${entityName}` : ''}
+                    Add template
                   </button>
                 </div>
               )}
@@ -7203,18 +7161,18 @@ function DocumentsSettings({ appEntity = null }) {
 
         {/* Documents tab */}
         {tab === 'company' && (
-          companyRows.length === 0 ? <EmptyState tabId="company" /> : (
+          rows.length === 0 ? <EmptyState tabId="company" /> : (
             <React.Fragment>
               <TableFadeIn key={appEntity ?? 'all'}>
                 <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 12, overflow: 'clip' }}>
-                  <DocTable rows={companyRows} onEdit={setEditDoc} />
+                  <DocTable rows={rows} onEdit={setEditDoc} showScope={!appEntity} />
                 </div>
               </TableFadeIn>
               {docFilter === 'active' && (
                 <div>
                   <button onClick={() => setAddOpen(true)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, border: `1px solid ${P.border}`, borderRadius: 8, padding: '7px 14px', background: P.white, fontFamily: 'var(--font-body)', fontSize: 13, color: P.ink, cursor: 'pointer' }}>
                     <Icon name="plus" size={14} color={P.inkSoft} strokeWidth={2} />
-                    Add document{appEntity ? ` for ${entityName}` : ''}
+                    Add document
                   </button>
                 </div>
               )}
@@ -7379,6 +7337,8 @@ function App() {
     const ch = choices.find(c => c.id === id);
     if (ch) setToast({ message: `${(EMPLOYEES[ch.empId] || {}).name?.split(' ')[0]}'s choice declined`, type: 'decline' });
   };
+
+  const [settingsDocuments, setSettingsDocuments] = useState([]);
 
   const [expenses, setExpenses] = useState(EXPENSES_SEED);
   const [expenseCategories, setExpenseCategories] = useState(EXPENSE_CATEGORIES_SEED);
@@ -7598,7 +7558,7 @@ function App() {
         {screen === 'settings-team' && <TeamAccessSettings key={appEntity ?? 'all'} onNav={setScreen} adminAccess={adminAccess} onAdminSave={handleAdminSave} appEntity={appEntity} />}
         {screen === 'settings-entities' && <EntitiesSettings key={appEntity ?? 'all'} onNav={setScreen} appEntity={appEntity} />}
         {screen === 'settings-timeoff' && <TimeOffSettings key={appEntity ?? 'all'} appEntity={appEntity} />}
-        {screen === 'settings-documents' && <DocumentsSettings key={appEntity ?? 'all'} appEntity={appEntity} />}
+        {screen === 'settings-documents' && <DocumentsSettings key={appEntity ?? 'all'} appEntity={appEntity} documents={settingsDocuments} onDocumentsChange={setSettingsDocuments} />}
         {screen.startsWith('settings-') && screen !== 'settings-expenses' && screen !== 'settings-team' && screen !== 'settings-timeoff' && screen !== 'settings-entities' && screen !== 'settings-documents' && <StubScreen title={SETTINGS_TITLES[screen] || 'Settings'} description={`Configure ${(SETTINGS_TITLES[screen] || 'settings').toLowerCase()}`} />}
       </div>
 
