@@ -723,7 +723,7 @@ function BikeLeaseO2OScreen() {
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: '#f2f2f2', position: 'relative' }}>
       {modBar}
       {topBarXOnly}
-      <div style={{ flex: 1, overflowY: 'auto', padding: '0 8px 140px' }}>
+      <div style={{ flex: 1, overflowY: 'auto', padding: '0 16px 140px' }}>
         <div style={{ padding: '20px 20px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
           <div style={{ marginBottom: 20 }}>
             <svg width="64" height="64" viewBox="0 0 64 64" fill="none">

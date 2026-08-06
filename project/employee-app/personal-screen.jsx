@@ -340,6 +340,30 @@ const P = {
   nameDark:   '#1e1637',
 };
 
+const MC = {
+  ink:      P.ink,
+  inkSoft:  P.inkSoft,
+  inkMuted: '#A8A5B0',
+  border:   P.border,
+  surface:  P.surface,
+  navy:     '#1e1637',
+  navyL:    '#E8EDF4',
+  grn:      '#1D9E75',
+  org:      '#E8890C',
+  red:      '#E24B4A',
+  purple:   '#C42BFC',
+};
+
+function MePill({ label, color }) {
+  return (
+    <span style={{
+      fontFamily: 'var(--font-display)', fontSize: 11, fontWeight: 600,
+      color: color, background: color + '22',
+      padding: '3px 9px', borderRadius: 20, whiteSpace: 'nowrap',
+    }}>{label}</span>
+  );
+}
+
 const HALF_OPTS = ['full', 'am', 'pm'];
 const HALF_LABELS = { full: 'Full', am: 'AM', pm: 'PM' };
 
@@ -474,114 +498,485 @@ function PersonalNavRow({ item, onClick }) {
   );
 }
 
+function MeSectionHeader({ title, action, onAction }) {
+  return (
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+      <div style={{ fontFamily: 'var(--font-display)', fontSize: 15, fontWeight: 600, color: MC.ink }}>{title}</div>
+      {action && (
+        <div onClick={onAction} style={{ fontFamily: 'var(--font-display)', fontSize: 13, color: MC.purple, fontWeight: 500, cursor: 'pointer' }}>{action}</div>
+      )}
+    </div>
+  );
+}
+
+// This month's expense inputs — pending expenses are NOT counted toward the total
+// (a pending expense isn't confirmed/reimbursed yet). Shared by the wage tags and payslip.
+const _ME_MOB_CATS = new Set(['Public transport', 'Taxi / Uber', 'Parking', 'Shared mobility', 'Private transport', 'Mobility subscription']);
+function _meMonthExpenseInputs() {
+  const all = [...(window.__submittedExpenses || []), ...(window.__expensesMockData || [])];
+  const isThisMonth = (e) => (e.date || '').endsWith('07/2026') || e.reimbursementMonth === 'July 2026';
+  const isMob = (e) => e.type === 'mobility' || _ME_MOB_CATS.has(e.category);
+  const counted = all.filter(e => isThisMonth(e) && e.status !== 'pending' && e.status !== 'rejected');
+  const sumBy = (pred) => counted.filter(pred).reduce((s, e) => s + (e.amount || 0), 0);
+  const mobility = sumBy(isMob);
+  const work = sumBy(e => !isMob(e) && e.type !== 'lnd');
+  const lnd = sumBy(e => e.type === 'lnd');
+  const pending = all.filter(e => isThisMonth(e) && e.status === 'pending');
+  const pendingCount = pending.length;
+  const pendingMobility = pending.filter(isMob).length;
+  const pendingWork = pending.filter(e => !isMob(e) && e.type !== 'lnd').length;
+  return { mobility, work, lnd, total: mobility + work + lnd, pendingCount, pendingMobility, pendingWork };
+}
+
 function PersonalScreen() {
   const nav = window.useNav ? window.useNav() : null;
+  const [meTab, setMeTab] = React.useState('benefits');
 
-  const handlePress = (id) => {
-    if (!nav) return;
-    if (id === 'time-off') nav.push('time-off-hub');
-    if (id === 'my-expenses') nav.push('my-expenses');
+  const benefitRows = [
+    { iconName: 'Bike',       title: 'Bike lease',    sub: '−€33.31/month from EYP', sc: MC.grn, status: 'Active', months: '36 months left', onTap: () => nav && nav.push('me-bikelease') },
+    { img: 'uploads/benefit-icons/smartphone.png', title: 'Smartphone',    sub: 'iPhone 16 Pro',           sc: MC.grn, status: 'Active', months: '24 months left', onTap: null },
+    { iconName: 'HeartPulse', title: 'Alan insurance',sub: 'Individual plan',         sc: MC.grn, status: 'Active', months: null,             onTap: null },
+  ];
+
+  const MOBCAT = new Set(['Public transport', 'Taxi / Uber', 'Parking', 'Shared mobility', 'Private transport', 'Mobility subscription']);
+  const expIconStyle = (type, cat) => {
+    const isMob = type === 'mobility' || MOBCAT.has(cat);
+    if (isMob) return { bg: '#FFF0D4', icon: 'TrainFront', color: '#B45309' };
+    if (type === 'lnd') return { bg: '#F3EEFF', icon: 'BookOpen', color: '#7C3AED' };
+    return { bg: '#EEF2F7', icon: 'Briefcase', color: '#374151' };
+  };
+  const expPill = (type, cat) => {
+    const isMob = type === 'mobility' || MOBCAT.has(cat);
+    if (isMob) return { label: 'Mobility', bg: '#ddebff', color: '#1568cd' };
+    if (type === 'lnd') return { label: 'L&D', bg: '#F3EEFF', color: '#7C3AED' };
+    return null;
   };
 
+  const _submittedRows = (window.__submittedExpenses || []).map(e => ({
+    type: e.type, category: e.category,
+    title: e.category || (e.type === 'mobility' ? 'Mobility expense' : e.type === 'lnd' ? 'L&D' : 'Work expense'),
+    date: e.date || '', amount: `€${(e.amount || 0).toFixed(2)}`,
+    status: e.status || 'pending',
+  }));
+  const _defaultExpenseRows = [
+    { type: 'work',     category: 'Restaurant / meals',  title: 'Restaurant / meals',  date: 'Jul 18, 2026', amount: '€45.00', status: 'rejected' },
+    { type: 'mobility', category: 'Public transport',    title: 'Public transport',    date: 'Jul 21, 2026', amount: '€14.00', status: 'approved' },
+    { type: 'work',     category: 'Hotel',               title: 'Hotel',               date: 'Jun 22, 2026', amount: '€189.00', status: 'reimbursed' },
+  ];
+  const expenseRows = [..._submittedRows, ..._defaultExpenseRows];
+
+  // Next upcoming holiday — resolves to a real leave item so the card links to its detail
+  const _MONTHS_IDX = { January: 0, February: 1, March: 2, April: 3, May: 4, June: 5, July: 6, August: 7, September: 8, October: 9, November: 10, December: 11 };
+  const _leaveStart = (it) => {
+    if (it._startISO) { const [y, m, d] = it._startISO.split('-').map(Number); return new Date(y, m - 1, d); }
+    const mo = _MONTHS_IDX[it.month]; const dm = (it.date || '').match(/(\d+)/);
+    return new Date(2026, mo == null ? 0 : mo, dm ? +dm[1] : 1);
+  };
+  const _leaveEnd = (it) => {
+    if (it._endISO) { const [y, m, d] = it._endISO.split('-').map(Number); return new Date(y, m - 1, d); }
+    const mo = _MONTHS_IDX[it.month]; const dm = (it.date || '').match(/(\d+)(?:\s*[–\-→]\s*(\d+))?/);
+    return new Date(2026, mo == null ? 0 : mo, dm ? +(dm[2] || dm[1]) : 1);
+  };
+  const _nowRef = new Date(); _nowRef.setHours(0, 0, 0, 0);
+  const _upcomingLeave = (window.__timeOffItems || [])
+    .filter(it => it.status !== 'denied' && it.status !== 'rejected' && !it._adminRecorded)
+    .filter(it => _leaveEnd(it) >= _nowRef)
+    .sort((a, b) => _leaveStart(a) - _leaveStart(b));
+  const nextHoliday = _upcomingLeave.find(it => /holiday/i.test(it.label)) || _upcomingLeave[0] || null;
+
+  // Wage section tags — benefit reimbursements + expenses added this month (pending expenses excluded)
+  const _wageInputs = _meMonthExpenseInputs();
+  const _fmtTag = (n) => '€' + (n % 1 === 0 ? n.toLocaleString('en-US') : n.toFixed(2));
+  const wageTags = [
+    { label: 'Housing', value: 820, kind: 'reimbursement' },
+    { label: 'Work expenses', value: _wageInputs.work, kind: 'expense' },
+    { label: 'Mobility', value: _wageInputs.mobility, kind: 'expense' },
+    { label: 'L&D', value: _wageInputs.lnd, kind: 'expense' },
+  ].filter(t => t.value > 0);
+
   return (
-    <div style={{
-      display: 'flex', flexDirection: 'column',
-      minHeight: '100%', background: '#F2F2F2',
-    }}>
-      {/* Scrollable content */}
-      <div style={{ flex: 1, padding: '0 0 32px' }}>
+    <div style={{ padding: '0 16px 24px', display: 'flex', flexDirection: 'column' }}>
 
-        {/* User header */}
-        <div style={{ padding: '24px 24px 0', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-          <div>
-            <div style={{
-              fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 24,
-              color: P.nameDark, lineHeight: '36px', letterSpacing: '-0.12px',
-            }}>David Laurent</div>
-            <div style={{
-              fontFamily: 'var(--font-body)', fontWeight: 400, fontSize: 12,
-              color: P.inkSoft, lineHeight: '16px', letterSpacing: '-0.06px',
-            }}>david@payflip.be</div>
+      <div style={{ padding: '20px 0 16px' }}>
+        <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 26, color: MC.ink, letterSpacing: '-0.5px' }}>Me</div>
+      </div>
+
+      {/* Wage section */}
+      <div style={{ marginBottom: 16 }}>
+        <MeSectionHeader title="Wage" />
+        <div style={{ background: 'white', borderRadius: 16, border: `1px solid ${MC.border}`, overflow: 'hidden' }}>
+          <div style={{ padding: '14px 16px', borderBottom: `1px solid ${MC.border}` }}>
+            <div style={{ fontFamily: 'var(--font-display)', fontSize: 12, color: MC.inkSoft, marginBottom: 10 }}>This month</div>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+              <div style={{ fontFamily: 'var(--font-display)', fontSize: 26, fontWeight: 700, color: MC.ink, letterSpacing: '-0.5px' }}>€7,238.23</div>
+              <div style={{ fontFamily: 'var(--font-display)', fontSize: 12, color: MC.inkSoft }}>Gross wage</div>
+            </div>
+            {wageTags.length > 0 && (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 12 }}>
+                {wageTags.map(t => (
+                  <span key={t.label} style={{
+                    display: 'inline-flex', alignItems: 'center', gap: 4,
+                    fontFamily: 'var(--font-display)', fontSize: 11, fontWeight: 600,
+                    color: MC.grn, background: MC.grn + '18',
+                    padding: '3px 9px', borderRadius: 20, whiteSpace: 'nowrap',
+                  }}>
+                    <LucideIcon name={t.kind === 'reimbursement' ? 'Gift' : 'Receipt'} size={11} color={MC.grn} strokeWidth={2} />
+                    {t.label} +{_fmtTag(t.value)}
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
-          <button aria-label="Help" style={{
-            appearance: 'none', border: 'none', background: P.surface,
-            cursor: 'pointer', borderRadius: 40, padding: 8,
-            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+          <div onClick={() => nav && nav.push('me-payslip')} style={{
+            padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer',
           }}>
-            <LucideIcon name="CircleHelp" size={20} color={P.inkSoft} strokeWidth={1.75} />
-          </button>
+            <span style={{ fontFamily: 'var(--font-display)', fontSize: 13, color: MC.inkSoft }}>View breakdown and history</span>
+            <span style={{ fontFamily: 'var(--font-display)', fontSize: 13, color: MC.inkMuted }}>→</span>
+          </div>
         </div>
+      </div>
 
-        {/* Nav list */}
-        <div style={{ padding: '24px 16px 0' }}>
-          <div style={{ background: 'white', border: '1px solid #EAEAEB', borderRadius: 16, overflow: 'hidden' }}>
-            {NAV_ITEMS.map((item, i) => (
-              <div key={item.id} style={{ padding: '0 16px' }}>
-                <PersonalNavRow item={item} onClick={() => handlePress(item.id)} />
-                {i < NAV_ITEMS.length - 1 && (
-                  <div style={{ height: 1, background: P.border }} />
-                )}
+      {/* Leave section — above tabbed section per IA */}
+      <div style={{ marginBottom: 16 }}>
+        <MeSectionHeader title="Leave" />
+        <div style={{ background: 'white', borderRadius: 16, border: `1px solid ${MC.border}`, overflow: 'hidden' }}>
+          <div style={{ display: 'flex', padding: '14px 16px 12px', borderBottom: `1px solid ${MC.border}` }}>
+            {[['Holiday', 12], ['ADV', 6], ['Remote', 10]].map(([n, v], i, arr) => (
+              <div key={n} style={{
+                flex: 1, textAlign: 'center',
+                borderRight: i < arr.length - 1 ? `1px solid ${MC.border}` : 'none',
+                padding: '0 8px',
+              }}>
+                <div style={{ fontFamily: 'var(--font-display)', fontSize: 11, color: MC.inkSoft, marginBottom: 4 }}>{n}</div>
+                <div style={{ fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 700, color: MC.ink, lineHeight: 1 }}>{v}</div>
+                <div style={{ fontFamily: 'var(--font-display)', fontSize: 11, color: MC.inkSoft, marginTop: 2 }}>days</div>
               </div>
             ))}
           </div>
+          {nextHoliday && (
+          <div onClick={() => nav && nav.push('time-off-detail', { item: nextHoliday })} style={{
+            margin: '10px 10px 0', borderRadius: 12, background: MC.surface,
+            padding: '12px 14px', cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10,
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <LucideIcon name="CalendarDays" size={18} color={MC.inkSoft} strokeWidth={1.75} style={{ flexShrink: 0 }} />
+              <div>
+                <div style={{ fontFamily: 'var(--font-display)', fontSize: 11, fontWeight: 600, color: MC.inkSoft, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Next holiday</div>
+                <div style={{ fontFamily: 'var(--font-display)', fontSize: 15, fontWeight: 700, color: MC.ink, marginTop: 2 }}>{nextHoliday.label} · {nextHoliday.date}</div>
+              </div>
+            </div>
+            <LucideIcon name="ChevronRight" size={16} color={MC.inkSoft} strokeWidth={2} style={{ flexShrink: 0 }} />
+          </div>
+          )}
+          <div style={{ height: 10 }} />
+          <div onClick={() => nav && nav.push('time-off-hub')} style={{
+            padding: '12px 0', display: 'flex', justifyContent: 'center', cursor: 'pointer',
+          }}>
+            <span style={{ fontFamily: 'var(--font-display)', fontSize: 13, color: MC.purple, fontWeight: 500 }}>Manage →</span>
+          </div>
         </div>
       </div>
 
-      {/* Logout button — pinned to bottom of content */}
-      <div style={{ padding: '0 24px 24px' }}>
-        <button style={{
-          width: '100%', appearance: 'none', border: 'none', cursor: 'pointer',
-          background: P.surface, borderRadius: 10,
-          padding: '12px 16px', minHeight: 40,
-          fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16,
-          color: P.ink, lineHeight: '24px',
-        }}>Logout</button>
-      </div>
+      {/* Tabbed [Benefits | Expenses] section */}
+      <div style={{ marginBottom: 16 }}>
+        <div style={{ display: 'flex', background: '#ebebec', borderRadius: 10, padding: 3, marginBottom: 10 }}>
+          {['Benefits', 'Expenses'].map(tab => (
+            <button key={tab} onClick={() => setMeTab(tab.toLowerCase())} style={{
+              flex: 1, appearance: 'none', border: 'none', cursor: 'pointer',
+              padding: '7px 0', borderRadius: 8, fontFamily: 'var(--font-display)',
+              fontSize: 13, fontWeight: meTab === tab.toLowerCase() ? 600 : 500,
+              color: meTab === tab.toLowerCase() ? MC.ink : MC.inkSoft,
+              background: meTab === tab.toLowerCase() ? 'white' : 'transparent',
+              boxShadow: meTab === tab.toLowerCase() ? '0 1px 2px rgba(0,0,0,0.08)' : 'none',
+            }}>{tab}</button>
+          ))}
+        </div>
 
-      {/* Prototype persona switcher */}
-      {(() => {
-        const current = new URLSearchParams(window.location.search).get('state');
-        const isFresh = current === 'fresh';
-        const switchTo = (state) => {
-          const url = new URL(window.location);
-          if (state) { url.searchParams.set('state', state); } else { url.searchParams.delete('state'); }
-          window.location.href = url.toString();
-        };
-        return (
-          <div style={{ padding: '0 24px 24px' }}>
-            <div style={{
-              fontFamily: 'var(--font-body)', fontSize: 11, fontWeight: 500,
-              color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.05em',
-              marginBottom: 8, textAlign: 'center',
-            }}>Prototype persona</div>
-            <div style={{
-              display: 'flex', background: P.surface, borderRadius: 10, padding: 4,
+        {meTab === 'benefits' && (
+          <div style={{ background: 'white', borderRadius: 16, border: `1px solid ${MC.border}`, padding: '0 16px' }}>
+            {benefitRows.map((b, i) => (
+              <div key={b.title} onClick={b.onTap || undefined} style={{
+                display: 'flex', alignItems: 'center', gap: 12, padding: '12px 0',
+                borderBottom: `1px solid ${MC.border}`,
+                cursor: b.onTap ? 'pointer' : 'default',
+              }}>
+                <div style={{
+                  width: 40, height: 40, borderRadius: 10, background: MC.surface,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden',
+                }}>
+                  {b.img
+                    ? <img src={b.img} alt="" style={{ width: 40, height: 40, objectFit: 'cover', borderRadius: 10 }} />
+                    : <LucideIcon name={b.iconName} size={20} color={MC.ink} strokeWidth={1.75} />}
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontFamily: 'var(--font-display)', fontSize: 14, fontWeight: 600, color: MC.ink }}>{b.title}</div>
+                  <div style={{ fontFamily: 'var(--font-display)', fontSize: 12, color: MC.inkSoft, marginTop: 2 }}>{b.sub}</div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 4 }}>
+                    <MePill label={b.status} color={b.sc} />
+                    {b.months && <span style={{ fontFamily: 'var(--font-display)', fontSize: 11, color: MC.inkMuted }}>{b.months}</span>}
+                  </div>
+                </div>
+                {b.onTap && <LucideIcon name="ChevronRight" size={16} color={MC.inkMuted} strokeWidth={2} />}
+              </div>
+            ))}
+            <div onClick={() => nav && nav.push('me-active-benefits')} style={{
+              padding: '12px 0', display: 'flex', justifyContent: 'center', cursor: 'pointer',
             }}>
-              <button onClick={() => switchTo(null)} style={{
-                flex: 1, appearance: 'none', border: 'none', cursor: 'pointer',
-                borderRadius: 8, padding: '8px 0',
-                background: !isFresh ? 'white' : 'transparent',
-                boxShadow: !isFresh ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
-                fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13,
-                color: !isFresh ? P.ink : P.inkSoft,
-              }}>Returning user</button>
-              <button onClick={() => switchTo('fresh')} style={{
-                flex: 1, appearance: 'none', border: 'none', cursor: 'pointer',
-                borderRadius: 8, padding: '8px 0',
-                background: isFresh ? 'white' : 'transparent',
-                boxShadow: isFresh ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
-                fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13,
-                color: isFresh ? P.ink : P.inkSoft,
-              }}>New user</button>
+              <span style={{ fontFamily: 'var(--font-display)', fontSize: 13, color: MC.purple, fontWeight: 500 }}>See all →</span>
             </div>
           </div>
-        );
-      })()}
+        )}
+
+        {meTab === 'expenses' && (
+          <div style={{ background: 'white', borderRadius: 16, border: `1px solid ${MC.border}`, overflow: 'hidden' }}>
+            {expenseRows.map((e, i) => {
+              const is = expIconStyle(e.type, e.category);
+              const pill = expPill(e.type, e.category);
+              const isPending = e.status === 'pending';
+              return (
+                <button key={i} onClick={() => nav && nav.push('expense-detail', { expense: e })} style={{
+                  width: '100%', appearance: 'none', background: 'transparent', border: 'none',
+                  borderBottom: `1px solid ${MC.border}`, padding: '12px 16px',
+                  cursor: 'pointer', textAlign: 'left', display: 'flex', alignItems: 'center', gap: 12,
+                }}>
+                  <div style={{ width: 40, height: 40, borderRadius: 10, background: is.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <LucideIcon name={is.icon} size={20} color={is.color} strokeWidth={1.75} />
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontFamily: 'var(--font-display)', fontSize: 15, fontWeight: 600, color: MC.ink }}>{e.title}</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 3, flexWrap: 'wrap' }}>
+                      <span style={{ fontFamily: 'var(--font-display)', fontSize: 13, color: MC.inkSoft }}>{e.date}</span>
+                      {pill && <MePill label={pill.label} color={pill.color} />}
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+                    {isPending
+                      ? <span style={{ fontFamily: 'var(--font-display)', fontSize: 11, fontWeight: 600, color: '#B45309', background: '#FFF3DC', borderRadius: 20, padding: '3px 8px' }}>Pending</span>
+                      : <div style={{ fontFamily: 'var(--font-display)', fontSize: 14, fontWeight: 600, color: MC.ink }}>{e.amount}</div>
+                    }
+                    <LucideIcon name="ChevronRight" size={14} color={MC.inkMuted} strokeWidth={2} />
+                  </div>
+                </button>
+              );
+            })}
+            <button onClick={() => nav && nav.push('my-expenses')} style={{
+              width: '100%', appearance: 'none', border: 'none', background: 'transparent',
+              padding: '12px 0', display: 'flex', justifyContent: 'center', cursor: 'pointer',
+            }}>
+              <span style={{ fontFamily: 'var(--font-display)', fontSize: 13, color: MC.purple, fontWeight: 500 }}>See all →</span>
+            </button>
+          </div>
+        )}
+      </div>
+
     </div>
   );
 }
 
 window.registerScreen('personal', PersonalScreen);
+
+// ─── Me sub-screens ────────────────────────────────────────────
+
+function MePayslipScreen() {
+  const nav = window.useNav ? window.useNav() : null;
+  const _pay = _meMonthExpenseInputs();
+  const _fmtPay = (n) => '+€' + (n % 1 === 0 ? n.toLocaleString('en-US') : n.toFixed(2));
+  return (
+    <div style={{ padding: '0 16px 24px', background: '#F2F2F2', minHeight: '100%' }}>
+      <button onClick={() => nav && nav.pop()} style={{
+        appearance: 'none', border: 'none', background: 'none', cursor: 'pointer',
+        padding: '12px 0 4px', display: 'flex', alignItems: 'center', gap: 6,
+      }}>
+        <LucideIcon name="ChevronLeft" size={20} color={MC.ink} strokeWidth={2} />
+        <span style={{ fontFamily: 'var(--font-display)', fontSize: 14, fontWeight: 500, color: MC.ink }}>Me</span>
+      </button>
+      <div style={{ padding: '6px 0 16px' }}>
+        <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 26, color: MC.ink, letterSpacing: '-0.5px' }}>July 2026</div>
+      </div>
+
+      <div style={{ background: 'white', borderRadius: 16, border: `1px solid ${MC.border}`, padding: 16, marginBottom: 10 }}>
+        <div style={{ fontFamily: 'var(--font-display)', fontSize: 12, color: MC.inkMuted, marginBottom: 6 }}>Gross base wage</div>
+        <div style={{ fontFamily: 'var(--font-display)', fontSize: 22, fontWeight: 700, color: MC.ink, letterSpacing: '-0.4px' }}>
+          €7,238.23 <span style={{ fontSize: 13, fontWeight: 400, color: MC.inkMuted }}>gross</span>
+        </div>
+      </div>
+
+      <div style={{ fontFamily: 'var(--font-display)', fontSize: 11, fontWeight: 700, color: MC.inkMuted, textTransform: 'uppercase', letterSpacing: '0.08em', padding: '14px 0 6px' }}>Benefit inputs this month</div>
+      <div style={{ background: 'white', borderRadius: 16, border: `1px solid ${MC.border}`, padding: '0 16px', marginBottom: 10 }}>
+        {(() => {
+          const benefitInputs = [
+            { icon: 'Smartphone', label: 'Smartphone BIK',            value: '+€4 BIK/month', c: MC.red, onClick: () => nav && nav.push('benefit-flow-start', { name: 'Smartphone' }) },
+            { icon: 'Home',       label: 'Housing cost reimbursement', value: '+€820',         c: MC.grn, onClick: () => nav && nav.push('housing-costs') },
+            { icon: 'Briefcase',  label: 'Work expenses reimbursed',   value: _fmtPay(_pay.work),     c: MC.grn, pending: _pay.pendingWork,     onClick: () => nav && nav.push('my-expenses', { filterType: 'work', filterMonth: '2026-07' }) },
+            { icon: 'TrainFront', label: 'Mobility expenses',          value: _fmtPay(_pay.mobility), c: MC.grn, pending: _pay.pendingMobility, onClick: () => nav && nav.push('my-expenses', { filterType: 'mobility', filterMonth: '2026-07' }) },
+          ].filter(r => !(r.label === 'Work expenses reimbursed' && _pay.work === 0 && !_pay.pendingWork) && !(r.label === 'Mobility expenses' && _pay.mobility === 0 && !_pay.pendingMobility));
+          return benefitInputs.map((r, i, arr) => (
+            <button
+              key={r.label}
+              onClick={r.onClick}
+              style={{
+                width: '100%', appearance: 'none', background: r.rowBg || 'transparent', border: 'none', cursor: 'pointer',
+                padding: '12px 0', display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 10,
+                borderBottom: i < arr.length - 1 ? `1px solid ${MC.border}` : 'none',
+              }}
+            >
+              <div style={{ width: 36, height: 36, borderRadius: 9, background: MC.surface, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <LucideIcon name={r.icon} size={18} color={MC.ink} strokeWidth={1.75} />
+              </div>
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2, textAlign: 'left' }}>
+                <span style={{ fontFamily: 'var(--font-display)', fontSize: 13, fontWeight: 500, color: MC.ink }}>{r.label}</span>
+                {r.pending > 0 && <span style={{ fontFamily: 'var(--font-display)', fontSize: 11, fontWeight: 600, color: '#8C5A00' }}>{r.pending} pending</span>}
+              </div>
+              <span style={{ fontFamily: 'var(--font-display)', fontSize: 13, fontWeight: 600, color: r.c }}>{r.value}</span>
+              <LucideIcon name="ChevronRight" size={14} color={MC.inkMuted} strokeWidth={2} />
+            </button>
+          ));
+        })()}
+      </div>
+
+      <div style={{ padding: '12px 16px', background: MC.navyL, borderRadius: 12, marginBottom: 16, border: `1px solid ${MC.border}` }}>
+        <div style={{ fontFamily: 'var(--font-display)', fontSize: 11, color: MC.inkSoft, marginBottom: 4 }}>These are the inputs Payflip sends to payroll. Your employer's payroll processor calculates your final net.</div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span style={{ fontFamily: 'var(--font-display)', fontSize: 14, fontWeight: 600, color: MC.ink }}>Estimated net</span>
+          <span style={{ fontFamily: 'var(--font-display)', fontSize: 18, fontWeight: 700, color: MC.navy }}>€3,593.23</span>
+        </div>
+      </div>
+
+      <div style={{ fontFamily: 'var(--font-display)', fontSize: 11, fontWeight: 700, color: MC.inkMuted, textTransform: 'uppercase', letterSpacing: '0.08em', padding: '14px 0 6px' }}>History</div>
+      <div style={{ background: 'white', borderRadius: 16, border: `1px solid ${MC.border}`, padding: '0 16px' }}>
+        {[['June 2026','€3,502.80'],['May 2026','€3,488.50'],['April 2026','€3,012.80'],['March 2026','€2,998.50']].map(([m, n], i, arr) => (
+          <div key={m} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 0', borderBottom: i < arr.length - 1 ? `1px solid ${MC.border}` : 'none', cursor: 'pointer' }}>
+            <span style={{ fontFamily: 'var(--font-display)', fontSize: 14, fontWeight: 500, color: MC.ink }}>{m}</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span style={{ fontFamily: 'var(--font-display)', fontSize: 14, fontWeight: 600, color: MC.ink }}>{n} net</span>
+              <LucideIcon name="ChevronRight" size={14} color={MC.inkMuted} strokeWidth={2} />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+window.registerScreen('me-payslip', MePayslipScreen);
+
+function MeBikeleaseScreen() {
+  const nav = window.useNav ? window.useNav() : null;
+  return (
+    <div style={{ padding: '0 16px 24px', background: '#F2F2F2', minHeight: '100%' }}>
+      <button onClick={() => nav && nav.pop()} style={{
+        appearance: 'none', border: 'none', background: 'none', cursor: 'pointer',
+        padding: '12px 0 4px', display: 'flex', alignItems: 'center', gap: 6,
+      }}>
+        <LucideIcon name="ChevronLeft" size={20} color={MC.ink} strokeWidth={2} />
+        <span style={{ fontFamily: 'var(--font-display)', fontSize: 14, fontWeight: 500, color: MC.ink }}>Me</span>
+      </button>
+
+      <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '8px 0 16px' }}>
+        <div style={{ width: 56, height: 56, borderRadius: 16, background: MC.navyL, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 26, flexShrink: 0 }}>🚲</div>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontFamily: 'var(--font-display)', fontSize: 22, fontWeight: 700, color: MC.ink, letterSpacing: '-0.4px' }}>Bike lease</div>
+          <div style={{ fontFamily: 'var(--font-display)', fontSize: 13, color: MC.inkSoft, marginTop: 1 }}>Lekker Amsterdam+ Matt · via o2o</div>
+        </div>
+        <MePill label="active" color={MC.grn} />
+      </div>
+
+      <div style={{ background: 'white', borderRadius: 16, border: `1px solid ${MC.border}`, padding: '0 16px', marginBottom: 10 }}>
+        {[
+          { l: 'Contract start',    v: 'Feb 1, 2026' },
+          { l: 'Contract end',      v: 'Jan 31, 2029' },
+          { l: 'Lease duration',    v: '36 months' },
+          { l: 'Total lease value', v: '€1,199' },
+        ].map((r, i, arr) => (
+          <div key={r.l} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 0', borderBottom: i < arr.length - 1 ? `1px solid ${MC.border}` : 'none' }}>
+            <span style={{ fontFamily: 'var(--font-display)', fontSize: 13, color: MC.inkSoft }}>{r.l}</span>
+            <span style={{ fontFamily: 'var(--font-display)', fontSize: 13, fontWeight: 600, color: MC.ink }}>{r.v}</span>
+          </div>
+        ))}
+      </div>
+
+      <div style={{ fontFamily: 'var(--font-display)', fontSize: 11, fontWeight: 700, color: MC.inkMuted, textTransform: 'uppercase', letterSpacing: '0.08em', padding: '14px 0 6px' }}>Financial impact</div>
+      <div style={{ background: 'white', borderRadius: 16, border: `1px solid ${MC.border}`, padding: '14px 16px', marginBottom: 10 }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, paddingBottom: 14, borderBottom: `1px solid ${MC.border}`, marginBottom: 14 }}>
+          <div style={{ width: 32, height: 32, borderRadius: 9, background: MC.navyL, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <LucideIcon name="CreditCard" size={16} color={MC.navy} strokeWidth={2} />
+          </div>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontFamily: 'var(--font-display)', fontSize: 13, fontWeight: 600, color: MC.ink }}>−€33.31/month from EYP budget</div>
+            <div style={{ fontFamily: 'var(--font-display)', fontSize: 12, color: MC.inkSoft, marginTop: 2 }}>Deducted automatically each month · visible in Budget → Activity</div>
+          </div>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+          <div style={{ width: 32, height: 32, borderRadius: 9, background: MC.surface, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <LucideIcon name="Briefcase" size={16} color={MC.inkSoft} strokeWidth={2} />
+          </div>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontFamily: 'var(--font-display)', fontSize: 13, fontWeight: 600, color: MC.ink }}>No payslip impact</div>
+            <div style={{ fontFamily: 'var(--font-display)', fontSize: 12, color: MC.inkSoft, marginTop: 2 }}>Bike lease is 100% exempt from tax and NSSO — nothing deducted from your salary</div>
+          </div>
+        </div>
+      </div>
+
+      <div style={{ padding: '14px 16px', background: MC.navyL, borderRadius: 16, border: `1px solid ${MC.navy}18` }}>
+        <div style={{ fontFamily: 'var(--font-display)', fontSize: 12, fontWeight: 700, color: MC.navy, marginBottom: 6 }}>After 36 months</div>
+        <div style={{ fontFamily: 'var(--font-display)', fontSize: 12, color: MC.inkSoft, lineHeight: 1.6 }}>The bike is yours to keep. A new lease window opens — you'll see it in Benefits.</div>
+      </div>
+    </div>
+  );
+}
+window.registerScreen('me-bikelease', MeBikeleaseScreen);
+
+function MeActiveBenefitsScreen() {
+  const nav = window.useNav ? window.useNav() : null;
+  const benefits = [
+    { iconName: 'Bike',                                title: 'Bike lease',    company: 'o2o Lekker Amsterdam+',      detail: 'Contract until Jan 2029',  fin: '−€33.31/month from EYP',   finC: MC.navy,    status: 'active',    sc: MC.grn,    onTap: () => nav && nav.push('me-bikelease') },
+    { img: 'uploads/benefit-icons/smartphone.png',    title: 'Smartphone',    company: 'Coolblue iPhone 16 Pro',     detail: 'Since Sep 2025',           fin: '€4 BIK/month on payslip',  finC: MC.red,     status: 'active',    sc: MC.grn,    onTap: null },
+    { iconName: 'HeartPulse',                         title: 'Alan insurance',company: 'Individual plan',            detail: 'Auto-renewed annually',    fin: 'Employer-paid',            finC: MC.grn,     status: 'enrolled',  sc: MC.grn,    onTap: null },
+    { img: 'uploads/benefit-icons/warrants.png',      title: 'Warrants',      company: "Optiniti · Nov 2025 alloc.", detail: '€4,551 vesting',           fin: 'No payslip impact',        finC: MC.inkSoft,  status: "chosen '26", sc: MC.purple, onTap: null },
+  ];
+  return (
+    <div style={{ padding: '0 16px 24px', background: '#F2F2F2', minHeight: '100%' }}>
+      <button onClick={() => nav && nav.pop()} style={{
+        appearance: 'none', border: 'none', background: 'none', cursor: 'pointer',
+        padding: '12px 0 4px', display: 'flex', alignItems: 'center', gap: 6,
+      }}>
+        <LucideIcon name="ChevronLeft" size={20} color={MC.ink} strokeWidth={2} />
+        <span style={{ fontFamily: 'var(--font-display)', fontSize: 14, fontWeight: 500, color: MC.ink }}>Me</span>
+      </button>
+      <div style={{ padding: '6px 0 16px' }}>
+        <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 26, color: MC.ink, letterSpacing: '-0.5px' }}>Active benefits</div>
+        <div style={{ fontFamily: 'var(--font-display)', fontSize: 13, color: MC.inkSoft, marginTop: 2 }}>Your current commitments</div>
+      </div>
+      {benefits.map((b) => (
+        <div key={b.title} onClick={b.onTap || undefined} style={{
+          background: 'white', borderRadius: 16, border: `1px solid ${MC.border}`,
+          padding: 16, marginBottom: 10, cursor: b.onTap ? 'pointer' : 'default',
+        }}>
+          <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+            <div style={{ width: 42, height: 42, borderRadius: 12, background: MC.surface, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+              {b.img
+                ? <img src={b.img} alt="" style={{ width: 42, height: 42, objectFit: 'cover', borderRadius: 12 }} />
+                : <LucideIcon name={b.iconName} size={21} color={MC.ink} strokeWidth={1.75} />}
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div style={{ fontFamily: 'var(--font-display)', fontSize: 15, fontWeight: 600, color: MC.ink }}>{b.title}</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <MePill label={b.status} color={b.sc} />
+                  {b.onTap && <LucideIcon name="ChevronRight" size={14} color={MC.inkMuted} strokeWidth={2} />}
+                </div>
+              </div>
+              <div style={{ fontFamily: 'var(--font-display)', fontSize: 12, color: MC.inkSoft, marginTop: 2 }}>{b.company}</div>
+              <div style={{ fontFamily: 'var(--font-display)', fontSize: 12, color: MC.inkMuted, marginTop: 1 }}>{b.detail}</div>
+              <div style={{ fontFamily: 'var(--font-display)', fontSize: 12, fontWeight: 600, color: b.finC, marginTop: 6, padding: '4px 9px', background: b.finC + '12', borderRadius: 8, display: 'inline-block' }}>{b.fin}</div>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+window.registerScreen('me-active-benefits', MeActiveBenefitsScreen);
 
 // Leave type → icon/colour chip (used in hub list + detail screen)
 const LEAVE_TYPE_CHIP = {
@@ -637,7 +1032,10 @@ function DesktopTimeOffHub() {
 
   React.useEffect(() => {
     window.__refreshTimeOff = () => setTick(t => t + 1);
-    window.__showTimeOffToast = (msg) => { setToast(msg); setTimeout(() => setToast(null), 3000); };
+    window.__showTimeOffToast = (msg, addAnother) => {
+      setToast({ msg, addAnother: !!addAnother });
+      setTimeout(() => setToast(null), 4000);
+    };
     return () => { delete window.__refreshTimeOff; delete window.__showTimeOffToast; };
   }, []);
 
@@ -970,15 +1368,22 @@ function DesktopTimeOffHub() {
       {/* Toast */}
       {toast && (
         <div style={{
-          position: 'fixed', top: 24, left: '50%', transform: 'translateX(-50%)',
-          background: P.ink, color: '#fff', padding: '10px 20px', borderRadius: 12,
+          position: 'fixed', bottom: 32, left: '50%', transform: 'translateX(-50%)',
+          background: '#16a34a', padding: '10px 10px 10px 14px', borderRadius: 999,
           fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14,
-          zIndex: 9999, boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-          display: 'flex', alignItems: 'center', gap: 8,
+          zIndex: 9999, boxShadow: '0 4px 16px rgba(22,163,74,0.35)',
+          display: 'inline-flex', alignItems: 'center', gap: 8, whiteSpace: 'nowrap',
           animation: 't-toast-up 220ms cubic-bezier(0.22, 1, 0.36, 1) both',
         }}>
           <LucideIcon name="Check" size={16} color="#fff" strokeWidth={2.5} />
-          {toast}
+          <span style={{ color: '#fff' }}>{toast.msg || toast}</span>
+          {toast.addAnother && (
+            <button onClick={() => { setToast(null); nav && nav.push('request-time-off'); }} style={{
+              marginLeft: 2, background: 'rgba(255,255,255,0.22)', border: 'none', borderRadius: 8,
+              padding: '4px 12px', cursor: 'pointer',
+              fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: '#fff',
+            }}>Add another</button>
+          )}
         </div>
       )}
 
@@ -2371,7 +2776,7 @@ function _pushToHR(item) {
 }
 
 // ── Main Request Screen ──
-function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
+function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem, source }) {
   const nav = window.useNav ? window.useNav() : null;
   const isDesktop = window.ViewModeContext ? React.useContext(window.ViewModeContext) === 'desktop' : false;
   const modalRef = React.useRef(null);
@@ -2412,7 +2817,6 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
     };
   }, []);
 
-  const [step, setStep] = React.useState(0);
   const [selectedDates, setSelectedDates] = React.useState(() => {
     if (editItem?._selectedDates) return new Set(editItem._selectedDates);
     if (_editParsed.start && _editParsed.end) {
@@ -2442,6 +2846,7 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
   const [showHalfDayTip, setShowHalfDayTip] = React.useState(!editItem);
   const [errorToast, setErrorToast] = React.useState(null);
   const [calToast, setCalToast] = React.useState(null);
+  const [step, setStep] = React.useState(0);
 
   // Compute contiguous working-day ranges from selectedDates
   const _computeRanges = (dates) => {
@@ -2704,21 +3109,24 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
         _selectedDates: sortedPicked,
       });
       setSubmitting(false);
-      setStep(1);
+      handleDone();
     }, 1200);
   };
 
   const handleDone = () => {
-    // Refresh data first, then pop back to hub
     if (window.__refreshTimeOff) window.__refreshTimeOff();
     if (nav) nav.pop();
+    const msg = editItem ? 'Request updated' : 'Absence submitted';
     setTimeout(() => {
-      if (window.__showTimeOffToast) window.__showTimeOffToast(editItem ? 'Request updated' : 'Request submitted');
+      if (window.__showTimeOffToast) {
+        window.__showTimeOffToast(msg, false);
+      } else {
+        window.__pendingToast = { title: msg };
+      }
     }, 200);
   };
 
-  // ── Success overlay ──
-  if (step === 1) {
+  if (false) {
     // Build receipt rows — full-day segments get one row each, half-days get their own row
     const confirmRanges = (() => {
       if (selectedDates.size === 0) return [];
@@ -2820,7 +3228,7 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
         <div style={{ padding: isDesktop ? '24px 32px 40px' : '16px 16px 24px', display: 'flex', justifyContent: 'center', animation: 'fadeSlideIn 0.5s ease-out 0.45s both', maxWidth: isDesktop ? 480 : undefined, alignSelf: 'center', width: '100%' }}>
           <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 10 }}>
             <Button variant="primary" size="large" fullWidth onClick={handleDone}>
-              Back to time off
+              Back to {source === 'home' ? 'home' : 'leave'}
             </Button>
             <Button variant="outline" size="large" fullWidth onClick={() => setStep(0)}>
               Edit request
@@ -4040,7 +4448,7 @@ window.registerScreen('request-time-off', RequestTimeOffScreen);
 // ─────────────────────────────────────────────────────────────
 // Absence Type Screen — entry point for the add absence flow
 // ─────────────────────────────────────────────────────────────
-function AbsenceTypeScreen() {
+function AbsenceTypeScreen({ source }) {
   const { pop, push } = window.useNav ? window.useNav() : {};
 
   const rows = [
@@ -4048,19 +4456,19 @@ function AbsenceTypeScreen() {
       iconName: 'Palmtree',
       title: 'Time off',
       subtitle: '14 days available',
-      onClick: () => push && push('request-time-off', { prefillReason: 'timeoff' }),
+      onClick: () => push && push('request-time-off', { prefillReason: 'timeoff', source }),
     },
     {
       iconName: 'Stethoscope',
       title: 'Sick leave',
       subtitle: '1 day without certificate, 2+ days requires one',
-      onClick: () => push && push('request-time-off', { prefillReason: 'sick' }),
+      onClick: () => push && push('request-time-off', { prefillReason: 'sick', source }),
     },
     {
       iconName: 'Gift',
       title: 'Special leave',
       subtitle: 'Wedding, funeral, moving…',
-      onClick: () => push && push('request-time-off', { prefillReason: 'special' }),
+      onClick: () => push && push('request-time-off', { prefillReason: 'special', source }),
     },
   ];
 
@@ -4271,7 +4679,7 @@ function TimeOffDetailScreen({ item, onClose }) {
               </div>
             </div>
             <div style={{ padding: '16px 24px 24px', borderTop: `1px solid ${P.border}` }}>
-              <Button variant="primary" size="large" fullWidth onClick={() => { doClose(); setTimeout(() => { window.__refreshTimeOff && window.__refreshTimeOff(); window.__showTimeOffToast && window.__showTimeOffToast('Illness reported'); }, 50); }}>Back to time off</Button>
+              <Button variant="primary" size="large" fullWidth onClick={() => { doClose(); setTimeout(() => { window.__refreshTimeOff && window.__refreshTimeOff(); window.__showTimeOffToast && window.__showTimeOffToast('Illness reported'); }, 50); }}>Back to leave</Button>
             </div>
           </>
         ) : illnessStep === 'form' ? (
@@ -4942,7 +5350,7 @@ function TimeOffDetailScreen({ item, onClose }) {
                     {illnessSelectedDays.size} sick day{illnessSelectedDays.size !== 1 ? 's' : ''} submitted for HR review. Your vacation days will be restored once approved.
                   </div>
                   <Button variant="primary" size="large" fullWidth onClick={() => { setIllnessStep(null); _closeIllnessSheet(); doClose(); }}>
-                    Back to time off
+                    Back to leave
                   </Button>
                 </div>
               ) : (
@@ -5275,7 +5683,7 @@ function ReportIllnessScreen({ sourceItem }) {
           </div>
         </div>
         <div style={{ padding: '24px 20px 32px', ...(isDesktop ? { maxWidth: 864, margin: '0 auto', width: '100%' } : {}) }}>
-          <Button variant="primary" size="large" fullWidth onClick={onDone}>Back to time off</Button>
+          <Button variant="primary" size="large" fullWidth onClick={onDone}>Back to leave</Button>
         </div>
       </div>
     );

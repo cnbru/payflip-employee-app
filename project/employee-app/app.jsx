@@ -69,8 +69,8 @@ const PersonIcon   = (p) => <LucideIcon name="CircleUser" {...p} />;
 const TABS = [
   { id: 'home',     label: 'Home',     Icon: HomeIcon   },
   { id: 'benefits', label: 'Benefits', Icon: StoreIcon  },
-  { id: 'budgets',  label: 'Budgets',  Icon: WalletIcon },
-  { id: 'personal', label: 'Personal', Icon: PersonIcon },
+  { id: 'budgets',  label: 'Budget',   Icon: WalletIcon },
+  { id: 'personal', label: 'Me',       Icon: PersonIcon },
 ];
 
 // ─────────────────────────────────────────────────────────────
@@ -248,11 +248,124 @@ function DesktopAppShell() {
 // ─────────────────────────────────────────────────────────────
 // App shell
 // ─────────────────────────────────────────────────────────────
-const FULLSCREEN_SCREENS = ['withdraw-cash', 'simulate-cash-out', 'pension-detail', 'edit-active-benefit', 'sign-addendum', 'bike-lease', 'pension-savings-detail', 'pension-savings-choice', 'time-off-hub', 'time-off-detail', 'time-off-history', 'request-time-off', 'report-illness', 'expense-type', 'expense-wizard', 'mobility-expense', 'my-expenses', 'expense-detail', 'absence-type', 'expense-type-v2', 'expense-category-v2', 'expense-form-v2', 'bike-lease-o2o'];
+const FULLSCREEN_SCREENS = ['withdraw-cash', 'simulate-cash-out', 'pension-detail', 'edit-active-benefit', 'sign-addendum', 'bike-lease', 'pension-savings-detail', 'pension-savings-choice', 'time-off-hub', 'time-off-detail', 'time-off-history', 'request-time-off', 'report-illness', 'expense-type', 'expense-wizard', 'mobility-expense', 'my-expenses', 'expense-detail', 'absence-type', 'expense-type-v2', 'expense-category-v2', 'expense-form-v2', 'bike-lease-o2o', 'me-payslip', 'me-bikelease', 'me-active-benefits'];
+
+function AbsenceTypeSheet({ onClose, push }) {
+  const ink = 'rgb(15,13,40)', soft = '#6b7280', bdr = '#eaeaeb';
+  const rows = [
+    { icon: 'Palmtree',     title: 'Time off',      sub: '14 days available',                            reason: 'timeoff'  },
+    { icon: 'Stethoscope',  title: 'Sick leave',     sub: '1 day without certificate, 2+ require one',   reason: 'sick'     },
+    { icon: 'Gift',         title: 'Special leave',  sub: 'Wedding, funeral, moving…',                   reason: 'special'  },
+  ];
+  return (
+    <div style={{ position: 'absolute', inset: 0, zIndex: 60, background: 'rgba(15,13,40,0.45)', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }} onClick={onClose}>
+      <div style={{ background: 'white', borderRadius: '20px 20px 0 0', paddingBottom: 40 }} onClick={e => e.stopPropagation()}>
+        <div style={{ width: 36, height: 4, borderRadius: 2, background: bdr, margin: '12px auto 20px' }} />
+        <div style={{ padding: '0 20px 16px', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 22, color: ink, letterSpacing: '-0.03em' }}>What type of leave?</div>
+        {rows.map(({ icon, title, sub, reason }) => (
+          <button key={reason} onClick={() => { onClose(); push('request-time-off', { prefillReason: reason, source: 'home' }); }} style={{ width: '100%', appearance: 'none', background: 'transparent', border: 'none', borderTop: `1px solid ${bdr}`, padding: '14px 20px', cursor: 'pointer', textAlign: 'left', display: 'flex', alignItems: 'center', gap: 14 }}>
+            <div style={{ width: 46, height: 46, borderRadius: 13, background: '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <LucideIcon name={icon} size={22} color={ink} strokeWidth={1.75} />
+            </div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: ink }}>{title}</div>
+              <div style={{ fontFamily: 'var(--font-display)', fontSize: 13, color: soft, marginTop: 2 }}>{sub}</div>
+            </div>
+            <LucideIcon name="ChevronRight" size={18} color={soft} strokeWidth={2} />
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ExpenseTypeSheet({ onClose, push, navigate }) {
+  const ink = 'rgb(15,13,40)', soft = '#6b7280', bdr = '#eaeaeb';
+  const rows = [
+    { iconName: 'TrainFront', iconBg: '#FFF0D4', iconColor: '#B45309', title: 'Mobility expense', note: 'Mobility budget',     onClick: () => { onClose(); push('expense-form-v2', { type: 'mobility', direct: true }); } },
+    { iconName: 'Briefcase',  iconBg: '#EEF2F7', iconColor: '#374151', title: 'Work expense',     note: 'Employer reimbursed', onClick: () => { onClose(); push('expense-form-v2', { type: 'work', direct: true }); } },
+  ];
+  return (
+    <div style={{ position: 'absolute', inset: 0, zIndex: 60, background: 'rgba(15,13,40,0.35)', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }} onClick={onClose}>
+      <div style={{ background: 'white', borderRadius: '20px 20px 0 0', padding: '12px 16px 40px', boxSizing: 'border-box' }} onClick={e => e.stopPropagation()}>
+        <div style={{ width: 32, height: 4, borderRadius: 2, background: bdr, margin: '0 auto 16px' }} />
+        {rows.map(({ iconName, iconBg, iconColor, title, note, onClick }, i) => (
+          <button key={title} onClick={onClick} style={{
+            width: '100%', appearance: 'none', background: 'transparent', border: 'none',
+            borderTop: i > 0 ? `1px solid ${bdr}` : 'none',
+            padding: '14px 0', cursor: 'pointer', textAlign: 'left',
+            display: 'flex', alignItems: 'center', gap: 14,
+          }}>
+            <div style={{ width: 44, height: 44, borderRadius: 12, background: iconBg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <LucideIcon name={iconName} size={22} color={iconColor} strokeWidth={1.75} />
+            </div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 15, color: ink }}>{title}</div>
+              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 13, color: soft, marginTop: 2 }}>{note}</div>
+            </div>
+            <LucideIcon name="ChevronRight" size={18} color={soft} strokeWidth={2} />
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ProfilePanel({ onClose }) {
+  const ink = 'rgb(15,13,40)';
+  const bdr = '#eaeaeb';
+  return (
+    <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.35)', zIndex: 60, display: 'flex', flexDirection: 'column' }} onClick={onClose}>
+      <div style={{ flex: 1 }} />
+      <div style={{ background: '#fff', borderRadius: '20px 20px 0 0', padding: '0 20px 32px' }} onClick={e => e.stopPropagation()}>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: 16, paddingBottom: 4 }}>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: '#9ca3af', fontSize: 18, lineHeight: 1 }}>✕</button>
+        </div>
+        <div style={{ textAlign: 'center', paddingBottom: 20, borderBottom: `1px solid ${bdr}`, marginBottom: 4 }}>
+          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 22, color: ink, letterSpacing: '-0.4px' }}>Pauline Tahon</div>
+          <div style={{ fontFamily: 'var(--font-display)', fontSize: 13, color: '#9ca3af', marginTop: 4 }}>pauline@payflip.be</div>
+        </div>
+        {[
+          { icon: 'CircleUser', label: 'Personal information' },
+          { icon: 'FileText',   label: 'Documents' },
+          { icon: 'CircleHelp', label: 'Get help' },
+          { icon: 'LogOut',     label: 'Log out' },
+        ].map((item, i, arr) => (
+          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '13px 0', borderBottom: i < arr.length - 1 ? `1px solid ${bdr}` : 'none', cursor: 'pointer' }}>
+            <div style={{ width: 32, height: 32, borderRadius: 9, background: '#f7f7f8', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <LucideIcon name={item.icon} size={17} color={ink} strokeWidth={1.75} />
+            </div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: ink }}>{item.label}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 function AppShell() {
-  const { activeTab, current } = useNav();
+  const { activeTab, current, push, navigate, stacks } = useNav();
   const isFullscreen = FULLSCREEN_SCREENS.includes(current.name);
+  const stackLen = (stacks[activeTab] || []).length;
+  const scrollRef = React.useRef(null);
+  React.useEffect(() => {
+    if (scrollRef.current) scrollRef.current.scrollTop = 0;
+  }, [current.name, stackLen, activeTab]);
+  const [profileOpen, setProfileOpen] = React.useState(false);
+  const [absenceSheetOpen, setAbsenceSheetOpen] = React.useState(false);
+  const [expenseSheetOpen, setExpenseSheetOpen] = React.useState(false);
+  const [globalToast, setGlobalToast] = React.useState(null);
+
+  React.useEffect(() => {
+    window.__openAbsenceSheet = () => setAbsenceSheetOpen(true);
+    window.__openExpenseSheet = () => setExpenseSheetOpen(true);
+    // Global toast — shows a success toast from any screen (title, optional onView action)
+    window.__showToast = (title, onView) => setGlobalToast({ title, onView });
+    return () => { delete window.__openAbsenceSheet; delete window.__openExpenseSheet; delete window.__showToast; };
+  }, []);
+
   return (
     <div data-screen-label={`${activeTab}/${current.name}`}
       data-app-shell
@@ -261,13 +374,44 @@ function AppShell() {
         background: isFullscreen ? '#fff' : '#F2F2F2',
         position: 'relative',
       }}>
-      <div style={{
+
+      {/* Avatar — sits in the 54px status-bar safe area, hidden on fullscreen screens */}
+      {!isFullscreen && (
+        <button
+          onClick={() => setProfileOpen(o => !o)}
+          style={{
+            position: 'absolute', top: 52, right: 14, zIndex: 20,
+            width: 38, height: 38, borderRadius: '50%',
+            background: profileOpen ? 'rgb(15,13,40)' : 'rgb(245,226,254)',
+            border: `2px solid ${profileOpen ? 'rgb(15,13,40)' : 'transparent'}`,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            cursor: 'pointer', flexShrink: 0, padding: 0,
+          }}>
+          <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 11, color: profileOpen ? '#fff' : 'rgb(196,43,252)' }}>PT</span>
+        </button>
+      )}
+
+      <div ref={scrollRef} style={{
         flex: 1, minHeight: 0, overflowY: 'auto', overflowX: 'hidden',
         paddingTop: 54, // clear status bar / dynamic island
       }}>
         <ScreenRenderer />
       </div>
       {!isFullscreen && <TabBar />}
+
+      {/* Profile panel — overlays content + tab bar */}
+      {profileOpen && !isFullscreen && <ProfilePanel onClose={() => setProfileOpen(false)} />}
+      {absenceSheetOpen && !isFullscreen && <AbsenceTypeSheet onClose={() => setAbsenceSheetOpen(false)} push={push} />}
+      {expenseSheetOpen && <ExpenseTypeSheet onClose={() => setExpenseSheetOpen(false)} push={push} navigate={navigate} />}
+
+      {/* Global success toast — driven by window.__showToast, works from any screen */}
+      {globalToast && window.Toast && (
+        <window.Toast
+          title={globalToast.title}
+          onDismiss={() => setGlobalToast(null)}
+          onAction={globalToast.onView ? () => { const v = globalToast.onView; setGlobalToast(null); v(); } : null}
+        />
+      )}
     </div>
   );
 }

@@ -5,12 +5,12 @@
 // Mock data — seeded once on window so other screens can read it
 // ─────────────────────────────────────────────────────────────
 window.__expensesMockData = [
-  { id: 'exp-1', category: 'Restaurant / meals', amount: 45.00, date: '18/07/2026', status: 'rejected', adminNote: 'Receipt is not readable.' },
-  { id: 'exp-2', category: 'Taxi / Uber',         amount: 12.50, date: '10/07/2026', status: 'approved' },
-  { id: 'exp-3', category: 'Taxi / Uber',         amount: 28.00, date: '05/07/2026', status: 'pending' },
-  { id: 'exp-4', category: 'Hotel',               amount: 189.00, date: '22/06/2026', status: 'reimbursed', reimbursementMonth: 'July 2026' },
-  { id: 'exp-5', category: 'Restaurant / meals', amount: 34.50, date: '08/06/2026', status: 'reimbursed', reimbursementMonth: 'July 2026' },
-  { id: 'exp-6', category: 'Parking',             amount: 8.00,  date: '03/06/2026', status: 'reimbursed', reimbursementMonth: 'June 2026' },
+  { id: 'exp-1', type: 'work',     category: 'Restaurant / meals', amount: 45.00,  date: '18/07/2026', status: 'rejected',   adminNote: 'Receipt is not readable.', hasAttachment: true },
+  { id: 'exp-2', type: 'mobility', category: 'Public transport',   amount: 14.00,  date: '21/07/2026', status: 'approved',   hasAttachment: true },
+  { id: 'exp-3', type: 'mobility', category: 'Public transport',   amount: 14.00,  date: '10/06/2026', status: 'approved' },
+  { id: 'exp-4', type: 'work',     category: 'Hotel',              amount: 189.00, date: '22/06/2026', status: 'reimbursed', reimbursementMonth: 'July 2026', hasAttachment: true },
+  { id: 'exp-5', type: 'work',     category: 'Restaurant / meals', amount: 34.50,  date: '08/06/2026', status: 'reimbursed', reimbursementMonth: 'July 2026' },
+  { id: 'exp-6', type: 'mobility', category: 'Public transport',   amount: 14.00,  date: '10/07/2026', status: 'pending' },
 ];
 
 const EXPENSE_CATEGORIES = [
@@ -458,52 +458,65 @@ function ExpenseWizardScreen() {
 // ─────────────────────────────────────────────────────────────
 // Shared expense row renderer (used in list + history)
 // ─────────────────────────────────────────────────────────────
+const MOBILITY_CATEGORIES_EXP = new Set(['Public transport', 'Taxi / Uber', 'Parking', 'Shared mobility', 'Private transport', 'Mobility subscription']);
+
+function getExpIconStyle(exp) {
+  const isMobility = exp.type === 'mobility' || MOBILITY_CATEGORIES_EXP.has(exp.category);
+  const icon = isMobility ? 'TrainFront' : exp.type === 'lnd' ? 'BookOpen' : 'Briefcase';
+  // Colour reflects status: pending (amber) and rejected (red) stand out; approved/reimbursed are neutral grey
+  const s = exp.status === 'pending'  ? { bg: '#FFF8EC', color: '#8C5A00' }
+          : exp.status === 'rejected' ? { bg: '#FEE2E2', color: '#B91C1C' }
+          :                             { bg: '#EEF2F7', color: '#374151' }; // approved / reimbursed
+  return { bg: s.bg, color: s.color, icon };
+}
+
+function getExpBudgetPill(exp) {
+  const isMobility = exp.type === 'mobility' || MOBILITY_CATEGORIES_EXP.has(exp.category);
+  if (isMobility) return { label: 'Mobility', bg: '#ddebff', color: '#1568cd' };
+  if (exp.type === 'lnd') return { label: 'L&D', bg: '#F3EEFF', color: '#7C3AED' };
+  return null;
+}
+
 function ExpenseRow({ exp, onPress, last }) {
+  const iconStyle = getExpIconStyle(exp);
+  const pill = getExpBudgetPill(exp);
+  const isPending = exp.status === 'pending';
   return (
-    <div style={{ padding: '0 16px', borderBottom: last ? 'none' : '1px solid #EAEAEB' }}>
-      <div role="button" tabIndex={0}
-        onClick={onPress}
-        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onPress(); } }}
-        style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 0', cursor: 'pointer' }}>
-        <div style={{ position: 'relative', width: 40, height: 40, flexShrink: 0 }}>
-          <div style={{ width: 40, height: 40, borderRadius: 10, background: '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <LucideIcon name="Receipt" size={20} color={PFC.inkSoft} strokeWidth={1.75} />
-          </div>
-          {(exp.status === 'approved' || exp.status === 'reimbursed') && (
-            <div style={{ position: 'absolute', top: -4, right: -4, width: 16, height: 16, borderRadius: '50%', background: '#dcfce7', border: '2px solid white', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <LucideIcon name="Check" size={10} color="#16a34a" strokeWidth={2.5} />
-            </div>
-          )}
-          {exp.status === 'pending' && (
-            <div style={{ position: 'absolute', top: -4, right: -4, width: 16, height: 16, borderRadius: '50%', background: '#fef3c7', border: '2px solid white', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <LucideIcon name="Clock" size={9} color="#b45309" strokeWidth={2.5} />
-            </div>
-          )}
-          {exp.status === 'rejected' && (
-            <div style={{ position: 'absolute', top: -4, right: -4, width: 16, height: 16, borderRadius: '50%', background: '#fee2e2', border: '2px solid white', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <LucideIcon name="X" size={9} color="#dc2626" strokeWidth={2.5} />
-            </div>
-          )}
-        </div>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontFamily: 'var(--font-display)', fontSize: 14, lineHeight: '20px' }}>
-            <span style={{ fontWeight: 600, color: PFC.ink }}>{exp.category}</span>
-            <span style={{ fontWeight: 400, color: PFC.inkSoft }}>{' · '}{fmtEUR(exp.amount)}</span>
-          </div>
-          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 13, color: PFC.inkSoft, lineHeight: '18px' }}>{exp.date}</div>
-          {exp.adminNote && exp.status === 'rejected' && (
-            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 12, color: PFC.errorText, lineHeight: '16px', marginTop: 2 }}>{exp.adminNote}</div>
-          )}
-        </div>
-        <LucideIcon name="ChevronRight" size={18} color={PFC.inkSoft} strokeWidth={2} />
+    <button
+      onClick={onPress}
+      style={{
+        width: '100%', appearance: 'none', background: 'transparent', border: 'none',
+        borderBottom: last ? 'none' : `1px solid ${PFC.border}`,
+        padding: '12px 16px', cursor: 'pointer', textAlign: 'left',
+        display: 'flex', alignItems: 'center', gap: 12,
+      }}
+    >
+      <div style={{ width: 40, height: 40, borderRadius: 10, background: iconStyle.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+        <LucideIcon name={iconStyle.icon} size={20} color={iconStyle.color} strokeWidth={1.75} />
       </div>
-    </div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 15, color: PFC.ink, lineHeight: '20px' }}>{exp.category}</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 3, flexWrap: 'wrap' }}>
+          <span style={{ fontFamily: 'var(--font-display)', fontSize: 13, color: PFC.inkSoft }}>{exp.date}</span>
+          {pill && (
+            <span style={{ fontFamily: 'var(--font-display)', fontSize: 11, fontWeight: 600, color: pill.color, background: pill.bg, borderRadius: 20, padding: '1px 7px' }}>{pill.label}</span>
+          )}
+        </div>
+      </div>
+      {exp.status === 'pending'
+        ? <StatusBadge kind="warning">Pending</StatusBadge>
+        : exp.status === 'rejected'
+        ? <StatusBadge kind="alert">Rejected</StatusBadge>
+        : <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 15, color: PFC.ink, flexShrink: 0 }}>{fmtEUR(exp.amount)}</span>
+      }
+      <LucideIcon name="ChevronRight" size={18} color={PFC.inkSoft} strokeWidth={2} style={{ flexShrink: 0 }} />
+    </button>
   );
 }
 
 function ExpenseGroup({ exps, onPress }) {
   return (
-    <div style={{ background: 'white', border: '1px solid #EAEAEB', borderRadius: 16, overflow: 'hidden' }}>
+    <div style={{ background: 'white', border: `1px solid ${PFC.border}`, borderRadius: 16, overflow: 'hidden' }}>
       {exps.map((exp, i) => (
         <ExpenseRow key={exp.id} exp={exp} last={i === exps.length - 1} onPress={() => onPress(exp)} />
       ))}
@@ -512,50 +525,110 @@ function ExpenseGroup({ exps, onPress }) {
 }
 
 // ─────────────────────────────────────────────────────────────
-// My Expenses — sections by month; current month expanded, others collapsed
+// My Expenses — filter chips + month sections with totals
 // ─────────────────────────────────────────────────────────────
-function MyExpensesScreen() {
+function MyExpensesScreen({ filterType: filterTypeProp, filterMonth: filterMonthProp }) {
   const { pop, push } = useNav();
 
-  const now = new Date();
-  const currentMonthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-
   const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-  const formatMonthKey = (key) => {
-    const [y, m] = key.split('-');
-    return `${MONTH_NAMES[parseInt(m) - 1].toUpperCase()} ${y}`;
-  };
+  const SHORT_MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const formatMonthKey = (key) => { const [y, m] = key.split('-'); return `${MONTH_NAMES[parseInt(m) - 1].toUpperCase()} ${y}`; };
   const toMonthKey = (dateStr) => { const p = dateStr.split('/'); return `${p[2]}-${p[1]}`; };
 
-  const allExpenses = [
-    ...(window.__submittedExpenses || []),
-    ...(window.__expensesMockData || []),
-  ];
+  const [activeType, setActiveType]   = React.useState(filterTypeProp || null);
+  const [activeMonth, setActiveMonth] = React.useState(filterMonthProp || null);
+  const [showTypeSheet, setShowTypeSheet]   = React.useState(false);
+  const [showMonthSheet, setShowMonthSheet] = React.useState(false);
 
-  const monthGroups = React.useMemo(() => {
-    const g = {};
-    allExpenses.forEach(e => { const k = toMonthKey(e.date); if (!g[k]) g[k] = []; g[k].push(e); });
-    return Object.keys(g).sort().reverse().map(key => ({ key, items: g[key] }));
-  }, [allExpenses.length]);
+  const allExpensesRaw = [...(window.__submittedExpenses || []), ...(window.__expensesMockData || [])];
 
-  const [expanded, setExpanded] = React.useState(() => new Set([currentMonthKey]));
-
-  const toggle = (key) => setExpanded(prev => {
-    const next = new Set(prev);
-    if (next.has(key)) next.delete(key); else next.add(key);
-    return next;
+  const filtered = allExpensesRaw.filter(e => {
+    const isMob = e.type === 'mobility' || MOBILITY_CATEGORIES_EXP.has(e.category);
+    if (activeType === 'mobility' && !isMob) return false;
+    if (activeType === 'work' && (isMob || e.type === 'lnd')) return false;
+    if (activeType === 'lnd' && e.type !== 'lnd') return false;
+    if (activeMonth && toMonthKey(e.date) !== activeMonth) return false;
+    return true;
   });
 
+  const availableMonths = [...new Set(allExpensesRaw.map(e => toMonthKey(e.date)))].sort().reverse();
+
+  const monthKeys = activeMonth
+    ? [activeMonth]
+    : [...new Set(filtered.map(e => toMonthKey(e.date)))].sort().reverse();
+
+  const groupedByMonth = monthKeys.map(key => ({
+    key,
+    items: filtered.filter(e => toMonthKey(e.date) === key),
+  }));
+
+  const title = activeType === 'mobility' ? 'Mobility expenses'
+    : activeType === 'work' ? 'Work expenses'
+    : activeType === 'lnd'  ? 'L&D expenses'
+    : 'My expenses';
+
   const goToDetail = (exp) => push('expense-detail', { expense: exp });
+
+  const typeRows = [
+    { label: 'Mobility expense', kind: 'mobility', iconName: 'TrainFront', bg: '#FFF0D4', color: '#B45309' },
+    { label: 'Work expense',     kind: 'work',     iconName: 'Briefcase',  bg: '#EEF2F7', color: '#374151' },
+    { label: 'L&D',              kind: 'lnd',      iconName: 'BookOpen',   bg: '#F3EEFF', color: '#7C3AED' },
+  ];
+
+  const chipStyle = (active) => ({
+    appearance: 'none', border: `1px solid ${active ? PFC.ink : PFC.border}`,
+    background: active ? PFC.ink : 'white', borderRadius: 999,
+    padding: '6px 12px', cursor: 'pointer',
+    fontFamily: 'var(--font-display)', fontSize: 13, fontWeight: 500,
+    color: active ? 'white' : PFC.ink,
+    display: 'flex', alignItems: 'center', gap: 5,
+  });
+
+  const sheetPanel = { width: '100%', background: '#fff', borderRadius: '20px 20px 0 0', padding: '12px 16px 40px', boxSizing: 'border-box' };
+  const handleBar = <div style={{ width: 32, height: 4, background: '#E5E5EA', borderRadius: 2, margin: '0 auto 16px' }} />;
+  const backdrop = (onClose) => ({ position: 'fixed', inset: 0, zIndex: 200, background: 'rgba(0,0,0,0.35)', display: 'flex', alignItems: 'flex-end' });
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <NavBar />
 
       <div style={{ flex: 1, overflowY: 'auto', padding: '0 16px 24px', display: 'flex', flexDirection: 'column', gap: 16 }}>
-        <Heading28>My expenses</Heading28>
+        <Heading28>{title}</Heading28>
 
-        {allExpenses.length === 0 && (
+        {/* Filter chips */}
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button style={chipStyle(!!activeType)} onClick={() => activeType ? setActiveType(null) : setShowTypeSheet(true)}>
+            {activeType
+              ? <>{activeType === 'mobility' ? 'Mobility' : activeType === 'work' ? 'Work' : 'L&D'} <span style={{ opacity: 0.6 }}>✕</span></>
+              : <>Type <LucideIcon name="ChevronDown" size={13} color={PFC.inkSoft} strokeWidth={2} /></>
+            }
+          </button>
+          <button style={chipStyle(!!activeMonth)} onClick={() => activeMonth ? setActiveMonth(null) : setShowMonthSheet(true)}>
+            {activeMonth
+              ? <>{SHORT_MONTHS[parseInt(activeMonth.split('-')[1]) - 1]} {activeMonth.split('-')[0]} <span style={{ opacity: 0.6 }}>✕</span></>
+              : <>Month <LucideIcon name="ChevronDown" size={13} color={PFC.inkSoft} strokeWidth={2} /></>
+            }
+          </button>
+        </div>
+
+        {/* Month sections */}
+        {groupedByMonth.map(({ key, items }) => {
+          const total = items.reduce((s, e) => s + (e.amount || 0), 0);
+          return (
+            <div key={key}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '2px 0 8px' }}>
+                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: PFC.inkSoft, letterSpacing: '0.06em' }}>{formatMonthKey(key)}</span>
+                {items.length > 0 && <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: PFC.inkSoft }}>{fmtEUR(total)}</span>}
+              </div>
+              {items.length === 0
+                ? <div style={{ fontFamily: 'var(--font-display)', fontSize: 14, color: PFC.inkSoft, padding: '12px 0 4px', textAlign: 'center' }}>No expenses.</div>
+                : <ExpenseGroup exps={items} onPress={goToDetail} />
+              }
+            </div>
+          );
+        })}
+
+        {allExpensesRaw.length === 0 && (
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', gap: 16, padding: '40px 24px' }}>
             <div style={{ width: 64, height: 64, borderRadius: 16, background: 'linear-gradient(135deg, #F3E8FF 0%, #E9D5FF 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <LucideIcon name="Receipt" size={32} color={PFC.purple} strokeWidth={1.5} />
@@ -564,155 +637,179 @@ function MyExpensesScreen() {
             <Body14 color={PFC.inkSoft} weight={500}>Submit your first expense to get started.</Body14>
           </div>
         )}
-
-        {monthGroups.map(({ key, items }) => {
-          const isOpen = expanded.has(key);
-          const isCurrent = key === currentMonthKey;
-          return (
-            <div key={key} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              <button
-                onClick={() => toggle(key)}
-                style={{
-                  appearance: 'none', border: 'none', background: 'none', cursor: 'pointer',
-                  padding: '2px 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                  textAlign: 'left',
-                }}
-              >
-                <span style={{
-                  fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11,
-                  color: PFC.inkSoft, letterSpacing: '0.06em',
-                }}>
-                  {formatMonthKey(key)}
-                </span>
-                <LucideIcon
-                  name={isOpen ? 'ChevronUp' : 'ChevronDown'}
-                  size={16} color={PFC.inkSoft} strokeWidth={2}
-                />
-              </button>
-              {isOpen && <ExpenseGroup exps={items} onPress={goToDetail} />}
-            </div>
-          );
-        })}
       </div>
 
-      {/* Sticky footer */}
+      {/* Footer */}
       <div style={{ padding: '12px 16px 16px', borderTop: `1px solid ${PFC.border}`, background: '#fff' }}>
-        <Button variant="primary" size="large" fullWidth onClick={() => push('expense-wizard')}>
-          Submit expense
-        </Button>
+        <Button variant="primary" size="large" fullWidth onClick={() => window.__openExpenseSheet && window.__openExpenseSheet()}>Add expense</Button>
       </div>
+
+      {/* Type filter bottom sheet */}
+      {showTypeSheet && (
+        <div onClick={() => setShowTypeSheet(false)} style={backdrop()}>
+          <div onClick={e => e.stopPropagation()} style={sheetPanel}>
+            {handleBar}
+            {typeRows.map(({ label, kind, iconName, bg, color }, i) => (
+              <button key={kind} onClick={() => { setActiveType(kind); setShowTypeSheet(false); }} style={{
+                width: '100%', appearance: 'none', background: activeType === kind ? '#F7F7F8' : 'transparent', border: 'none',
+                borderTop: i > 0 ? `1px solid ${PFC.border}` : 'none',
+                padding: '14px 0', cursor: 'pointer', textAlign: 'left',
+                display: 'flex', alignItems: 'center', gap: 14,
+              }}>
+                <div style={{ width: 40, height: 40, borderRadius: 10, background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <LucideIcon name={iconName} size={20} color={color} strokeWidth={1.75} />
+                </div>
+                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 15, color: PFC.ink, flex: 1 }}>{label}</span>
+                {activeType === kind && <LucideIcon name="Check" size={18} color={PFC.ink} strokeWidth={2} />}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Month filter bottom sheet */}
+      {showMonthSheet && (
+        <div onClick={() => setShowMonthSheet(false)} style={backdrop()}>
+          <div onClick={e => e.stopPropagation()} style={sheetPanel}>
+            {handleBar}
+            {availableMonths.map((key, i) => {
+              const [y, m] = key.split('-');
+              return (
+                <button key={key} onClick={() => { setActiveMonth(key); setShowMonthSheet(false); }} style={{
+                  width: '100%', appearance: 'none', background: activeMonth === key ? '#F7F7F8' : 'transparent', border: 'none',
+                  borderTop: i > 0 ? `1px solid ${PFC.border}` : 'none',
+                  padding: '14px 0', cursor: 'pointer', textAlign: 'left',
+                  fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 15, color: PFC.ink,
+                  display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                }}>
+                  {MONTH_NAMES[parseInt(m) - 1]} {y}
+                  {activeMonth === key && <LucideIcon name="Check" size={18} color={PFC.ink} strokeWidth={2} />}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
 
 // ─────────────────────────────────────────────────────────────
-// Expense Detail — shows full info for a single expense
+// Expense Detail — clean field list, status badge, Payflip advantage
 // ─────────────────────────────────────────────────────────────
 function ExpenseDetailScreen({ expense }) {
   const { pop, push } = useNav();
+  const [showAdvModal, setShowAdvModal] = React.useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = React.useState(false);
 
   if (!expense) { pop(); return null; }
 
   const STATUS_LABEL = { pending: 'Pending', approved: 'Approved', rejected: 'Rejected', reimbursed: 'Reimbursed' };
-  const STATUS_KIND  = { pending: 'warning', approved: 'success', rejected: 'alert', reimbursed: 'success' };
+  const STATUS_KIND  = { pending: 'warning', approved: 'success', rejected: 'alert', reimbursed: 'neutral' };
 
-  const statusDot = {
-    approved:   { bg: '#dcfce7', icon: 'Check', iconColor: '#16a34a' },
-    reimbursed: { bg: '#dcfce7', icon: 'Check', iconColor: '#16a34a' },
-    pending:    { bg: '#fef3c7', icon: 'Clock', iconColor: '#b45309' },
-    rejected:   { bg: '#fee2e2', icon: 'X',     iconColor: '#dc2626' },
-  }[expense.status];
+  const isMobility = expense.type === 'mobility' || MOBILITY_CATEGORIES_EXP.has(expense.category);
+  const budgetUsed = isMobility ? 'Mobility budget' : expense.type === 'lnd' ? 'L&D budget' : 'Employer reimbursed';
+  const canEdit = expense.status === 'pending';
+  const showAdvantage = isMobility && expense.status !== 'rejected';
 
-  const detailRows = [
-    { label: 'Amount',   value: fmtEUR(expense.amount) },
-    { label: 'Date',     value: expense.date },
-    { label: 'Category', value: expense.category },
-    { label: 'Status',   value: <StatusBadge kind={STATUS_KIND[expense.status]}>{STATUS_LABEL[expense.status]}</StatusBadge> },
-    ...(expense.status === 'approved'   ? [{ label: 'Reimbursement', value: 'Next payroll file' }] : []),
-    ...(expense.status === 'reimbursed' ? [{ label: 'Reimbursed in', value: expense.reimbursementMonth }] : []),
+  const fieldRows = [
+    { label: 'Amount',        value: fmtEUR(expense.amount) },
+    ...(expense.hasAttachment ? [{ label: 'Attachement', value: <span style={{ color: '#1568cd', fontWeight: 600 }}>File.pdf</span> }] : []),
+    { label: 'Budget used',   value: budgetUsed },
+    ...(expense.status === 'approved' || expense.status === 'reimbursed'
+      ? [{ label: 'Reimbursement', value: expense.status === 'reimbursed'
+          ? <button onClick={() => push('me-payslip')} style={{ appearance: 'none', border: 'none', background: 'transparent', padding: 0, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 4, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 15, color: '#1568cd' }}>{expense.reimbursementMonth} payroll<LucideIcon name="ChevronRight" size={14} color="#1568cd" strokeWidth={2} /></button>
+          : (expense.reimbursementMonth || 'August 2026') }]
+      : []),
+    { label: 'Submitted on',  value: expense.date },
+    ...(expense.status === 'approved' || expense.status === 'reimbursed'
+      ? [{ label: 'Approved on', value: expense.date }]
+      : []),
   ];
 
-  const canEdit = expense.status === 'pending' || expense.status === 'rejected';
-
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: '#fff' }}>
-      <NavBar onBack={pop} />
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: '#F2F2F2' }}>
+      {/* Header: back + Edit, then big title below (matches time-off detail) */}
+      <div style={{ padding: '8px 16px 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+        <button onClick={pop} style={{ width: 36, height: 36, borderRadius: 8, background: '#fff', border: `1px solid ${PFC.border}`, cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <LucideIcon name="ChevronLeft" size={26} color={PFC.ink} strokeWidth={2} />
+        </button>
+        {canEdit
+          ? <button onClick={() => push('expense-form-v2', { type: expense.type || (isMobility ? 'mobility' : 'work'), category: expense.category, direct: true })} style={{ appearance: 'none', border: 'none', background: 'transparent', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 15, color: PFC.ink, padding: 4, minWidth: 36 }}>Edit</button>
+          : <div style={{ width: 36 }} />
+        }
+      </div>
+      <div style={{ padding: '6px 16px 12px' }}>
+        <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 26, color: PFC.ink, letterSpacing: '-0.5px', lineHeight: '32px' }}>{expense.category}</div>
+      </div>
 
-      <div style={{ flex: 1, overflowY: 'auto', padding: '0 16px 24px', display: 'flex', flexDirection: 'column', gap: 20 }}>
+      <div style={{ flex: 1, overflowY: 'auto', padding: '4px 16px 40px', display: 'flex', flexDirection: 'column', gap: 16 }}>
 
-        {/* Hero — left aligned */}
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 10, padding: '4px 0' }}>
-          <div style={{ position: 'relative' }}>
-            <div style={{ width: 64, height: 64, borderRadius: 16, background: '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <LucideIcon name="Receipt" size={32} color={PFC.inkSoft} strokeWidth={1.5} />
-            </div>
-            {statusDot && (
-              <div style={{ position: 'absolute', top: -5, right: -5, width: 20, height: 20, borderRadius: '50%', background: statusDot.bg, border: '2.5px solid #fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <LucideIcon name={statusDot.icon} size={11} color={statusDot.iconColor} strokeWidth={2.5} />
-              </div>
-            )}
-          </div>
-          <div>
-            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 22, lineHeight: '30px', letterSpacing: '-0.005em', color: PFC.ink }}>
-              {expense.category}
-            </div>
-            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 15, color: PFC.inkSoft, marginTop: 2 }}>
-              {expense.date}
-            </div>
-          </div>
-        </div>
+        {/* Status badge */}
+        <StatusBadge kind={STATUS_KIND[expense.status]}>{STATUS_LABEL[expense.status]}</StatusBadge>
 
-        {/* Rejection note — before details */}
+        {/* Rejection note */}
         {expense.status === 'rejected' && expense.adminNote && (
           <div style={{ background: '#fff5f5', border: '1px solid #fecaca', borderRadius: 12, padding: '14px 16px', display: 'flex', gap: 10 }}>
             <LucideIcon name="TriangleAlert" size={18} color="#dc2626" strokeWidth={2} style={{ flexShrink: 0, marginTop: 1 }} />
             <div>
               <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 13, color: '#dc2626', marginBottom: 2 }}>Expense rejected</div>
               <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 13, color: '#b91c1c', lineHeight: '18px' }}>{expense.adminNote}</div>
-              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 400, fontSize: 12, color: '#b91c1c', lineHeight: '18px', marginTop: 6, opacity: 0.75 }}>
-                Tip: Try uploading a clearer photo in good lighting.
-              </div>
             </div>
           </div>
         )}
 
-        {/* Pending note — before details */}
-        {expense.status === 'pending' && (
-          <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 12, padding: '14px 16px', display: 'flex', gap: 10 }}>
-            <LucideIcon name="Clock" size={18} color="#b45309" strokeWidth={2} style={{ flexShrink: 0, marginTop: 1 }} />
-            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 13, color: '#92400e', lineHeight: '18px' }}>
-              Your expense is awaiting review. You'll be notified once it's processed.
-            </div>
-          </div>
-        )}
-
-        {/* Detail rows */}
-        <div style={{ background: 'white', border: '1px solid #EAEAEB', borderRadius: 16, overflow: 'hidden' }}>
-          {detailRows.map((row, i) => (
-            <div key={row.label} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', borderTop: i > 0 ? '1px solid #EAEAEB' : 'none' }}>
+        {/* Field list */}
+        <div style={{ background: '#fff', borderRadius: 16, border: `1px solid ${PFC.border}`, padding: '0 16px' }}>
+          {fieldRows.map((row, i) => (
+            <div key={row.label} style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              padding: '14px 0',
+              borderBottom: i < fieldRows.length - 1 ? `1px solid ${PFC.border}` : 'none',
+            }}>
               <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: PFC.inkSoft }}>{row.label}</span>
               <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 15, color: PFC.ink }}>{row.value}</span>
             </div>
           ))}
         </div>
 
-        {/* Actions for pending and rejected */}
-        {canEdit && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <Button
-              variant={expense.status === 'rejected' ? 'primary' : 'outline'}
-              size="large"
-              fullWidth
-              onClick={() => push('expense-wizard')}
-            >
-              {expense.status === 'rejected' ? 'Edit & resubmit' : 'Edit expense'}
-            </Button>
-            <button onClick={pop} style={{ appearance: 'none', border: 'none', background: 'none', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: '#dc2626', padding: '8px 0', textAlign: 'center', opacity: 0.7 }}>
-              Delete expense
+        {/* Payflip advantage box */}
+        {showAdvantage && (
+          <div style={{ background: '#F3EEFF', borderRadius: 14, padding: '16px' }}>
+            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: PFC.purpleDeep, marginBottom: 8 }}>Payflip advantage</div>
+            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 22, color: PFC.purpleDeep, marginBottom: 4 }}>🌸 €104</div>
+            <button onClick={() => setShowAdvModal(true)} style={{ appearance: 'none', border: 'none', background: 'transparent', cursor: 'pointer', padding: 0, fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 13, color: PFC.purpleDeep, textDecoration: 'underline' }}>
+              How is this calculated?
             </button>
           </div>
         )}
+
+        {/* Rejected: Edit & resubmit */}
+        {expense.status === 'rejected' && (
+          <Button variant="primary" size="large" fullWidth onClick={() => push('expense-form-v2', { type: expense.type || (isMobility ? 'mobility' : 'work'), category: expense.category, direct: true })}>Edit &amp; resubmit</Button>
+        )}
+
+        {/* Delete expense */}
+        <button onClick={() => setShowDeleteConfirm(true)} style={{ appearance: 'none', border: 'none', background: 'none', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: '#dc2626', padding: '8px 0', textAlign: 'center' }}>
+          Delete expense
+        </button>
       </div>
+
+      {/* Delete confirm sheet */}
+      {showDeleteConfirm && (
+        <div onClick={() => setShowDeleteConfirm(false)} style={{ position: 'fixed', inset: 0, zIndex: 300, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'flex-end' }}>
+          <div onClick={e => e.stopPropagation()} style={{ width: '100%', background: '#fff', borderRadius: '20px 20px 0 0', padding: '24px 16px 40px', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 20, color: PFC.ink, marginBottom: 4 }}>Delete expense?</span>
+            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 400, fontSize: 15, color: PFC.inkSoft, marginBottom: 8 }}>This action cannot be undone.</span>
+            <button onClick={pop} style={{ appearance: 'none', border: 'none', borderRadius: 10, background: '#dc2626', color: '#fff', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, padding: '12px 24px', cursor: 'pointer', minHeight: 48 }}>Delete</button>
+            <button onClick={() => setShowDeleteConfirm(false)} style={{ appearance: 'none', border: 'none', borderRadius: 10, background: '#f7f7f8', color: PFC.ink, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, padding: '12px 24px', cursor: 'pointer', minHeight: 48 }}>Cancel</button>
+          </div>
+        </div>
+      )}
+
+      {/* Payflip advantage modal */}
+      {showAdvModal && <PayflipAdvantageModal amtNum={104} onClose={() => setShowAdvModal(false)} />}
     </div>
   );
 }
@@ -984,8 +1081,10 @@ function MobilityExpenseScreen() {
       status: 'pending',
     };
     window.__submittedExpenses = [newExpense, ...(window.__submittedExpenses || [])];
-    window.__pendingToast = { title: 'Mobility expense submitted' };
     window.__lastSubmittedExpense = newExpense;
+    // Show the success toast immediately from any screen (home OR benefits page)
+    if (window.__showToast) window.__showToast('Mobility expense submitted', () => push('expense-detail', { expense: newExpense }));
+    else window.__pendingToast = { title: 'Mobility expense submitted' };
     pop();
     pop();
   };
@@ -1287,6 +1386,46 @@ function MobilityExpenseScreen() {
     </div>
   );
 }
+
+// ─────────────────────────────────────────────────────────────
+// ExpenseTypeSheet — bottom sheet overlay for add-expense entry
+// ─────────────────────────────────────────────────────────────
+function ExpenseTypeSheet({ onClose }) {
+  const nav = window.useNav ? window.useNav() : null;
+  const rows = [
+    { label: 'Mobility expense', note: 'Mobility budget',      kind: 'mobility', iconName: 'TrainFront', bg: '#FFF0D4', color: '#B45309',
+      onPress: () => { onClose(); nav && nav.push('expense-form-v2', { type: 'mobility', direct: true }); } },
+    { label: 'Work expense',     note: 'Employer reimbursed',  kind: 'work',     iconName: 'Briefcase',  bg: '#EEF2F7', color: '#374151',
+      onPress: () => { onClose(); nav && nav.push('expense-form-v2', { type: 'work', direct: true }); } },
+    { label: 'L&D',              note: 'L&D budget',           kind: 'lnd',      iconName: 'BookOpen',   bg: '#F3EEFF', color: '#7C3AED',
+      onPress: () => { onClose(); nav && nav.push('benefit-flow-start', { name: 'Learning and development' }); } },
+  ];
+  return (
+    <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 200, background: 'rgba(0,0,0,0.35)', display: 'flex', alignItems: 'flex-end' }}>
+      <div onClick={e => e.stopPropagation()} style={{ width: '100%', background: '#fff', borderRadius: '20px 20px 0 0', padding: '12px 16px 40px', boxSizing: 'border-box' }}>
+        <div style={{ width: 32, height: 4, background: '#E5E5EA', borderRadius: 2, margin: '0 auto 16px' }} />
+        {rows.map(({ label, note, kind, iconName, bg, color, onPress }, i) => (
+          <button key={kind} onClick={onPress} style={{
+            width: '100%', appearance: 'none', background: 'transparent', border: 'none',
+            borderTop: i > 0 ? `1px solid ${PFC.border}` : 'none',
+            padding: '14px 0', cursor: 'pointer', textAlign: 'left',
+            display: 'flex', alignItems: 'center', gap: 14,
+          }}>
+            <div style={{ width: 44, height: 44, borderRadius: 12, background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <LucideIcon name={iconName} size={22} color={color} strokeWidth={1.75} />
+            </div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 15, color: PFC.ink }}>{label}</div>
+              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 13, color: PFC.inkSoft, marginTop: 2 }}>{note}</div>
+            </div>
+            <LucideIcon name="ChevronRight" size={18} color={PFC.inkSoft} strokeWidth={2} />
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+window.ExpenseTypeSheet = ExpenseTypeSheet;
 
 registerScreen('expense-type', ExpenseTypeScreen);
 registerScreen('expense-wizard', ExpenseWizardScreen);

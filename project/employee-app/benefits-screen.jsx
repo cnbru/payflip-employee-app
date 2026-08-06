@@ -26,6 +26,13 @@ const DRAFTS = [
     meta: 'E-bike · High step · 38 months',
     status: { kind: 'warning', text: 'Draft · Finalize your order' },
   },
+  {
+    id: 'laptop-1', kind: 'laptop',
+    provider: 'Multimedia · via Coolblue',
+    name: 'MacBook Air M3 · 256GB',
+    meta: 'Created 2 days ago',
+    status: { kind: 'warning', text: 'Draft · Finalize your order' },
+  },
 ];
 
 const ACTIVE_BENEFITS = [
@@ -58,9 +65,10 @@ const ACTIVE_BENEFITS = [
 // Icon used per kind on the icon tile (Lucide name).
 const KIND_ICON = {
   bike: 'Bike',
-  pension: 'House',
+  pension: 'PiggyBank',
   coolblue: 'Smartphone',
   housing: 'House',
+  laptop: 'Laptop',
   unlock: 'LockOpen',
 };
 
@@ -137,6 +145,62 @@ const RECOMMENDED = [
     score: { label: 'Good', level: 1, pct: 62 },
     becauseOf: 'iPhone 15',
     route: ['benefit-flow-start', { name: 'Smartphone accessories' }],
+  },
+];
+
+// Catalog grouped by category — drives the new list-based Benefits screen.
+const BENEFIT_GROUPS = [
+  {
+    id: 'multimedia',
+    category: 'Multimedia',
+    items: [
+      { id: 'bg-smartphone', kind: 'coolblue',  img: 'uploads/benefit-icons/smartphone.png', name: 'Smartphone',  description: 'Get the latest smartphone.',    score: { label: 'Good', level: 1 }, provider: 'via Coolblue', budgets: ['bonus', 'end-of-year'], route: ['benefit-flow-start', { name: 'Smartphone' }] },
+      { id: 'bg-laptop',     kind: 'laptop',    img: 'uploads/benefit-icons/laptop.png',     name: 'Laptop',      description: 'Get the latest laptop.',        score: { label: 'Good', level: 1 }, provider: 'via Coolblue', budgets: ['bonus', 'end-of-year'], route: ['benefit-flow-start', { name: 'Laptop' }] },
+      { id: 'bg-tablet',     kind: 'tablet',    img: 'uploads/benefit-icons/tablet.png',     name: 'Tablet',      description: 'Get the latest tablet.',        score: { label: 'Good', level: 1 }, provider: 'via Coolblue', budgets: ['bonus', 'end-of-year'], route: ['benefit-flow-start', { name: 'Tablet' }] },
+      { id: 'bg-smartwatch', kind: 'watch',     img: 'uploads/benefit-icons/smartwatch.png', name: 'Smartwatch',  description: 'Register your every move.',     score: { label: 'Good', level: 1 }, provider: 'via Coolblue', budgets: ['bonus', 'end-of-year'], route: ['benefit-flow-start', { name: 'Smartwatch' }] },
+      { id: 'bg-desk-table', kind: 'furniture', img: 'uploads/benefit-icons/desk-table.png', name: 'Desk table',  description: 'Upgrade your home office.',     score: { label: 'Good', level: 1 }, provider: 'via Coolblue', budgets: ['bonus', 'end-of-year'], route: ['benefit-flow-start', { name: 'Desk table' }] },
+      { id: 'bg-desk-chair', kind: 'furniture', icon: 'Armchair',                            name: 'Desk chair',  description: 'Upgrade your home office.',     score: { label: 'Good', level: 1 }, provider: 'via Coolblue', budgets: ['bonus', 'end-of-year'], route: ['benefit-flow-start', { name: 'Desk chair' }] },
+      { id: 'bg-desk-lamp',  kind: 'furniture', img: 'uploads/benefit-icons/desk-lamp.png',  name: 'Desk lamp',   description: 'Upgrade your home office.',     score: { label: 'Good', level: 1 }, provider: 'via Coolblue', budgets: ['bonus', 'end-of-year'], route: ['benefit-flow-start', { name: 'Desk lamp' }] },
+      { id: 'bg-accessories', kind: 'accessories', subGroup: 'Add-ons', img: 'uploads/benefit-icons/earbuds.png', name: 'Multimedia accessories', description: 'Earbuds, chargers and cases — tax-friendly.', score: { label: 'Good', level: 1 }, provider: 'via Coolblue', budgets: ['bonus', 'end-of-year'], route: ['multimedia-accessories'], lockedUnless: ['coolblue', 'laptop', 'tablet'] },
+    ],
+  },
+  {
+    id: 'cash',
+    category: 'Cash',
+    items: [
+      { id: 'bg-warrants', kind: 'warrants', img: 'uploads/benefit-icons/warrants.png', name: 'Warrants',        description: 'Most tax-friendly way to optimise.', score: { label: 'Good', level: 1 }, provider: 'via Payflip',      budgets: ['bonus', 'end-of-year'], route: ['benefit-flow-start', { name: 'Warrants' }] },
+      { id: 'bg-pension',  kind: 'pension',  img: 'uploads/benefit-icons/pension.png',  name: 'Pension savings', description: 'Set aside savings for retirement.',  score: { label: 'Good', level: 1 }, provider: 'via AG Insurance', budgets: ['end-of-year'],          route: ['pension-savings-detail'] },
+    ],
+  },
+  {
+    id: 'mobility',
+    category: 'Mobility',
+    items: [
+      { id: 'bg-bike',        kind: 'bike',            icon: 'Bike',       name: 'Bike leasing',       description: 'Lease a bike for up to 36 months.',             score: { label: 'Excellent', level: 3 }, provider: 'via Joule',     budgets: ['mobility'], route: ['bike-lease-o2o'] },
+      { id: 'bg-housing',    kind: 'housing',          img: 'uploads/benefit-icons/house.png', name: 'Housing costs', description: 'Reimburse rent or mortgage.', score: { label: 'Great', level: 2 }, provider: 'Reimbursement', budgets: ['mobility'], route: ['housing-costs'] },
+      { id: 'bg-mob-expense', kind: 'mobility-expense', icon: 'TrainFront', name: 'Mobility expenses',  description: 'Submit transport costs for reimbursement.',     score: { label: 'Good',      level: 1 }, provider: 'Reimbursement', budgets: ['mobility'], route: ['expense-form-v2', { type: 'mobility', direct: true }] },
+    ],
+  },
+  {
+    id: 'wlb',
+    category: 'Work-life balance',
+    items: [
+      { id: 'bg-holidays', kind: 'holidays', icon: 'Palmtree', name: 'Extra holidays', description: 'Buy extra days off with your budget.', score: { label: 'Neutral', level: 0 }, provider: 'via Payflip', budgets: ['bonus', 'end-of-year'], route: ['benefit-flow-start', { name: 'Extra holidays' }] },
+    ],
+  },
+  {
+    id: 'health',
+    category: 'Health',
+    items: [
+      { id: 'bg-alan', kind: 'health', icon: 'HeartPulse', name: 'Health insurance', description: 'Upgrade health coverage via Alan.', score: { label: 'Excellent', level: 3 }, provider: 'via Alan', budgets: ['bonus', 'end-of-year'], route: ['benefit-flow-start', { name: 'Alan health insurance' }] },
+    ],
+  },
+  {
+    id: 'personal-growth',
+    category: 'Personal growth',
+    items: [
+      { id: 'bg-lnd', kind: 'lnd', icon: 'GraduationCap', name: 'L&D expenses', description: 'Self-service learning & development.', score: { label: 'Good', level: 1 }, provider: 'Self-service', budgets: ['lnd'], route: ['benefit-flow-start', { name: 'L&D expenses' }] },
+    ],
   },
 ];
 
@@ -352,86 +416,144 @@ function getBenefitBadge(catalogItem) {
 // ─────────────────────────────────────────────────────────────
 // Benefits root
 // ─────────────────────────────────────────────────────────────
+function BenefitGroupRow({ item, onClick, isLast, locked }) {
+  const draft = DRAFTS.find(d => d.kind === item.kind);
+  const active = !draft && ACTIVE_BENEFITS.find(a => a.kind === item.kind);
+  const status = draft
+    ? { kind: 'draft',  label: 'Draft',  sub: draft.name,  meta: draft.meta }
+    : active
+    ? { kind: 'active', label: 'Active', sub: active.name, meta: active.meta }
+    : null;
+  return (
+    <button onClick={onClick} style={{
+      width: '100%', appearance: 'none', background: 'transparent',
+      border: 'none',
+      borderBottom: isLast ? 'none' : `1px solid ${PFC.border}`,
+      padding: '16px 20px',
+      display: 'flex', alignItems: 'center', gap: 16,
+      cursor: 'pointer', textAlign: 'left',
+    }}>
+      <div style={{ position: 'relative', flex: 'none' }}>
+        {item.img
+          ? <img src={item.img} alt="" style={{ width: 56, height: 56, borderRadius: 12, objectFit: 'cover', opacity: locked ? 0.4 : 1 }} />
+          : <div style={{
+              width: 56, height: 56, borderRadius: 12,
+              background: 'linear-gradient(135deg, #F2F2F5 0%, #E5E5EA 100%)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              opacity: locked ? 0.4 : 1,
+            }}>
+              <LucideIcon name={item.icon} size={26} color={PFC.inkSoft} strokeWidth={1.75} />
+            </div>
+        }
+        {locked && (
+          <div style={{
+            position: 'absolute', inset: 0, borderRadius: 12,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <LucideIcon name="Lock" size={16} color={PFC.inkSoft} strokeWidth={2} />
+          </div>
+        )}
+      </div>
+      <div style={{ flex: 1, minWidth: 0, opacity: locked ? 0.45 : 1 }}>
+        <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 16, color: PFC.ink, lineHeight: '22px' }}>{item.name}</div>
+        <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: PFC.inkSoft, marginTop: 2, lineHeight: '19px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {status ? status.sub : item.description}
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 8 }}>
+          {status ? (
+            <>
+              <span style={{
+                fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12,
+                background: status.kind === 'active' ? '#E8F8EE' : '#FFF8EC',
+                color: status.kind === 'active' ? '#1D9E75' : '#8C5A00',
+                border: `1px solid ${status.kind === 'active' ? '#BBE9D0' : '#F0D490'}`,
+                borderRadius: 999, padding: '2px 9px',
+              }}>{status.label}</span>
+              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 13, color: PFC.inkSoft }}>{status.meta}</span>
+            </>
+          ) : (
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+              <TaxScoreDots level={item.score.level} />
+              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: PFC.inkSoft }}>{item.score.label}</span>
+              <span style={{ color: PFC.border, fontSize: 14, lineHeight: 1 }}>·</span>
+              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 13, color: PFC.inkSoft }}>{item.provider}</span>
+            </span>
+          )}
+        </div>
+      </div>
+      {!locked && <LucideIcon name="ChevronRight" size={18} color={PFC.inkSoft} strokeWidth={2} style={{ flexShrink: 0 }} />}
+    </button>
+  );
+}
+
 function BenefitsScreen() {
-  const { push } = useNav();
-  const [filter, setFilter] = React.useState(() => {
+  const { push, navigate } = useNav();
+  const [budgetFilter, setBudgetFilter] = React.useState(() => {
     const f = window.__benefitsFilter || null;
     window.__benefitsFilter = null;
     return f;
   });
-  const discoverItems = filter
-    ? CATALOG.filter(c => c.budgets && c.budgets.includes(filter))
-    : CATALOG;
+
+  const visibleGroups = BENEFIT_GROUPS
+    .map(g => ({
+      ...g,
+      items: budgetFilter ? g.items.filter(i => i.budgets.includes(budgetFilter)) : g.items,
+    }))
+    .filter(g => g.items.length > 0);
+
   return (
-    <div style={{
-      padding: '8px 16px 24px',
-      display: 'flex', flexDirection: 'column', gap: 24,
-    }}>
+    <div style={{ padding: '8px 16px 24px', display: 'flex', flexDirection: 'column', gap: 20 }}>
       <Heading28>Benefits</Heading28>
 
-      {/* Two stat cards side by side */}
-      <div style={{ display: 'flex', gap: 8 }}>
-        <BenefitStatCard
-          title="Benefits in draft"
-          count={DRAFTS.filter(d => !(window.__deletedDrafts || []).includes(d.id)).length}
-          onClick={() => push('benefits-in-draft')}
-        />
-        <BenefitStatCard
-          title="My benefits"
-          count={ACTIVE_BENEFITS.length}
-          onClick={() => push('my-active-benefits')}
-        />
+      {/* Filter chips */}
+      <div style={{ display: 'flex', gap: 8, margin: '0 -16px', padding: '0 16px', overflowX: 'auto', scrollbarWidth: 'none' }}>
+        <style>{`.benefits-filters::-webkit-scrollbar { display: none; }`}</style>
+        <div className="benefits-filters" style={{ display: 'flex', gap: 8 }}>
+          <FilterPill label="Category" active={false} onClick={() => {}} chevron />
+          <FilterPill
+            label={budgetFilter ? 'Budget (1)' : 'Budget'}
+            active={!!budgetFilter}
+            onClick={() => setBudgetFilter(null)}
+            chevron
+          />
+        </div>
       </div>
 
-      {/* Discover — full white cards with tax score */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        <SectionHeader title="Discover" />
-        <div style={{ position: 'sticky', top: 0, zIndex: 5, background: '#fff', margin: '0 -16px', padding: '8px 16px 8px' }}>
-          <div className="discover-filters" style={{ display: 'flex', gap: 8, overflowX: 'auto', padding: '4px 0', scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}>
-            <style>{`.discover-filters::-webkit-scrollbar { display: none; }`}</style>
-          {[
-            { key: 'end-of-year', label: 'End of year premium' },
-            { key: 'bonus', label: 'Bonus' },
-            { key: 'mobility', label: 'Mobility' },
-          ].map(f => {
-            const count = CATALOG.filter(c => c.budgets && c.budgets.includes(f.key)).length;
-            return (
-              <FilterPill key={f.key} label={`${f.label} (${count})`} active={filter === f.key}
-                onClick={() => setFilter(fl => fl === f.key ? null : f.key)} />
-            );
-          })}
+      {/* Category sections */}
+      {visibleGroups.map(group => (
+        <div key={group.id} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 17, color: PFC.ink, letterSpacing: '-0.003em' }}>
+            {group.category}
+          </div>
+          <div style={{ background: 'white', borderRadius: 20, border: `1px solid ${PFC.border}`, overflow: 'hidden' }}>
+            {group.items.map((item, i) => {
+              const isLocked = item.lockedUnless && !ACTIVE_BENEFITS.some(a => item.lockedUnless.includes(a.kind));
+              const prevItem = group.items[i - 1];
+              const showSubHeader = item.subGroup && (!prevItem || prevItem.subGroup !== item.subGroup);
+              return (
+                <React.Fragment key={item.id}>
+                  {showSubHeader && (
+                    <div style={{
+                      padding: '10px 20px 4px',
+                      borderTop: `1px solid ${PFC.border}`,
+                      fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12,
+                      color: PFC.inkSoft, letterSpacing: '0.04em', textTransform: 'uppercase',
+                    }}>
+                      {item.subGroup}
+                    </div>
+                  )}
+                  <BenefitGroupRow
+                    item={item}
+                    isLast={i === group.items.length - 1}
+                    locked={isLocked}
+                    onClick={() => { item.route && push(...item.route); }}
+                  />
+                </React.Fragment>
+              );
+            })}
           </div>
         </div>
-
-        {(!filter || filter === 'mobility') && <button
-          onClick={() => push('bike-lease', { id: 'bike-active' })}
-          aria-label="Discover bikes"
-          style={{
-            display: 'block', width: '100%', padding: 0,
-            border: 'none', background: 'transparent', cursor: 'pointer',
-            borderRadius: 16, overflow: 'hidden',
-          }}>
-          <img src="assets/biking-season.png" alt=""
-            style={{ display: 'block', width: '100%', height: 'auto' }} />
-        </button>}
-        {discoverItems.length === 0
-          ? (
-            <div style={{
-              padding: '24px 16px', textAlign: 'center',
-              background: PFC.bgInactive, borderRadius: 16,
-            }}>
-              <Body14 color={PFC.inkSoft} weight={500}>
-                No benefits available for this budget.
-              </Body14>
-            </div>
-          )
-          : discoverItems.map(c => (
-            <DiscoverHighlightCard key={c.id} item={c}
-              badge={getBenefitBadge(c)}
-              onClick={() => c.route && push(...c.route)} />
-          ))
-        }
-      </div>
+      ))}
     </div>
   );
 }
@@ -831,14 +953,7 @@ function PensionDetailScreen({ id }) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', position: 'relative', overflow: showDeleteConfirm ? 'hidden' : undefined }}>
-      <NavBar trailing={
-        <button style={{
-          background: 'transparent', border: 'none', padding: '6px 0',
-          cursor: 'pointer', whiteSpace: 'nowrap',
-          fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 14,
-          color: PFC.errorText,
-        }} onClick={() => setShowDeleteConfirm(true)}>Delete choice</button>
-      } />
+      <NavBar />
       <div style={{ flex: 1, minHeight: 0, overflowY: showDeleteConfirm ? 'hidden' : 'auto', padding: '0 16px 32px', display: 'flex', flexDirection: 'column', gap: 32 }}>
         <Heading28>Pension savings</Heading28>
 
@@ -950,6 +1065,11 @@ function PensionDetailScreen({ id }) {
           }}>
           {submitted ? '✓ Submitted' : 'Submit'}
         </Button>
+        <button onClick={() => setShowDeleteConfirm(true)} style={{
+          background: 'transparent', border: 'none', cursor: 'pointer',
+          fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 14,
+          color: PFC.errorText, padding: '4px 0', width: '100%', textAlign: 'center',
+        }}>Delete choice</button>
       </div>
 
       {showDeleteConfirm && <div style={{
@@ -1639,6 +1759,96 @@ function MultimediaCoolblueScreen() {
   );
 }
 
+function MultimediaAccessoriesScreen() {
+  const { push } = useNav();
+  const qualifyingKinds = ['coolblue', 'laptop', 'tablet'];
+  const qualifyingDevices = ACTIVE_BENEFITS.filter(a => qualifyingKinds.includes(a.kind));
+  const isUnlocked = qualifyingDevices.length > 0;
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+      <NavBar />
+      <div style={{ flex: 1, overflowY: 'auto', padding: '0 16px 24px', display: 'flex', flexDirection: 'column', gap: 24 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+          <Heading28>Multimedia accessories</Heading28>
+          <Body14 color={PFC.inkSoft} weight={500}>via Coolblue</Body14>
+        </div>
+
+        <div style={{ display: 'flex', gap: 10 }}>
+          {['earbuds', 'headphones', 'charger'].map(name => (
+            <img key={name} src={`uploads/benefit-icons/${name}.png`}
+              style={{ width: 64, height: 64, borderRadius: 14, objectFit: 'cover' }} />
+          ))}
+        </div>
+
+        <Body16 color={PFC.ink} weight={400} style={{ lineHeight: '26px' }}>
+          Order earbuds, chargers, cases and more for your Coolblue device — all paid with your tax-friendly budget.
+        </Body16>
+
+        <TaxScoreRow score={{ label: 'Good', level: 1, pct: 62 }} />
+
+        <div style={{ height: 1, background: PFC.border }} />
+
+        {isUnlocked ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <Body14 color={PFC.inkSoft} weight={600}
+              style={{ textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              Eligible devices
+            </Body14>
+            {qualifyingDevices.map(d => (
+              <div key={d.id} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <LucideIcon name="CheckCircle" size={16} color="#1D9E75" strokeWidth={2} />
+                <Body14 color={PFC.ink} weight={500}>{d.name}</Body14>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div style={{
+            background: '#FFF8EC', border: '1px solid #F0D490',
+            borderRadius: 12, padding: '12px 14px',
+            display: 'flex', gap: 10, alignItems: 'flex-start',
+          }}>
+            <LucideIcon name="Lock" size={16} color="#8C5A00" strokeWidth={2} style={{ flex: 'none', marginTop: 1 }} />
+            <Body14 color="#8C5A00" weight={500}>
+              To order accessories, you need an active smartphone, tablet, or laptop first.
+            </Body14>
+          </div>
+        )}
+
+        <PayflipAdvantageBlock value="Up to €104" />
+      </div>
+
+      <div style={{
+        flexShrink: 0,
+        borderTop: `1px solid ${PFC.border}`,
+        padding: '12px 16px 24px',
+        background: '#fff',
+      }}>
+        <button
+          onClick={isUnlocked ? () => push('multimedia-coolblue') : undefined}
+          style={{
+            width: '100%', appearance: 'none',
+            background: isUnlocked ? PFC.purple : '#E5E5EA',
+            color: isUnlocked ? '#fff' : PFC.inkSoft,
+            border: 'none', borderRadius: 14, padding: '16px',
+            fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 17,
+            cursor: isUnlocked ? 'pointer' : 'default',
+          }}
+        >
+          Choose accessories
+        </button>
+        {!isUnlocked && (
+          <div style={{ textAlign: 'center', marginTop: 10 }}>
+            <Body14 color={PFC.inkSoft} weight={500}>
+              Get a smartphone, laptop, or tablet first.
+            </Body14>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ─────────────────────────────────────────────────────────────
 // Pension savings intro/detail screen (from discover catalog)
 // ─────────────────────────────────────────────────────────────
@@ -2061,6 +2271,7 @@ function PensionSavingsChoiceScreen() {
 registerScreen('pension-savings-choice', PensionSavingsChoiceScreen);
 registerScreen('pension-savings-detail', PensionSavingsDetailScreen);
 registerScreen('multimedia-coolblue', MultimediaCoolblueScreen);
+registerScreen('multimedia-accessories', MultimediaAccessoriesScreen);
 registerScreen('benefits', BenefitsScreen);
 registerScreen('benefits-in-draft', BenefitsInDraftScreen);
 registerScreen('my-active-benefits', MyActiveBenefitsScreen);

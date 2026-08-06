@@ -168,6 +168,7 @@ function StatusBadge({ children, kind = 'warning', icon }) {
     warning: { bg: PFC.warnBg, border: PFC.warnBorder, color: PFC.warnText, iconC: PFC.warnText },
     success: { bg: PFC.successBg, border: '#bfe6cd', color: PFC.successText, iconC: PFC.successText },
     alert:   { bg: PFC.errorBg, border: PFC.errorBorder, color: PFC.errorText, iconC: PFC.errorText },
+    neutral: { bg: '#F2F2F5', border: '#E3E2E7', color: '#50545e', iconC: '#50545e' },
   }[kind];
   return (
     <span style={{
@@ -255,8 +256,8 @@ function SectionHeader({ title, count, action }) {
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
         <span style={{
-          fontFamily: _font, fontWeight: 600, fontSize: 22, lineHeight: '30px',
-          letterSpacing: '-0.003em', color: PFC.ink,
+          fontFamily: _font, fontWeight: 600, fontSize: 16, lineHeight: '22px',
+          color: PFC.ink,
         }}>{title}</span>
         {count != null && (
           <span style={{
@@ -363,7 +364,7 @@ function fmtEUR(n) {
 }
 
 // Filter pills (used by Transactions screen)
-function FilterPill({ label, active, onClick }) {
+function FilterPill({ label, active, onClick, chevron = false }) {
   const blue = 'rgb(37,99,235)';
   return (
     <button onClick={onClick} className="pf-pressable" style={{
@@ -371,11 +372,15 @@ function FilterPill({ label, active, onClick }) {
       background: active ? blue : '#fff',
       color: active ? '#fff' : PFC.ink,
       border: `1px solid ${active ? blue : PFC.borderHard}`,
-      borderRadius: 8, padding: '6px 12px',
+      borderRadius: 999, padding: '6px 14px',
       fontFamily: _font, fontWeight: 700, fontSize: 14, lineHeight: '20px',
       cursor: 'pointer', flex: 'none',
+      display: 'inline-flex', alignItems: 'center', gap: 5,
       transition: 'background 120ms ease, color 120ms ease, border-color 120ms ease',
-    }}>{label}</button>
+    }}>
+      {label}
+      {chevron && <LucideIcon name="ChevronDown" size={14} color={active ? '#fff' : PFC.ink} strokeWidth={2.5} />}
+    </button>
   );
 }
 

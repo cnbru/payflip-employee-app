@@ -23,9 +23,10 @@ const BUDGETS = [
 ];
 
 const RECENT_TX = [
-  { id: 't1', txId: 'tx1', name: 'Public transport', date: '22 may 2024', amount: 12.50,  budget: 'Mobility budget',      kind: 'recurring', tag: 'mobility' },
-  { id: 't2', txId: 'tx3', name: 'Smartphone',       date: '3 apr 2024',  amount: 849.00, budget: 'Bonus',                kind: 'one-time',  tag: 'bonus' },
-  { id: 't3', txId: 'tx6', name: 'Pension savings',  date: '2 jan 2024',  amount: 312.50, budget: 'End of year premium',  kind: 'recurring', tag: 'eoy' },
+  { id: 't4', txId: 'tx-bike', name: 'Bike lease monthly', date: '1 jul 2026',  amount: 33.31,  budget: 'End of year premium', kind: 'recurring', tag: 'bike',     tab: 'personal', screen: 'me-bikelease' },
+  { id: 't1', txId: 'tx1',     name: 'Public transport',   date: '22 may 2024', amount: 12.50,  budget: 'Mobility budget',     kind: 'recurring', tag: 'mobility', card: true },
+  { id: 't2', txId: 'tx3',     name: 'Smartphone',         date: '3 apr 2024',  amount: 849.00, budget: 'Bonus',               kind: 'one-time',  tag: 'bonus',    card: true },
+  { id: 't3', txId: 'tx6',     name: 'Pension savings',    date: '2 jan 2024',  amount: 312.50, budget: 'End of year premium', kind: 'recurring', tag: 'eoy' },
 ];
 
 const HOUSING_TX = [
@@ -76,125 +77,112 @@ const ELIGIBLE = {
 // Budgets — root
 // ─────────────────────────────────────────────────────────────
 function BudgetsScreen() {
-  const { push } = useNav();
+  const { push, navigate } = useNav();
   const budgets = BUDGETS.map(b => b.id === 'end-of-year' && window.__eoyUnlocked ? { ...b, locked: false } : b);
-  const [advantageMode, setAdvantageMode] = React.useState('yearly');
-  const advantageValue = advantageMode === 'yearly' ? '€824,23' : '€3.296,92';
   return (
     <div style={{ padding: '8px 16px 24px', display: 'flex', flexDirection: 'column', gap: 24 }}>
-      <Heading28>Budgets</Heading28>
+      <Heading28>Budget</Heading28>
 
-      {/* Payflip advantage */}
-      <div style={{
-        borderRadius: 16, border: 'none',
-        background: '#F7F7F8', overflow: 'hidden',
-        padding: '20px 16px',
-        display: 'flex', alignItems: 'center',
-        position: 'relative',
-      }}>
-        {/* Left: text content */}
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 4 }}>
-          <Body14 color={PFC.inkSoft} weight={700}>Payflip advantage</Body14>
-          <span style={{
-            fontFamily: 'var(--font-display)', fontWeight: 700,
-            fontSize: 28, lineHeight: '36px', letterSpacing: '-0.007em',
-            color: PFC.inkDeep,
-          }}>{advantageValue}</span>
-          {/* Segmented toggle */}
-          <div style={{
-            display: 'inline-flex', alignSelf: 'flex-start',
-            background: 'rgba(37,99,235,0.1)', borderRadius: 999,
-            padding: 2, gap: 0, marginTop: 6,
-          }}>
-            {[['yearly', 'This year'], ['total', 'All-time']].map(([m, label]) => (
-              <button key={m} onClick={() => setAdvantageMode(m)} style={{
-                appearance: 'none', cursor: 'pointer', border: 'none',
-                background: advantageMode === m ? 'rgb(37,99,235)' : 'transparent',
-                color: advantageMode === m ? '#fff' : 'rgb(37,99,235)',
-                fontFamily: 'var(--font-display)', fontWeight: 600,
-                fontSize: 11, letterSpacing: '0.01em',
-                padding: '3px 9px', borderRadius: 999,
-                boxShadow: advantageMode === m ? '0 1px 3px rgba(37,99,235,0.25)' : 'none',
-                transition: 'all 150ms ease-out',
-              }}>{label}</button>
-            ))}
-          </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <SectionHeader title="Balances" style={{ borderBottom: 'none' }} />
+        <div style={{ background: 'white', borderRadius: 20, border: `1px solid ${PFC.border}`, overflow: 'hidden' }}>
+          {budgets.map((b, i) => {
+            const route = b.id === 'bonus' ? 'bonus' : b.id === 'end-of-year' ? 'end-of-year-premium' : b.id === 'meal' ? 'meal-vouchers' : 'mobility-detail';
+            return (
+              <button key={b.id} onClick={() => push(route)}
+                style={{
+                  width: '100%', appearance: 'none', background: 'transparent',
+                  border: 'none',
+                  borderBottom: i < budgets.length - 1 ? `1px solid ${PFC.border}` : 'none',
+                  padding: '16px',
+                  display: 'flex', alignItems: 'center', gap: 12,
+                  cursor: 'pointer', textAlign: 'left',
+                }}>
+                <div style={{
+                  width: 44, height: 44, borderRadius: 12, flex: 'none',
+                  background: b.locked
+                    ? 'linear-gradient(135deg, #FFE5C7 0%, #FFD9A8 100%)'
+                    : `linear-gradient(135deg, ${b.tileFrom} 0%, ${b.tileTo} 100%)`,
+                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  <LucideIcon name={b.locked ? 'Lock' : b.icon} size={22} color={b.locked ? '#A04F21' : b.iconColor} strokeWidth={1.75} />
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <Body16 color={PFC.ink} weight={700}>{b.name}</Body16>
+                  {b.locked && <div style={{
+                    fontFamily: 'var(--font-display)', fontWeight: 500,
+                    fontSize: 13, lineHeight: '18px',
+                    color: PFC.inkSoft, marginTop: 1,
+                  }}>Unlock to start using</div>}
+                </div>
+                <span style={{
+                  fontFamily: 'var(--font-display)', fontWeight: 700,
+                  fontSize: 17, lineHeight: '24px', letterSpacing: '-0.003em',
+                  color: b.locked ? PFC.inkSoft : PFC.ink,
+                }}>
+                  {fmtEUR(b.amount)}
+                </span>
+                <LucideIcon name="ChevronRight" size={20} color={PFC.inkSoft} strokeWidth={2} />
+              </button>
+            );
+          })}
         </div>
-        {/* Right: Payflip logo mark */}
-        <span aria-hidden="true" style={{
-          display: 'inline-block', width: 64, height: 30, flex: 'none',
-          backgroundColor: 'rgba(15,13,40,0.10)',
-          WebkitMaskImage: 'url(assets/payflip-logo.png)',
-          maskImage: 'url(assets/payflip-logo.png)',
-          WebkitMaskSize: 'contain', maskSize: 'contain',
-          WebkitMaskRepeat: 'no-repeat', maskRepeat: 'no-repeat',
-          WebkitMaskPosition: 'center', maskPosition: 'center',
-        }} />
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column' }}>
-        <SectionHeader title="Budget balance" style={{ borderBottom: 'none' }} />
-        {budgets.map((b, i) => {
-          const route = b.id === 'bonus' ? 'bonus' : b.id === 'end-of-year' ? 'end-of-year-premium' : b.id === 'meal' ? 'meal-vouchers' : 'mobility-detail';
-          return (
-            <button key={b.id} onClick={() => push(route)}
-              style={{
-                width: '100%', appearance: 'none', background: '#fff',
-                border: 'none', borderTop: i === 0 ? 'none' : `1px solid ${PFC.border}`,
-                padding: '20px 0',
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <SectionHeader title="Transactions" style={{ borderBottom: 'none' }} />
+        <div style={{ background: 'white', borderRadius: 20, border: `1px solid ${PFC.border}`, overflow: 'hidden' }}>
+          {RECENT_TX.filter(t => t.tag !== 'eoy' || window.__eoyUnlocked).map((t) => {
+            const TX_NAME_ICON = { 'Smartphone': 'Smartphone', 'Pension savings': 'PiggyBank', 'Multimedia': 'Laptop' };
+            const TX_ICON = { mobility: 'TrainFront', bonus: 'Wallet', eoy: 'Gift', bike: 'Bike' };
+            const icon = TX_NAME_ICON[t.name] || TX_ICON[t.tag] || 'ReceiptText';
+            return (
+              <button key={t.id} onClick={() => t.tab ? navigate(t.tab, t.screen) : push('single-transaction', { txId: t.txId })} style={{
+                width: '100%', appearance: 'none', background: 'transparent',
+                border: 'none', borderBottom: `1px solid ${PFC.border}`,
+                padding: '14px 16px',
                 display: 'flex', alignItems: 'center', gap: 12,
                 cursor: 'pointer', textAlign: 'left',
               }}>
-              <div style={{
-                width: 36, height: 36, borderRadius: 10, flex: 'none',
-                background: b.locked
-                  ? 'linear-gradient(135deg, #FFE5C7 0%, #FFD9A8 100%)'
-                  : `linear-gradient(135deg, ${b.tileFrom} 0%, ${b.tileTo} 100%)`,
-                display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-              }}>
-                <LucideIcon name={b.locked ? 'Lock' : b.icon} size={20} color={b.locked ? '#A04F21' : b.iconColor} strokeWidth={1.75} />
-              </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <Body16 color={PFC.ink} weight={700}>{b.name}</Body16>
-                {b.locked && <div style={{
-                  fontFamily: 'var(--font-display)', fontWeight: 500,
-                  fontSize: 13, lineHeight: '18px',
-                  color: PFC.inkSoft, marginTop: 1,
-                }}>Unlock to start using</div>}
-              </div>
-              <span style={{
-                fontFamily: 'var(--font-display)', fontWeight: 700,
-                fontSize: 17, lineHeight: '24px', letterSpacing: '-0.003em',
-                color: b.locked ? PFC.inkSoft : PFC.ink,
-              }}>
-                {fmtEUR(b.amount)}
-              </span>
-              <LucideIcon name="ChevronRight" size={20} color={PFC.inkSoft} strokeWidth={2} />
-            </button>
-          );
-        })}
+                <div style={{ width: 40, height: 40, borderRadius: 10, background: '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <LucideIcon name={icon} size={20} color={PFC.inkSoft} strokeWidth={1.75} />
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontFamily: 'var(--font-display)', fontSize: 14, fontWeight: 600, color: PFC.ink, lineHeight: '20px' }}>{t.name}</div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 5, flexWrap: 'wrap', marginTop: 3 }}>
+                    <span style={{ fontFamily: 'var(--font-display)', fontSize: 12, fontWeight: 500, color: PFC.inkSoft }}>{t.date}</span>
+                    <span style={{ fontFamily: 'var(--font-display)', fontSize: 11, fontWeight: 600, color: '#1568cd', background: '#ddebff', borderRadius: 20, padding: '1px 7px' }}>{t.budget}</span>
+                    {t.card && <span style={{ fontFamily: 'var(--font-display)', fontSize: 11, fontWeight: 500, color: PFC.inkSoft, background: PFC.surface, border: `1px solid ${PFC.border}`, borderRadius: 4, padding: '1px 6px', display: 'inline-flex', alignItems: 'center', gap: 3 }}><LucideIcon name="CreditCard" size={10} color={PFC.inkSoft} strokeWidth={2} />Card</span>}
+                  </div>
+                </div>
+                <div style={{ fontFamily: 'var(--font-display)', fontSize: 14, fontWeight: 600, color: PFC.ink, flexShrink: 0 }}>{fmtEUR(t.amount)}</div>
+                <LucideIcon name="ChevronRight" size={18} color={PFC.inkSoft} strokeWidth={2} />
+              </button>
+            );
+          })}
+          <button onClick={() => push('transactions')} style={{
+            width: '100%', appearance: 'none', background: 'transparent', border: 'none',
+            padding: '14px 16px',
+            display: 'flex', justifyContent: 'center', alignItems: 'center',
+            cursor: 'pointer',
+          }}>
+            <span style={{ fontFamily: 'var(--font-display)', fontSize: 13, color: '#C42BFC', fontWeight: 500 }}>See all →</span>
+          </button>
+        </div>
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column' }}>
-        <SectionHeader title="Recent transactions" style={{ borderBottom: 'none' }} />
-        {RECENT_TX.filter(t => t.tag !== 'eoy' || window.__eoyUnlocked).map((t, i) => (
-          <button key={t.id} onClick={() => push('single-transaction', { txId: t.txId })} style={{
-            width: '100%', appearance: 'none', background: '#fff',
-            border: 'none', borderTop: i === 0 ? 'none' : `1px solid ${PFC.border}`,
-            padding: '12px 0',
-            display: 'flex', alignItems: 'center', gap: 12,
-            cursor: 'pointer', textAlign: 'left',
-          }}>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <Body14 color={PFC.ink} weight={600}>{t.name}</Body14><br/>
-              <Body14 color={PFC.inkSoft} weight={500}>{t.date} · {t.budget}</Body14>
-            </div>
-            <Body14 color={PFC.ink} weight={600}>{fmtEUR(t.amount)}</Body14>
-            <LucideIcon name="ChevronRight" size={14} color={PFC.inkSoft} strokeWidth={2} style={{ marginLeft: 4 }} />
-          </button>
-        ))}
-        <div style={{ paddingTop: 16 }}>
-          <Button variant="outline" size="sm" fullWidth onClick={() => push('transactions')}>See all transactions</Button>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <SectionHeader title="Insights" style={{ borderBottom: 'none' }} />
+        <div style={{ background: 'white', borderRadius: 20, border: `1px solid ${PFC.border}`, padding: '16px' }}>
+          <div style={{ fontFamily: 'var(--font-display)', fontSize: 12, color: PFC.inkSoft, marginBottom: 8 }}>This year</div>
+          <div style={{ borderTop: `1px solid ${PFC.border}`, padding: '12px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontFamily: 'var(--font-display)', fontSize: 14, color: PFC.ink }}>Total spent</span>
+            <span style={{ fontFamily: 'var(--font-display)', fontSize: 14, fontWeight: 700, color: PFC.ink }}>€4,202.23</span>
+          </div>
+          <div style={{ borderTop: `1px solid ${PFC.border}`, padding: '12px 0 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontFamily: 'var(--font-display)', fontSize: 14, color: PFC.ink }}>Payflip advantage</span>
+            <span style={{ fontFamily: 'var(--font-display)', fontSize: 14, fontWeight: 700, color: '#C42BFC' }}>€1,204</span>
+          </div>
         </div>
       </div>
     </div>
@@ -400,27 +388,30 @@ function BudgetDetailScreen({ title, choiceDeadline, cashOut, simulate, budgetKe
         </div>}
 
         {transactions && transactions.length > 0 && <div style={{ display: 'flex', flexDirection: 'column', marginTop: 16 }}>
-          <SectionHeader title="Transactions" trailing={
+          <SectionHeader title="Transactions" action={
             <button onClick={() => push('transactions')} style={{
               background: 'transparent', border: 'none', cursor: 'pointer',
               fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 14,
               color: PFC.ink, textDecoration: 'underline', padding: 0,
             }}>View all</button>
-          } style={{ borderBottom: 'none' }} />
+          } />
           {transactions.map((t, i) => (
             <button key={t.id} onClick={() => push('single-transaction', { txId: t.txId })} style={{
               width: '100%', appearance: 'none', background: '#fff',
               border: 'none', borderTop: i === 0 ? 'none' : `1px solid ${PFC.border}`,
-              padding: '12px 0',
+              padding: '14px 0',
               display: 'flex', alignItems: 'center', gap: 12,
               cursor: 'pointer', textAlign: 'left',
             }}>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <Body14 color={PFC.ink} weight={600}>{t.name}</Body14><br/>
-                <Body14 color={PFC.inkSoft} weight={500}>{t.date}</Body14>
+              <div style={{ width: 40, height: 40, borderRadius: 10, background: '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <LucideIcon name="TrainFront" size={20} color={PFC.inkSoft} strokeWidth={1.75} />
               </div>
-              <Body14 color={PFC.ink} weight={600}>{fmtEUR(t.amount)}</Body14>
-              <LucideIcon name="ChevronRight" size={14} color={PFC.inkSoft} strokeWidth={2} style={{ marginLeft: 4 }} />
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontFamily: 'var(--font-display)', fontSize: 14, fontWeight: 600, color: PFC.ink, lineHeight: '20px' }}>{t.name}</div>
+                <div style={{ fontFamily: 'var(--font-display)', fontSize: 13, fontWeight: 500, color: PFC.inkSoft, lineHeight: '18px' }}>{t.date}</div>
+              </div>
+              <div style={{ fontFamily: 'var(--font-display)', fontSize: 14, fontWeight: 600, color: PFC.ink }}>{fmtEUR(t.amount)}</div>
+              <LucideIcon name="ChevronRight" size={18} color={PFC.inkSoft} strokeWidth={2} />
             </button>
           ))}
         </div>}
@@ -541,25 +532,32 @@ function EndOfYearScreen() {
           </div>
         </div>
 
-        {/* Unlock CTA card — blue gradient */}
+        {/* Unlock CTA card — cream */}
         <div style={{
-          borderRadius: 16, overflow: 'hidden',
-          background: 'linear-gradient(135deg, #EBF4FF 0%, #D0E4FF 60%, #3B8DF8 100%)',
+          borderRadius: 20, background: '#F7ECDA',
           padding: '24px 20px',
           display: 'flex', flexDirection: 'column', gap: 12,
         }}>
           <span style={{
-            fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 22,
-            lineHeight: '30px', letterSpacing: '-0.005em', color: PFC.ink,
-          }}>Optimise your End of year premium</span>
+            fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 20,
+            lineHeight: '28px', letterSpacing: '-0.005em', color: PFC.ink,
+          }}>Sign the addendum to unlock your budget</span>
           <Body14 color={PFC.inkSoft} weight={500}>
-            Get up to €230 more value than cashing it out in December.
+            Once signed, you can use this budget to purchase benefits. Your budget unlocks automatically after signing.
           </Body14>
-          <Button variant="primary" size="large" fullWidth
-            onClick={() => push('sign-addendum')}
-            style={{ marginTop: 8 }}>
-            Sign addendum
-          </Button>
+          <button onClick={() => push('sign-addendum')} style={{
+            appearance: 'none', border: 'none', cursor: 'pointer',
+            width: '100%', boxSizing: 'border-box',
+            background: PFC.inkDeep, color: '#fff',
+            fontFamily: 'var(--font-display)',
+            fontWeight: 700, fontSize: 17, lineHeight: '24px',
+            padding: '14px 20px',
+            borderRadius: 14,
+            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+            marginTop: 4,
+          }}>
+            Sign now
+          </button>
         </div>
 
         {/* FAQs */}
@@ -1109,14 +1107,14 @@ function SimulateCashOutScreen() {
 // Transactions list
 // ─────────────────────────────────────────────────────────────
 const ALL_TX = [
-  { id: 'tx1',  orderId: 'PF-2024-0847', name: 'Public transport', date: '22 may 2024', amount: 12.50,  budget: 'Mobility budget',     kind: 'recurring',  tag: 'mobility' },
-  { id: 'tx2',  orderId: 'PF-2024-0811', name: 'Public transport', date: '15 apr 2024', amount: 8.40,   budget: 'Mobility budget',     kind: 'recurring',  tag: 'mobility' },
-  { id: 'tx3',  orderId: 'PF-2024-0793', name: 'Smartphone',       date: '3 apr 2024',  amount: 849.00, budget: 'Bonus',               kind: 'one-time',   tag: 'bonus' },
-  { id: 'tx4',  orderId: 'PF-2024-0756', name: 'Public transport', date: '3 mar 2024',  amount: 14.00,  budget: 'Mobility budget',     kind: 'recurring',  tag: 'mobility' },
-  { id: 'tx5',  orderId: 'PF-2024-0722', name: 'Public transport', date: '18 feb 2024', amount: 6.80,   budget: 'Mobility budget',     kind: 'recurring',  tag: 'mobility' },
+  { id: 'tx1',  orderId: 'PF-2024-0847', name: 'Public transport', date: '22 may 2024', amount: 12.50,  budget: 'Mobility budget',     kind: 'recurring',  tag: 'mobility', card: true },
+  { id: 'tx2',  orderId: 'PF-2024-0811', name: 'Public transport', date: '15 apr 2024', amount: 8.40,   budget: 'Mobility budget',     kind: 'recurring',  tag: 'mobility', card: true },
+  { id: 'tx3',  orderId: 'PF-2024-0793', name: 'Smartphone',       date: '3 apr 2024',  amount: 849.00, budget: 'Bonus',               kind: 'one-time',   tag: 'bonus',    card: true },
+  { id: 'tx4',  orderId: 'PF-2024-0756', name: 'Public transport', date: '3 mar 2024',  amount: 14.00,  budget: 'Mobility budget',     kind: 'recurring',  tag: 'mobility', card: true },
+  { id: 'tx5',  orderId: 'PF-2024-0722', name: 'Public transport', date: '18 feb 2024', amount: 6.80,   budget: 'Mobility budget',     kind: 'recurring',  tag: 'mobility', card: true },
   { id: 'tx6',  orderId: 'PF-2024-0688', name: 'Pension savings',  date: '2 jan 2024',  amount: 312.50, budget: 'End of year premium', kind: 'recurring',  tag: 'eoy' },
-  { id: 'tx7',  orderId: 'PF-2024-0685', name: 'Public transport', date: '2 jan 2024',  amount: 11.20,  budget: 'Mobility budget',     kind: 'recurring',  tag: 'mobility' },
-  { id: 'tx8',  orderId: 'PF-2023-0634', name: 'Multimedia',       date: '15 dec 2023', amount: 429.00, budget: 'End of year premium', kind: 'one-time',   tag: 'eoy' },
+  { id: 'tx7',  orderId: 'PF-2024-0685', name: 'Public transport', date: '2 jan 2024',  amount: 11.20,  budget: 'Mobility budget',     kind: 'recurring',  tag: 'mobility', card: true },
+  { id: 'tx8',  orderId: 'PF-2023-0634', name: 'Multimedia',       date: '15 dec 2023', amount: 429.00, budget: 'End of year premium', kind: 'one-time',   tag: 'eoy',      card: true },
 ];
 function TransactionsScreen() {
   const { push } = useNav();
@@ -1134,23 +1132,35 @@ function TransactionsScreen() {
           <FilterPill label="Bonus" active={filter === 'bonus'} onClick={() => setFilter(f => f === 'bonus' ? null : 'bonus')} />
           {window.__eoyUnlocked && <FilterPill label="End of year premium" active={filter === 'eoy'} onClick={() => setFilter(f => f === 'eoy' ? null : 'eoy')} />}
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column' }}>
-          {shown.map((t, i) => (
-            <button key={t.id} onClick={() => push('single-transaction', { txId: t.id })} style={{
-              width: '100%', appearance: 'none', background: '#fff',
-              border: 'none', borderTop: i === 0 ? 'none' : `1px solid ${PFC.border}`,
-              padding: '12px 0',
-              display: 'flex', alignItems: 'center', gap: 12,
-              cursor: 'pointer', textAlign: 'left',
-            }}>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <Body14 color={PFC.ink} weight={600}>{t.name}</Body14><br/>
-                <Body14 color={PFC.inkSoft} weight={500}>{t.date} · {TAG_TO_BUDGET[t.tag] || t.tag}</Body14>
-              </div>
-              <Body14 color={PFC.ink} weight={600}>{fmtEUR(t.amount)}</Body14>
-              <LucideIcon name="ChevronRight" size={14} color={PFC.inkSoft} strokeWidth={2} style={{ marginLeft: 4 }} />
-            </button>
-          ))}
+        <div style={{ display: 'flex', flexDirection: 'column', background: '#fff', borderRadius: 16, border: `1px solid ${PFC.border}`, overflow: 'hidden' }}>
+          {shown.map((t, i) => {
+            const TX_NAME_ICON = { 'Smartphone': 'Smartphone', 'Pension savings': 'PiggyBank', 'Multimedia': 'Laptop' };
+            const TX_ICON = { mobility: 'TrainFront', bonus: 'Wallet', eoy: 'Gift' };
+            const icon = TX_NAME_ICON[t.name] || TX_ICON[t.tag] || 'ReceiptText';
+            return (
+              <button key={t.id} onClick={() => push('single-transaction', { txId: t.id })} style={{
+                width: '100%', appearance: 'none', background: '#fff',
+                border: 'none', borderTop: i === 0 ? 'none' : `1px solid ${PFC.border}`,
+                padding: '14px 16px',
+                display: 'flex', alignItems: 'center', gap: 12,
+                cursor: 'pointer', textAlign: 'left',
+              }}>
+                <div style={{ width: 40, height: 40, borderRadius: 10, background: '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <LucideIcon name={icon} size={20} color={PFC.inkSoft} strokeWidth={1.75} />
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontFamily: 'var(--font-display)', fontSize: 14, fontWeight: 600, color: PFC.ink, lineHeight: '20px' }}>{t.name}</div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 5, flexWrap: 'wrap', marginTop: 3 }}>
+                    <span style={{ fontFamily: 'var(--font-display)', fontSize: 12, fontWeight: 500, color: PFC.inkSoft }}>{t.date}</span>
+                    <span style={{ fontFamily: 'var(--font-display)', fontSize: 11, fontWeight: 600, color: '#1568cd', background: '#ddebff', borderRadius: 20, padding: '1px 7px' }}>{TAG_TO_BUDGET[t.tag] || t.tag}</span>
+                    {t.card && <span style={{ fontFamily: 'var(--font-display)', fontSize: 11, fontWeight: 500, color: PFC.inkSoft, background: PFC.surface, border: `1px solid ${PFC.border}`, borderRadius: 4, padding: '1px 6px', display: 'inline-flex', alignItems: 'center', gap: 3 }}><LucideIcon name="CreditCard" size={10} color={PFC.inkSoft} strokeWidth={2} />Card</span>}
+                  </div>
+                </div>
+                <div style={{ fontFamily: 'var(--font-display)', fontSize: 14, fontWeight: 600, color: PFC.ink, flexShrink: 0 }}>{fmtEUR(t.amount)}</div>
+                <LucideIcon name="ChevronRight" size={18} color={PFC.inkSoft} strokeWidth={2} />
+              </button>
+            );
+          })}
         </div>
       </div>
     </div>

@@ -197,7 +197,7 @@ function HomeHeader() {
         fontFamily: 'var(--font-display)',
         fontWeight: 700, fontSize: 28, lineHeight: '36px',
         letterSpacing: '-0.007em', color: C.ink, margin: 0
-      }}>Hi David</h1>
+      }}>Hi Pauline</h1>
     </div>);
 
 }
@@ -376,34 +376,34 @@ function EoyOptimiseCard({ onClick }) {
   return (
     <div style={{
       width: '100%', boxSizing: 'border-box',
-      background: 'linear-gradient(135deg, rgb(235,244,255) 0%, rgb(208,228,255) 60%, rgb(59,141,248) 100%)',
-      borderRadius: 16,
+      background: '#F7ECDA',
+      borderRadius: 20,
       padding: '24px 20px',
       textAlign: 'left',
       display: 'flex', flexDirection: 'column', gap: 12,
     }}>
       <div style={{
         fontFamily: 'var(--font-display)',
-        fontWeight: 700, fontSize: 22, lineHeight: '30px',
+        fontWeight: 700, fontSize: 20, lineHeight: '28px',
         letterSpacing: '-0.005em', color: C.ink
-      }}>Optimise your End of year premium</div>
+      }}>Sign the addendum to unlock your budget</div>
       <div style={{
         fontFamily: 'var(--font-display)',
-        fontWeight: 500, fontSize: 14, lineHeight: '20px',
+        fontWeight: 500, fontSize: 14, lineHeight: '21px',
         letterSpacing: '0.003em', color: C.inkSoft
-      }}>Get up to €230 more value than cashing it out in December.</div>
+      }}>Once signed, you can use this budget to purchase benefits. Your budget unlocks automatically after signing.</div>
       <button onClick={onClick} style={{
-        appearance: 'none', border: '1px solid transparent', cursor: 'pointer',
+        appearance: 'none', border: 'none', cursor: 'pointer',
         width: '100%', boxSizing: 'border-box',
-        background: C.ink, color: '#fff',
+        background: C.inkDeep, color: '#fff',
         fontFamily: 'var(--font-display)',
-        fontWeight: 700, fontSize: 16, lineHeight: '24px',
-        padding: '12px 20px',
-        borderRadius: 12,
-        display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-        marginTop: 8
+        fontWeight: 700, fontSize: 17, lineHeight: '24px',
+        padding: '14px 20px',
+        borderRadius: 14,
+        display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+        marginTop: 4,
       }}>
-        Sign addendum
+        Sign now
       </button>
     </div>);
 }
@@ -463,13 +463,13 @@ function RejectedBadge({ reason }) {
 }
 
 // Section header with just a label (no count badge).
-function SectionLabel({ title }) {
+function SectionLabel({ title, dotColor }) {
   return (
-    <div style={{
-      fontFamily: 'var(--font-display)',
-      fontWeight: 600, fontSize: 28, lineHeight: '36px',
-      letterSpacing: '-0.75px', color: C.ink
-    }}>{title}</div>);
+    <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+      {dotColor && <div style={{ width: 7, height: 7, borderRadius: '50%', background: dotColor, flexShrink: 0, marginTop: 1 }} />}
+      <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 15, lineHeight: '22px', color: C.ink }}>{title}</div>
+    </div>
+  );
 }
 
 // Dark "It's biking season" card — baked card art (user-supplied).
@@ -492,7 +492,7 @@ function BikingSeasonHighlight({ onClick }) {
 // ─────────────────────────────────────────────────────────────
 // HomeToast — inline version so it stays in this script scope
 // ─────────────────────────────────────────────────────────────
-function HomeToast({ title, onDismiss, onAction }) {
+function HomeToast({ title, actions = [], onDismiss }) {
   React.useEffect(() => {
     if (!document.getElementById('home-toast-kf')) {
       const el = document.createElement('style');
@@ -514,14 +514,50 @@ function HomeToast({ title, onDismiss, onAction }) {
     }}>
       <LucideIcon name="Check" size={18} color="#fff" strokeWidth={2.5} />
       <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 15, lineHeight: '22px', color: '#fff' }}>{title}</span>
-      {onAction && (
-        <button onClick={onAction} style={{
-          marginLeft: 4, background: 'rgba(255,255,255,0.22)', border: 'none', borderRadius: 8,
+      {actions.map(a => (
+        <button key={a.label} onClick={() => { a.onClick(); onDismiss(); }} style={{
+          marginLeft: 2, background: 'rgba(255,255,255,0.22)', border: 'none', borderRadius: 8,
           padding: '4px 12px', cursor: 'pointer',
           fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: '#fff',
-        }}>View</button>
-      )}
+        }}>{a.label}</button>
+      ))}
     </div>
+  );
+}
+
+function RecentActivityRow({ item, isLast, onClick }) {
+  const statusColors = {
+    rejected: { bg: '#FEE2E2', color: '#B91C1C', border: '#FECACA' },
+    pending:  { bg: '#FFF8EC', color: '#8C5A00', border: '#F0D490' },
+    draft:    { bg: '#F3EEFF', color: '#7C3AED', border: 'rgba(139,55,235,0.2)' },
+    active:   { bg: '#E8F8EE', color: '#1D9E75', border: '#BBE9D0' },
+    approved: { bg: '#E8F8EE', color: '#1D9E75', border: '#BBE9D0' },
+  };
+  const s = statusColors[item.statusKind] || { bg: '#F7F7F8', color: C.inkSoft, border: C.border };
+  return (
+    <button onClick={onClick} style={{
+      width: '100%', appearance: 'none', background: 'transparent', border: 'none', textAlign: 'left',
+      borderBottom: isLast ? 'none' : `1px solid ${C.border}`,
+      padding: '14px 16px',
+      display: 'flex', alignItems: 'center', gap: 12,
+      cursor: 'pointer',
+    }}>
+      <div style={{
+        width: 44, height: 44, borderRadius: 12, flexShrink: 0,
+        background: '#F2F2F5', display: 'flex', alignItems: 'center', justifyContent: 'center',
+      }}>
+        <LucideIcon name={item.icon} size={20} color={C.inkSoft} strokeWidth={1.75} />
+      </div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 15, color: C.ink, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.title}</div>
+        <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 13, color: C.inkSoft, marginTop: 2 }}>{item.meta}</div>
+      </div>
+      <span style={{
+        fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12,
+        background: s.bg, color: s.color, border: `1px solid ${s.border}`,
+        borderRadius: 999, padding: '2px 9px', whiteSpace: 'nowrap', flexShrink: 0,
+      }}>{item.status}</span>
+    </button>
   );
 }
 
@@ -535,23 +571,70 @@ function HomeScreen() {
   const dismiss = (key) => setDismissed((d) => ({ ...d, [key]: true }));
 
   const [toast, setToast] = React.useState(null);
-  const [toastExpense, setToastExpense] = React.useState(null);
-  // Read pending toast only when home is the active top-of-stack screen (not during exit transitions).
   const homeStackLen = nav ? (nav.stacks[nav.activeTab] || []).length : 1;
+
   React.useEffect(() => {
     if (homeStackLen === 1 && window.__pendingToast) {
-      setToast(window.__pendingToast);
-      setToastExpense(window.__lastSubmittedExpense || null);
+      const pt = window.__pendingToast;
+      const exp = window.__lastSubmittedExpense || null;
+      const actions = [];
+      if (exp && nav) actions.push({ label: 'View', onClick: () => nav.push('expense-detail', { expense: exp }) });
+      setToast({ title: pt.title, actions });
       window.__pendingToast = null;
+      window.__lastSubmittedExpense = null;
     }
   }, [homeStackLen]);
 
-  // Bike-lease drafts (filter from DRAFTS for review section)
-  const bikeDrafts = drafts.filter(d => d.kind === 'bike' || d.id === 'bike-1');
+  const ACTIVITY_SEEDS = [
+    { id: 'act-ben-lap', kind: 'benefit', icon: 'Laptop',          title: 'Laptop',             meta: 'MacBook Air M3',                status: 'Draft',    statusKind: 'draft',    sortTs: 20260729, _screen: 'me-active-benefits' },
+    { id: 'act-exp-rej', kind: 'expense', icon: 'UtensilsCrossed', title: 'Restaurant / meals', meta: '€45.00 · 18 Jul',               status: 'Rejected', statusKind: 'rejected', sortTs: 20260718, _expense: { type: 'work', category: 'Restaurant / meals', amount: 45.00, date: '18/07/2026', status: 'rejected', adminNote: 'Receipt is not readable.', hasAttachment: true } },
+    { id: 'act-to-req',  kind: 'timeoff', icon: 'Palmtree',        title: 'Summer holiday',     meta: 'Aug 7–15 · 7 days',             status: 'Pending',  statusKind: 'pending',  sortTs: 20260714, _leave: { label: 'Summer holiday', date: 'Aug 7–15', month: 'August', days: 7, status: 'pending' } },
+    { id: 'act-exp-tax', kind: 'expense', icon: 'Car',             title: 'Taxi / Uber',        meta: '€28.00 · 5 Jul',                status: 'Pending',  statusKind: 'pending',  sortTs: 20260705, _expense: { type: 'mobility', category: 'Taxi / Uber', amount: 28.00, date: '05/07/2026', status: 'pending' } },
+    { id: 'act-ben-pen', kind: 'benefit', icon: 'PiggyBank',       title: 'Pension savings',    meta: 'Choice submitted · €312.50',    status: 'Active',   statusKind: 'active',   sortTs: 20260102, _screen: 'pension-savings-detail' },
+    { id: 'act-exp-mob', kind: 'expense', icon: 'TrainFront',      title: 'Public transport',   meta: '€64.80 · 1 Jul',                status: 'Approved', statusKind: 'approved', sortTs: 20260701, _expense: { type: 'mobility', category: 'Public transport', amount: 64.80, date: '01/07/2026', status: 'approved' } },
+    { id: 'act-to-sick', kind: 'timeoff', icon: 'Stethoscope',     title: 'Sick leave',         meta: 'Jun 23 · 1 day',                status: 'Approved', statusKind: 'approved', sortTs: 20260623, _leave: { label: 'Sick leave', date: 'Jun 23', month: 'June', days: 1, status: 'approved' } },
+  ];
+  const dynamicExpenses = (window.__submittedExpenses || []).map((e, idx) => ({
+    id: e.id, kind: 'expense',
+    icon: e.category === 'Taxi / Uber' ? 'Car' : e.category === 'Hotel' ? 'BedDouble' : e.category === 'Parking' ? 'ParkingCircle' : 'Receipt',
+    title: e.category || 'Expense',
+    meta: '€' + Number(e.amount).toFixed(2) + (e.date ? ' · ' + e.date.slice(0, 5) : ''),
+    status: 'Pending', statusKind: 'pending',
+    sortTs: 99999999 - idx,
+    _expense: e,
+  }));
+  const dynamicAbsences = (window.__timeOffItems || [])
+    .filter(t => typeof t.id === 'string' && t.id.startsWith('req-'))
+    .map((t, idx) => ({
+      id: t.id, kind: 'timeoff',
+      icon: t._leaveReason === 'sick' ? 'Stethoscope' : 'Palmtree',
+      title: t.label || 'Absence',
+      meta: (t.date || '') + (t.days ? ' · ' + t.days + (t.days === 1 ? ' day' : ' days') : ''),
+      status: t.status === 'approved' ? 'Approved' : t.status === 'denied' ? 'Denied' : 'Pending',
+      statusKind: t.status === 'denied' ? 'rejected' : (t.status || 'pending'),
+      sortTs: 99999998 - idx,
+      _leave: t,
+    }));
+  const openActivityItem = (item) => {
+    if (!nav) return;
+    if (item._leave) return nav.push('time-off-detail', { item: item._leave });
+    if (item._expense) return nav.push('expense-detail', { expense: item._expense });
+    if (item._screen) return nav.push(item._screen);
+    if (item.kind === 'expense') nav.push('my-expenses');
+    else if (item.kind === 'benefit') nav.push('me-active-benefits');
+    else nav.push('time-off-hub');
+  };
+  const recentActivity = [...dynamicAbsences, ...dynamicExpenses, ...ACTIVITY_SEEDS]
+    .filter((item, i, arr) => arr.findIndex(x => x.id === item.id) === i)
+    .sort((a, b) => b.sortTs - a.sortTs)
+    .slice(0, 3);
+
+  const DRAFT_ICONS = { bike: 'Bike', pension: 'PiggyBank', laptop: 'Laptop', coolblue: 'Smartphone', housing: 'House', tablet: 'Tablet', watch: 'Watch', lnd: 'GraduationCap' };
+  const allDraftItems = drafts.filter(d => d.status && d.status.kind === 'warning');
   const pensionRejected = drafts.find(d => d.id === 'pension-1') && !window.__pensionResubmitted;
   const rejectedExpenses = (window.__expensesMockData || []).filter(e => e.status === 'rejected');
 
-  const hasReviewItems = !window.__eoyUnlocked || bikeDrafts.length > 0 || pensionRejected || rejectedExpenses.length > 0;
+  const hasReviewItems = rejectedExpenses.length > 0;
 
   return (
     <div style={{
@@ -563,8 +646,8 @@ function HomeScreen() {
       {/* Quick action buttons */}
       <div style={{ display: 'flex', gap: 16 }}>
         {[
-          { icon: 'Receipt', label: 'Submit expense', onClick: () => nav && nav.push('expense-type-v2') },
-          { icon: 'CalendarDays', label: 'Add absence', onClick: () => nav && nav.push('absence-type') },
+          { icon: 'Receipt', label: 'Add expense', onClick: () => window.__openExpenseSheet && window.__openExpenseSheet() },
+          { icon: 'CalendarDays', label: 'Add absence', onClick: () => window.__openAbsenceSheet && window.__openAbsenceSheet() },
         ].map(({ icon, label, onClick }) => (
           <button key={label} onClick={onClick} style={{
             flex: 1, appearance: 'none', cursor: 'pointer',
@@ -583,98 +666,173 @@ function HomeScreen() {
         ))}
       </div>
 
-      {/* To do's section — sign addendum + bike lease drafts + rejected pension */}
+      {/* Action needed — only shown when items exist */}
       {hasReviewItems && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          <SectionLabel title="To do's" />
-
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <SectionLabel title="Action needed" />
           <div style={{
             background: 'rgba(255,255,255,0.7)', borderRadius: 40, padding: 8,
             display: 'flex', flexDirection: 'column',
           }}>
-            {!window.__eoyUnlocked && (
+            {rejectedExpenses.map(e => (
               <ReviewCard
-                icon="PenLine"
-                title="Sign addendum to unlock end of year premium"
-                tileVariant="default"
-                onClick={() => nav && nav.push('sign-addendum')} />
-            )}
-
-            {bikeDrafts.length > 0 && (
-              <ReviewCard
-                icon="Bike"
-                title="Bike lease in draft"
-                tileVariant="draft"
-                onClick={() => nav && window.navigateToItem(nav.push, bikeDrafts[0].id)} />
-            )}
-
-            {pensionRejected && (
-              <ReviewCard
-                icon="HeartPulse"
-                title="Pension savings choice rejected"
-                tileVariant="rejected"
-                badge={<RejectedBadge reason="The actual amount mentioned on your attest is €900. Please edit your choice." />}
-                onClick={() => nav && window.navigateToItem(nav.push, 'pension-1')} />
-            )}
-
-            {rejectedExpenses.length > 0 && (
-              <ReviewCard
+                key={e.id}
                 icon="Receipt"
-                title={`${rejectedExpenses.length} expense${rejectedExpenses.length > 1 ? 's' : ''} rejected`}
+                title={e.category}
+                subtitle="Expense rejected"
                 tileVariant="rejected"
-                badge={<RejectedBadge reason={rejectedExpenses[0].adminNote || 'Needs your attention'} />}
-                onClick={() => nav && nav.push('my-expenses')} />
-            )}
+                onClick={() => nav && nav.push('expense-detail', { expense: e })} />
+            ))}
           </div>
         </div>
       )}
 
-      {/* Discover section — recommendations, highlights */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-        <SectionLabel title="Discover" />
-
-        <AccessoriesHighlight onClick={() => nav && nav.push('benefit-flow-start', { name: 'Laptop accessories via Coolblue' })} />
-
-        {!dismissed.smartphone &&
-        <DismissibleHighlight
-          badge="Reopens on July 23"
-          title="Smartphone"
-          body="Get a new, tax-friendly smartphone when your renting period expires."
-          score={{ label: 'Excellent', level: 3, pct: 48 }}
-          onDismiss={() => dismiss('smartphone')}
-          onClick={() => nav && nav.push('benefit-flow-start', { name: 'Smartphone' })} />
-        }
-
-        <BikingSeasonHighlight onClick={() => nav && nav.push('benefit-flow-start', { name: 'Bike leasing' })} />
-
-        {!dismissed.pension &&
-        <PensionLearnMoreCard
-          onDismiss={() => dismiss('pension')}
-          onClick={() => nav && nav.push('pension-detail', { id: 'pension-1' })} />
-        }
-
-        {!dismissed.warrants &&
-        <DismissibleHighlight
-          badge="Choose before 8 December"
-          title="Warrants"
-          body="The most tax-friendly way to get cash from your Flex budgets."
-          score={{ label: 'Good', level: 1, pct: 48 }}
-          onDismiss={() => dismiss('warrants')}
-          onClick={() => nav && nav.push('benefit-flow-start', { name: 'Warrants' })} />
-        }
-      </div>
+      {/* Recent activity */}
+      {recentActivity.length > 0 && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <SectionLabel title="Recent activity" />
+          <div style={{ background: 'white', borderRadius: 20, border: `1px solid ${C.border}`, overflow: 'hidden' }}>
+            {recentActivity.map((item, i) => (
+              <RecentActivityRow key={item.id} item={item} isLast={false} onClick={() => openActivityItem(item)} />
+            ))}
+            <button onClick={() => nav && nav.push('activity-log')} style={{
+              appearance: 'none', border: 'none', background: 'transparent', cursor: 'pointer',
+              fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: C.inkSoft,
+              padding: '12px 16px', width: '100%', textAlign: 'center',
+              borderTop: `1px solid ${C.border}`,
+            }}>View all →</button>
+          </div>
+        </div>
+      )}
 
       {toast && (
         <HomeToast
           title={toast.title}
+          actions={toast.actions || []}
           onDismiss={() => setToast(null)}
-          onAction={toastExpense && nav ? () => { setToast(null); nav.push('expense-detail', { expense: toastExpense }); } : null}
         />
       )}
+
     </div>
   );
 
 }
+
+// ─────────────────────────────────────────────────────────────
+// Activity Log — full chronological list of all user actions
+// ─────────────────────────────────────────────────────────────
+function ActivityLogScreen() {
+  const nav = window.useNav ? window.useNav() : null;
+
+  const ALL_SEEDS = [
+    { id: 'act-ben-lap', kind: 'benefit', icon: 'Laptop',          title: 'Laptop',             meta: 'MacBook Air M3',             status: 'Draft',    statusKind: 'draft',    sortTs: 20260729 },
+    { id: 'act-exp-rej', kind: 'expense', icon: 'UtensilsCrossed', title: 'Restaurant / meals', meta: '€45.00 · 18 Jul',            status: 'Rejected', statusKind: 'rejected', sortTs: 20260718 },
+    { id: 'act-to-req',  kind: 'timeoff', icon: 'Palmtree',        title: 'Summer holiday',     meta: 'Aug 7–15 · 7 days',          status: 'Pending',  statusKind: 'pending',  sortTs: 20260714 },
+    { id: 'act-exp-tax', kind: 'expense', icon: 'Car',             title: 'Taxi / Uber',        meta: '€28.00 · 5 Jul',             status: 'Pending',  statusKind: 'pending',  sortTs: 20260705 },
+    { id: 'act-exp-mob', kind: 'expense', icon: 'TrainFront',      title: 'Public transport',   meta: '€64.80 · 1 Jul',             status: 'Approved', statusKind: 'approved', sortTs: 20260701 },
+    { id: 'act-to-sick', kind: 'timeoff', icon: 'Stethoscope',     title: 'Sick leave',         meta: 'Jun 23 · 1 day',             status: 'Approved', statusKind: 'approved', sortTs: 20260623 },
+    { id: 'act-exp-lnd', kind: 'expense', icon: 'GraduationCap',   title: 'Learning & dev.',    meta: '€450.00 · 15 Jun',           status: 'Approved', statusKind: 'approved', sortTs: 20260615 },
+    { id: 'act-ben-bike',kind: 'benefit', icon: 'Bike',            title: 'Bike lease',         meta: 'o2o Lekker Amsterdam+',       status: 'Active',   statusKind: 'active',   sortTs: 20260101 },
+    { id: 'act-ben-pen', kind: 'benefit', icon: 'PiggyBank',       title: 'Pension savings',    meta: 'Choice submitted · €312.50', status: 'Active',   statusKind: 'active',   sortTs: 20260102 },
+  ];
+
+  const dynamicExpenses = (window.__submittedExpenses || []).map((e, idx) => ({
+    id: e.id, kind: 'expense',
+    icon: e.category === 'Taxi / Uber' ? 'Car' : e.category === 'Hotel' ? 'BedDouble' : 'Receipt',
+    title: e.category || 'Expense',
+    meta: '€' + Number(e.amount).toFixed(2) + (e.date ? ' · ' + e.date.slice(0, 5) : ''),
+    status: 'Pending', statusKind: 'pending',
+    sortTs: 99999999 - idx,
+  }));
+
+  const dynamicAbsences = (window.__timeOffItems || [])
+    .filter(t => typeof t.id === 'string' && t.id.startsWith('req-'))
+    .map((t, idx) => ({
+      id: t.id, kind: 'timeoff',
+      icon: t._leaveReason === 'sick' ? 'Stethoscope' : 'Palmtree',
+      title: t.label || 'Absence',
+      meta: (t.date || '') + (t.days ? ' · ' + t.days + (t.days === 1 ? ' day' : ' days') : ''),
+      status: t.status === 'approved' ? 'Approved' : t.status === 'denied' ? 'Denied' : 'Pending',
+      statusKind: t.status === 'denied' ? 'rejected' : (t.status || 'pending'),
+      sortTs: 99999998 - idx,
+    }));
+
+  const items = [...dynamicAbsences, ...dynamicExpenses, ...ALL_SEEDS]
+    .filter((item, i, arr) => arr.findIndex(x => x.id === item.id) === i)
+    .sort((a, b) => b.sortTs - a.sortTs);
+
+  const statusColors = {
+    rejected: { bg: '#FEE2E2', color: '#B91C1C', border: '#FECACA' },
+    pending:  { bg: '#FFF8EC', color: '#8C5A00', border: '#F0D490' },
+    draft:    { bg: '#F3EEFF', color: '#7C3AED', border: 'rgba(139,55,235,0.2)' },
+    active:   { bg: '#E8F8EE', color: '#1D9E75', border: '#BBE9D0' },
+    approved: { bg: '#E8F8EE', color: '#1D9E75', border: '#BBE9D0' },
+  };
+
+  const handleClick = (item) => {
+    if (!nav) return;
+    if (item.kind === 'expense') nav.push('my-expenses');
+    else if (item.kind === 'benefit') nav.push('me-active-benefits');
+    else nav.push('time-off-hub');
+  };
+
+  const kindLabel = { expense: 'Expense', benefit: 'Benefit', timeoff: 'Absence' };
+  const kindColors = {
+    expense: { color: '#1568cd', bg: '#ddebff' },
+    benefit: { color: '#7C3AED', bg: '#F3EEFF' },
+    timeoff: { color: '#1D9E75', bg: '#E8F8EE' },
+  };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', background: '#F2F2F2', minHeight: '100%' }}>
+      <div style={{ background: 'white', padding: '8px 16px 0', borderBottom: `1px solid ${C.border}` }}>
+        <button onClick={() => nav && nav.pop()} style={{
+          appearance: 'none', border: 'none', background: 'none', cursor: 'pointer',
+          padding: '8px 0', display: 'flex', alignItems: 'center', gap: 6,
+        }}>
+          <LucideIcon name="ChevronLeft" size={20} color={C.ink} strokeWidth={2} />
+          <span style={{ fontFamily: 'var(--font-display)', fontSize: 14, fontWeight: 500, color: C.ink }}>Home</span>
+        </button>
+        <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 26, color: C.ink, letterSpacing: '-0.5px', padding: '6px 0 16px' }}>Activity</div>
+      </div>
+      <div style={{ padding: '16px 16px 24px', display: 'flex', flexDirection: 'column', gap: 2 }}>
+        {items.map((item) => {
+          const s = statusColors[item.statusKind] || { bg: '#F7F7F8', color: C.inkSoft, border: C.border };
+          const k = kindColors[item.kind] || kindColors.expense;
+          return (
+            <button key={item.id} onClick={() => handleClick(item)} style={{
+              width: '100%', appearance: 'none', background: 'white', border: 'none', textAlign: 'left',
+              borderRadius: 12, marginBottom: 2,
+              padding: '14px 16px',
+              display: 'flex', alignItems: 'center', gap: 12,
+              cursor: 'pointer',
+            }}>
+              <div style={{
+                width: 44, height: 44, borderRadius: 12, flexShrink: 0,
+                background: '#F2F2F5', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                <LucideIcon name={item.icon} size={20} color={C.inkSoft} strokeWidth={1.75} />
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 15, color: C.ink, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.title}</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 2, flexWrap: 'wrap' }}>
+                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 13, color: C.inkSoft }}>{item.meta}</span>
+                  <span style={{ fontFamily: 'var(--font-display)', fontSize: 11, fontWeight: 600, color: k.color, background: k.bg, borderRadius: 20, padding: '1px 7px' }}>{kindLabel[item.kind]}</span>
+                </div>
+              </div>
+              <span style={{
+                fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12,
+                background: s.bg, color: s.color, border: `1px solid ${s.border}`,
+                borderRadius: 999, padding: '2px 9px', whiteSpace: 'nowrap', flexShrink: 0,
+              }}>{item.status}</span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+window.registerScreen && window.registerScreen('activity-log', ActivityLogScreen);
 
 // Export for app.jsx (different Babel script scopes)
 window.HomeScreen = HomeScreen;
