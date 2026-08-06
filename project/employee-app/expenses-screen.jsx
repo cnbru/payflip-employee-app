@@ -589,7 +589,7 @@ function MyExpensesScreen({ filterType: filterTypeProp, filterMonth: filterMonth
   const backdrop = (onClose) => ({ position: 'fixed', inset: 0, zIndex: 200, background: 'rgba(0,0,0,0.35)', display: 'flex', alignItems: 'flex-end' });
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: '#F2F2F2' }}>
       <NavBar />
 
       <div style={{ flex: 1, overflowY: 'auto', padding: '0 16px 24px', display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -730,11 +730,12 @@ function ExpenseDetailScreen({ expense }) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: '#F2F2F2' }}>
-      {/* Header: back + Edit, then big title below (matches time-off detail) */}
-      <div style={{ padding: '8px 16px 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+      {/* Header: back + centered "Expense details" + Edit, then big title below (matches time-off detail) */}
+      <div style={{ padding: '8px 16px 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, position: 'relative' }}>
         <button onClick={pop} style={{ width: 36, height: 36, borderRadius: 8, background: '#fff', border: `1px solid ${PFC.border}`, cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <LucideIcon name="ChevronLeft" size={26} color={PFC.ink} strokeWidth={2} />
         </button>
+        <h1 style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18, color: PFC.ink, letterSpacing: '-0.003em', margin: 0, whiteSpace: 'nowrap', pointerEvents: 'none' }}>Expense details</h1>
         {canEdit
           ? <button onClick={() => push('expense-form-v2', { type: expense.type || (isMobility ? 'mobility' : 'work'), category: expense.category, direct: true })} style={{ appearance: 'none', border: 'none', background: 'transparent', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 15, color: PFC.ink, padding: 4, minWidth: 36 }}>Edit</button>
           : <div style={{ width: 36 }} />
@@ -834,17 +835,20 @@ function DiscardConfirmModal({ onDiscard, onCancel }) {
 // Toast — lightweight success notification (auto-dismisses after 4s)
 // Driven by window.__pendingToast; read and cleared by the receiving screen.
 // ─────────────────────────────────────────────────────────────
-function Toast({ title, onDismiss, onAction }) {
+function Toast({ title, onDismiss, onAction, actions }) {
   React.useEffect(() => {
-    if (!document.getElementById('toast-keyframes')) {
+    // Keyframes keep translateX(-50%) so the toast stays horizontally centred after animating
+    if (!document.getElementById('toast-keyframes-v2')) {
       const el = document.createElement('style');
-      el.id = 'toast-keyframes';
-      el.textContent = '@keyframes toastSlideUp { from { opacity: 0; transform: translateY(16px) scale(0.96); } to { opacity: 1; transform: translateY(0) scale(1); } }';
+      el.id = 'toast-keyframes-v2';
+      el.textContent = '@keyframes toastSlideUp { from { opacity: 0; transform: translateX(-50%) translateY(16px) scale(0.96); } to { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); } }';
       document.head.appendChild(el);
     }
     const timer = setTimeout(onDismiss, 4000);
     return () => clearTimeout(timer);
   }, []);
+
+  const acts = (actions && actions.length) ? actions : (onAction ? [{ label: 'View', onClick: onAction }] : []);
 
   return (
     <div style={{
@@ -852,20 +856,21 @@ function Toast({ title, onDismiss, onAction }) {
       zIndex: 500,
       background: '#16a34a', borderRadius: 999,
       boxShadow: '0 4px 16px rgba(22,163,74,0.35)',
-      padding: '10px 10px 10px 14px',
+      padding: acts.length ? '10px 10px 10px 16px' : '10px 16px',
       display: 'inline-flex', alignItems: 'center', gap: 8, whiteSpace: 'nowrap',
+      maxWidth: 'calc(100% - 32px)',
       animation: 'toastSlideUp 0.3s cubic-bezier(0.22,1,0.36,1) both',
     }}>
       <LucideIcon name="Check" size={18} color="#fff" strokeWidth={2.5} />
       <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 15, lineHeight: '22px', color: '#fff' }}>{title}</span>
-      {onAction && (
-        <button onClick={onAction} style={{
-          marginLeft: 4,
+      {acts.map((a, i) => (
+        <button key={i} onClick={a.onClick} style={{
+          marginLeft: i === 0 ? 4 : 0,
           background: 'rgba(255,255,255,0.22)', border: 'none', borderRadius: 8,
-          padding: '4px 12px', cursor: 'pointer',
+          padding: '4px 12px', cursor: 'pointer', whiteSpace: 'nowrap',
           fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: '#fff',
-        }}>View</button>
-      )}
+        }}>{a.label}</button>
+      ))}
     </div>
   );
 }
@@ -1083,7 +1088,10 @@ function MobilityExpenseScreen() {
     window.__submittedExpenses = [newExpense, ...(window.__submittedExpenses || [])];
     window.__lastSubmittedExpense = newExpense;
     // Show the success toast immediately from any screen (home OR benefits page)
-    if (window.__showToast) window.__showToast('Mobility expense submitted', () => push('expense-detail', { expense: newExpense }));
+    if (window.__showToast) window.__showToast('Mobility expense submitted', [
+      { label: 'View', onClick: () => push('expense-detail', { expense: newExpense }) },
+      { label: 'Add another', onClick: () => window.__openExpenseSheet && window.__openExpenseSheet() },
+    ]);
     else window.__pendingToast = { title: 'Mobility expense submitted' };
     pop();
     pop();

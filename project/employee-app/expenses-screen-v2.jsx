@@ -202,7 +202,10 @@ function ExpenseFormScreenV2({ type, category: categoryProp, direct }) {
     window.__submittedExpenses = [newExpense, ...(window.__submittedExpenses || [])];
     window.__lastSubmittedExpense = newExpense;
     // Success toast shows immediately from any screen (home OR benefits page)
-    if (window.__showToast) window.__showToast('Expense submitted', () => push('expense-detail', { expense: newExpense }));
+    if (window.__showToast) window.__showToast('Expense submitted', [
+      { label: 'View', onClick: () => push('expense-detail', { expense: newExpense }) },
+      { label: 'Add another', onClick: () => window.__openExpenseSheet && window.__openExpenseSheet() },
+    ]);
     else window.__pendingToast = { title: 'Expense submitted' };
     doClose();
   };

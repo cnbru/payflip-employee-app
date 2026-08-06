@@ -361,8 +361,8 @@ function AppShell() {
   React.useEffect(() => {
     window.__openAbsenceSheet = () => setAbsenceSheetOpen(true);
     window.__openExpenseSheet = () => setExpenseSheetOpen(true);
-    // Global toast — shows a success toast from any screen (title, optional onView action)
-    window.__showToast = (title, onView) => setGlobalToast({ title, onView });
+    // Global toast — shows a success toast from any screen (title, optional actions [{label,onClick}])
+    window.__showToast = (title, actions) => setGlobalToast({ title, actions });
     return () => { delete window.__openAbsenceSheet; delete window.__openExpenseSheet; delete window.__showToast; };
   }, []);
 
@@ -409,7 +409,7 @@ function AppShell() {
         <window.Toast
           title={globalToast.title}
           onDismiss={() => setGlobalToast(null)}
-          onAction={globalToast.onView ? () => { const v = globalToast.onView; setGlobalToast(null); v(); } : null}
+          actions={(globalToast.actions || []).map(a => ({ label: a.label, onClick: () => { setGlobalToast(null); a.onClick && a.onClick(); } }))}
         />
       )}
     </div>
