@@ -198,6 +198,11 @@ function IOSDevice({
       boxShadow: '0 40px 80px rgba(0,0,0,0.18), 0 0 0 1px rgba(0,0,0,0.12)',
       fontFamily: '-apple-system, system-ui, sans-serif',
       WebkitFontSmoothing: 'antialiased',
+      // Force a compositing layer so Safari/iOS honours the rounded-corner clip
+      // (overflow:hidden + border-radius fails to clip under transformed ancestors)
+      transform: 'translateZ(0)',
+      WebkitMaskImage: '-webkit-radial-gradient(white, black)',
+      isolation: 'isolate',
     }}>
       {/* dynamic island */}
       <div style={{

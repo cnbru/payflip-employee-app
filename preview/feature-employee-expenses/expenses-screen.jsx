@@ -6,11 +6,12 @@
 // ─────────────────────────────────────────────────────────────
 window.__expensesMockData = [
   { id: 'exp-1', type: 'work',     category: 'Restaurant / meals', amount: 45.00,  date: '18/07/2026', status: 'rejected',   adminNote: 'Receipt is not readable.', hasAttachment: true },
-  { id: 'exp-2', type: 'mobility', category: 'Public transport',   amount: 14.00,  date: '21/07/2026', status: 'approved',   hasAttachment: true },
-  { id: 'exp-3', type: 'mobility', category: 'Public transport',   amount: 14.00,  date: '10/06/2026', status: 'approved' },
+  { id: 'exp-2', type: 'mobility', category: 'Public transport',   amount: 14.00,  date: '21/07/2026', status: 'approved',   hasAttachment: true, card: true },
+  { id: 'exp-3', type: 'mobility', category: 'Public transport',   amount: 14.00,  date: '10/06/2026', status: 'approved', card: true },
   { id: 'exp-4', type: 'work',     category: 'Hotel',              amount: 189.00, date: '22/06/2026', status: 'reimbursed', reimbursementMonth: 'July 2026', hasAttachment: true },
   { id: 'exp-5', type: 'work',     category: 'Restaurant / meals', amount: 34.50,  date: '08/06/2026', status: 'reimbursed', reimbursementMonth: 'July 2026' },
   { id: 'exp-6', type: 'mobility', category: 'Public transport',   amount: 14.00,  date: '10/07/2026', status: 'pending' },
+  { id: 'exp-7', type: 'mobility', category: 'Public transport',   amount: 64.80,  date: '01/07/2026', status: 'approved', reimbursementMonth: 'July 2026' },
 ];
 
 const EXPENSE_CATEGORIES = [
@@ -501,6 +502,7 @@ function ExpenseRow({ exp, onPress, last }) {
           {pill && (
             <span style={{ fontFamily: 'var(--font-display)', fontSize: 11, fontWeight: 600, color: pill.color, background: pill.bg, borderRadius: 20, padding: '1px 7px' }}>{pill.label}</span>
           )}
+          {exp.card && <span style={{ fontFamily: 'var(--font-display)', fontSize: 11, fontWeight: 500, color: PFC.inkSoft, background: PFC.surface, border: `1px solid ${PFC.border}`, borderRadius: 4, padding: '1px 6px', display: 'inline-flex', alignItems: 'center', gap: 3 }}><LucideIcon name="CreditCard" size={10} color={PFC.inkSoft} strokeWidth={2} />Card</span>}
         </div>
       </div>
       {exp.status === 'pending'
@@ -527,13 +529,23 @@ function ExpenseGroup({ exps, onPress }) {
 // ─────────────────────────────────────────────────────────────
 // My Expenses — filter chips + month sections with totals
 // ─────────────────────────────────────────────────────────────
-function MyExpensesScreen({ filterType: filterTypeProp, filterMonth: filterMonthProp }) {
+function MyExpensesScreen({ filterType: filterTypeProp, filterMonth: filterMonthProp, reimbursedMonth }) {
   const { pop, push } = useNav();
 
   const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
   const SHORT_MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const formatMonthKey = (key) => { const [y, m] = key.split('-'); return `${MONTH_NAMES[parseInt(m) - 1].toUpperCase()} ${y}`; };
   const toMonthKey = (dateStr) => { const p = dateStr.split('/'); return `${p[2]}-${p[1]}`; };
+
+  // Payslip breakdown mode: show only the expenses that make up a wage line —
+  // non-card (card is budget-deducted, not reimbursed), reimbursed/approved,
+  // attributed to the payslip by reimbursement month (or incurred that month).
+  const _payslipKey = (() => {
+    if (!reimbursedMonth) return null;
+    const [mName, y] = reimbursedMonth.split(' ');
+    const idx = MONTH_NAMES.indexOf(mName);
+    return idx >= 0 ? `${y}-${String(idx + 1).padStart(2, '0')}` : null;
+  })();
 
   const [activeType, setActiveType]   = React.useState(filterTypeProp || null);
   const [activeMonth, setActiveMonth] = React.useState(filterMonthProp || null);
@@ -547,6 +559,11 @@ function MyExpensesScreen({ filterType: filterTypeProp, filterMonth: filterMonth
     if (activeType === 'mobility' && !isMob) return false;
     if (activeType === 'work' && (isMob || e.type === 'lnd')) return false;
     if (activeType === 'lnd' && e.type !== 'lnd') return false;
+    if (reimbursedMonth) {
+      if (e.card) return false;
+      if (e.status !== 'approved' && e.status !== 'reimbursed') return false;
+      return e.reimbursementMonth === reimbursedMonth || toMonthKey(e.date) === _payslipKey;
+    }
     if (activeMonth && toMonthKey(e.date) !== activeMonth) return false;
     return true;
   });
@@ -557,10 +574,12 @@ function MyExpensesScreen({ filterType: filterTypeProp, filterMonth: filterMonth
     ? [activeMonth]
     : [...new Set(filtered.map(e => toMonthKey(e.date)))].sort().reverse();
 
-  const groupedByMonth = monthKeys.map(key => ({
-    key,
-    items: filtered.filter(e => toMonthKey(e.date) === key),
-  }));
+  const groupedByMonth = reimbursedMonth
+    ? [{ key: _payslipKey, items: filtered }]
+    : monthKeys.map(key => ({
+        key,
+        items: filtered.filter(e => toMonthKey(e.date) === key),
+      }));
 
   const title = activeType === 'mobility' ? 'Mobility expenses'
     : activeType === 'work' ? 'Work expenses'
@@ -595,7 +614,8 @@ function MyExpensesScreen({ filterType: filterTypeProp, filterMonth: filterMonth
       <div style={{ flex: 1, overflowY: 'auto', padding: '0 16px 24px', display: 'flex', flexDirection: 'column', gap: 16 }}>
         <Heading28>{title}</Heading28>
 
-        {/* Filter chips */}
+        {/* Filter chips — hidden in payslip breakdown mode */}
+        {!reimbursedMonth && (
         <div style={{ display: 'flex', gap: 8 }}>
           <button style={chipStyle(!!activeType)} onClick={() => activeType ? setActiveType(null) : setShowTypeSheet(true)}>
             {activeType
@@ -610,6 +630,7 @@ function MyExpensesScreen({ filterType: filterTypeProp, filterMonth: filterMonth
             }
           </button>
         </div>
+        )}
 
         {/* Month sections */}
         {groupedByMonth.map(({ key, items }) => {
@@ -717,10 +738,13 @@ function ExpenseDetailScreen({ expense }) {
     { label: 'Amount',        value: fmtEUR(expense.amount) },
     ...(expense.hasAttachment ? [{ label: 'Attachement', value: <span style={{ color: '#1568cd', fontWeight: 600 }}>File.pdf</span> }] : []),
     { label: 'Budget used',   value: budgetUsed },
-    ...(expense.status === 'approved' || expense.status === 'reimbursed'
-      ? [{ label: 'Reimbursement', value: expense.status === 'reimbursed'
-          ? <button onClick={() => push('me-payslip')} style={{ appearance: 'none', border: 'none', background: 'transparent', padding: 0, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 4, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 15, color: '#1568cd' }}>{expense.reimbursementMonth} payroll<LucideIcon name="ChevronRight" size={14} color="#1568cd" strokeWidth={2} /></button>
-          : (expense.reimbursementMonth || 'August 2026') }]
+    ...((expense.status === 'approved' || expense.status === 'reimbursed')
+      ? [ expense.card
+          // Card expenses are deducted straight from the budget — never reimbursed via payroll
+          ? { label: 'Payment', value: 'Deducted from budget' }
+          : { label: 'Reimbursement', value: expense.status === 'reimbursed'
+              ? <button onClick={() => push('me-payslip')} style={{ appearance: 'none', border: 'none', background: 'transparent', padding: 0, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 4, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 15, color: '#1568cd' }}>{expense.reimbursementMonth} payroll<LucideIcon name="ChevronRight" size={14} color="#1568cd" strokeWidth={2} /></button>
+              : (expense.reimbursementMonth || 'August 2026') } ]
       : []),
     { label: 'Submitted on',  value: expense.date },
     ...(expense.status === 'approved' || expense.status === 'reimbursed'
@@ -737,7 +761,7 @@ function ExpenseDetailScreen({ expense }) {
         </button>
         <h1 style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18, color: PFC.ink, letterSpacing: '-0.003em', margin: 0, whiteSpace: 'nowrap', pointerEvents: 'none' }}>Expense details</h1>
         {canEdit
-          ? <button onClick={() => push('expense-form-v2', { type: expense.type || (isMobility ? 'mobility' : 'work'), category: expense.category, direct: true })} style={{ appearance: 'none', border: 'none', background: 'transparent', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 15, color: PFC.ink, padding: 4, minWidth: 36 }}>Edit</button>
+          ? <button onClick={() => push('expense-form-v2', { type: expense.type || (isMobility ? 'mobility' : 'work'), category: expense.category, amount: expense.amount, date: expense.date, editId: expense.id, direct: true })} style={{ appearance: 'none', border: 'none', background: 'transparent', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 15, color: PFC.ink, padding: 4, minWidth: 36 }}>Edit</button>
           : <div style={{ width: 36 }} />
         }
       </div>
@@ -779,19 +803,20 @@ function ExpenseDetailScreen({ expense }) {
         {showAdvantage && (
           <div style={{ background: '#F3EEFF', borderRadius: 14, padding: '16px' }}>
             <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: PFC.purpleDeep, marginBottom: 8 }}>Payflip advantage</div>
-            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 22, color: PFC.purpleDeep, marginBottom: 4 }}>🌸 €104</div>
+            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 22, color: PFC.purpleDeep, marginBottom: 4 }}>€104</div>
             <button onClick={() => setShowAdvModal(true)} style={{ appearance: 'none', border: 'none', background: 'transparent', cursor: 'pointer', padding: 0, fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 13, color: PFC.purpleDeep, textDecoration: 'underline' }}>
               How is this calculated?
             </button>
           </div>
         )}
 
-        {/* Rejected: Edit & resubmit */}
-        {expense.status === 'rejected' && (
-          <Button variant="primary" size="large" fullWidth onClick={() => push('expense-form-v2', { type: expense.type || (isMobility ? 'mobility' : 'work'), category: expense.category, direct: true })}>Edit &amp; resubmit</Button>
-        )}
+      </div>
 
-        {/* Delete expense */}
+      {/* Pinned action bar */}
+      <div style={{ padding: '12px 16px', borderTop: `1px solid ${PFC.border}`, background: '#fff', display: 'flex', flexDirection: 'column', gap: 6, flexShrink: 0 }}>
+        {expense.status === 'rejected' && (
+          <Button variant="primary" size="large" fullWidth onClick={() => push('expense-form-v2', { type: expense.type || (isMobility ? 'mobility' : 'work'), category: expense.category, amount: expense.amount, date: expense.date, rejectionReason: expense.adminNote, editId: expense.id, direct: true })}>Edit &amp; resubmit</Button>
+        )}
         <button onClick={() => setShowDeleteConfirm(true)} style={{ appearance: 'none', border: 'none', background: 'none', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: '#dc2626', padding: '8px 0', textAlign: 'center' }}>
           Delete expense
         </button>

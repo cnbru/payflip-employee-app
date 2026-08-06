@@ -6,7 +6,7 @@
 // Category choice drives budget source + tax display.
 // ─────────────────────────────────────────────────────────────
 
-const WORK_CATEGORIES    = ['Hotel', 'Restaurant', 'Taxi / Uber', 'Parking', 'Other'];
+const WORK_CATEGORIES    = ['Hotel', 'Restaurant', 'Other'];
 const MOB_CATEGORIES_V2  = ['Private transport', 'Public transport', 'Shared mobility', 'Mobility subscription'];
 
 // ─────────────────────────────────────────────────────────────
@@ -165,17 +165,19 @@ function ExpenseCategoryScreenV2({ type }) {
 // ─────────────────────────────────────────────────────────────
 const PAYFLIP_ADV_ICON_V2 = 'https://www.figma.com/api/mcp/asset/6fa2e40e-e8fd-48f9-9d84-a6f9e4656c0a';
 
-function ExpenseFormScreenV2({ type, category: categoryProp, direct }) {
+function ExpenseFormScreenV2({ type, category: categoryProp, direct, amount: amountProp, date: dateProp, rejectionReason, editId }) {
   const { pop, push } = useNav();
   const isMobility = type === 'mobility';
   const isLnd = type === 'lnd';
 
   const categories = isMobility ? MOB_CATEGORIES_V2 : isLnd ? [] : WORK_CATEGORIES;
 
-  const [amount, setAmount]                 = React.useState('');
-  const [date, setDate]                     = React.useState('2026-07-24');
+  const _toInputDate = (d) => { const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(d || ''); return m ? `${m[3]}-${m[2]}-${m[1]}` : (d || '2026-07-24'); };
+  const _isEdit = amountProp != null;
+  const [amount, setAmount]                 = React.useState(_isEdit ? String(amountProp) : '');
+  const [date, setDate]                     = React.useState(dateProp ? _toInputDate(dateProp) : '2026-07-24');
   const [uploading, setUploading]           = React.useState(false);
-  const [uploaded, setUploaded]             = React.useState(false);
+  const [uploaded, setUploaded]             = React.useState(_isEdit); // prefilled edit → receipt already on file
   const [showAdvantageModal, setShowAdvantageModal] = React.useState(false);
   const [category, setCategory]             = React.useState(categoryProp || '');
 
@@ -191,15 +193,26 @@ function ExpenseFormScreenV2({ type, category: categoryProp, direct }) {
   };
 
   const handleSubmit = () => {
-    const newExpense = {
-      id: `exp-v2-${Date.now()}`,
+    const fields = {
       type,
       category,
       amount: amtNum,
       date: date ? date.split('-').reverse().join('/') : '24/07/2026',
       status: 'pending',
     };
-    window.__submittedExpenses = [newExpense, ...(window.__submittedExpenses || [])];
+    let newExpense;
+    if (editId) {
+      // Editing an existing (e.g. rejected) expense — update it in place, status back to pending
+      newExpense = { id: editId, ...fields, adminNote: undefined };
+      const upd = (e) => e.id === editId ? { ...e, ...fields, adminNote: undefined } : e;
+      let found = false;
+      if (window.__expensesMockData) { window.__expensesMockData = window.__expensesMockData.map(e => { if (e.id === editId) found = true; return upd(e); }); }
+      if (window.__submittedExpenses) { window.__submittedExpenses = window.__submittedExpenses.map(e => { if (e.id === editId) found = true; return upd(e); }); }
+      if (!found) window.__submittedExpenses = [newExpense, ...(window.__submittedExpenses || [])];
+    } else {
+      newExpense = { id: `exp-v2-${Date.now()}`, ...fields };
+      window.__submittedExpenses = [newExpense, ...(window.__submittedExpenses || [])];
+    }
     window.__lastSubmittedExpense = newExpense;
     // Success toast shows immediately from any screen (home OR benefits page)
     if (window.__showToast) window.__showToast('Expense submitted', [
@@ -207,7 +220,8 @@ function ExpenseFormScreenV2({ type, category: categoryProp, direct }) {
       { label: 'Add another', onClick: () => window.__openExpenseSheet && window.__openExpenseSheet() },
     ]);
     else window.__pendingToast = { title: 'Expense submitted' };
-    doClose();
+    // When editing from a detail screen, pop past the now-stale detail too
+    if (editId) { pop(); pop(); } else { doClose(); }
   };
 
   const canSubmit = hasAmount && uploaded && (categories.length === 0 || !!category);
@@ -233,6 +247,15 @@ function ExpenseFormScreenV2({ type, category: categoryProp, direct }) {
 
       {/* Scrollable content */}
       <div style={{ flex: 1, overflowY: 'auto', padding: '20px 16px 24px', display: 'flex', flexDirection: 'column', gap: 20 }}>
+        {rejectionReason && (
+          <div style={{ background: '#fff5f5', border: '1px solid #fecaca', borderRadius: 12, padding: '14px 16px', display: 'flex', gap: 10 }}>
+            <LucideIcon name="TriangleAlert" size={18} color="#dc2626" strokeWidth={2} style={{ flexShrink: 0, marginTop: 1 }} />
+            <div>
+              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 13, color: '#dc2626', marginBottom: 2 }}>Expense rejected</div>
+              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 13, color: '#b91c1c', lineHeight: '18px' }}>{rejectionReason}</div>
+            </div>
+          </div>
+        )}
         <Heading28>Add details</Heading28>
 
         {/* Category select — inline, only for types that have categories */}
@@ -252,6 +275,7 @@ function ExpenseFormScreenV2({ type, category: categoryProp, direct }) {
                 }}
               >
                 <option value="">Select category…</option>
+                {category && !categories.includes(category) && <option value={category}>{category}</option>}
                 {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
               </select>
               <div style={{ position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>

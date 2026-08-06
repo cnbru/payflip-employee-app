@@ -29,6 +29,16 @@ const RECENT_TX = [
   { id: 't3', txId: 'tx6',     name: 'Pension savings',    date: '2 jan 2024',  amount: 312.50, budget: 'End of year premium', kind: 'recurring', tag: 'eoy' },
 ];
 
+// Approved/reimbursed mobility expenses also appear in transactions (card or manually entered)
+function mobilityExpenseTx() {
+  const MOB = new Set(['Public transport', 'Taxi / Uber', 'Parking', 'Shared mobility', 'Private transport', 'Mobility subscription']);
+  const all = [...(window.__submittedExpenses || []), ...(window.__expensesMockData || [])];
+  return all
+    .filter((e, i, arr) => arr.findIndex(x => x.id === e.id) === i)
+    .filter(e => (e.type === 'mobility' || MOB.has(e.category)) && (e.status === 'approved' || e.status === 'reimbursed'))
+    .map(e => ({ id: 'exptx-' + e.id, name: e.category, date: e.date, amount: e.amount, budget: 'Mobility budget', tag: 'mobility', card: !!e.card, _expense: e }));
+}
+
 const HOUSING_TX = [
   { month: 'June',         label: 'Mobility budget', amount: 700 },
   { month: 'July',         label: 'Mobility budget', amount: 700 },
@@ -132,12 +142,12 @@ function BudgetsScreen() {
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         <SectionHeader title="Transactions" style={{ borderBottom: 'none' }} />
         <div style={{ background: 'white', borderRadius: 20, border: `1px solid ${PFC.border}`, overflow: 'hidden' }}>
-          {RECENT_TX.filter(t => t.tag !== 'eoy' || window.__eoyUnlocked).map((t) => {
+          {[...mobilityExpenseTx(), ...RECENT_TX].filter(t => t.tag !== 'eoy' || window.__eoyUnlocked).map((t) => {
             const TX_NAME_ICON = { 'Smartphone': 'Smartphone', 'Pension savings': 'PiggyBank', 'Multimedia': 'Laptop' };
             const TX_ICON = { mobility: 'TrainFront', bonus: 'Wallet', eoy: 'Gift', bike: 'Bike' };
             const icon = TX_NAME_ICON[t.name] || TX_ICON[t.tag] || 'ReceiptText';
             return (
-              <button key={t.id} onClick={() => t.tab ? navigate(t.tab, t.screen) : push('single-transaction', { txId: t.txId })} style={{
+              <button key={t.id} onClick={() => t._expense ? push('expense-detail', { expense: t._expense }) : t.tab ? navigate(t.tab, t.screen) : push('single-transaction', { txId: t.txId })} style={{
                 width: '100%', appearance: 'none', background: 'transparent',
                 border: 'none', borderBottom: `1px solid ${PFC.border}`,
                 padding: '14px 16px',
@@ -1119,7 +1129,8 @@ const ALL_TX = [
 function TransactionsScreen() {
   const { push } = useNav();
   const [filter, setFilter] = React.useState(null);
-  const available = window.__eoyUnlocked ? ALL_TX : ALL_TX.filter(t => t.tag !== 'eoy');
+  const _allTx = [...mobilityExpenseTx(), ...ALL_TX];
+  const available = window.__eoyUnlocked ? _allTx : _allTx.filter(t => t.tag !== 'eoy');
   const shown = filter ? available.filter(t => t.tag === filter) : available;
   const TAG_TO_BUDGET = { mobility: 'Mobility budget', bonus: 'Bonus', eoy: 'End of year premium' };
   return (
@@ -1138,7 +1149,7 @@ function TransactionsScreen() {
             const TX_ICON = { mobility: 'TrainFront', bonus: 'Wallet', eoy: 'Gift' };
             const icon = TX_NAME_ICON[t.name] || TX_ICON[t.tag] || 'ReceiptText';
             return (
-              <button key={t.id} onClick={() => push('single-transaction', { txId: t.id })} style={{
+              <button key={t.id} onClick={() => t._expense ? push('expense-detail', { expense: t._expense }) : push('single-transaction', { txId: t.id })} style={{
                 width: '100%', appearance: 'none', background: '#fff',
                 border: 'none', borderTop: i === 0 ? 'none' : `1px solid ${PFC.border}`,
                 padding: '14px 16px',
