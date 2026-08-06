@@ -516,12 +516,13 @@ function _meMonthExpenseInputs() {
   const all = [...(window.__submittedExpenses || []), ...(window.__expensesMockData || [])];
   const isThisMonth = (e) => (e.date || '').endsWith('07/2026') || e.reimbursementMonth === 'July 2026';
   const isMob = (e) => e.type === 'mobility' || _ME_MOB_CATS.has(e.category);
-  const counted = all.filter(e => isThisMonth(e) && e.status !== 'pending' && e.status !== 'rejected');
+  // Card expenses are deducted directly from the budget — never reimbursed via payroll, so excluded from wage
+  const counted = all.filter(e => isThisMonth(e) && !e.card && e.status !== 'pending' && e.status !== 'rejected');
   const sumBy = (pred) => counted.filter(pred).reduce((s, e) => s + (e.amount || 0), 0);
   const mobility = sumBy(isMob);
   const work = sumBy(e => !isMob(e) && e.type !== 'lnd');
   const lnd = sumBy(e => e.type === 'lnd');
-  const pending = all.filter(e => isThisMonth(e) && e.status === 'pending');
+  const pending = all.filter(e => isThisMonth(e) && !e.card && e.status === 'pending');
   const pendingCount = pending.length;
   const pendingMobility = pending.filter(isMob).length;
   const pendingWork = pending.filter(e => !isMob(e) && e.type !== 'lnd').length;
@@ -554,18 +555,18 @@ function PersonalScreen() {
     return null;
   };
 
-  const _submittedRows = (window.__submittedExpenses || []).map(e => ({
+  // Single source of truth so the listed rows reconcile with the wage totals above
+  const _toRow = (e) => ({
     type: e.type, category: e.category,
     title: e.category || (e.type === 'mobility' ? 'Mobility expense' : e.type === 'lnd' ? 'L&D' : 'Work expense'),
     date: e.date || '', amount: `€${(e.amount || 0).toFixed(2)}`,
-    status: e.status || 'pending',
-  }));
-  const _defaultExpenseRows = [
-    { type: 'work',     category: 'Restaurant / meals',  title: 'Restaurant / meals',  date: 'Jul 18, 2026', amount: '€45.00', status: 'rejected' },
-    { type: 'mobility', category: 'Public transport',    title: 'Public transport',    date: 'Jul 21, 2026', amount: '€14.00', status: 'approved' },
-    { type: 'work',     category: 'Hotel',               title: 'Hotel',               date: 'Jun 22, 2026', amount: '€189.00', status: 'reimbursed' },
-  ];
-  const expenseRows = [..._submittedRows, ..._defaultExpenseRows];
+    status: e.status || 'pending', card: !!e.card, expense: e,
+  });
+  const _allExpenses = [...(window.__submittedExpenses || []), ...(window.__expensesMockData || [])];
+  const expenseRows = _allExpenses
+    .filter((e, i, arr) => arr.findIndex(x => x.id === e.id) === i)
+    .map(_toRow)
+    .slice(0, 5); // Me overview shows at most 5 — full list via "See all"
 
   // Next upcoming holiday — resolves to a real leave item so the card links to its detail
   const _MONTHS_IDX = { January: 0, February: 1, March: 2, April: 3, May: 4, June: 5, July: 6, August: 7, September: 8, October: 9, November: 10, December: 11 };
@@ -735,9 +736,8 @@ function PersonalScreen() {
             {expenseRows.map((e, i) => {
               const is = expIconStyle(e.type, e.category);
               const pill = expPill(e.type, e.category);
-              const isPending = e.status === 'pending';
               return (
-                <button key={i} onClick={() => nav && nav.push('expense-detail', { expense: e })} style={{
+                <button key={i} onClick={() => nav && nav.push('expense-detail', { expense: e.expense || e })} style={{
                   width: '100%', appearance: 'none', background: 'transparent', border: 'none',
                   borderBottom: `1px solid ${MC.border}`, padding: '12px 16px',
                   cursor: 'pointer', textAlign: 'left', display: 'flex', alignItems: 'center', gap: 12,
@@ -750,13 +750,11 @@ function PersonalScreen() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 3, flexWrap: 'wrap' }}>
                       <span style={{ fontFamily: 'var(--font-display)', fontSize: 13, color: MC.inkSoft }}>{e.date}</span>
                       {pill && <MePill label={pill.label} color={pill.color} />}
+                      {e.card && <span style={{ fontFamily: 'var(--font-display)', fontSize: 11, fontWeight: 500, color: MC.inkSoft, background: MC.surface, border: `1px solid ${MC.border}`, borderRadius: 4, padding: '1px 6px', display: 'inline-flex', alignItems: 'center', gap: 3 }}><LucideIcon name="CreditCard" size={10} color={MC.inkSoft} strokeWidth={2} />Card</span>}
                     </div>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-                    {isPending
-                      ? <span style={{ fontFamily: 'var(--font-display)', fontSize: 11, fontWeight: 600, color: '#B45309', background: '#FFF3DC', borderRadius: 20, padding: '3px 8px' }}>Pending</span>
-                      : <div style={{ fontFamily: 'var(--font-display)', fontSize: 14, fontWeight: 600, color: MC.ink }}>{e.amount}</div>
-                    }
+                    <div style={{ fontFamily: 'var(--font-display)', fontSize: 14, fontWeight: 600, color: MC.ink }}>{e.amount}</div>
                     <LucideIcon name="ChevronRight" size={14} color={MC.inkMuted} strokeWidth={2} />
                   </div>
                 </button>
@@ -810,8 +808,8 @@ function MePayslipScreen() {
           const benefitInputs = [
             { icon: 'Smartphone', label: 'Smartphone BIK',            value: '+€4 BIK/month', c: MC.red, onClick: () => nav && nav.push('benefit-flow-start', { name: 'Smartphone' }) },
             { icon: 'Home',       label: 'Housing cost reimbursement', value: '+€820',         c: MC.grn, onClick: () => nav && nav.push('housing-costs') },
-            { icon: 'Briefcase',  label: 'Work expenses reimbursed',   value: _fmtPay(_pay.work),     c: MC.grn, pending: _pay.pendingWork,     onClick: () => nav && nav.push('my-expenses', { filterType: 'work', filterMonth: '2026-07' }) },
-            { icon: 'TrainFront', label: 'Mobility expenses',          value: _fmtPay(_pay.mobility), c: MC.grn, pending: _pay.pendingMobility, onClick: () => nav && nav.push('my-expenses', { filterType: 'mobility', filterMonth: '2026-07' }) },
+            { icon: 'Briefcase',  label: 'Work expenses reimbursed',   value: _fmtPay(_pay.work),     c: MC.grn, pending: _pay.pendingWork,     onClick: () => nav && nav.push('my-expenses', { filterType: 'work', reimbursedMonth: 'July 2026' }) },
+            { icon: 'TrainFront', label: 'Mobility expenses',          value: _fmtPay(_pay.mobility), c: MC.grn, pending: _pay.pendingMobility, onClick: () => nav && nav.push('my-expenses', { filterType: 'mobility', reimbursedMonth: 'July 2026' }) },
           ].filter(r => !(r.label === 'Work expenses reimbursed' && _pay.work === 0 && !_pay.pendingWork) && !(r.label === 'Mobility expenses' && _pay.mobility === 0 && !_pay.pendingMobility));
           return benefitInputs.map((r, i, arr) => (
             <button

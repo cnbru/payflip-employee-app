@@ -2,6 +2,19 @@
 // Cards: unlock budgets, todos, accessories highlight, smartphone, biking,
 // pension, warrants. Imagery uses <image-slot> so the user can drop in art.
 
+// Keep static activity seeds in sync with live expense data (e.g. a rejected
+// expense that has since been edited & resubmitted → pending).
+function syncActivityLiveStatus(item) {
+  if (item && item._expense && item._expense.id) {
+    const live = (window.__expensesMockData || []).find(e => e.id === item._expense.id);
+    if (live) {
+      const labels = { rejected: 'Rejected', pending: 'Pending', approved: 'Approved', reimbursed: 'Reimbursed' };
+      return { ...item, status: labels[live.status] || item.status, statusKind: live.status || item.statusKind, _expense: { ...item._expense, ...live } };
+    }
+  }
+  return item;
+}
+
 // ─────────────────────────────────────────────────────────────
 // Color tokens used in this screen (some are figma-only and not
 // in the design system stylesheet — kept here so home cards stay
@@ -587,11 +600,11 @@ function HomeScreen() {
 
   const ACTIVITY_SEEDS = [
     { id: 'act-ben-lap', kind: 'benefit', icon: 'Laptop',          title: 'Laptop',             meta: 'MacBook Air M3',                status: 'Draft',    statusKind: 'draft',    sortTs: 20260729, _screen: 'me-active-benefits' },
-    { id: 'act-exp-rej', kind: 'expense', icon: 'UtensilsCrossed', title: 'Restaurant / meals', meta: '€45.00 · 18 Jul',               status: 'Rejected', statusKind: 'rejected', sortTs: 20260718, _expense: { type: 'work', category: 'Restaurant / meals', amount: 45.00, date: '18/07/2026', status: 'rejected', adminNote: 'Receipt is not readable.', hasAttachment: true } },
+    { id: 'act-exp-rej', kind: 'expense', icon: 'UtensilsCrossed', title: 'Restaurant / meals', meta: '€45.00 · 18 Jul',               status: 'Rejected', statusKind: 'rejected', sortTs: 20260718, _expense: { id: 'exp-1', type: 'work', category: 'Restaurant / meals', amount: 45.00, date: '18/07/2026', status: 'rejected', adminNote: 'Receipt is not readable.', hasAttachment: true } },
     { id: 'act-to-req',  kind: 'timeoff', icon: 'Palmtree',        title: 'Summer holiday',     meta: 'Aug 7–15 · 7 days',             status: 'Pending',  statusKind: 'pending',  sortTs: 20260714, _leave: { label: 'Summer holiday', date: 'Aug 7–15', month: 'August', days: 7, status: 'pending' } },
     { id: 'act-exp-tax', kind: 'expense', icon: 'Car',             title: 'Taxi / Uber',        meta: '€28.00 · 5 Jul',                status: 'Pending',  statusKind: 'pending',  sortTs: 20260705, _expense: { type: 'mobility', category: 'Taxi / Uber', amount: 28.00, date: '05/07/2026', status: 'pending' } },
     { id: 'act-ben-pen', kind: 'benefit', icon: 'PiggyBank',       title: 'Pension savings',    meta: 'Choice submitted · €312.50',    status: 'Active',   statusKind: 'active',   sortTs: 20260102, _screen: 'pension-savings-detail' },
-    { id: 'act-exp-mob', kind: 'expense', icon: 'TrainFront',      title: 'Public transport',   meta: '€64.80 · 1 Jul',                status: 'Approved', statusKind: 'approved', sortTs: 20260701, _expense: { type: 'mobility', category: 'Public transport', amount: 64.80, date: '01/07/2026', status: 'approved' } },
+    { id: 'act-exp-mob', kind: 'expense', icon: 'TrainFront',      title: 'Public transport',   meta: '€64.80 · 1 Jul',                status: 'Approved', statusKind: 'approved', sortTs: 20260701, _expense: { id: 'exp-7', type: 'mobility', category: 'Public transport', amount: 64.80, date: '01/07/2026', status: 'approved', reimbursementMonth: 'July 2026' } },
     { id: 'act-to-sick', kind: 'timeoff', icon: 'Stethoscope',     title: 'Sick leave',         meta: 'Jun 23 · 1 day',                status: 'Approved', statusKind: 'approved', sortTs: 20260623, _leave: { label: 'Sick leave', date: 'Jun 23', month: 'June', days: 1, status: 'approved' } },
   ];
   const dynamicExpenses = (window.__submittedExpenses || []).map((e, idx) => ({
@@ -625,6 +638,7 @@ function HomeScreen() {
     else nav.push('time-off-hub');
   };
   const recentActivity = [...dynamicAbsences, ...dynamicExpenses, ...ACTIVITY_SEEDS]
+    .map(syncActivityLiveStatus)
     .filter((item, i, arr) => arr.findIndex(x => x.id === item.id) === i)
     .sort((a, b) => b.sortTs - a.sortTs)
     .slice(0, 3);
@@ -725,15 +739,15 @@ function ActivityLogScreen() {
   const nav = window.useNav ? window.useNav() : null;
 
   const ALL_SEEDS = [
-    { id: 'act-ben-lap', kind: 'benefit', icon: 'Laptop',          title: 'Laptop',             meta: 'MacBook Air M3',             status: 'Draft',    statusKind: 'draft',    sortTs: 20260729 },
-    { id: 'act-exp-rej', kind: 'expense', icon: 'UtensilsCrossed', title: 'Restaurant / meals', meta: '€45.00 · 18 Jul',            status: 'Rejected', statusKind: 'rejected', sortTs: 20260718 },
-    { id: 'act-to-req',  kind: 'timeoff', icon: 'Palmtree',        title: 'Summer holiday',     meta: 'Aug 7–15 · 7 days',          status: 'Pending',  statusKind: 'pending',  sortTs: 20260714 },
-    { id: 'act-exp-tax', kind: 'expense', icon: 'Car',             title: 'Taxi / Uber',        meta: '€28.00 · 5 Jul',             status: 'Pending',  statusKind: 'pending',  sortTs: 20260705 },
-    { id: 'act-exp-mob', kind: 'expense', icon: 'TrainFront',      title: 'Public transport',   meta: '€64.80 · 1 Jul',             status: 'Approved', statusKind: 'approved', sortTs: 20260701 },
-    { id: 'act-to-sick', kind: 'timeoff', icon: 'Stethoscope',     title: 'Sick leave',         meta: 'Jun 23 · 1 day',             status: 'Approved', statusKind: 'approved', sortTs: 20260623 },
-    { id: 'act-exp-lnd', kind: 'expense', icon: 'GraduationCap',   title: 'Learning & dev.',    meta: '€450.00 · 15 Jun',           status: 'Approved', statusKind: 'approved', sortTs: 20260615 },
-    { id: 'act-ben-bike',kind: 'benefit', icon: 'Bike',            title: 'Bike lease',         meta: 'o2o Lekker Amsterdam+',       status: 'Active',   statusKind: 'active',   sortTs: 20260101 },
-    { id: 'act-ben-pen', kind: 'benefit', icon: 'PiggyBank',       title: 'Pension savings',    meta: 'Choice submitted · €312.50', status: 'Active',   statusKind: 'active',   sortTs: 20260102 },
+    { id: 'act-ben-lap', kind: 'benefit', icon: 'Laptop',          title: 'Laptop',             meta: 'MacBook Air M3',             status: 'Draft',    statusKind: 'draft',    sortTs: 20260729, _screen: 'me-active-benefits' },
+    { id: 'act-exp-rej', kind: 'expense', icon: 'UtensilsCrossed', title: 'Restaurant / meals', meta: '€45.00 · 18 Jul',            status: 'Rejected', statusKind: 'rejected', sortTs: 20260718, _expense: { id: 'exp-1', type: 'work', category: 'Restaurant / meals', amount: 45.00, date: '18/07/2026', status: 'rejected', adminNote: 'Receipt is not readable.', hasAttachment: true } },
+    { id: 'act-to-req',  kind: 'timeoff', icon: 'Palmtree',        title: 'Summer holiday',     meta: 'Aug 7–15 · 7 days',          status: 'Pending',  statusKind: 'pending',  sortTs: 20260714, _leave: { label: 'Summer holiday', date: 'Aug 7–15', month: 'August', days: 7, status: 'pending' } },
+    { id: 'act-exp-tax', kind: 'expense', icon: 'Car',             title: 'Taxi / Uber',        meta: '€28.00 · 5 Jul',             status: 'Pending',  statusKind: 'pending',  sortTs: 20260705, _expense: { type: 'mobility', category: 'Taxi / Uber', amount: 28.00, date: '05/07/2026', status: 'pending' } },
+    { id: 'act-exp-mob', kind: 'expense', icon: 'TrainFront',      title: 'Public transport',   meta: '€64.80 · 1 Jul',             status: 'Approved', statusKind: 'approved', sortTs: 20260701, _expense: { id: 'exp-7', type: 'mobility', category: 'Public transport', amount: 64.80, date: '01/07/2026', status: 'approved', reimbursementMonth: 'July 2026' } },
+    { id: 'act-to-sick', kind: 'timeoff', icon: 'Stethoscope',     title: 'Sick leave',         meta: 'Jun 23 · 1 day',             status: 'Approved', statusKind: 'approved', sortTs: 20260623, _leave: { label: 'Sick leave', date: 'Jun 23', month: 'June', days: 1, status: 'approved' } },
+    { id: 'act-exp-lnd', kind: 'expense', icon: 'GraduationCap',   title: 'Learning & dev.',    meta: '€450.00 · 15 Jun',           status: 'Approved', statusKind: 'approved', sortTs: 20260615, _expense: { type: 'lnd', category: 'Learning & dev.', amount: 450.00, date: '15/06/2026', status: 'approved' } },
+    { id: 'act-ben-bike',kind: 'benefit', icon: 'Bike',            title: 'Bike lease',         meta: 'o2o Lekker Amsterdam+',       status: 'Active',   statusKind: 'active',   sortTs: 20260101, _screen: 'me-bikelease' },
+    { id: 'act-ben-pen', kind: 'benefit', icon: 'PiggyBank',       title: 'Pension savings',    meta: 'Choice submitted · €312.50', status: 'Active',   statusKind: 'active',   sortTs: 20260102, _screen: 'pension-savings-detail' },
   ];
 
   const dynamicExpenses = (window.__submittedExpenses || []).map((e, idx) => ({
@@ -743,6 +757,7 @@ function ActivityLogScreen() {
     meta: '€' + Number(e.amount).toFixed(2) + (e.date ? ' · ' + e.date.slice(0, 5) : ''),
     status: 'Pending', statusKind: 'pending',
     sortTs: 99999999 - idx,
+    _expense: e,
   }));
 
   const dynamicAbsences = (window.__timeOffItems || [])
@@ -755,9 +770,11 @@ function ActivityLogScreen() {
       status: t.status === 'approved' ? 'Approved' : t.status === 'denied' ? 'Denied' : 'Pending',
       statusKind: t.status === 'denied' ? 'rejected' : (t.status || 'pending'),
       sortTs: 99999998 - idx,
+      _leave: t,
     }));
 
   const items = [...dynamicAbsences, ...dynamicExpenses, ...ALL_SEEDS]
+    .map(syncActivityLiveStatus)
     .filter((item, i, arr) => arr.findIndex(x => x.id === item.id) === i)
     .sort((a, b) => b.sortTs - a.sortTs);
 
@@ -771,6 +788,9 @@ function ActivityLogScreen() {
 
   const handleClick = (item) => {
     if (!nav) return;
+    if (item._leave) return nav.push('time-off-detail', { item: item._leave });
+    if (item._expense) return nav.push('expense-detail', { expense: item._expense });
+    if (item._screen) return nav.push(item._screen);
     if (item.kind === 'expense') nav.push('my-expenses');
     else if (item.kind === 'benefit') nav.push('me-active-benefits');
     else nav.push('time-off-hub');
