@@ -165,15 +165,21 @@ function ExpenseCategoryScreenV2({ type }) {
 // ─────────────────────────────────────────────────────────────
 const PAYFLIP_ADV_ICON_V2 = 'https://www.figma.com/api/mcp/asset/6fa2e40e-e8fd-48f9-9d84-a6f9e4656c0a';
 
-function ExpenseFormScreenV2({ type, category }) {
-  const { pop } = useNav();
+function ExpenseFormScreenV2({ type, category: categoryProp, direct }) {
+  const { pop, push } = useNav();
   const isMobility = type === 'mobility';
+  const isLnd = type === 'lnd';
+
+  const categories = isMobility ? MOB_CATEGORIES_V2 : isLnd ? [] : WORK_CATEGORIES;
 
   const [amount, setAmount]                 = React.useState('');
   const [date, setDate]                     = React.useState('2026-07-24');
   const [uploading, setUploading]           = React.useState(false);
   const [uploaded, setUploaded]             = React.useState(false);
   const [showAdvantageModal, setShowAdvantageModal] = React.useState(false);
+  const [category, setCategory]             = React.useState(categoryProp || '');
+
+  const doClose = () => { if (direct) pop(); else { pop(); pop(); pop(); } };
 
   const amtNum = parseFloat((amount || '0').replace(/[^0-9.,]/g, '').replace(',', '.')) || 0;
   const hasAmount = amtNum > 0;
@@ -186,47 +192,71 @@ function ExpenseFormScreenV2({ type, category }) {
 
   const handleSubmit = () => {
     const newExpense = {
-      id: `exp-v2-${Math.floor(Math.random() * 1e9)}`,
+      id: `exp-v2-${Date.now()}`,
+      type,
       category,
       amount: amtNum,
       date: date ? date.split('-').reverse().join('/') : '24/07/2026',
       status: 'pending',
     };
     window.__submittedExpenses = [newExpense, ...(window.__submittedExpenses || [])];
-    window.__pendingToast = { title: 'Expense submitted' };
     window.__lastSubmittedExpense = newExpense;
-    // pop 3 levels: form → category → type → home
-    pop(); pop(); pop();
+    // Success toast shows immediately from any screen (home OR benefits page)
+    if (window.__showToast) window.__showToast('Expense submitted', () => push('expense-detail', { expense: newExpense }));
+    else window.__pendingToast = { title: 'Expense submitted' };
+    doClose();
   };
 
-  const canSubmit = hasAmount && uploaded;
+  const canSubmit = hasAmount && uploaded && (categories.length === 0 || !!category);
+
+  const typeTitle = isMobility ? 'Mobility expense' : isLnd ? 'L&D' : 'Work expense';
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: '#fff' }}>
-      {/* Top bar */}
+      {/* Modal-style top bar: X | type name | spacer */}
       <div style={{ padding: '8px 16px 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <button onClick={pop} style={{
-          width: 36, height: 36, borderRadius: 999,
-          border: `1px solid ${PFC.border}`, background: 'transparent',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
-        }}>
-          <LucideIcon name="ChevronLeft" size={20} color={PFC.ink} strokeWidth={2} />
-        </button>
-        <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 13, color: PFC.inkSoft }}>
-          {category}
-        </span>
-        <button onClick={() => { pop(); pop(); pop(); }} style={{
+        <button onClick={doClose} style={{
           width: 36, height: 36, borderRadius: 999,
           border: `1px solid ${PFC.border}`, background: 'transparent',
           display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
         }}>
           <LucideIcon name="X" size={18} color={PFC.ink} strokeWidth={2} />
         </button>
+        <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 15, color: PFC.ink }}>
+          {typeTitle}
+        </span>
+        <div style={{ width: 36 }} />
       </div>
 
       {/* Scrollable content */}
       <div style={{ flex: 1, overflowY: 'auto', padding: '20px 16px 24px', display: 'flex', flexDirection: 'column', gap: 20 }}>
-        <Heading28>Details</Heading28>
+        <Heading28>Add details</Heading28>
+
+        {/* Category select — inline, only for types that have categories */}
+        {categories.length > 0 && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <Body14 color={PFC.ink} weight={600}>Category</Body14>
+            <div style={{ position: 'relative' }}>
+              <select
+                value={category}
+                onChange={e => setCategory(e.target.value)}
+                style={{
+                  width: '100%', boxSizing: 'border-box',
+                  border: `1.5px solid ${PFC.borderHard}`, borderRadius: 12,
+                  padding: '14px 40px 14px 16px', fontFamily: 'var(--font-display)',
+                  fontSize: 16, color: category ? PFC.ink : PFC.inkSoft, background: '#fff',
+                  outline: 'none', appearance: 'none', cursor: 'pointer',
+                }}
+              >
+                <option value="">Select category…</option>
+                {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+              </select>
+              <div style={{ position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
+                <LucideIcon name="ChevronDown" size={16} color={PFC.inkSoft} strokeWidth={2} />
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Amount */}
         <Field
