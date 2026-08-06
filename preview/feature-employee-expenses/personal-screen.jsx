@@ -530,7 +530,9 @@ function _meMonthExpenseInputs() {
 
 function PersonalScreen() {
   const nav = window.useNav ? window.useNav() : null;
-  const [meTab, setMeTab] = React.useState('benefits');
+  // Remember the active tab (benefits/expenses) across navigation away and back
+  const [meTab, setMeTabState] = React.useState(window.__meTab || 'benefits');
+  const setMeTab = (t) => { window.__meTab = t; setMeTabState(t); };
 
   const benefitRows = [
     { iconName: 'Bike',       title: 'Bike lease',    sub: '−€33.31/month from EYP', sc: MC.grn, status: 'Active', months: '36 months left', onTap: () => nav && nav.push('me-bikelease') },
@@ -5054,13 +5056,7 @@ function TimeOffDetailScreen({ item, onClose }) {
             const pillLabel = useIllnessPill ? 'Illness reported' : (item._adminRecorded ? 'Recorded' : ({ approved: 'Approved', pending: 'Pending', denied: 'Denied' }[item.status] || item.status));
             return (
               <>
-                <div style={{ padding: '20px 16px 0', display: 'flex' }}>
-                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: pill.bg, color: pill.color, padding: '5px 12px', borderRadius: 20, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>
-                    <span style={{ fontSize: 8, lineHeight: 1 }}>●</span>
-                    {pillLabel}
-                  </div>
-                </div>
-                <div style={{ padding: '16px 16px 20px' }}>
+                <div style={{ padding: '20px 16px 8px' }}>
                   <div style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 28, letterSpacing: '-0.03em', color: P.ink, lineHeight: '34px', marginBottom: 6 }}>
                     {(() => {
                       const _dN = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
@@ -5095,6 +5091,12 @@ function TimeOffDetailScreen({ item, onClose }) {
                   </div>
                   <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 16, color: P.inkSoft }}>
                     {item.days === 1 ? '1 day' : `${item.days} days`}
+                  </div>
+                </div>
+                <div style={{ padding: '0 16px 20px', display: 'flex' }}>
+                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: pill.bg, color: pill.color, padding: '5px 12px', borderRadius: 20, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>
+                    <span style={{ fontSize: 8, lineHeight: 1 }}>●</span>
+                    {pillLabel}
                   </div>
                 </div>
               </>
