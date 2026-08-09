@@ -6,6 +6,17 @@ This file is not part of the prototype itself — it's project documentation to 
 
 ---
 
+## 2026-08-09 — Design system: consolidating on shared components, and a Components page
+
+A recurring pattern this session — the same UI (a settings row, a modal, a button) hand-rolled independently on multiple screens with details quietly drifting apart — kept surfacing as one-off bugs. Rather than fix each instance as it's found, we audited the whole file for this class of duplication and consolidated the highest-value cases onto shared components, plus built a live reference page so the component set is checkable at a glance instead of only living in a markdown description.
+
+- **Every centered modal and side drawer now shares one wrapper component** (`ModalShell`, `DrawerShell`), replacing 16 independently hand-copied backdrop/panel/header implementations. *Why:* these were pixel-identical markup blocks, mechanically copy-pasted every time a new modal or drawer was added — a real risk (one already had no animation at all, since it was the one place someone forgot to wire up the shared transition hook) and pure duplication with zero behavioral variation to justify it.
+- **A real `Button` and `IconButton` system**, replacing dozens of independently-styled buttons that had drifted into at least 5 different "Cancel" treatments and 2 different close-button sizes with no rule for which screens got which. *Why:* buttons are the highest-frequency UI element in the app — inconsistency here is the most visible kind of "this doesn't feel like one product."
+- **Settings section labels (`SL`) hoisted to one shared constant**, removing 9 local redefinitions — including inside screens already migrated to shared row components, where the row got fixed but the label above it didn't.
+- **Badge/pill treatments consolidated onto the existing `DotPill`/`StatusPill` components**, extended with `filled`/`border`/`size` props to absorb the ad-hoc pills that had been built from scratch instead of reusing them.
+- **New in-app Components page** (Sidebar → Components), a live interactive reference for every shared component — click a button to see its states, open a real example modal/drawer, toggle a real switch — so "does this already exist" has a fast, visual answer instead of requiring a file search.
+- **Deliberately deferred**: two cases where unifying would mean picking a UX direction, not just extracting shared markup — the native-select vs. custom-popover pattern, and the sidebar-popover vs. centered-modal entity picker. Documented as open decisions in `CLAUDE.md` rather than resolved by assumption.
+
 ## 2026-08-09 — Allowances: surfacing legal ceiling risk, and where reference info belongs
 
 - **NSSS ceiling feedback redesigned as callouts that escalate from neutral to red.** *Why:* admins configure these rates rarely, and the "you're over the legal ceiling" warning previously looked identical to routine informational text — it needed to visually escalate so it can't be missed the one time it actually matters.
