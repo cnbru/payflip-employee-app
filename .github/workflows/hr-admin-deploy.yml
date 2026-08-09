@@ -21,6 +21,12 @@ jobs:
           cp -r project/employee-app/fonts/. _hr_site/fonts/
           # Copy benefit/choice images (referenced as assets/ in app.jsx)
           cp -r project/assets/. _hr_site/assets/
+          # index.html references /hr-admin/... as domain-absolute paths, which
+          # is correct for local dev (served under that subpath) but resolves
+          # to the wrong origin-root path once deployed at the repo root under
+          # GitHub Pages' /payflip-hr-admin/ prefix. Rewrite to root-relative
+          # paths so they resolve correctly wherever this site is served from.
+          sed -i 's#/hr-admin/#./#g' _hr_site/index.html
       - uses: JamesIves/github-pages-deploy-action@v4
         with:
           token: ${{ secrets.HR_ADMIN_DEPLOY_TOKEN }}
