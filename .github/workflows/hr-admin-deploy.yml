@@ -1,8 +1,12 @@
 name: Deploy HR Admin to payflip-hr-admin
 
+# Manual-only: deploys hr-admin to the standalone cnbru/payflip-hr-admin repo
+# and requires the HR_ADMIN_DEPLOY_TOKEN secret. The canonical prototype URL is
+# the payflip-employee-app Pages site (see pages.yml), so this no longer runs on
+# every push — trigger it from the Actions tab when you want the standalone repo
+# updated. Left on push it just fails (missing token) and adds red-X noise.
 on:
-  push:
-    branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: write

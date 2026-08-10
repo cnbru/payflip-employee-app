@@ -3,32 +3,54 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: write
+
+concurrency:
+  group: pages-deploy
+  cancel-in-progress: true
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - name: Prepare site
         run: |
+          set -euxo pipefail
+          rm -rf _site
           mkdir -p _site
-          cp -r project/employee-app/. _site/
-          # Copy hr-admin as a real directory (not via the local symlink)
-          cp -r project/hr-admin/. _site/hr-admin/
-          # Resolve fonts symlink so hr-admin has real font files
-          rm -rf _site/hr-admin/fonts
-          cp -r project/employee-app/fonts/. _site/hr-admin/fonts/
-          # Copy benefit/choice images (referenced as assets/ in app.jsx)
-          cp -r project/assets/. _site/hr-admin/assets/
-          # hr-admin/index.html references /hr-admin/... as domain-absolute paths, which
-          # is correct for local dev (served under that subpath) but resolves to the
-          # wrong origin-root path once nested under this repo's Pages site. Rewrite to
-          # relative paths so they resolve correctly at whatever depth this is served from.
-          sed -i 's#/hr-admin/#./#g' _site/hr-admin/index.html
+
+          # Employee app at the site root. -L dereferences symlinks (the
+          # employee app contains an "hr-admin" symlink pointing back at
+          # project/hr-admin); we remove that copy below and lay down the
+          # canonical hr-admin tree instead.
+          cp -RL project/employee-app/. _site/
+          rm -rf _site/hr-admin
+
+          # hr-admin as a real directory. -L dereferences its "assets" and
+          # "fonts" symlinks so real files land on gh-pages (copying the
+          # symlinks themselves would dangle — this was a past breakage).
+          cp -RL project/hr-admin/. _site/hr-admin/
+
+          # index.html uses relative asset paths + a <base> shim that resolves
+          # them at runtime, so no path rewriting is needed here anymore.
+
+          # SPA deep-link fallback: GitHub Pages serves the site-root 404.html
+          # for any path it can't find as a static file. The hr-admin app is a
+          # client-side router, so a reload/share of e.g. /hr-admin/people has
+          # no matching file. Serving the hr-admin bootstrap as 404.html lets
+          # the app boot and render the right screen from window.location.
+          cp _site/hr-admin/index.html _site/404.html
+
+          # Skip Jekyll processing so nothing is silently dropped or rewritten.
+          touch _site/.nojekyll
+
       - uses: JamesIves/github-pages-deploy-action@v4
         with:
           folder: _site
+          clean: true
           clean-exclude: preview/
