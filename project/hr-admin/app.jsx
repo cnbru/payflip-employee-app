@@ -5930,7 +5930,12 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
               </span>
             </div>
           </div>
-        ) : step < 2 ? null : (
+        ) : step < 2 ? (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 24 }}>
+            {stepBadgeEl(2)}
+            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 16, color: P.inkSoft }}>Sign mandate</span>
+          </div>
+        ) : (
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 24, animation: `stepDoneEnter 200ms ${EASE_OUT}` }}>
             {stepBadgeEl(2)}
             <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.inkSoft }}>€{deposit.toLocaleString('de-DE')} · Mandate signed</span>
@@ -5971,7 +5976,12 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
               </a>
             </div>
           )
-        ) : step < 3 ? null : (
+        ) : step < 3 ? (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 24 }}>
+            {stepBadgeEl(3)}
+            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 16, color: P.inkSoft }}>Awaiting bank approval</span>
+          </div>
+        ) : (
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 24, animation: `stepDoneEnter 200ms ${EASE_OUT}` }}>
             {stepBadgeEl(3, step === 4)}
             <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.inkSoft }}>Mandate approved</span>
@@ -5980,7 +5990,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
       </div>
 
       {/* Step 4 — Awaiting first deposit */}
-      <div style={{ background: step === 4 ? P.white : inactiveBg, borderBottom: `1px solid ${P.border}` }}>
+      {step >= 4 && <div style={{ background: step === 4 ? P.white : inactiveBg, borderBottom: `1px solid ${P.border}` }}>
         {step === 4 ? (
           <div key="m-step4-active" style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16, animation: `stepContentEnter 250ms ${EASE_OUT}` }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -6000,11 +6010,11 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
             <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.inkSoft }}>€{deposit.toLocaleString('de-DE')} received</span>
           </div>
         )}
-      </div>
+      </div>}
 
       {/* Step 5 — Send invites */}
-      <div style={{ background: step === 5 ? P.white : inactiveBg, borderBottom: `1px solid ${P.border}` }}>
-        {step === 5 ? (
+      {step === 5 && <div style={{ background: P.white, borderBottom: `1px solid ${P.border}` }}>
+        {(
           <div key="m-step5-active" style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16, animation: `stepContentEnter 250ms ${EASE_OUT}` }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
               {stepBadgeEl(5)}
@@ -6021,8 +6031,8 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
             </div>
             <Button variant="primary" onClick={() => setShowConfirmModal(true)} style={{ width: '100%', justifyContent: 'center', fontSize: 15, padding: '10px 18px' }}>Send invites to {empCount} employees</Button>
           </div>
-        ) : null}
-      </div>
+        )}
+      </div>}
     </>);
   };
 
@@ -6116,33 +6126,35 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
       {/* Body — single column */}
       <div style={{ display: 'flex', flexDirection: 'column' }}>
         {widgetMode === 'mobility' ? (<>
-          {!live && !started && (
-            <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 20, animation: `stepContentEnter 250ms ${EASE_OUT}` }}>
-              <div style={{ display: 'flex', flexDirection: 'column' }}>
-                {[
-                  { n: 1, title: 'Select employees', desc: 'Choose who gets a card and confirm the deposit amount.' },
-                  { n: 2, title: 'Sign mandate', desc: 'Authorise Payflip to collect the deposit and auto top-up.' },
-                  { n: 3, title: 'Send invites', desc: 'Employees download the app and request their own card.' },
-                ].map(({ n, title, desc }, i) => (
-                  <div key={n} style={{ display: 'flex', gap: 12, padding: '10px 0' }}>
-                    <span style={{ width: 24, height: 24, borderRadius: 4, background: P.bg, border: `1px solid ${P.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 12, color: P.inkSoft, marginTop: 1 }}>
-                      {n}
-                    </span>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                      <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 15, color: P.ink }}>{title}</span>
-                      <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, lineHeight: '18px' }}>{desc}</span>
+          {/* Intro overview — collapses when setup starts */}
+          <div style={{ display: 'grid', gridTemplateRows: started ? '0fr' : '1fr', transition: `grid-template-rows 350ms ${EASE_OUT}`, overflow: 'hidden' }}>
+            <div style={{ minHeight: 0 }}>
+              <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 20 }}>
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  {[
+                    { n: 1, title: 'Select employees', desc: 'Choose who gets a card and confirm the deposit amount.' },
+                    { n: 2, title: 'Sign mandate', desc: 'Authorise Payflip to collect the deposit and auto top-up.' },
+                    { n: 3, title: 'Send invites', desc: 'Employees download the app and request their own card.' },
+                  ].map(({ n, title, desc }) => (
+                    <div key={n} style={{ display: 'flex', gap: 12, padding: '10px 0' }}>
+                      <span style={{ width: 24, height: 24, borderRadius: '50%', border: `1.5px solid ${P.inkSoft}`, background: 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 12, color: P.inkSoft, marginTop: 1 }}>{n}</span>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                        <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 15, color: P.ink }}>{title}</span>
+                        <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, lineHeight: '18px' }}>{desc}</span>
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-              <div>
-                <Button variant="primary" onClick={() => setStarted(true)} style={{ width: '100%', justifyContent: 'center', fontSize: 14, padding: '10px 20px' }}>
-                  Begin setup
-                </Button>
+                  ))}
+                </div>
+                <Button variant="primary" onClick={() => setStarted(true)} style={{ width: '100%', justifyContent: 'center', fontSize: 14, padding: '10px 20px' }}>Begin setup</Button>
               </div>
             </div>
-          )}
-          {(started || live) && mobilitySetupContent()}
+          </div>
+          {/* Setup flow — expands when setup starts */}
+          <div style={{ display: 'grid', gridTemplateRows: started ? '1fr' : '0fr', transition: `grid-template-rows 350ms ${EASE_OUT}`, overflow: 'hidden' }}>
+            <div style={{ minHeight: 0 }}>
+              {mobilitySetupContent()}
+            </div>
+          </div>
           {liveContent()}
         </>) : (<>
 
