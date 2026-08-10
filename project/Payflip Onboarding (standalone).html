@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Payflip — Onboarding</title>
+<meta name="ext-resource-dependency" content="assets/payflip-logo.svg" data-resource-id="payflipLogo" />
+<meta name="ext-resource-dependency" content="assets/itsme.png" data-resource-id="itsmePng" />
+<meta name="ext-resource-dependency" content="assets/faceid-symbol.svg" data-resource-id="faceidSymbol" />
+<meta name="ext-resource-dependency" content="assets/faceid-done.svg" data-resource-id="faceidDone" />
+<meta name="ext-resource-dependency" content="assets/faceid-scan.svg" data-resource-id="faceidScan" />
+<meta name="ext-resource-dependency" content="assets/applewallet.svg" data-resource-id="applewallet" />
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  @font-face {
+    font-family: "Studio Feixen Sans";
+    src: url("assets/StudioFeixenSans-Semibold.otf") format("opentype");
+    font-weight: 600;
+    font-style: normal;
+    font-display: swap;
+  }
+  html, body { margin: 0; padding: 0; }
+  body {
+    min-height: 100vh; font-family: "Poppins", sans-serif;
+    background: radial-gradient(ellipse at center, #f5f3f0 0%, #e8e5e0 100%);
+    display: flex; align-items: center; justify-content: center;
+    padding: 32px 16px;
+  }
+  button { font-family: inherit; }
+  input::placeholder { color: #b8b9c4; }
+
+  .hide-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
+  .hide-scrollbar::-webkit-scrollbar { display: none; width: 0; height: 0; }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+  @keyframes slideInRight { from { transform: translateX(100%); } to { transform: translateX(0); } }
+  @keyframes slideInLeft { from { transform: translateX(-100%); } to { transform: translateX(0); } }
+  @keyframes slideOutLeft { from { transform: translateX(0); } to { transform: translateX(-30%); opacity: 0.6; } }
+  @keyframes slideOutRight { from { transform: translateX(0); } to { transform: translateX(30%); opacity: 0.6; } }
+  @keyframes scanline {
+    0%   { top: 18%; opacity: 0.4; }
+    50%  { top: 78%; opacity: 1; }
+    100% { top: 18%; opacity: 0.4; }
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50%      { opacity: 0.7; transform: scale(0.98); }
+  }
+  @keyframes pop {
+    0%   { transform: scale(0); }
+    100% { transform: scale(1); }
+  }
+  @keyframes bounce {
+    0%, 80%, 100% { transform: scale(0.6); opacity: 0.5; }
+    40%           { transform: scale(1); opacity: 1; }
+  }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes pinFill {
+    0% { transform: scale(0.6); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  @keyframes pinShake {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-6px); }
+    40% { transform: translateX(6px); }
+    60% { transform: translateX(-4px); }
+    80% { transform: translateX(4px); }
+  }
+  @keyframes sheetUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+  @keyframes dialogPop { from { opacity: 0; transform: scale(0.85); } to { opacity: 1; transform: scale(1); } }
+  @keyframes modalUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+  @keyframes pinDigitIn {
+    0%   { opacity: 0; transform: translateY(8px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes popIn { from { opacity: 0; transform: translate(-50%, -50%) scale(0.85); } to { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
+  @keyframes successPop {
+    0%   { opacity: 0; transform: scale(0.3); }
+    70%  { opacity: 1; transform: scale(1.08); }
+    100% { opacity: 1; transform: scale(1); }
+  }
+  @keyframes successRing {
+    0%   { opacity: 0.8; transform: scale(0.8); }
+    100% { opacity: 0;   transform: scale(1.6); }
+  }
+  @keyframes successCheck {
+    to { stroke-dashoffset: 0; }
+  }
+  @keyframes iosFaceIdIn {
+    0%   { transform: translateX(-50%) scale(0.3); opacity: 0; }
+    60%  { transform: translateX(-50%) scale(1.04); opacity: 1; }
+    100% { transform: translateX(-50%) scale(1); opacity: 1; }
+  }
+
+  @keyframes errorPop {
+    0%   { opacity: 0; transform: scale(0.3); }
+    70%  { opacity: 1; transform: scale(1.08); }
+    100% { opacity: 1; transform: scale(1); }
+  }
+
+  /* ── Splash: logo fade-in then fade-out to login ──────── */
+  @keyframes splashLogoIn {
+    0%   { opacity: 0; }
+    100% { opacity: 1; }
+  }
+  @keyframes splashFadeOut {
+    0%   { opacity: 1; }
+    100% { opacity: 0; }
+  }
+
+  @keyframes stepperPipPop {
+    0%   { transform: scale(1); }
+    50%  { transform: scale(1.12); }
+    100% { transform: scale(1); }
+  }
+  @keyframes stepperPipDone {
+    0%   { transform: scale(1); }
+    40%  { transform: scale(1.18); }
+    100% { transform: scale(1); }
+  }
+  @keyframes stepperCheckIn {
+    0%   { opacity: 0; transform: scale(0.4) rotate(-12deg); }
+    100% { opacity: 1; transform: scale(1) rotate(0deg); }
+  }
+</style>
+</head>
+<body>
+<template id="__bundler_thumbnail" data-bg-color="#220A35">
+  <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+    <rect width="200" height="200" fill="#220A35"/>
+    <g transform="translate(76 88)">
+      <path d="M 6.202 0 C 8.669 0 10.8 2.78 11.799 6.806 C 12.164 6.281 12.566 5.769 13.005 5.274 C 17.774 -0.103 25.078 -1.413 29.319 2.349 C 30.761 3.627 31.662 5.328 32.037 7.227 C 34.654 2.383 37.901 -0.63 39.896 0.21 C 41.068 0.704 41.589 2.434 41.489 4.844 C 42.374 1.848 43.576 -0.055 44.746 0.043 C 46.662 0.205 47.766 5.676 47.212 12.263 C 46.658 18.85 44.655 24.06 42.738 23.898 C 40.822 23.737 39.718 18.266 40.272 11.679 C 40.299 11.369 40.328 11.062 40.36 10.759 C 40.046 11.765 39.67 12.802 39.229 13.85 C 36.479 20.381 32.319 24.863 29.938 23.86 C 28.714 23.345 28.2 21.478 28.362 18.898 C 23.593 24.274 16.291 25.582 12.05 21.821 C 11.52 21.351 11.063 20.824 10.678 20.251 C 9.549 22.523 7.962 23.939 6.202 23.939 C 2.777 23.939 0 18.58 0 11.97 C 0 5.359 2.777 0 6.202 0 Z" fill="#FFFFFF"/>
+    </g>
+  </svg>
+</template>
+<div id="root"></div>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script type="text/babel" src="components.standalone.jsx"></script>
+<script type="text/babel" src="tweaks-panel.jsx"></script>
+<script type="text/babel" src="screens.standalone.jsx"></script>
+<script type="text/babel" src="app.jsx"></script>
+</body>
+</html>

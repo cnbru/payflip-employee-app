@@ -1,0 +1,7 @@
+{
+  "rewrites": [
+    { "source": "/", "destination": "/Payflip Onboarding.html" },
+    { "source": "/hr-admin", "destination": "/hr-admin/index.html" },
+    { "source": "/hr-admin/**", "destination": "/hr-admin/index.html" }
+  ]
+}

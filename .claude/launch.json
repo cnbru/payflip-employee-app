@@ -11,7 +11,7 @@
     {
       "name": "hr-admin",
       "runtimeExecutable": "npx",
-      "runtimeArgs": ["-y", "http-server", "project", "-c-1", "--cors"],
+      "runtimeArgs": ["serve", "/Users/brunocoen/Documents/payflip-mobile-app-v1/project", "--no-clipboard"],
       "port": 4489,
       "autoPort": true
     },
@@ -25,7 +25,7 @@
     {
       "name": "Payflip HR Admin",
       "runtimeExecutable": "npx",
-      "runtimeArgs": ["serve", "/Users/brunocoen/Documents/payflip-mobile-app-v1/project", "--no-clipboard"],
+      "runtimeArgs": ["serve", "/Users/brunocoen/Documents/payflip-mobile-app-v1/project", "--config", "/Users/brunocoen/Documents/payflip-mobile-app-v1/project/serve-hr-admin.json", "--no-clipboard"],
       "port": 8083,
       "autoPort": true
     }

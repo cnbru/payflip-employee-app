@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Payflip — Onboarding</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://cdn.jsdelivr.net/npm/@n8n/chat/dist/style.css" rel="stylesheet" />
+<style>
+  #n8n-chat {
+    --chat--color--primary: #D44A74;
+    --chat--color--secondary: #0F0D28;
+    --chat--color-dark: #0F0D28;
+    --chat--color-typing: #D44A74;
+    --chat--font-family: 'Poppins', sans-serif;
+    --chat--border-radius: 12px;
+    --chat--message--border-radius: 12px;
+    --chat--header--padding: 0;
+    --chat--window--width: 100%;
+    --chat--window--height: 100%;
+    --chat--message--font-size: 14px;
+    --chat--textarea--height: 34px;
+  }
+  #n8n-chat .chat-window { box-shadow: none !important; border-radius: 0 !important; }
+  /* Hide n8n's own header — we render our own */
+  #n8n-chat .chat-header { display: none !important; }
+  /* Chat body: match Payflip surface color */
+  #n8n-chat .chat-body { background: #f5f6fa !important; }
+  #n8n-chat .chat-footer { background: #f5f6fa !important; border-top: 1px solid #e8e9f0 !important; padding: 10px 16px 28px !important; }
+  /* Input container: pill shape, grows with textarea */
+  #n8n-chat .chat-input { background: #fff !important; border-radius: 24px !important; padding: 5px 8px 5px 6px !important; border: 1px solid #e8e9f0 !important; align-items: flex-end !important; overflow: visible !important; width: 100% !important; box-sizing: border-box !important; }
+  #n8n-chat .chat-inputs { align-items: flex-end !important; background: transparent !important; width: 100% !important; height: auto !important; min-height: 0 !important; }
+  #n8n-chat .chat-inputs-controls { background: transparent !important; flex-shrink: 0 !important; width: auto !important; padding: 0 !important; height: auto !important; min-height: 0 !important; display: flex !important; align-items: center !important; }
+  #n8n-chat textarea { background: transparent !important; }
+  /* Textarea: auto-grows, no scrollbar */
+  #n8n-chat textarea { font-size: 14px !important; min-height: 34px !important; height: 34px !important; max-height: 108px !important; padding: 7px 0 !important; line-height: 1.4 !important; overflow-y: hidden !important; resize: none !important; scrollbar-width: none !important; -ms-overflow-style: none !important; box-sizing: border-box !important; }
+  #n8n-chat textarea::-webkit-scrollbar { display: none !important; }
+  #n8n-chat textarea::placeholder { line-height: 20px !important; }
+  /* Send button: clean accent circle */
+  #n8n-chat .chat-inputs-controls { padding: 0 !important; margin: 0 !important; align-items: center !important; align-self: flex-end !important; }
+  #n8n-chat .chat-inputs-controls button { background: #D44A74 !important; border-radius: 50% !important; width: 34px !important; height: 34px !important; min-width: 34px !important; min-height: 34px !important; padding: 0 !important; display: flex !important; align-items: center !important; justify-content: center !important; border: none !important; box-shadow: none !important; flex-shrink: 0 !important; }
+  #n8n-chat .chat-inputs-controls button svg { display: none !important; }
+  #n8n-chat .chat-inputs-controls button::before { content: ''; display: block; width: 18px; height: 18px; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 19V5M5 12l7-7 7 7'/%3E%3C/svg%3E") center/contain no-repeat; }
+  #n8n-chat .chat-inputs-controls button:disabled { opacity: 0.4 !important; }
+  /* Hide "Powered by n8n" branding */
+  #n8n-chat .chat-footer > a, #n8n-chat .chat-footer > span, #n8n-chat .chat-footer > div:last-child:not(.chat-input) { display: none !important; }
+  /* Message bubbles — strip n8n's default padding from wrapper */
+  #n8n-chat .chat-message { padding: 0 !important; }
+  #n8n-chat .chat-messages-list { padding: 12px 16px !important; display: flex !important; flex-direction: column !important; gap: 8px !important; }
+  /* Bot messages: avatar + bubble row */
+  #n8n-chat .chat-message-from-bot { max-width: 100% !important; display: flex !important; align-items: flex-end !important; gap: 8px !important; margin: 0 !important; background: transparent !important; border-radius: 0 !important; padding: 0 !important; }
+  #n8n-chat .chat-message-from-bot::before { content: '' !important; width: 26px !important; height: 26px !important; min-width: 26px !important; border-radius: 50% !important; background: url('assets/Arko.png') center/cover no-repeat, #f0edf8 !important; display: block !important; flex-shrink: 0 !important; }
+  /* User messages: right-aligned */
+  #n8n-chat .chat-message-from-user { max-width: 80% !important; margin-left: auto !important; margin-right: 0 !important; }
+  /* Bubble content */
+  #n8n-chat .chat-message-markdown { font-size: 14px !important; line-height: 1.45 !important; }
+  #n8n-chat .chat-message-from-bot .chat-message-markdown { padding: 8px 10px !important; border-radius: 12px 12px 12px 0 !important; background: #fff !important; max-width: calc(100% - 34px) !important; }
+  #n8n-chat .chat-message-from-user .chat-message-markdown { padding: 8px 10px !important; background: #D44A74 !important; color: #fff !important; border-radius: 12px 12px 0 12px !important; }
+  /* Typing indicator: "Thinking..." shimmer wave instead of dots */
+  #n8n-chat .chat-message-typing { background: transparent !important; border-radius: 0 !important; padding: 4px 0 !important; box-shadow: none !important; }
+  #n8n-chat .chat-message-typing-circle { display: none !important; }
+  #n8n-chat .chat-message-typing-body { overflow: visible !important; min-width: 0 !important; gap: 0 !important; }
+  #n8n-chat .chat-message-typing-body::after {
+    content: 'Thinking...';
+    font-family: 'Poppins', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    display: inline-block;
+    white-space: nowrap;
+    background: linear-gradient(90deg, #9ca3af 0%, #9ca3af 30%, #D44A74 50%, #9ca3af 70%, #9ca3af 100%);
+    background-size: 300px 100%;
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: payflip-thinking 1.8s linear infinite;
+  }
+  @keyframes payflip-thinking {
+    from { background-position: -300px 0; }
+    to   { background-position: 300px 0; }
+  }
+</style>
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  @font-face {
+    font-family: "Studio Feixen Sans";
+    src: url("assets/StudioFeixenSans-Semibold.otf") format("opentype");
+    font-weight: 600;
+    font-style: normal;
+    font-display: swap;
+  }
+  html, body { margin: 0; padding: 0; }
+  body {
+    min-height: 100vh; font-family: "Poppins", sans-serif;
+    background: radial-gradient(ellipse at center, #f5f3f0 0%, #e8e5e0 100%);
+    display: flex; align-items: center; justify-content: center;
+    padding: 32px 16px;
+  }
+  button { font-family: inherit; }
+  input::placeholder { color: #b8b9c4; }
+
+  .hide-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
+  .hide-scrollbar::-webkit-scrollbar { display: none; width: 0; height: 0; }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+  @keyframes slideInRight { from { transform: translateX(100%); } to { transform: translateX(0); } }
+  @keyframes slideInLeft { from { transform: translateX(-100%); } to { transform: translateX(0); } }
+  @keyframes slideOutLeft { from { transform: translateX(0); } to { transform: translateX(-30%); opacity: 0.6; } }
+  @keyframes slideOutRight { from { transform: translateX(0); } to { transform: translateX(30%); opacity: 0.6; } }
+  @keyframes scanline {
+    0%   { top: 18%; opacity: 0.4; }
+    50%  { top: 78%; opacity: 1; }
+    100% { top: 18%; opacity: 0.4; }
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50%      { opacity: 0.7; transform: scale(0.98); }
+  }
+  @keyframes pop {
+    0%   { transform: scale(0); }
+    100% { transform: scale(1); }
+  }
+  @keyframes bounce {
+    0%, 80%, 100% { transform: scale(0.6); opacity: 0.5; }
+    40%           { transform: scale(1); opacity: 1; }
+  }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes pinFill {
+    0% { transform: scale(0.6); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  @keyframes pinShake {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-6px); }
+    40% { transform: translateX(6px); }
+    60% { transform: translateX(-4px); }
+    80% { transform: translateX(4px); }
+  }
+  @keyframes sheetUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+  @keyframes dialogPop { from { opacity: 0; transform: scale(0.85); } to { opacity: 1; transform: scale(1); } }
+  @keyframes modalUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+  @keyframes pinDigitIn {
+    0%   { opacity: 0; transform: translateY(8px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes popIn { from { opacity: 0; transform: translate(-50%, -50%) scale(0.85); } to { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
+  @keyframes successPop {
+    0%   { opacity: 0; transform: scale(0.3); }
+    70%  { opacity: 1; transform: scale(1.08); }
+    100% { opacity: 1; transform: scale(1); }
+  }
+  @keyframes successRing {
+    0%   { opacity: 0.8; transform: scale(0.8); }
+    100% { opacity: 0;   transform: scale(1.6); }
+  }
+  @keyframes successCheck {
+    to { stroke-dashoffset: 0; }
+  }
+  @keyframes iosFaceIdIn {
+    0%   { transform: translateX(-50%) scale(0.3); opacity: 0; }
+    60%  { transform: translateX(-50%) scale(1.04); opacity: 1; }
+    100% { transform: translateX(-50%) scale(1); opacity: 1; }
+  }
+
+  @keyframes errorPop {
+    0%   { opacity: 0; transform: scale(0.3); }
+    70%  { opacity: 1; transform: scale(1.08); }
+    100% { opacity: 1; transform: scale(1); }
+  }
+
+  /* ── Splash: logo fade-in then fade-out to login ──────── */
+  @keyframes splashLogoIn {
+    0%   { opacity: 0; }
+    100% { opacity: 1; }
+  }
+  @keyframes splashFadeOut {
+    0%   { opacity: 1; }
+    100% { opacity: 0; }
+  }
+
+  @keyframes stepperPipPop {
+    0%   { transform: scale(1); }
+    50%  { transform: scale(1.12); }
+    100% { transform: scale(1); }
+  }
+  @keyframes stepperPipDone {
+    0%   { transform: scale(1); }
+    40%  { transform: scale(1.18); }
+    100% { transform: scale(1); }
+  }
+  @keyframes stepperCheckIn {
+    0%   { opacity: 0; transform: scale(0.4) rotate(-12deg); }
+    100% { opacity: 1; transform: scale(1) rotate(0deg); }
+  }
+  @keyframes breathe {
+    0%, 100% { transform: scale(1); }
+    50%      { transform: scale(1.03); }
+  }
+  @keyframes shimmer {
+    0%   { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+  }
+  @keyframes screeningStepIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script type="module">
+  import { createChat } from 'https://cdn.jsdelivr.net/npm/@n8n/chat/dist/chat.bundle.es.js';
+  window.__n8nCreateChat = createChat;
+</script>
+<script type="text/babel" src="components.jsx"></script>
+<script type="text/babel" src="tweaks-panel.jsx"></script>
+<script type="text/babel" src="screens.jsx"></script>
+<script type="text/babel" src="app.jsx"></script>
+</body>
+</html>

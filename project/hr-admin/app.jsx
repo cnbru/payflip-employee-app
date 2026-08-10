@@ -334,6 +334,43 @@ function Button({ variant = 'secondary', onClick, children, icon, iconSize = 14,
   );
 }
 
+// ── ChoiceCard — a bordered, individually-selectable option card for radio/checkbox
+// lists where each option has a label AND a description (e.g. "Reimbursement cycle",
+// admin access areas). Selected state fills the card with P.bg and darkens the border,
+// with a filled indicator on the right. For plain toggle rows with no description
+// (a lone checkbox, a two-way switch), keep the existing lighter inline pattern instead.
+function ChoiceCard({ type = 'radio', selected, onClick, label, description }) {
+  const indicatorShape = type === 'radio'
+    ? { borderRadius: '50%' }
+    : { borderRadius: 5 };
+  return (
+    <div onClick={onClick} style={{
+      display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16,
+      padding: '14px 16px', borderRadius: 10, cursor: 'pointer',
+      border: `1px solid ${selected ? P.ink : P.border}`,
+      background: selected ? P.bg : P.white,
+      transition: `background 120ms ${EASE_OUT}, border-color 120ms ${EASE_OUT}`,
+    }}>
+      <div>
+        <div style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink }}>{label}</div>
+        {description && <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, marginTop: 2 }}>{description}</div>}
+      </div>
+      <div style={{
+        width: 18, height: 18, ...indicatorShape, flexShrink: 0,
+        border: `2px solid ${selected ? P.ink : P.border}`,
+        background: selected ? P.ink : 'transparent',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        transition: `border-color 120ms ${EASE_OUT}, background 120ms ${EASE_OUT}`,
+      }}>
+        {selected && (type === 'radio'
+          ? <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#fff' }} />
+          : <Icon name="check" size={11} color="#fff" strokeWidth={3} />
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ── Modal shell — the centered-modal wrapper shared by every small dialog
 // (pick a value, confirm a delete, edit a category, ...). Owns the backdrop,
 // panel, and optional title/close header; body/footer are supplied as
@@ -6125,21 +6162,13 @@ function PickModal({ title, options, value, onSave, onClose, extraField }) {
         const save = () => { const n = parseFloat(extraVal); onSave(selected, extraField && selected === extraField.forValue ? (isNaN(n) ? extraField.defaultValue : n) : undefined); close(); };
         return (
           <>
-            <div style={{ padding: '8px 14px' }}>
+            <div style={{ padding: '14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
               {options.map(opt => (
                 <React.Fragment key={opt.value}>
-                <div onClick={() => setSelected(opt.value)}
-                  style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '12px 10px', cursor: 'pointer', borderRadius: 8 }}>
-                  <div style={{ width: 18, height: 18, borderRadius: '50%', border: `2px solid ${selected === opt.value ? P.action : P.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    {selected === opt.value && <div style={{ width: 8, height: 8, borderRadius: '50%', background: P.action }} />}
-                  </div>
-                  <div>
-                    <div style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink }}>{opt.label}</div>
-                    {opt.hint && <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, marginTop: 2 }}>{opt.hint}</div>}
-                  </div>
-                </div>
+                <ChoiceCard type="radio" selected={selected === opt.value} onClick={() => setSelected(opt.value)}
+                  label={opt.label} description={opt.hint} />
                 {extraField && opt.value === extraField.forValue && selected === extraField.forValue && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '0 10px 8px 42px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '-4px 0 4px 16px' }}>
                     <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>{extraField.label}</span>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6, border: `1px solid ${P.border}`, borderRadius: 7, padding: '5px 8px', background: P.bg }}>
                       <input type="number" min={extraField.min || 1} value={extraVal} onChange={e => setExtraVal(e.target.value)}
@@ -6570,22 +6599,11 @@ function AdminAccessModal({ admin, access, onSave, onClose }) {
 
           {/* Step 2: area checkboxes */}
           <div style={{ position: 'absolute', top: 0, left: 0, right: 0, transform: step2Slide, transition: slideTransition }}>
-            <div style={{ padding: '8px 14px 4px' }}>
-              {ADMIN_AREAS.map(area => {
-                const checked = selectedAreas.includes(area.value);
-                return (
-                  <div key={area.value} onClick={() => toggleArea(area.value)}
-                    style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '9px 10px', cursor: 'pointer', borderRadius: 8 }}>
-                    <div style={{ width: 16, height: 16, borderRadius: 4, border: `2px solid ${checked ? P.action : P.border}`, background: checked ? P.action : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'border-color 120ms ease, background 120ms ease', marginTop: 2 }}>
-                      {checked && <Icon name="check" size={10} color="#fff" strokeWidth={3} />}
-                    </div>
-                    <div>
-                      <div style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink, fontWeight: 500 }}>{area.label}</div>
-                      <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>{area.hint}</div>
-                    </div>
-                  </div>
-                );
-              })}
+            <div style={{ padding: '14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {ADMIN_AREAS.map(area => (
+                <ChoiceCard key={area.value} type="checkbox" selected={selectedAreas.includes(area.value)} onClick={() => toggleArea(area.value)}
+                  label={area.label} description={area.hint} />
+              ))}
             </div>
           </div>
         </div>
