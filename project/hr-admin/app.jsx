@@ -5749,9 +5749,11 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
   ];
 
   // Default: only employees with remaining budget
-  const [selectedEmployees, setSelectedEmployees] = useState(readyToUse.map(e => e.value));
+  const defaultSelection = readyToUse.map(e => e.value);
+  const [selectedEmployees, setSelectedEmployees] = useState(defaultSelection);
 
   const empCount = selectedEmployees.length;
+  const isDefaultSelection = selectedEmployees.length === defaultSelection.length && selectedEmployees.every(id => defaultSelection.includes(id));
   // Deposit = €37/employee/month × 3 months, rounded to nearest €50
   const deposit = Math.max(50, Math.round(empCount * 37 * 3 / 50) * 50);
 
@@ -5764,25 +5766,15 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
     setLiveVisible(false);
   };
 
-  // Mobility: simulate bank approving mandate 5s after step 3
+  // Mobility: simulate deposit arriving 5s after step 3 (covers bank approval + collection)
   React.useEffect(() => {
     if (widgetMode !== 'mobility' || step !== 3 || mandateDenied) return;
     const t = setTimeout(() => {
       setStep(4);
-      onToast?.({ message: 'Mandate approved — collecting your first deposit', type: 'approve' });
-    }, 5000);
-    return () => clearTimeout(t);
-  }, [widgetMode, step, mandateDenied]);
-
-  // Mobility: simulate first deposit arriving 5s after step 4
-  React.useEffect(() => {
-    if (widgetMode !== 'mobility' || step !== 4) return;
-    const t = setTimeout(() => {
-      setStep(5);
       onToast?.({ message: 'Funds received — your account is ready', type: 'approve' });
     }, 5000);
     return () => clearTimeout(t);
-  }, [widgetMode, step]);
+  }, [widgetMode, step, mandateDenied]);
 
   // Food: simulate bank approval 5s after step 2
   React.useEffect(() => {
@@ -5858,6 +5850,15 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
             <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
               Choose who gets access to the Payflip Card. Only employees with a mobility budget are eligible.
             </p>
+            {/* Auto-selection callout — only shown while selection is untouched */}
+            {isDefaultSelection && (
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '10px 12px', background: '#f0fdf4', borderRadius: 8 }}>
+                <Icon name="info" size={14} color='#059669' strokeWidth={2} style={{ marginTop: 1, flexShrink: 0 }} />
+                <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: '#065f46', lineHeight: '18px' }}>
+                  We pre-selected the {readyToUse.length} employee{readyToUse.length !== 1 ? 's' : ''} with a remaining mobility budget. Review and adjust before continuing.
+                </span>
+              </div>
+            )}
             {/* Employee selector row */}
             <div
               onClick={() => setShowPickerModal(true)}
@@ -5868,32 +5869,26 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 <Icon name="users" size={16} color={P.inkSoft} strokeWidth={1.75} />
                 <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.ink }}>
-                  {empCount === readyToUse.length
-                    ? `${empCount} with remaining budget · ${budgetSpent.length} excluded`
+                  {isDefaultSelection
+                    ? `Review selection — ${empCount} of ${allEligible.length} employees`
                     : `${empCount} of ${allEligible.length} employees selected`}
                 </span>
               </div>
-              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.ink, textDecoration: 'underline' }}>Edit</span>
+              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.ink, textDecoration: 'underline' }}>
+                {isDefaultSelection ? 'Review' : 'Edit'}
+              </span>
             </div>
-            {/* Live deposit preview */}
-            <div style={{ display: 'flex', gap: 12 }}>
-              <div style={{ flex: 1, border: `1px solid ${P.border}`, borderRadius: 10, padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 4 }}>
-                <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>Employees</span>
-                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 24, color: P.ink }}>
-                  <AnimatedNumber value={String(empCount)} />
+            {/* Deposit preview */}
+            <div style={{ border: `1px solid ${P.border}`, borderRadius: 10, padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>Deposit needed</span>
+                <span onClick={e => { e.stopPropagation(); setShowCalcModal(true); }} style={{ width: 18, height: 18, borderRadius: '50%', background: P.bg, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}>
+                  <Icon name="help-circle" size={12} color={P.inkSoft} strokeWidth={2} />
                 </span>
               </div>
-              <div style={{ flex: 1, border: `1px solid ${P.border}`, borderRadius: 10, padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 4 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>Deposit needed</span>
-                  <span onClick={e => { e.stopPropagation(); setShowCalcModal(true); }} style={{ width: 18, height: 18, borderRadius: '50%', background: P.bg, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}>
-                    <Icon name="help-circle" size={12} color={P.inkSoft} strokeWidth={2} />
-                  </span>
-                </div>
-                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 24, color: P.ink }}>
-                  €<AnimatedNumber value={deposit.toLocaleString('de-DE')} />
-                </span>
-              </div>
+              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 24, color: P.ink }}>
+                €<AnimatedNumber value={deposit.toLocaleString('de-DE')} />
+              </span>
             </div>
             <Button variant="primary" disabled={empCount === 0} onClick={() => setStep(2)} style={{ width: '100%', justifyContent: 'center', fontSize: 15, padding: '10px 18px' }}>Continue</Button>
           </div>
@@ -5943,7 +5938,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
         )}
       </div>
 
-      {/* Step 3 — Awaiting bank approval */}
+      {/* Step 3 — Awaiting deposit (bank approval + collection, system-managed) */}
       <div style={{ background: step === 3 ? P.white : inactiveBg, borderBottom: `1px solid ${P.border}` }}>
         {step === 3 ? (
           mandateDenied ? (
@@ -5966,10 +5961,10 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
             <div key="m-step3-active" style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16, animation: `stepContentEnter 250ms ${EASE_OUT}` }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                 {stepBadgeEl(3)}
-                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.ink }}>Awaiting bank approval</span>
+                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.ink }}>Awaiting deposit</span>
               </div>
               <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
-                Your bank is reviewing the mandate. This usually takes a few hours but can take up to 24 hours. We'll notify you once it's approved.
+                Your bank is approving the mandate and we'll collect €{deposit.toLocaleString('de-DE')} once it's confirmed. Funds are usually available within 3 business days.
               </p>
               <a href="#" onClick={e => { e.preventDefault(); setMandateDenied(true); }} style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, textDecoration: 'underline' }}>
                 Simulate denial ↗
@@ -5979,53 +5974,25 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
         ) : step < 3 ? (
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 24 }}>
             {stepBadgeEl(3)}
-            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 16, color: P.inkSoft }}>Awaiting bank approval</span>
-          </div>
-        ) : (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 24, animation: `stepDoneEnter 200ms ${EASE_OUT}` }}>
-            {stepBadgeEl(3, step === 4)}
-            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.inkSoft }}>Mandate approved</span>
-          </div>
-        )}
-      </div>
-
-      {/* Step 4 — Awaiting first deposit */}
-      <div style={{ background: step === 4 ? P.white : inactiveBg, borderBottom: `1px solid ${P.border}` }}>
-        {step === 4 ? (
-          <div key="m-step4-active" style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16, animation: `stepContentEnter 250ms ${EASE_OUT}` }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              {stepBadgeEl(4)}
-              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.ink }}>Awaiting first deposit</span>
-            </div>
-            <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
-              We're collecting your first deposit. We'll notify you when the funds are available — usually within 3 business days.
-            </p>
-            <a href="#" onClick={e => e.preventDefault()} style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.ink, textDecoration: 'underline' }}>
-              Need help?
-            </a>
-          </div>
-        ) : step < 4 ? (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 24 }}>
-            {stepBadgeEl(4)}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 16, color: P.inkSoft }}>Awaiting first deposit</span>
+              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 16, color: P.inkSoft }}>Awaiting deposit</span>
               <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>~3 business days</span>
             </div>
           </div>
         ) : (
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 24, animation: `stepDoneEnter 200ms ${EASE_OUT}` }}>
-            {stepBadgeEl(4, step === 5)}
+            {stepBadgeEl(3, step === 4)}
             <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.inkSoft }}>€{deposit.toLocaleString('de-DE')} received</span>
           </div>
         )}
       </div>
 
-      {/* Step 5 — Send invites */}
-      <div style={{ background: step === 5 ? P.white : inactiveBg, borderBottom: `1px solid ${P.border}` }}>
-        {step === 5 ? (
-          <div key="m-step5-active" style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16, animation: `stepContentEnter 250ms ${EASE_OUT}` }}>
+      {/* Step 4 — Send invites */}
+      <div style={{ background: step === 4 ? P.white : inactiveBg, borderBottom: `1px solid ${P.border}` }}>
+        {step === 4 ? (
+          <div key="m-step4-active" style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16, animation: `stepContentEnter 250ms ${EASE_OUT}` }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              {stepBadgeEl(5)}
+              {stepBadgeEl(4)}
               <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.ink }}>Send invites</span>
             </div>
             <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
@@ -6041,7 +6008,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
           </div>
         ) : (
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 24 }}>
-            {stepBadgeEl(5)}
+            {stepBadgeEl(4)}
             <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 16, color: P.inkSoft }}>Send invites</span>
           </div>
         )}
