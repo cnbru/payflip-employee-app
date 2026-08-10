@@ -6,6 +6,16 @@ This file is not part of the prototype itself — it's project documentation to 
 
 ---
 
+## 2026-08-10 — Dashboard: visual language separation between step indicators and category icons
+
+- **Setup step badges redesigned** from bordered gray squares to open circles with a thin `P.inkSoft` ring. *Why:* the step numbers (1, 2, 3) and the "Needs attention" category icon boxes were using the same visual treatment — same gray fill, same border, same shape — despite serving completely different semantic roles (sequence vs. category). Numbered circles are the established convention for ordinal progress; filled/bordered squares read as badges or icons. The open-circle treatment makes the distinction legible at a glance without requiring any mental parsing.
+- **Attention row icon boxes given per-category tinted backgrounds** (blue for time-off, amber for expenses, violet for choices), replacing the neutral gray fill and border. *Why:* neutral gray drained all urgency signal from items that represent pending work. Color encodes category and carries a hint of the action's nature — requests (calendar/blue), financial (receipt/amber), approvals (list/violet) — matching the convention used by Linear, Notion, and other productivity tools.
+
+## 2026-08-10 — Design system: ChoiceCard for bordered option lists
+
+- **New shared `ChoiceCard` component** for any modal list where each option has a label and a description — replaces inline indicator rows in `PickModal` (reimbursement cycle) and `AdminAccessModal` (area checkboxes). Supports both radio and checkbox variants; selected state fills the card with a dark border and filled indicator. *Why:* the previous pattern (bare radio dot + label/hint stacked beside it) looked lightweight and untested — a bordered card makes each option feel like a real, tappable choice and visually matches the weight of what you're deciding. Also removes the only place in the app still using the old accent-colored radio dot.
+- **Label weight set to 500 inside `ChoiceCard`**, matching the DS convention for primary option labels. *Why:* at 14px regular, the label read the same as a body sentence — medium weight gives it the visual hierarchy it needs to anchor the card.
+
 ## 2026-08-09 — Design system: consolidating on shared components, and a Components page
 
 A recurring pattern this session — the same UI (a settings row, a modal, a button) hand-rolled independently on multiple screens with details quietly drifting apart — kept surfacing as one-off bugs. Rather than fix each instance as it's found, we audited the whole file for this class of duplication and consolidated the highest-value cases onto shared components, plus built a live reference page so the component set is checkable at a glance instead of only living in a markdown description.

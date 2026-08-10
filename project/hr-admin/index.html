@@ -18,6 +18,31 @@
     .hide-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
     .hide-scrollbar::-webkit-scrollbar { display: none; }
     input::placeholder { color: #0f0d28; opacity: 1; }
+
+    /* Number pop-in — transitions.dev/02 */
+    :root {
+      --digit-dur: 400ms;
+      --digit-distance: 8px;
+      --digit-stagger: 60ms;
+      --digit-blur: 2px;
+      --digit-ease: cubic-bezier(0.34, 1.45, 0.64, 1);
+      --digit-dir-x: 0;
+      --digit-dir-y: 1;
+    }
+    @keyframes t-digit-pop-in {
+      0%   { transform: translate(calc(var(--digit-distance) * var(--digit-dir-x)), calc(var(--digit-distance) * var(--digit-dir-y))); opacity: 0; filter: blur(var(--digit-blur)); }
+      100% { transform: translate(0, 0); opacity: 1; filter: blur(0); }
+    }
+    .t-digit-group { display: inline-flex; align-items: baseline; }
+    .t-digit { display: inline-block; will-change: transform, opacity, filter; }
+    .t-digit-group.is-animating .t-digit {
+      animation: t-digit-pop-in var(--digit-dur) var(--digit-ease) both;
+    }
+    .t-digit-group.is-animating .t-digit[data-stagger="1"] { animation-delay: var(--digit-stagger); }
+    .t-digit-group.is-animating .t-digit[data-stagger="2"] { animation-delay: calc(var(--digit-stagger) * 2); }
+    @media (prefers-reduced-motion: reduce) {
+      .t-digit-group .t-digit { animation: none !important; }
+    }
   </style>
 
   <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
@@ -27,6 +52,6 @@
 </head>
 <body>
   <div id="root"></div>
-  <script type="text/babel" src="/hr-admin/app.jsx?v=964"></script>
+  <script type="text/babel" src="/hr-admin/app.jsx?v=1028"></script>
 </body>
 </html>

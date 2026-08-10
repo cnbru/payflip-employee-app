@@ -166,8 +166,18 @@ const SHEET_CLOSE_DUR = 220;
 // settings screens don't each hand-roll their own version with slightly
 // different padding, icon size, or hover behavior. Reach for these before
 // writing a new row — see CLAUDE.md "Shared components" for the full rule.
-function SettingsCard({ children }) {
-  return <div style={{ border: `1px solid ${P.border}`, borderRadius: 16, overflow: 'clip', background: P.white }}>{children}</div>;
+function SettingsCard({ children, info }) {
+  return (
+    <div style={{ border: `1px solid ${P.border}`, borderRadius: 16, overflow: 'clip', background: P.white }}>
+      {children}
+      {info && (
+        <div style={{ borderTop: `1px solid ${P.border}`, padding: '12px 16px', display: 'flex', alignItems: 'flex-start', gap: 7 }}>
+          <Icon name="info" size={13} color={P.inkSoft} strokeWidth={2} style={{ flexShrink: 0, marginTop: 1 }} />
+          <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>{info}</span>
+        </div>
+      )}
+    </div>
+  );
 }
 
 function SettingsRow({ onClick, icon, iconBadgeColor, dimmed, leading, label, labelColor, subtitle, value, valueColor, trailing, last }) {
@@ -352,7 +362,7 @@ function ChoiceCard({ type = 'radio', selected, onClick, label, description }) {
       transition: `background 120ms ${EASE_OUT}, border-color 120ms ${EASE_OUT}`,
     }}>
       <div>
-        <div style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink }}>{label}</div>
+        <div style={{ fontFamily: 'var(--font-body)', fontSize: 14, fontWeight: 500, color: P.ink }}>{label}</div>
         {description && <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, marginTop: 2 }}>{description}</div>}
       </div>
       <div style={{
@@ -509,30 +519,30 @@ const EMPLOYEES = {
   // Admin-only (not an employee — contractor)
   'bruno-coen':        { name: 'Bruno Coen',          initials: 'BC', color: '#c7d2fe', email: 'bruno@payflip.be', isEmployee: false, adminAccess: 'full' },
   // Design → Lumio Group (BE)
-  'bram-goossens':     { name: 'Bram Goossens',     initials: 'BG', color: '#bfdbfe', entitlement: 23, department: 'Design',       email: 'bram.goossens@lumiogroup.be',     entity: 'Lumio Group', entityId: 'lumio-group', budget: 3750,  role: 'Employee', status: 'Active', gender: 'm' },
+  'bram-goossens':     { name: 'Bram Goossens',     initials: 'BG', color: '#bfdbfe', entitlement: 23, department: 'Design',       email: 'bram.goossens@lumiogroup.be',     entity: 'Lumio Group', entityId: 'lumio-group', budget: 3750,  budgetUsed: 3605, role: 'Employee', status: 'Active', gender: 'm' },
   'emma-martens':      { name: 'Emma Martens',       initials: 'EM', color: '#ddd6fe', entitlement: 29, department: 'Design',       email: 'emma.martens@lumiogroup.be',      entity: 'Lumio Group', entityId: 'lumio-group', budget: 0,     role: 'Employee', status: 'Active', gender: 'f', photo: true },
-  'mathias-de-smedt':  { name: 'Mathias De Smedt',  initials: 'MD', color: '#fde68a', entitlement: 23, department: 'Design',       email: 'mathias.de-smedt@lumiogroup.be', entity: 'Lumio Group', entityId: 'lumio-group', budget: 6250,  role: 'Employee', status: 'Active', gender: 'm' },
+  'mathias-de-smedt':  { name: 'Mathias De Smedt',  initials: 'MD', color: '#fde68a', entitlement: 23, department: 'Design',       email: 'mathias.de-smedt@lumiogroup.be', entity: 'Lumio Group', entityId: 'lumio-group', budget: 6250,  budgetUsed: 6170, role: 'Employee', status: 'Active', gender: 'm' },
   'thomas-vandenberghe': { name: 'Thomas Vandenberghe', initials: 'TV', color: '#99f6e4', entitlement: 20, department: 'Design',    email: 'thomas.vandenberghe@lumiogroup.be', entity: 'Lumio Group', entityId: 'lumio-group', budget: 0, role: 'Employee', status: 'Active', gender: 'm' },
-  'thomas-janssens':     { name: 'Thomas Janssens',    initials: 'TJ', color: '#d9f99d', entitlement: 23, department: 'Design',    email: 'thomas.janssens@lumiogroup.be', entity: 'Lumio Group', entityId: 'lumio-group', budget: 3000, role: 'Employee', status: 'Active', gender: 'm' },
-  'charlotte-pieters':   { name: 'Charlotte Pieters',  initials: 'CP', color: '#fecdd3', entitlement: 20, department: 'Design',    email: 'charlotte.pieters@lumiogroup.be', entity: 'Lumio Group', entityId: 'lumio-group', budget: 2500, role: 'Employee', status: 'Active', gender: 'f', fte: 0.8, workSchedule: [1,2,3,4] },
-  'lasse-willems':       { name: 'Lasse Willems',      initials: 'LW', color: '#c7d2fe', entitlement: 23, department: 'Design',    email: 'lasse.willems@lumiogroup.be',   entity: 'Lumio Group', entityId: 'lumio-group', budget: 4000, role: 'Employee', status: 'Active', gender: 'm' },
-  'nathalie-cox':        { name: 'Nathalie Cox',        initials: 'NC', color: '#a7f3d0', entitlement: 20, department: 'Design',    email: 'nathalie.cox@lumiogroup.be',    entity: 'Lumio Group', entityId: 'lumio-group', budget: 3200, role: 'Employee', status: 'Active', gender: 'f' },
-  'ruben-declercq':      { name: 'Ruben Declercq',     initials: 'RD', color: '#fed7aa', entitlement: 25, department: 'Design',    email: 'ruben.declercq@lumiogroup.be',  entity: 'Lumio Group', entityId: 'lumio-group', budget: 5500, role: 'Employee', status: 'Active', gender: 'm' },
-  'ines-baert':          { name: 'Inès Baert',          initials: 'IB', color: '#ddd6fe', entitlement: 20, department: 'Design',    email: 'ines.baert@lumiogroup.be',      entity: 'Lumio Group', entityId: 'lumio-group', budget: 2800, role: 'Employee', status: 'Active', gender: 'f' },
-  'joachim-nijs':        { name: 'Joachim Nijs',        initials: 'JN', color: '#fde68a', entitlement: 23, department: 'Design',    email: 'joachim.nijs@lumiogroup.be',    entity: 'Lumio Group', entityId: 'lumio-group', budget: 4800, role: 'Employee', status: 'Active', gender: 'm' },
-  'sara-verbeke':        { name: 'Sara Verbeke',        initials: 'SV', color: '#bfdbfe', entitlement: 20, department: 'Design',    email: 'sara.verbeke@lumiogroup.be',    entity: 'Lumio Group', entityId: 'lumio-group', budget: 3100, role: 'Employee', status: 'Active', gender: 'f' },
-  'wout-desmet':         { name: 'Wout Desmet',         initials: 'WD', color: '#99f6e4', entitlement: 22, department: 'Design',    email: 'wout.desmet@lumiogroup.be',     entity: 'Lumio Group', entityId: 'lumio-group', budget: 4200, role: 'Employee', status: 'Active', gender: 'm' },
-  'amber-claes':         { name: 'Amber Claes',         initials: 'AC', color: '#fca5a5', entitlement: 20, department: 'Design',    email: 'amber.claes@lumiogroup.be',     entity: 'Lumio Group', entityId: 'lumio-group', budget: 2900, role: 'Employee', status: 'Active', gender: 'f' },
-  'pieter-verheyen':     { name: 'Pieter Verheyen',     initials: 'PV', color: '#d9f99d', entitlement: 25, department: 'Design',    email: 'pieter.verheyen@lumiogroup.be', entity: 'Lumio Group', entityId: 'lumio-group', budget: 6000, role: 'Admin',  status: 'Active', gender: 'm' },
+  'thomas-janssens':     { name: 'Thomas Janssens',    initials: 'TJ', color: '#d9f99d', entitlement: 23, department: 'Design',    email: 'thomas.janssens@lumiogroup.be', entity: 'Lumio Group', entityId: 'lumio-group', budget: 3000, budgetUsed: 3000, role: 'Employee', status: 'Active', gender: 'm' },
+  'charlotte-pieters':   { name: 'Charlotte Pieters',  initials: 'CP', color: '#fecdd3', entitlement: 20, department: 'Design',    email: 'charlotte.pieters@lumiogroup.be', entity: 'Lumio Group', entityId: 'lumio-group', budget: 2500, budgetUsed: 2500, role: 'Employee', status: 'Active', gender: 'f', fte: 0.8, workSchedule: [1,2,3,4] },
+  'lasse-willems':       { name: 'Lasse Willems',      initials: 'LW', color: '#c7d2fe', entitlement: 23, department: 'Design',    email: 'lasse.willems@lumiogroup.be',   entity: 'Lumio Group', entityId: 'lumio-group', budget: 4000, budgetUsed: 4000, role: 'Employee', status: 'Active', gender: 'm' },
+  'nathalie-cox':        { name: 'Nathalie Cox',        initials: 'NC', color: '#a7f3d0', entitlement: 20, department: 'Design',    email: 'nathalie.cox@lumiogroup.be',    entity: 'Lumio Group', entityId: 'lumio-group', budget: 3200, budgetUsed: 3200, role: 'Employee', status: 'Active', gender: 'f' },
+  'ruben-declercq':      { name: 'Ruben Declercq',     initials: 'RD', color: '#fed7aa', entitlement: 25, department: 'Design',    email: 'ruben.declercq@lumiogroup.be',  entity: 'Lumio Group', entityId: 'lumio-group', budget: 5500, budgetUsed: 5500, role: 'Employee', status: 'Active', gender: 'm' },
+  'ines-baert':          { name: 'Inès Baert',          initials: 'IB', color: '#ddd6fe', entitlement: 20, department: 'Design',    email: 'ines.baert@lumiogroup.be',      entity: 'Lumio Group', entityId: 'lumio-group', budget: 2800, budgetUsed: 2800, role: 'Employee', status: 'Active', gender: 'f' },
+  'joachim-nijs':        { name: 'Joachim Nijs',        initials: 'JN', color: '#fde68a', entitlement: 23, department: 'Design',    email: 'joachim.nijs@lumiogroup.be',    entity: 'Lumio Group', entityId: 'lumio-group', budget: 4800, budgetUsed: 4800, role: 'Employee', status: 'Active', gender: 'm' },
+  'sara-verbeke':        { name: 'Sara Verbeke',        initials: 'SV', color: '#bfdbfe', entitlement: 20, department: 'Design',    email: 'sara.verbeke@lumiogroup.be',    entity: 'Lumio Group', entityId: 'lumio-group', budget: 3100, budgetUsed: 3100, role: 'Employee', status: 'Active', gender: 'f' },
+  'wout-desmet':         { name: 'Wout Desmet',         initials: 'WD', color: '#99f6e4', entitlement: 22, department: 'Design',    email: 'wout.desmet@lumiogroup.be',     entity: 'Lumio Group', entityId: 'lumio-group', budget: 4200, budgetUsed: 4200, role: 'Employee', status: 'Active', gender: 'm' },
+  'amber-claes':         { name: 'Amber Claes',         initials: 'AC', color: '#fca5a5', entitlement: 20, department: 'Design',    email: 'amber.claes@lumiogroup.be',     entity: 'Lumio Group', entityId: 'lumio-group', budget: 2900, budgetUsed: 2900, role: 'Employee', status: 'Active', gender: 'f' },
+  'pieter-verheyen':     { name: 'Pieter Verheyen',     initials: 'PV', color: '#d9f99d', entitlement: 25, department: 'Design',    email: 'pieter.verheyen@lumiogroup.be', entity: 'Lumio Group', entityId: 'lumio-group', budget: 6000, budgetUsed: 6000, role: 'Admin',  status: 'Active', gender: 'm' },
   // Engineering → Lumio France
-  'david':             { name: 'David Laurent',      initials: 'DL', color: '#fecdd3', entitlement: 20, department: 'Engineering', email: 'david.laurent@lumio.fr',          entity: 'Lumio France', entityId: 'lumio-france', budget: 4500,  role: 'Employee', status: 'Active', gender: 'm', photo: true },
-  'stijn-laurent':     { name: 'Stijn Laurent',      initials: 'SL', color: '#a7f3d0', entitlement: 29, department: 'Engineering', email: 'stijn.laurent@lumio.fr',          entity: 'Lumio France', entityId: 'lumio-france', budget: 1500,  role: 'Employee', status: 'Active', gender: 'm' },
-  'jana-goossens':     { name: 'Jana Goossens',      initials: 'JG', color: '#c7d2fe', entitlement: 20, department: 'Engineering', email: 'jana.goossens@lumio.fr',          entity: 'Lumio France', entityId: 'lumio-france', budget: 2000,  role: 'Employee', status: 'Active', gender: 'f' },
-  'laura-mertens':     { name: 'Laura Mertens',      initials: 'LM', color: '#fca5a5', entitlement: 20, department: 'Engineering', email: 'laura.mertens@lumio.fr',          entity: 'Lumio France', entityId: 'lumio-france', budget: 750,   role: 'Employee', status: 'Active', gender: 'f' },
+  'david':             { name: 'David Laurent',      initials: 'DL', color: '#fecdd3', entitlement: 20, department: 'Engineering', email: 'david.laurent@lumio.fr',          entity: 'Lumio France', entityId: 'lumio-france', budget: 4500,  budgetUsed: 4500, role: 'Employee', status: 'Active', gender: 'm', photo: true },
+  'stijn-laurent':     { name: 'Stijn Laurent',      initials: 'SL', color: '#a7f3d0', entitlement: 29, department: 'Engineering', email: 'stijn.laurent@lumio.fr',          entity: 'Lumio France', entityId: 'lumio-france', budget: 1500,  budgetUsed: 1500, role: 'Employee', status: 'Active', gender: 'm' },
+  'jana-goossens':     { name: 'Jana Goossens',      initials: 'JG', color: '#c7d2fe', entitlement: 20, department: 'Engineering', email: 'jana.goossens@lumio.fr',          entity: 'Lumio France', entityId: 'lumio-france', budget: 2000,  budgetUsed: 2000, role: 'Employee', status: 'Active', gender: 'f' },
+  'laura-mertens':     { name: 'Laura Mertens',      initials: 'LM', color: '#fca5a5', entitlement: 20, department: 'Engineering', email: 'laura.mertens@lumio.fr',          entity: 'Lumio France', entityId: 'lumio-france', budget: 750,   budgetUsed: 750,  role: 'Employee', status: 'Active', gender: 'f' },
   // Marketing → Lumio Netherlands
-  'pieter-mertens':    { name: 'Pieter Mertens',     initials: 'PM', color: '#a7f3d0', entitlement: 29, department: 'Marketing',   email: 'pieter.mertens@lumio.nl',         entity: 'Lumio Netherlands', entityId: 'lumio-nl', budget: 8500,  role: 'Admin',  status: 'Active', gender: 'm' },
-  'sarah-de-smedt':    { name: 'Sarah De Smedt',     initials: 'SD', color: '#fecdd3', entitlement: 23, department: 'Marketing',   email: 'sarah.de-smedt@lumio.nl',         entity: 'Lumio Netherlands', entityId: 'lumio-nl', budget: 2750,  role: 'Employee', status: 'Active', gender: 'f' },
-  'julie-goossens':    { name: 'Julie Goossens',     initials: 'JG', color: '#fed7aa', entitlement: 20, department: 'Marketing',   email: 'julie.goossens@lumio.nl',         entity: 'Lumio Netherlands', entityId: 'lumio-nl', budget: 5000,  role: 'Admin',  status: 'Active', gender: 'f' },
+  'pieter-mertens':    { name: 'Pieter Mertens',     initials: 'PM', color: '#a7f3d0', entitlement: 29, department: 'Marketing',   email: 'pieter.mertens@lumio.nl',         entity: 'Lumio Netherlands', entityId: 'lumio-nl', budget: 8500,  budgetUsed: 8500, role: 'Admin',  status: 'Active', gender: 'm' },
+  'sarah-de-smedt':    { name: 'Sarah De Smedt',     initials: 'SD', color: '#fecdd3', entitlement: 23, department: 'Marketing',   email: 'sarah.de-smedt@lumio.nl',         entity: 'Lumio Netherlands', entityId: 'lumio-nl', budget: 2750,  budgetUsed: 2750, role: 'Employee', status: 'Active', gender: 'f' },
+  'julie-goossens':    { name: 'Julie Goossens',     initials: 'JG', color: '#fed7aa', entitlement: 20, department: 'Marketing',   email: 'julie.goossens@lumio.nl',         entity: 'Lumio Netherlands', entityId: 'lumio-nl', budget: 5000,  budgetUsed: 5000, role: 'Admin',  status: 'Active', gender: 'f' },
   'noor-de-smedt':     { name: 'Noor De Smedt',      initials: 'ND', color: '#fde68a', entitlement: 20, department: 'Marketing',   email: 'noor.de-smedt@lumio.nl',          entity: 'Lumio Netherlands', entityId: 'lumio-nl', budget: 0,     role: 'Employee', status: 'Active', gender: 'f', fte: 0.8, workSchedule: [1,2,4,5] },
 };
 const CURRENT_USER = EMPLOYEES['bruno-coen'];
@@ -4309,9 +4319,9 @@ function TabBar({ tabs, activeTab, onTabChange, padding = '0 28px' }) {
   );
 }
 
-function PageHeader({ title, subtitle, badge, children, tabs }) {
-  return (
-    <div style={{ flexShrink: 0, borderBottom: `1px solid ${P.border}` }}>
+function PageHeader({ title, subtitle, badge, children, tabs, maxWidth: mw }) {
+  const inner = (
+    <>
       <div style={{ padding: tabs ? '40px 28px 24px' : '40px 28px 20px', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
         <div>
           {badge && (
@@ -4329,6 +4339,11 @@ function PageHeader({ title, subtitle, badge, children, tabs }) {
         {children}
       </div>
       {tabs}
+    </>
+  );
+  return (
+    <div style={{ flexShrink: 0, borderBottom: `1px solid ${P.border}` }}>
+      {mw ? <div style={{ maxWidth: mw, margin: '0 auto' }}>{inner}</div> : inner}
     </div>
   );
 }
@@ -5612,8 +5627,8 @@ function DashboardListRow({ onClick, children }) {
   );
 }
 
-const PAYFLIP_CARD_IMG = 'https://www.figma.com/api/mcp/asset/86118957-1a80-4819-b71b-65247513e641';
-const TWIKEY_LOGO_IMG = 'https://www.figma.com/api/mcp/asset/717eafe8-6673-4b0e-adb4-8fbbffe6a268';
+const PAYFLIP_CARD_IMG = '/hr-admin/assets/card.svg';
+const TWIKEY_LOGO_IMG = '/hr-admin/assets/twikey 1.png';
 
 // Pointer tracked on the outer flat wrapper; inner card rotates via CSS custom props.
 // Per transitions-dev/19-card-tilt.md — MAX 14° is tasteful for a credit card.
@@ -5666,31 +5681,104 @@ function CardTilt({ children }) {
   );
 }
 
-function MobilityLaunchWidget({ onToast }) {
-  const [widgetMode, setWidgetMode] = useState('mobility');
-  const [step, setStep] = useState(1);
-  const [depositAmount, setDepositAmount] = useState('257');
-  const [allowPhysical, setAllowPhysical] = useState(false);
-  const [step1Open, setStep1Open] = useState(false);
+function AnimatedNumber({ value }) {
+  const groupRef = React.useRef(null);
+  const prevRef = React.useRef(null);
+  React.useEffect(() => {
+    if (prevRef.current === value) return;
+    prevRef.current = value;
+    const group = groupRef.current;
+    if (!group) return;
+    group.classList.remove('is-animating');
+    void group.offsetHeight;
+    group.classList.add('is-animating');
+  }, [value]);
+  const chars = String(value).split('');
+  const n = chars.length;
+  return (
+    <span ref={groupRef} className="t-digit-group is-animating">
+      {chars.map((ch, i) => {
+        const stagger = i === n - 2 ? '1' : i === n - 1 ? '2' : undefined;
+        return <span key={i} className="t-digit" data-stagger={stagger}>{ch}</span>;
+      })}
+    </span>
+  );
+}
+
+function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysicalCardsChange, mobilityWidgetState, onMobilityWidgetStateChange }) {
+  const ws = mobilityWidgetState;
+  const setWs = (updater) => onMobilityWidgetStateChange(prev => typeof updater === 'function' ? { ...prev, ...updater(prev) } : { ...prev, ...updater });
+  const widgetMode = ws.widgetMode;
+  const setWidgetMode = (v) => setWs({ widgetMode: typeof v === 'function' ? v(ws.widgetMode) : v });
+  const started = ws.started;
+  const setStarted = (v) => setWs({ started: typeof v === 'function' ? v(ws.started) : v });
+  const step = ws.step;
+  const setStep = (v) => setWs({ step: typeof v === 'function' ? v(ws.step) : v });
+  const mandateDenied = ws.mandateDenied;
+  const setMandateDenied = (v) => setWs({ mandateDenied: typeof v === 'function' ? v(ws.mandateDenied) : v });
+  const live = ws.live;
+  const setLive = (v) => setWs({ live: typeof v === 'function' ? v(ws.live) : v });
+  const liveVisible = ws.liveVisible;
+  const setLiveVisible = (v) => setWs({ liveVisible: typeof v === 'function' ? v(ws.liveVisible) : v });
+  const [showCalcModal, setShowCalcModal] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [showPickerModal, setShowPickerModal] = useState(false);
+
+  // Food-mode state (untouched)
   const [socialSecretariat, setSocialSecretariat] = useState('SD Worx');
   const [secOpen, setSecOpen] = useState(false);
   const [secSearch, setSecSearch] = useState('');
   const [secRect, setSecRect] = useState(null);
   const secTriggerRef = React.useRef(null);
-  const [step3Open, setStep3Open] = useState(false);
+
+  // All employees with a mobility budget, split by remaining budget
+  const allEligible = Object.entries(EMPLOYEES)
+    .filter(([, e]) => e.budget > 0)
+    .map(([key, e]) => {
+      const remaining = e.budget - (e.budgetUsed || 0);
+      // no dept — picker shows entity only
+      return { value: key, name: e.name, entity: e.entity, initials: e.initials, color: e.color, remaining };
+    });
+  const readyToUse  = allEligible.filter(e => e.remaining > 0)
+    .map(e => ({ ...e, hint: `€${e.remaining.toLocaleString('de-DE')} left`, hintColor: '#059669' }));
+  const budgetSpent = allEligible.filter(e => e.remaining === 0);
+
+  const pickerSections = [
+    { label: `Has budget (${readyToUse.length})`, items: readyToUse },
+    { label: `Budget used up (${budgetSpent.length})`, items: budgetSpent },
+  ];
+
+  // Default: only employees with remaining budget
+  const [selectedEmployees, setSelectedEmployees] = useState(readyToUse.map(e => e.value));
+
+  const empCount = selectedEmployees.length;
+  // Deposit = €37/employee/month × 3 months, rounded to nearest €50
+  const deposit = Math.max(50, Math.round(empCount * 37 * 3 / 50) * 50);
 
   const switchMode = (mode) => {
     setWidgetMode(mode);
+    setStarted(false);
     setStep(1);
-    setStep1Open(false);
-    setStep3Open(false);
+    setMandateDenied(false);
+    setLive(false);
+    setLiveVisible(false);
   };
 
-  // Mobility: simulate first deposit arriving 5s after step 3
+  // Mobility: simulate bank approving mandate 5s after step 3
   React.useEffect(() => {
-    if (widgetMode !== 'mobility' || step !== 3) return;
+    if (widgetMode !== 'mobility' || step !== 3 || mandateDenied) return;
     const t = setTimeout(() => {
       setStep(4);
+      onToast?.({ message: 'Mandate approved — collecting your first deposit', type: 'approve' });
+    }, 5000);
+    return () => clearTimeout(t);
+  }, [widgetMode, step, mandateDenied]);
+
+  // Mobility: simulate first deposit arriving 5s after step 4
+  React.useEffect(() => {
+    if (widgetMode !== 'mobility' || step !== 4) return;
+    const t = setTimeout(() => {
+      setStep(5);
       onToast?.({ message: 'Funds received — your account is ready', type: 'approve' });
     }, 5000);
     return () => clearTimeout(t);
@@ -5706,23 +5794,21 @@ function MobilityLaunchWidget({ onToast }) {
     return () => clearTimeout(t);
   }, [widgetMode, step]);
 
-  const mobilityBadgeLabels = ['Ready to launch', 'Authorise direct debit', 'Awaiting first deposit', 'Ready to invite'];
-  const foodBadgeLabels    = ['Ready to launch', 'Awaiting approval', 'Select secretariat', 'Ready to invite'];
-  const headerBadgeLabel = (widgetMode === 'mobility' ? mobilityBadgeLabels : foodBadgeLabels)[step - 1];
-
-  // State 1 uses circular badges; states 2+ use square badges
-  const badgeRadius = step === 1 ? '999px' : '4px';
+  // Fade in live state
+  React.useEffect(() => {
+    if (live) requestAnimationFrame(() => requestAnimationFrame(() => setLiveVisible(true)));
+  }, [live]);
 
   const stepBadgeEl = (n, pop = false) => {
-    const done = n < step;
-    const active = n === step;
+    const done = n < step || live;
+    const active = n === step && !live;
     if (done) return (
-      <span style={{ width: 24, height: 24, borderRadius: '4px', background: '#008556', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, animation: pop ? `badgePopIn 400ms cubic-bezier(0.34, 1.36, 0.64, 1)` : undefined }}>
+      <span style={{ width: 24, height: 24, borderRadius: '50%', background: '#008556', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, animation: pop ? `badgePopIn 400ms cubic-bezier(0.34, 1.36, 0.64, 1)` : undefined }}>
         <Icon name="check" size={12} color="#fff" strokeWidth={2.5} />
       </span>
     );
     return (
-      <span style={{ width: 24, height: 24, borderRadius: badgeRadius, background: active ? P.ink : P.white, border: active ? 'none' : `1px solid ${P.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 12, color: active ? '#fff' : P.ink }}>
+      <span style={{ width: 24, height: 24, borderRadius: '50%', background: active ? P.ink : 'transparent', border: active ? 'none' : `1.5px solid ${P.inkSoft}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 12, color: active ? '#fff' : P.inkSoft }}>
         {n}
       </span>
     );
@@ -5730,9 +5816,258 @@ function MobilityLaunchWidget({ onToast }) {
 
   const inactiveBg = '#fafafa';
 
+  // Count-up hook for live state numbers
+  const useCountUp = (target, duration = 400) => {
+    const [val, setVal] = useState(0);
+    React.useEffect(() => {
+      if (!liveVisible) return;
+      let start = null;
+      const animate = (ts) => {
+        if (!start) start = ts;
+        const progress = Math.min((ts - start) / duration, 1);
+        setVal(Math.round(progress * target));
+        if (progress < 1) requestAnimationFrame(animate);
+      };
+      requestAnimationFrame(animate);
+    }, [liveVisible, target]);
+    return val;
+  };
+
+  const adoptionInvited = useCountUp(empCount, 400);
+  const adoptionDownloaded = useCountUp(Math.round(empCount * 0.63), 500);
+  const adoptionRequested = useCountUp(Math.round(empCount * 0.42), 600);
+  const adoptionFirst = useCountUp(Math.round(empCount * 0.26), 700);
+
+  const sendInvites = () => {
+    setShowConfirmModal(false);
+    setLive(true);
+    onToast?.({ message: `Invites sent. ${empCount} employees have been invited to request their Payflip Card.`, type: 'approve' });
+  };
+
+  const mobilitySetupContent = () => {
+    if (live) return null;
+    return (<>
+      {/* Step 1 — Select employees */}
+      <div style={{ background: step === 1 ? P.white : inactiveBg, borderBottom: `1px solid ${P.border}` }}>
+        {step === 1 ? (
+          <div key="m-step1-active" style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 20, animation: `stepContentEnter 250ms ${EASE_OUT}` }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              {stepBadgeEl(1)}
+              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.ink }}>Select employees</span>
+            </div>
+            <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
+              Choose who gets access to the Payflip Card. Only employees with a mobility budget are eligible.
+            </p>
+            {/* Employee selector row */}
+            <div
+              onClick={() => setShowPickerModal(true)}
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 14px', border: `1px solid ${P.border}`, borderRadius: 10, cursor: 'pointer', background: P.white, transition: `border-color 120ms ${EASE_OUT}` }}
+              onMouseEnter={e => e.currentTarget.style.borderColor = P.inkSoft}
+              onMouseLeave={e => e.currentTarget.style.borderColor = P.border}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <Icon name="users" size={16} color={P.inkSoft} strokeWidth={1.75} />
+                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.ink }}>
+                  {empCount === readyToUse.length
+                    ? `${empCount} with remaining budget · ${budgetSpent.length} excluded`
+                    : `${empCount} of ${allEligible.length} employees selected`}
+                </span>
+              </div>
+              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.ink, textDecoration: 'underline' }}>Edit</span>
+            </div>
+            {/* Live deposit preview */}
+            <div style={{ display: 'flex', gap: 12 }}>
+              <div style={{ flex: 1, border: `1px solid ${P.border}`, borderRadius: 10, padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 4 }}>
+                <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>Employees</span>
+                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 24, color: P.ink }}>
+                  <AnimatedNumber value={String(empCount)} />
+                </span>
+              </div>
+              <div style={{ flex: 1, border: `1px solid ${P.border}`, borderRadius: 10, padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 4 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>Deposit needed</span>
+                  <span onClick={e => { e.stopPropagation(); setShowCalcModal(true); }} style={{ width: 18, height: 18, borderRadius: '50%', background: P.bg, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}>
+                    <Icon name="help-circle" size={12} color={P.inkSoft} strokeWidth={2} />
+                  </span>
+                </div>
+                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 24, color: P.ink }}>
+                  €<AnimatedNumber value={deposit.toLocaleString('de-DE')} />
+                </span>
+              </div>
+            </div>
+            <Button variant="primary" disabled={empCount === 0} onClick={() => setStep(2)} style={{ width: '100%', justifyContent: 'center', fontSize: 15, padding: '10px 18px' }}>Continue</Button>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: 24, animation: `stepDoneEnter 200ms ${EASE_OUT}` }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              {stepBadgeEl(1)}
+              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.inkSoft }}>{empCount} employees selected</span>
+            </div>
+            {step === 2 && <a href="#" onClick={e => { e.preventDefault(); setStep(1); }} style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.ink, textDecoration: 'underline' }}>Edit</a>}
+          </div>
+        )}
+      </div>
+
+      {/* Step 2 — Sign mandate */}
+      <div style={{ background: step === 2 ? P.white : inactiveBg, borderBottom: `1px solid ${P.border}` }}>
+        {step === 2 ? (
+          <div key="m-step2-active" style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 20, animation: `stepContentEnter 250ms ${EASE_OUT}` }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              {stepBadgeEl(2)}
+              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.ink }}>Sign mandate</span>
+            </div>
+            <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink, lineHeight: '20px', margin: 0 }}>
+              By signing this mandate, you authorise Payflip to collect <strong>€{deposit.toLocaleString('de-DE')}</strong> from your company account. Funds arrive within 3 business days. Future top-ups happen automatically when the balance runs low.
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkSoft, textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 500 }}>Powered by</span>
+              <img src={TWIKEY_LOGO_IMG} alt="Twikey" style={{ width: 62, height: 27, display: 'block' }} />
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <Button variant="primary" onClick={() => setStep(3)} style={{ width: '100%', justifyContent: 'center', fontSize: 15, padding: '10px 18px' }}>Sign mandate</Button>
+              <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, textAlign: 'center', lineHeight: '17px' }}>
+                You'll be redirected to Twikey to sign securely. You'll return to Payflip automatically when done.
+              </span>
+            </div>
+          </div>
+        ) : step < 2 ? null : (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 24, animation: `stepDoneEnter 200ms ${EASE_OUT}` }}>
+            {stepBadgeEl(2)}
+            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.inkSoft }}>€{deposit.toLocaleString('de-DE')} · Mandate signed</span>
+          </div>
+        )}
+      </div>
+
+      {/* Step 3 — Awaiting bank approval */}
+      <div style={{ background: step === 3 ? P.white : inactiveBg, borderBottom: `1px solid ${P.border}` }}>
+        {step === 3 ? (
+          mandateDenied ? (
+            <div key="m-step3-denied" style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16, animation: `stepContentEnter 250ms ${EASE_OUT}` }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <span style={{ width: 24, height: 24, borderRadius: 4, background: '#dc2626', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <Icon name="x" size={12} color="#fff" strokeWidth={2.5} />
+                </span>
+                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: '#dc2626' }}>Mandate declined</span>
+              </div>
+              <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink, lineHeight: '20px', margin: 0 }}>
+                Your bank declined the mandate. This is usually due to account settings or an authorization limit on direct debits. Contact your bank to resolve it, then re-sign.
+              </p>
+              <div style={{ display: 'flex', gap: 10 }}>
+                <Button variant="primary" onClick={() => { setMandateDenied(false); setStep(2); }} style={{ justifyContent: 'center', fontSize: 14, padding: '8px 20px' }}>Re-sign mandate</Button>
+                <Button variant="secondary" onClick={() => {}} style={{ justifyContent: 'center', fontSize: 14, padding: '8px 16px' }}>Contact support</Button>
+              </div>
+            </div>
+          ) : (
+            <div key="m-step3-active" style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16, animation: `stepContentEnter 250ms ${EASE_OUT}` }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                {stepBadgeEl(3)}
+                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.ink }}>Awaiting bank approval</span>
+              </div>
+              <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
+                Your bank is reviewing the mandate. This usually takes a few hours but can take up to 24 hours. We'll notify you once it's approved.
+              </p>
+              <a href="#" onClick={e => { e.preventDefault(); setMandateDenied(true); }} style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, textDecoration: 'underline' }}>
+                Simulate denial ↗
+              </a>
+            </div>
+          )
+        ) : step < 3 ? null : (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 24, animation: `stepDoneEnter 200ms ${EASE_OUT}` }}>
+            {stepBadgeEl(3, step === 4)}
+            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.inkSoft }}>Mandate approved</span>
+          </div>
+        )}
+      </div>
+
+      {/* Step 4 — Awaiting first deposit */}
+      <div style={{ background: step === 4 ? P.white : inactiveBg, borderBottom: `1px solid ${P.border}` }}>
+        {step === 4 ? (
+          <div key="m-step4-active" style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16, animation: `stepContentEnter 250ms ${EASE_OUT}` }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              {stepBadgeEl(4)}
+              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.ink }}>Awaiting first deposit</span>
+            </div>
+            <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
+              We're collecting your first deposit. We'll notify you when the funds are available — usually within 3 business days.
+            </p>
+            <a href="#" onClick={e => e.preventDefault()} style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.ink, textDecoration: 'underline' }}>
+              Need help?
+            </a>
+          </div>
+        ) : step < 4 ? null : (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 24, animation: `stepDoneEnter 200ms ${EASE_OUT}` }}>
+            {stepBadgeEl(4, step === 5)}
+            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.inkSoft }}>€{deposit.toLocaleString('de-DE')} received</span>
+          </div>
+        )}
+      </div>
+
+      {/* Step 5 — Send invites */}
+      <div style={{ background: step === 5 ? P.white : inactiveBg, borderBottom: `1px solid ${P.border}` }}>
+        {step === 5 ? (
+          <div key="m-step5-active" style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16, animation: `stepContentEnter 250ms ${EASE_OUT}` }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              {stepBadgeEl(5)}
+              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.ink }}>Send invites</span>
+            </div>
+            <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
+              {empCount} employees will receive an email to download the Payflip app and request their own card.
+            </p>
+            <div style={{ display: 'flex', gap: 12, padding: 14, borderRadius: 10, background: P.bg, alignItems: 'flex-start' }}>
+              <Icon name="info" size={16} color={P.inkSoft} strokeWidth={2} style={{ flexShrink: 0, marginTop: 1 }} />
+              <p style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.ink, lineHeight: '18px', margin: 0 }}>
+                You don't issue cards yourself. Employees request their card when they're ready by downloading the app. This keeps admin work minimal.
+              </p>
+            </div>
+            <Button variant="primary" onClick={() => setShowConfirmModal(true)} style={{ width: '100%', justifyContent: 'center', fontSize: 15, padding: '10px 18px' }}>Send invites to {empCount} employees</Button>
+          </div>
+        ) : null}
+      </div>
+    </>);
+  };
+
+  const liveContent = () => {
+    if (!live) return null;
+    const balance = 2400;
+    const total = 3200;
+    const pct = Math.round((balance / total) * 100);
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', opacity: liveVisible ? 1 : 0, transition: `opacity 250ms ${EASE_OUT}` }}>
+
+        {/* Balance — hero */}
+        <div style={{ padding: '18px 20px 16px' }}>
+          <div style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkSoft, marginBottom: 8 }}>Account balance</div>
+          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 28, color: P.ink, letterSpacing: '-0.5px', lineHeight: 1 }}>€{balance.toLocaleString('de-DE')}</div>
+          <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, marginTop: 4 }}>of €{total.toLocaleString('de-DE')} funded</div>
+          <div style={{ marginTop: 14, height: 4, borderRadius: 2, background: P.border, overflow: 'hidden' }}>
+            <div style={{ height: '100%', borderRadius: 2, background: '#008556', width: liveVisible ? `${pct}%` : '0%', transition: `width 600ms ${EASE_OUT}` }} />
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 8 }}>
+            <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#008556', flexShrink: 0 }} />
+            <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: '#008556' }}>Auto top-up active</span>
+          </div>
+        </div>
+
+        {/* Stats row */}
+        <div style={{ display: 'flex', borderTop: `1px solid ${P.border}` }}>
+          {[
+            { label: 'Active cards', value: '9' },
+            { label: 'Spent this month', value: '€1.840' },
+          ].map(({ label, value }, i) => (
+            <div key={label} style={{ flex: 1, padding: '12px 20px', borderLeft: i === 1 ? `1px solid ${P.border}` : 'none' }}>
+              <div style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkSoft, marginBottom: 3 }}>{label}</div>
+              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.ink }}>{value}</div>
+            </div>
+          ))}
+        </div>
+
+      </div>
+    );
+  };
+
   return (
-    <div style={{ marginBottom: 24 }}>
-      {/* Prototype switcher — fixed floating pill, same layer as Employee App button */}
+    <div style={{ marginBottom: 24, maxWidth: 460 }}>
+      {/* Prototype switcher */}
       <div style={{ position: 'fixed', bottom: 20, right: 158, zIndex: 100, display: 'inline-flex', alignItems: 'center', gap: 6, padding: '7px 10px 7px 12px', borderRadius: 20, background: P.action, boxShadow: 'rgba(15,13,40,0.2) 0px 2px 12px' }}>
         <Icon name="wrench" size={12} color="#fff" strokeWidth={2} />
         <div style={{ display: 'flex' }}>
@@ -5751,193 +6086,64 @@ function MobilityLaunchWidget({ onToast }) {
           ))}
         </div>
       </div>
-    <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 8, overflow: 'hidden' }}>
+
+    <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 16, overflow: 'hidden' }}>
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 24px', borderBottom: `1px solid ${P.border}` }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.ink, letterSpacing: '-0.025px' }}>
-            Launch {widgetMode} card for your employees
-          </span>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          <span style={{ background: P.ink, color: '#fff', borderRadius: 8, padding: '2px 8px', fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 12, letterSpacing: '0.06px', whiteSpace: 'nowrap' }}>
-            {headerBadgeLabel}
-          </span>
-          <Icon name="chevron-up" size={24} color={P.ink} strokeWidth={2} />
-        </div>
+        <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.ink, letterSpacing: '-0.025px' }}>
+          Payflip Card
+        </span>
+        {!live && !started && (
+          <DotPill bg="#e6f4ee" color="#008556" dot={false} size={11}>Ready to launch</DotPill>
+        )}
+        {!live && started && (
+          <DotPill bg={P.bg} color={P.inkSoft} dot size={11}>Setup in progress</DotPill>
+        )}
+        {live && (
+          <IconButton icon="settings" size={28} onClick={() => onNav && onNav('settings-cardrules')} />
+        )}
       </div>
 
-      {/* Body */}
-      <div style={{ display: 'flex', alignItems: 'stretch' }}>
-        {/* Steps column — fixed 480px */}
-        <div style={{ width: 480, minWidth: 480, borderRight: `1px solid ${P.border}`, display: 'flex', flexDirection: 'column' }}>
+      {/* Card visual — shown during setup, fades out in live state */}
+      {!live && (
+        <div style={{ background: '#f0ebf8', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '28px 24px', borderBottom: `1px solid ${P.border}` }}>
+          <CardTilt>
+            <img src={PAYFLIP_CARD_IMG} alt="Payflip Card" style={{ width: 200, height: 126, display: 'block', borderRadius: 10 }} />
+          </CardTilt>
+        </div>
+      )}
+
+      {/* Body — single column */}
+      <div style={{ display: 'flex', flexDirection: 'column' }}>
         {widgetMode === 'mobility' ? (<>
-
-          {/* Step 1 */}
-          <div style={{ background: step === 1 ? P.white : inactiveBg, borderBottom: `1px solid ${P.border}` }}>
-            {step === 1 ? (
-              <div key="step1-active" style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 24, animation: `stepContentEnter 250ms ${EASE_OUT}` }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  {stepBadgeEl(1)}
-                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.ink }}>Set deposit amount</span>
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-                  <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink, lineHeight: '20px', margin: 0 }}>
-                    This is your initial deposit — we'll collect it now to fund your mobility account. After that, direct debit automatically tops up the account whenever the balance runs low, so your employees always have funds available.
-                  </p>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                      <label style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.ink, letterSpacing: '0.035px' }}>Recommended amount to collect</label>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, border: `1px solid #bec0c5`, borderRadius: 8, padding: '8px 12px', height: 40, background: P.white }}>
-                        <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink, flexShrink: 0 }}>€</span>
-                        <input value={depositAmount} onChange={e => setDepositAmount(e.target.value)} style={{ border: 'none', outline: 'none', fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink, width: '100%', background: 'transparent' }} />
-                      </div>
-                      <p style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, margin: 0, lineHeight: '16px' }}>
-                        Based on the employee's 2025 mobility spending for 19 employees with a mobility budget
-                      </p>
-                    </div>
-                    <a href="#" onClick={e => e.preventDefault()} style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.ink, textDecoration: 'underline', letterSpacing: '-0.035px' }}>
-                      How is this calculated?
-                    </a>
-                  </div>
-                  <button onClick={() => setStep(2)} style={{ width: '100%', padding: '8px 16px', minHeight: 36, borderRadius: 8, border: 'none', background: P.action, color: '#fff', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16 }}>
-                    Confirm amount
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div style={{ animation: `stepDoneEnter 200ms ${EASE_OUT}` }}>
-                <div
-                  onClick={step === 2 ? () => setStep1Open(v => !v) : undefined}
-                  style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 24, cursor: step === 2 ? 'pointer' : 'default' }}
-                >
-                  {stepBadgeEl(1)}
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flex: 1 }}>
-                    <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.inkSoft }}>Deposit scheduled</span>
-                    {step === 2 && <Icon name="chevron-down" size={24} color={P.ink} strokeWidth={2} style={{ transform: step1Open ? 'rotate(180deg)' : 'rotate(0deg)', transition: `transform 200ms ${EASE_OUT}` }} />}
-                  </div>
-                </div>
-                {step === 2 && step1Open && (
-                  <div style={{ padding: '0 24px 20px 60px', display: 'flex', flexDirection: 'column', gap: 6 }}>
-                    <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink }}>€{depositAmount},00</span>
-                    <a href="#" onClick={e => { e.preventDefault(); setStep(1); setStep1Open(false); }} style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.ink, textDecoration: 'underline' }}>
-                      Edit amount
-                    </a>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-
-          {/* Step 2 */}
-          <div style={{ background: step === 2 ? P.white : inactiveBg, borderBottom: `1px solid ${P.border}` }}>
-            {step === 2 ? (
-              <div key="step2-active" style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 24, animation: `stepContentEnter 250ms ${EASE_OUT}` }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  {stepBadgeEl(2)}
-                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.ink }}>Authorise direct debit</span>
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  <div style={{ display: 'flex', gap: 24, alignItems: 'flex-start' }}>
-                    <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink, lineHeight: '20px', margin: 0, flex: 1 }}>
-                      You're authorising Payflip to collect <strong>€{depositAmount},00</strong> now to fund your mobility account, and to automatically top it up when the balance runs low.
-                    </p>
-                    <img src={TWIKEY_LOGO_IMG} alt="twikey" style={{ width: 62, height: 27, flexShrink: 0, display: 'block' }} />
-                  </div>
-                  <a href="#" onClick={e => { e.preventDefault(); setStep(1); }} style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.ink, textDecoration: 'underline', letterSpacing: '-0.035px' }}>
-                    Edit amount
-                  </a>
-                </div>
-                <button onClick={() => setStep(3)} style={{ width: '100%', padding: '8px 16px', minHeight: 36, borderRadius: 8, border: 'none', background: P.action, color: '#fff', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16 }}>
-                  Sign mandate
-                </button>
-              </div>
-            ) : step < 2 ? (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 24 }}>
-                {stepBadgeEl(2)}
-                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 16, color: P.inkSoft }}>Authorise direct debit</span>
-              </div>
-            ) : (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 24, animation: `stepDoneEnter 200ms ${EASE_OUT}` }}>
-                {stepBadgeEl(2)}
-                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.inkSoft }}>Mandate signed</span>
-              </div>
-            )}
-          </div>
-
-          {/* Step 3 */}
-          <div style={{ background: step === 3 ? P.white : inactiveBg, borderBottom: `1px solid ${P.border}` }}>
-            {step === 3 ? (
-              <div key="step3-active" style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16, animation: `stepContentEnter 250ms ${EASE_OUT}` }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  {stepBadgeEl(3)}
-                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.ink }}>Awaiting first deposit</span>
-                </div>
-                <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
-                  We're handling the bank approval and collecting your first deposit. We'll notify you when the funds are available — usually within 3 business days.
-                </p>
-              </div>
-            ) : step < 3 ? (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 24 }}>
-                {stepBadgeEl(3)}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 16, color: P.inkSoft }}>Awaiting bank approval</span>
-                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>~3 business days</span>
-                </div>
-              </div>
-            ) : (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 24, animation: `stepDoneEnter 200ms ${EASE_OUT}` }}>
-                {stepBadgeEl(3, step === 4)}
-                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.inkSoft }}>Funds received</span>
-              </div>
-            )}
-          </div>
-
-          {/* Step 4 */}
-          <div style={{ background: step === 4 ? P.white : inactiveBg, borderBottom: `1px solid ${P.border}` }}>
-            {step === 4 ? (
-              <div key="step4-active" style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16, animation: `stepContentEnter 250ms ${EASE_OUT}` }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  {stepBadgeEl(4)}
-                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.ink }}>Invite your employees</span>
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                  <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
-                    Your mobility account is funded. Employees will receive an email to download the Payflip app and request their own card.
-                  </p>
-                  {/* Physical card toggle */}
-                  <div style={{ border: `1px solid ${P.border}`, borderRadius: 9, padding: 16, display: 'flex', gap: 16, alignItems: 'flex-start', background: P.white }}>
-                    <div style={{ width: 40, height: 40, borderRadius: 8, background: '#f7f7f8', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                      <Icon name="credit-card" size={24} color={P.inkSoft} strokeWidth={1.75} />
-                    </div>
-                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 4 }}>
-                      <div style={{ display: 'flex', flexDirection: 'column' }}>
-                        <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: '#171717', lineHeight: '20px', letterSpacing: '-0.07px' }}>Allow physical card requests</span>
-                        <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, lineHeight: '16px', letterSpacing: '-0.06px' }}>Employees can request a physical card in addition to their virtual card.</span>
-                      </div>
-                      <span style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 12, color: P.ink, lineHeight: '16px', letterSpacing: '-0.06px' }}>A one-time fee of €8 applies per card.</span>
-                    </div>
-                    {/* Toggle */}
-                    <div
-                      onClick={() => setAllowPhysical(v => !v)}
-                      style={{ width: 33, height: 18, borderRadius: 999, background: allowPhysical ? P.ink : '#eaeaeb', position: 'relative', cursor: 'pointer', flexShrink: 0, marginTop: 1.5, transition: 'background 150ms ease' }}
-                    >
-                      <div style={{ position: 'absolute', top: 2, left: 2, width: 14, height: 14, borderRadius: '50%', background: '#fff', transform: allowPhysical ? 'translateX(15px)' : 'translateX(0)', transition: 'transform 150ms ease', boxShadow: '0 1px 2px rgba(0,0,0,0.2)' }} />
+          {!live && !started && (
+            <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 20, animation: `stepContentEnter 250ms ${EASE_OUT}` }}>
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                {[
+                  { n: 1, title: 'Select employees', desc: 'Choose who gets a card and confirm the deposit amount.' },
+                  { n: 2, title: 'Sign mandate', desc: 'Authorise Payflip to collect the deposit and auto top-up.' },
+                  { n: 3, title: 'Send invites', desc: 'Employees download the app and request their own card.' },
+                ].map(({ n, title, desc }, i) => (
+                  <div key={n} style={{ display: 'flex', gap: 12, padding: '10px 0' }}>
+                    <span style={{ width: 24, height: 24, borderRadius: 4, background: P.bg, border: `1px solid ${P.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 12, color: P.inkSoft, marginTop: 1 }}>
+                      {n}
+                    </span>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                      <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 15, color: P.ink }}>{title}</span>
+                      <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, lineHeight: '18px' }}>{desc}</span>
                     </div>
                   </div>
-                  <button onClick={() => {}} style={{ width: '100%', padding: '8px 16px', minHeight: 36, borderRadius: 8, border: 'none', background: P.action, color: '#fff', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16 }}>
-                    Review and send invites
-                  </button>
-                </div>
+                ))}
               </div>
-            ) : (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 24 }}>
-                {stepBadgeEl(4)}
-                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 16, color: P.inkSoft }}>Invite your employees</span>
+              <div>
+                <Button variant="primary" onClick={() => setStarted(true)} style={{ width: '100%', justifyContent: 'center', fontSize: 14, padding: '10px 20px' }}>
+                  Begin setup
+                </Button>
               </div>
-            )}
-          </div>
-
+            </div>
+          )}
+          {(started || live) && mobilitySetupContent()}
+          {liveContent()}
         </>) : (<>
 
           {/* Food Step 1 — Authorise direct debit */}
@@ -6071,33 +6277,310 @@ function MobilityLaunchWidget({ onToast }) {
           </div>
 
         </>)}
-
-        </div>
-
-        {/* Card image column */}
-        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '32px 24px' }}>
-          <CardTilt>
-            <img src={PAYFLIP_CARD_IMG} alt="Payflip mobility card" style={{ width: 347, height: 218, display: 'block' }} />
-          </CardTilt>
-        </div>
       </div>
     </div>
+
+    {/* Employee picker modal */}
+    {showPickerModal && (
+      <PersonPickerModal
+        title="Select employees"
+        value={selectedEmployees}
+        sections={pickerSections}
+        onSave={keys => setSelectedEmployees(keys)}
+        onClose={() => setShowPickerModal(false)}
+      />
+    )}
+
+    {/* "How is this calculated?" modal */}
+    {showCalcModal && (
+      <ModalShell title="About the recommended amount" onClose={() => setShowCalcModal(false)} width={480}>
+        <div style={{ padding: '20px 22px', display: 'flex', flexDirection: 'column', gap: 20 }}>
+          {/* Summary stats */}
+          <div style={{ display: 'flex', gap: 12 }}>
+            <div style={{ flex: 1, padding: '12px 14px', borderRadius: 8, background: P.bg, display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>Employees with mobility budget</span>
+              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18, color: P.ink }}>{empCount}</span>
+            </div>
+            <div style={{ flex: 1, padding: '12px 14px', borderRadius: 8, background: P.bg, display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>Recommended deposit</span>
+              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18, color: P.ink }}>€{deposit.toLocaleString('de-DE')}</span>
+            </div>
+          </div>
+
+          {/* Explanations */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.ink }}>What does this cover?</span>
+              <p style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, lineHeight: '18px', margin: 0 }}>
+                This covers about 3 months of expected mobility card spending for your employees, based on their 2025 spending patterns.
+              </p>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.ink }}>Can I change the amount?</span>
+              <p style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, lineHeight: '18px', margin: 0 }}>
+                You don't have to fund this exact amount. Employees can only spend up to their own balance, so there's no risk of overspending. If you fund less, direct debit tops it up automatically.
+              </p>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.ink }}>Where does the money go?</span>
+              <p style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, lineHeight: '18px', margin: 0 }}>
+                The funds go to your Payflip Card account. They're only used when employees make card payments. Unspent funds stay in the account.
+              </p>
+            </div>
+          </div>
+        </div>
+      </ModalShell>
+    )}
+
+    {/* Invite confirmation dialog */}
+    {showConfirmModal && (
+      <ModalShell title="Send invites" onClose={() => setShowConfirmModal(false)} width={440}
+        footer={close => (
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, padding: '14px 22px', borderTop: `1px solid ${P.border}` }}>
+            <Button variant="secondary" onClick={close}>Not yet</Button>
+            <Button variant="primary" onClick={sendInvites}>Yes, send invites</Button>
+          </div>
+        )}>
+        <div style={{ padding: '20px 22px' }}>
+          <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink, lineHeight: '20px', margin: 0 }}>
+            {empCount} employees will receive an email right now inviting them to download the Payflip app and request their Payflip Card. This can't be undone.
+          </p>
+        </div>
+      </ModalShell>
+    )}
+
     </div>
   );
 }
 
-function DashboardScreen({ requests, onNav, onToast, appEntity = null }) {
+function AttentionRow({ item, last, onNav }) {
+  const [hovered, setHovered] = useState(false);
+  return (
+    <div onClick={() => onNav(item.screen)} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
+      style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 20px', borderBottom: last ? 'none' : `1px solid ${P.border}`, cursor: 'pointer', background: hovered ? '#fafafa' : 'transparent', transition: `background 150ms ${EASE_OUT}` }}>
+      <div style={{ width: 32, height: 32, borderRadius: 8, background: item.iconBg ?? P.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+        <Icon name={item.icon} size={15} color={item.iconColor ?? '#3d4047'} strokeWidth={1.5} />
+      </div>
+      <span style={{ flex: 1, fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.ink }}>{item.label}</span>
+      <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, color: P.white, background: P.action, borderRadius: 20, padding: '2px 8px', flexShrink: 0 }}>{item.count}</span>
+      <Icon name="chevron-right" size={15} color={P.inkSoft} strokeWidth={1.75} />
+    </div>
+  );
+}
+
+function DashboardScreen({ requests, onNav, onToast, appEntity = null, physicalCardsAllowed, onPhysicalCardsChange, mobilityWidgetState, onMobilityWidgetStateChange, pendingRequests = 0, pendingExpenses = 0, pendingChoices = 0, activeBudgets = 0 }) {
   const today = new Date(); today.setHours(0,0,0,0);
+  const totalPending = pendingRequests + pendingExpenses + pendingChoices;
+  const employeeCount = Object.keys(EMPLOYEES).length;
+  const activeBenefits = BENEFIT_TYPES_SEED.filter(b => b.active).length;
+  const firstName = CURRENT_USER.name.split(' ')[0];
+
+  const attentionItems = [
+    pendingRequests > 0 && { icon: 'calendar-days', label: 'Time-off requests', count: pendingRequests, screen: 'requests', iconBg: '#e8f0fe', iconColor: '#2563eb' },
+    pendingExpenses > 0 && { icon: 'receipt', label: 'Expense reports', count: pendingExpenses, screen: 'expenses', iconBg: '#fef3c7', iconColor: '#b45309' },
+    pendingChoices > 0 && { icon: 'list-checks', label: 'Choices to approve', count: pendingChoices, screen: 'choices', iconBg: '#ede9fe', iconColor: '#6d28d9' },
+  ].filter(Boolean);
+
   return (
     <div style={{ flex: 1, overflow: 'auto', animation: `screenEnter 180ms ${EASE_OUT}` }}>
       <PageHeader
-        title="Home"
+        title={`Hey, ${firstName}`}
         subtitle={today.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
         badge={appEntity ? (ENTITIES.find(e => e.id === appEntity)?.name) : null}
+        maxWidth={960}
       />
       <div style={{ padding: '24px 32px' }}>
-        <MobilityLaunchWidget onToast={onToast} />
+      <div style={{ maxWidth: 960, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 28 }}>
+
+        {/* Overview stats */}
+        <div style={{ border: `1px solid ${P.border}`, borderRadius: 12, background: P.white, display: 'flex', overflow: 'hidden' }}>
+          {[
+            { label: 'Employees', value: employeeCount, icon: 'users' },
+            { label: 'Active budgets', value: activeBudgets, icon: 'wallet' },
+            { label: 'Active benefits', value: activeBenefits, icon: 'sparkles' },
+          ].map(({ label, value, icon }, i) => (
+            <div key={label} style={{ flex: 1, padding: '20px 24px', borderLeft: i === 0 ? 'none' : `1px solid ${P.border}` }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
+                <Icon name={icon} size={13} color={P.inkSoft} strokeWidth={1.75} />
+                <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>{label}</span>
+              </div>
+              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 28, color: P.ink, letterSpacing: '-0.03em', lineHeight: 1 }}>{value}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* Widget row */}
+        <div style={{ display: 'flex', gap: 20, alignItems: 'flex-start' }}>
+          <MobilityLaunchWidget onToast={onToast} onNav={onNav} physicalCardsAllowed={physicalCardsAllowed} onPhysicalCardsChange={onPhysicalCardsChange} mobilityWidgetState={mobilityWidgetState} onMobilityWidgetStateChange={onMobilityWidgetStateChange} />
+
+          {/* Needs attention */}
+          <div style={{ flex: 1, border: `1px solid ${P.border}`, borderRadius: 16, background: P.white, overflow: 'hidden', minWidth: 0 }}>
+            <div style={{ padding: '16px 24px', borderBottom: `1px solid ${P.border}` }}>
+              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.ink }}>Needs attention</span>
+            </div>
+            {totalPending === 0 ? (
+              <div style={{ padding: '36px 20px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+                <Icon name="check-circle" size={20} color="#008556" strokeWidth={1.75} />
+                <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>You're all caught up</span>
+              </div>
+            ) : attentionItems.map((item, i) => (
+              <AttentionRow key={item.screen} item={item} last={i === attentionItems.length - 1} onNav={onNav} />
+            ))}
+          </div>
+        </div>
+
       </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Card rules settings ────────────────────────────────────────────────────
+function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, onToast }) {
+  const [autoTopUp, setAutoTopUp] = useState(true);
+  const [draftPhysicalCards, setDraftPhysicalCards] = useState(physicalCardsAllowed);
+  const [showResignModal, setShowResignModal] = useState(false);
+  const [resignSigning, setResignSigning] = useState(false);
+  const [savedAutoTopUp, setSavedAutoTopUp] = useState(true);
+  const [savedPhysicalCards, setSavedPhysicalCards] = useState(physicalCardsAllowed);
+  const isDirty = autoTopUp !== savedAutoTopUp || draftPhysicalCards !== savedPhysicalCards;
+
+  const handleSave = () => {
+    onPhysicalCardsChange(draftPhysicalCards);
+    setSavedAutoTopUp(autoTopUp);
+    setSavedPhysicalCards(draftPhysicalCards);
+    onToast && onToast({ message: 'Card rules saved', type: 'approve' });
+  };
+
+  const handleResign = (close) => {
+    setResignSigning(true);
+    setTimeout(() => {
+      setResignSigning(false);
+      close();
+      onToast && onToast({ message: 'New mandate signed. Your bank account has been updated.', type: 'approve' });
+    }, 1800);
+  };
+
+  return (
+    <div style={{ flex: 1, overflow: 'auto', animation: `screenEnter 180ms ${EASE_OUT}` }}>
+      <div style={{ maxWidth: 680, margin: '0 auto', padding: '40px 32px', display: 'flex', flexDirection: 'column', gap: 32 }}>
+
+        <div>
+          <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 28, color: P.ink, margin: 0, letterSpacing: '-0.02em' }}>Card rules</h1>
+          <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, margin: '4px 0 0' }}>Configure how your employees can use and request their Payflip Card</p>
+        </div>
+
+        {/* Funding & mandate */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+          <div style={SL}>Funding &amp; mandate</div>
+
+          {/* Mandate */}
+          <SettingsCard info="Collections are processed by Twikey. Re-sign if your company's bank account changes.">
+            <SettingsRow
+              icon="landmark"
+              label={<span style={{ display: 'flex', alignItems: 'center', gap: 7 }}>Direct debit mandate<DotPill bg="#e6f4ee" color="#008556" dot size={11}>Active</DotPill></span>}
+              subtitle="IBAN ending in 4821 · Signed 8 Aug 2026"
+              trailing={<Button variant="secondary" onClick={() => setShowResignModal(true)} style={{ fontSize: 13, padding: '5px 12px', whiteSpace: 'nowrap' }}>Re-sign</Button>}
+              last
+            />
+          </SettingsCard>
+
+          {/* Auto top-up */}
+          <SettingsCard>
+            <SettingsRow
+              icon="refresh-cw"
+              label="Auto top-up"
+              subtitle={autoTopUp ? 'Account is topped up automatically when the balance runs low' : 'You will need to top up the account manually'}
+              trailing={<Switch size="sm" checked={autoTopUp} onChange={() => setAutoTopUp(v => !v)} />}
+              last={!autoTopUp}
+            />
+            {autoTopUp && (<>
+              <SettingsRow
+                icon="trending-down"
+                label="Top-up trigger"
+                value="Below €500"
+              />
+              <SettingsRow
+                icon="arrow-down-to-line"
+                label="Top-up amount"
+                value="€700 per collection"
+                last
+              />
+            </>)}
+          </SettingsCard>
+        </div>
+
+        {/* Card issuance */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div style={SL}>Card issuance</div>
+          <SettingsCard info="Physical cards are shipped to the employee's address within 5–7 business days. A €9 shipping fee applies per card.">
+            <SettingsRow
+              icon="credit-card"
+              label="Physical card requests"
+              subtitle="Allow employees to request a physical card from the app"
+              trailing={<Switch size="sm" checked={draftPhysicalCards} onChange={() => setDraftPhysicalCards(v => !v)} />}
+              last
+            />
+          </SettingsCard>
+        </div>
+
+        {/* Spending controls */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div style={SL}>Spending controls</div>
+          <SettingsCard info="By default employees can spend in any merchant category. Restrict to specific categories to enforce your mobility policy.">
+            <SettingsRow
+              icon="tag"
+              label="Spending categories"
+              value="All categories"
+              last
+            />
+          </SettingsCard>
+        </div>
+
+        {/* Footer */}
+        <div style={{ paddingTop: 8, display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
+          <Button variant="primary" onClick={handleSave} disabled={!isDirty}>Save changes</Button>
+        </div>
+
+      </div>
+
+      {showResignModal && (
+        <ModalShell
+          title="Re-sign mandate"
+          onClose={() => { setShowResignModal(false); setResignSigning(false); }}
+          width={460}
+          footer={close => (
+            <div style={{ padding: '14px 22px', borderTop: `1px solid ${P.border}`, display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+              <Button variant="secondary" onClick={close} disabled={resignSigning}>Cancel</Button>
+              <Button variant="primary" onClick={() => handleResign(close)} disabled={resignSigning}>
+                {resignSigning ? 'Signing…' : 'Sign new mandate →'}
+              </Button>
+            </div>
+          )}
+        >
+          <div style={{ padding: '18px 22px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, margin: 0, lineHeight: '20px' }}>
+              Your current mandate authorises Payflip to collect funds from <strong style={{ color: P.ink, fontWeight: 500 }}>IBAN ending in 4821</strong>. Re-sign if your company's bank account has changed.
+            </p>
+            <div style={{ background: P.bg, border: `1px solid ${P.border}`, borderRadius: 8, padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {[
+                { label: 'Mandate reference', value: 'PAYFLIP-2026-00142' },
+                { label: 'Signed', value: '8 August 2026' },
+                { label: 'Bank account', value: 'IBAN **** 4821' },
+                { label: 'Status', value: 'Active' },
+              ].map(({ label, value }) => (
+                <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>{label}</span>
+                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.ink, fontWeight: 500 }}>{value}</span>
+                </div>
+              ))}
+            </div>
+            <p style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, margin: 0, lineHeight: '18px' }}>
+              You'll be redirected to Twikey to sign the new mandate. The old mandate will be cancelled automatically.
+            </p>
+          </div>
+        </ModalShell>
+      )}
     </div>
   );
 }
@@ -6341,7 +6824,7 @@ function ExpenseCategorySettings({ categories, onSave, appEntity = null }) {
 
         <div>
           <div style={SL}>Receipt policy</div>
-          <SettingsCard>
+          <SettingsCard info={!hasReceiptThreshold ? 'A receipt is required for every expense, regardless of amount.' : undefined}>
             <SettingsRow
               label="Set a receipt threshold"
               subtitle="Skip the receipt requirement for expenses below a set amount"
@@ -6361,12 +6844,6 @@ function ExpenseCategorySettings({ categories, onSave, appEntity = null }) {
               </div>
             </div>
           </SettingsCard>
-          {!hasReceiptThreshold && (
-            <div style={{ marginTop: 8, display: 'flex', alignItems: 'flex-start', gap: 7 }}>
-              <Icon name="info" size={13} color={P.inkSoft} strokeWidth={2} style={{ flexShrink: 0, marginTop: 1 }} />
-              <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>A receipt is required for every expense, regardless of amount.</span>
-            </div>
-          )}
         </div>
 
         {EXPENSE_BUDGET_TYPES.map(bt => {
@@ -6396,10 +6873,10 @@ function ExpenseCategorySettings({ categories, onSave, appEntity = null }) {
   );
 }
 
-function PersonPickerModal({ title, value, candidates, singleSelect, onSave, onClose, appEntity }) {
+function PersonPickerModal({ title, value, candidates, sections, singleSelect, onSave, onClose, appEntity }) {
   const [selected, setSelected] = useState(singleSelect ? (value ? [value] : []) : (value || []));
   const [search, setSearch] = useState('');
-  const [deptFilter, setDeptFilter] = useState('all');
+  const [activeTab, setActiveTab] = useState(0);
 
   const toggle = (key, close) => {
     if (singleSelect) { onSave(key); close(); return; }
@@ -6410,13 +6887,46 @@ function PersonPickerModal({ title, value, candidates, singleSelect, onSave, onC
     .filter(([, e]) => e.adminAccess)
     .map(([key, e]) => ({ value: key, name: e.name, dept: e.department || (e.isEmployee === false ? 'External' : ''), entity: e.entity, initials: e.initials, color: e.color }));
 
-  const depts = [...new Set(pool.map(e => e.dept).filter(Boolean))].sort();
+  const matchesSearch = (e) => !search || e.name.toLowerCase().includes(search.toLowerCase()) || (e.dept || '').toLowerCase().includes(search.toLowerCase());
 
-  const filtered = pool.filter(e => {
-    const matchesDept = deptFilter === 'all' || e.dept === deptFilter;
-    const matchesSearch = !search || e.name.toLowerCase().includes(search.toLowerCase()) || (e.dept || '').toLowerCase().includes(search.toLowerCase());
-    return matchesDept && matchesSearch;
-  });
+  // When sections are provided, render as tabs; search filters within the active tab
+  const activeItems = sections
+    ? (sections[activeTab]?.items || []).filter(matchesSearch)
+    : null;
+  const filtered = sections ? null : pool.filter(matchesSearch);
+
+  const renderRow = (emp, close) => {
+    const on = selected.includes(emp.value);
+    const subtitle = appEntity ? emp.dept : [emp.dept, emp.entity].filter(Boolean).join(' · ');
+    return (
+      <div key={emp.value} onClick={() => toggle(emp.value, close)}
+        style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 20px', cursor: 'pointer', opacity: emp.dimmed ? 0.5 : 1 }}
+        onMouseEnter={e => { e.currentTarget.style.background = 'rgba(15,13,40,0.04)'; }}
+        onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}>
+        <div style={{ width: 22, height: 22, borderRadius: '50%', background: emp.color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 9, color: P.ink }}>{emp.initials}</span>
+        </div>
+        <div style={{ flex: 1, display: 'flex', alignItems: 'baseline', gap: 5, minWidth: 0 }}>
+          <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.ink }}>{emp.name}</span>
+          {subtitle && <>
+            <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkFaint }}>·</span>
+            <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkSoft }}>{subtitle}</span>
+          </>}
+        </div>
+        {emp.hint && (
+          <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: emp.hintColor || P.inkSoft, flexShrink: 0, marginRight: 8 }}>{emp.hint}</span>
+        )}
+        {singleSelect
+          ? <div style={{ width: 18, height: 18, borderRadius: '50%', border: `2px solid ${on ? P.action : P.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: `border-color 120ms` }}>
+              {on && <div style={{ width: 8, height: 8, borderRadius: '50%', background: P.action }} />}
+            </div>
+          : <div style={{ width: 18, height: 18, borderRadius: 4, border: `2px solid ${on ? P.action : P.border}`, background: on ? P.action : P.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: `background 120ms, border-color 120ms` }}>
+              {on && <Icon name="check" size={11} color="#fff" strokeWidth={3} />}
+            </div>
+        }
+      </div>
+    );
+  };
 
   return (
     <ModalShell title={title} onClose={onClose} width={480} maxHeight="70vh">
@@ -6424,62 +6934,49 @@ function PersonPickerModal({ title, value, candidates, singleSelect, onSave, onC
         const save = () => { onSave(selected); close(); };
         return (
           <>
-        {/* Search + department filter */}
-        <div style={{ padding: '12px 16px', borderBottom: `1px solid ${P.border}`, display: 'flex', gap: 8, flexShrink: 0 }}>
-          <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 5, border: `1px solid ${P.border}`, borderRadius: 7, padding: '8px 11px', background: P.white }}>
-            <Icon name="search" size={12} color={P.inkFaint} strokeWidth={2} />
-            <input autoFocus value={search} onChange={e => setSearch(e.target.value)} placeholder="Search employees"
-              style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', padding: 0, fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 12, color: P.ink, lineHeight: 1 }} />
-            {search && (
-              <button onClick={() => setSearch('')} style={{ border: 'none', background: 'none', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', flexShrink: 0 }}>
-                <Icon name="x" size={10} color={P.inkFaint} strokeWidth={2.5} />
-              </button>
-            )}
+        {/* Tabs first (when sections provided) */}
+        {sections && (
+          <div style={{ display: 'flex', borderBottom: `1px solid ${P.border}`, flexShrink: 0, padding: '16px 16px 0', gap: 4 }}>
+            {sections.map((s, i) => (
+              <button key={i} onClick={() => { setActiveTab(i); setSearch(''); }} style={{
+                padding: '9px 10px', border: 'none', background: 'none', cursor: 'pointer',
+                fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 12,
+                color: activeTab === i ? P.ink : P.inkSoft,
+                borderBottom: activeTab === i ? `2px solid ${P.ink}` : '2px solid transparent',
+                transition: 'color 120ms, border-color 120ms',
+                marginBottom: -1,
+              }}>{s.label}</button>
+            ))}
           </div>
-          {depts.length > 1 && (
-            <FilterDropdown
-              label="All departments"
-              active={deptFilter}
-              opts={[['all', 'All departments'], ...depts.map(d => [d, d])]}
-              onSelect={setDeptFilter}
-            />
-          )}
-        </div>
+        )}
+
+        {/* Search — hidden when active tab is small */}
+        {(!sections || (sections[activeTab]?.items || []).length >= 6) && (
+          <div style={{ padding: '12px 16px', borderBottom: `1px solid ${P.border}`, display: 'flex', gap: 8, flexShrink: 0 }}>
+            <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 5, border: `1px solid ${P.border}`, borderRadius: 7, padding: '8px 11px', background: P.white }}>
+              <Icon name="search" size={12} color={P.inkFaint} strokeWidth={2} />
+              <input autoFocus value={search} onChange={e => setSearch(e.target.value)} placeholder="Search employees"
+                style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', padding: 0, fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 12, color: P.ink, lineHeight: 1 }} />
+              {search && (
+                <button onClick={() => setSearch('')} style={{ border: 'none', background: 'none', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+                  <Icon name="x" size={10} color={P.inkFaint} strokeWidth={2.5} />
+                </button>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* List */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '8px 0' }}>
-          <div key={deptFilter} style={{ animation: PREFERS_REDUCED_MOTION ? 'tableEnterReduced 150ms ' + EASE_OUT : 'tableEnter 150ms ' + EASE_OUT }}>
-          {filtered.map(emp => {
-            const on = selected.includes(emp.value);
-            const subtitle = appEntity ? emp.dept : [emp.dept, emp.entity].filter(Boolean).join(' · ');
-            return (
-              <div key={emp.value} onClick={() => toggle(emp.value, close)}
-                style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 20px', cursor: 'pointer' }}
-                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(15,13,40,0.04)'; }}
-                onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}>
-                <div style={{ width: 22, height: 22, borderRadius: '50%', background: emp.color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 9, color: P.ink }}>{emp.initials}</span>
-                </div>
-                <div style={{ flex: 1, display: 'flex', alignItems: 'baseline', gap: 5 }}>
-                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.ink }}>{emp.name}</span>
-                  {subtitle && <>
-                    <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkFaint }}>·</span>
-                    <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkSoft }}>{subtitle}</span>
-                  </>}
-                </div>
-                {singleSelect
-                  ? <div style={{ width: 18, height: 18, borderRadius: '50%', border: `2px solid ${on ? P.action : P.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: `border-color 120ms` }}>
-                      {on && <div style={{ width: 8, height: 8, borderRadius: '50%', background: P.action }} />}
-                    </div>
-                  : <div style={{ width: 18, height: 18, borderRadius: 4, border: `2px solid ${on ? P.action : P.border}`, background: on ? P.action : P.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: `background 120ms, border-color 120ms` }}>
-                      {on && <Icon name="check" size={11} color="#fff" strokeWidth={3} />}
-                    </div>
-                }
-              </div>
-            );
-          })}
-          {filtered.length === 0 && (
-            <div style={{ padding: '20px 10px', fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, textAlign: 'center' }}>No results</div>
+        <div style={{ flex: 1, overflowY: 'auto', padding: '8px 0', minHeight: 220 }}>
+          <div key={activeTab} style={{ animation: PREFERS_REDUCED_MOTION ? 'tableEnterReduced 150ms ' + EASE_OUT : 'tableEnter 150ms ' + EASE_OUT }}>
+          {sections ? (
+            activeItems.length > 0
+              ? activeItems.map(emp => renderRow(emp, close))
+              : <div style={{ padding: '20px 10px', fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, textAlign: 'center' }}>No results</div>
+          ) : (
+            filtered.length > 0
+              ? filtered.map(emp => renderRow(emp, close))
+              : <div style={{ padding: '20px 10px', fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, textAlign: 'center' }}>No results</div>
           )}
           </div>
         </div>
@@ -6856,12 +7353,7 @@ const DEFAULT_LEAVE_CONFIGS = {
   'Moving':                      { requiresApproval: false, declaration: false, docRequired: false, maxDays: 1,    editRequiresApproval: false, cancelRequiresApproval: false, carryover: 'forfeit', allowHalfDay: true, docThresholdDays: 0 },
 };
 
-const LEAVE_COLOR_VALUES = Object.values(LEAVE_COLORS);
-const EXTRA_PALETTE_COLORS = [
-  '#fee2e2', '#ffedd5', '#fef9c3', '#dcfce7',
-  '#ccfbf1', '#e0f2fe', '#e0e7ff', '#f3e8ff',
-  '#fce7f3', '#f1f5f9', '#d1d5db', '#ecfccb',
-];
+const LEAVE_COLOR_VALUES = [...new Set(Object.values(LEAVE_COLORS))];
 const LEAVE_COLOR_ENTRIES = Object.entries(LEAVE_COLORS);
 
 function AllowanceSettingsPage({ config, typeInfo, onSave, onBack, backLabel = 'Expenses', appEntity = null }) {
@@ -7305,7 +7797,7 @@ function LeaveTypeSettingsPage({ config, allLeaveTypes = [], onSave, onDelete, o
   const [dayLimitTip,           setDayLimitTip]           = useState(false);
   const showsAnnualBalance = !defaults.declaration && !defaults.adminOnly && !defaults.statutory && defaults.section !== 'special-leave';
 
-  const uniqueColors = [...new Set([...LEAVE_COLOR_VALUES, ...EXTRA_PALETTE_COLORS])];
+  const uniqueColors = LEAVE_COLOR_VALUES;
   const colorUsers = React.useMemo(() => {
     const map = {};
     allLeaveTypes.forEach(lt => {
@@ -8634,6 +9126,14 @@ function BenefitsSettings({ appEntity = null }) {
 // ── Changelog ──────────────────────────────────────────────────────────────
 const CHANGELOG_ENTRIES = [
   {
+    date: '10 Aug 2026',
+    title: 'Design system: ChoiceCard for bordered option lists',
+    items: [
+      { summary: 'New shared ChoiceCard component', detail: 'For any modal list where each option has a label and a description — replaces inline indicator rows in PickModal (reimbursement cycle) and AdminAccessModal (area checkboxes). Supports radio and checkbox variants; selected state fills the card with a dark border and filled indicator.', why: 'The previous bare radio dot + label/hint pattern looked lightweight — a bordered card makes each option feel like a real, tappable choice and matches the visual weight of what you\'re deciding. Also removes the only place still using the old accent-colored radio dot.' },
+      { summary: 'Label weight set to 500 inside ChoiceCard', why: 'At 14px regular the label read the same as a body sentence — medium weight gives it the visual hierarchy needed to anchor the card.' },
+    ],
+  },
+  {
     date: '9 Aug 2026',
     title: 'Design system: consolidating on shared components, and a Components page',
     items: [
@@ -9483,11 +9983,20 @@ function App() {
     if (ch) setToast({ message: `${(EMPLOYEES[ch.empId] || {}).name?.split(' ')[0]}'s choice declined`, type: 'decline' });
   };
 
+  const [physicalCardsAllowed, setPhysicalCardsAllowed] = useState(false);
+  const [mobilityWidgetState, setMobilityWidgetState] = useState({
+    widgetMode: 'mobility',
+    started: false,
+    step: 1,
+    mandateDenied: false,
+    live: false,
+    liveVisible: false,
+  });
   const [settingsDocuments, setSettingsDocuments] = useState([]);
 
   const [expenses, setExpenses] = useState(EXPENSES_SEED);
   const [expenseCategories, setExpenseCategories] = useState(EXPENSE_CATEGORIES_SEED);
-  const [allowances, setAllowances] = useState(ALLOWANCE_TYPES.map(t => ({ id: t.id, active: false, rate: t.defaultRate })));
+  const [allowances, setAllowances] = useState(ALLOWANCE_TYPES.map(t => ({ id: t.id, active: ['mileage', 'home-office', 'mobile-internet'].includes(t.id), rate: t.defaultRate })));
   const [expDetail, setExpDetail] = useState(null);
 
   const approveExpense = (id) => {
@@ -9751,7 +10260,7 @@ function App() {
       <Sidebar active={screen} onNav={handleNav} pendingCount={pendingCount} sidebarMode={sidebarMode} onSetSidebarMode={setSidebarMode} appEntity={appEntity} onSetAppEntity={setAppEntity} />
 
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, overflow: 'hidden' }}>
-        {screen === 'dashboard' && <DashboardScreen key={appEntity ?? 'all'} requests={entityFilteredRequests} onNav={setScreen} onToast={setToast} appEntity={appEntity} />}
+        {screen === 'dashboard' && <DashboardScreen key={appEntity ?? 'all'} requests={entityFilteredRequests} onNav={setScreen} onToast={setToast} appEntity={appEntity} physicalCardsAllowed={physicalCardsAllowed} onPhysicalCardsChange={setPhysicalCardsAllowed} mobilityWidgetState={mobilityWidgetState} onMobilityWidgetStateChange={setMobilityWidgetState} pendingRequests={pendingRequestsCount} pendingExpenses={pendingExpensesCount} pendingChoices={pendingChoicesCount} activeBudgets={allowances.filter(a => a.active).length} />}
         {screen === 'team-absences' && <TeamAbsencesScreen key={appEntity ?? 'all'} requests={entityFilteredRequests} pendingCount={pendingRequestsCount} onNav={setScreen} onShowDetail={setCalDetail} activeReqId={calDetail?.id} onSave={saveRequest} companyEvents={companyEvents} onCancelCompanyEvent={cancelCompanyEvent} initialDate={calendarJumpDate} initialDeptFilter={calendarDeptFilter} appEntity={appEntity} leaveTypes={leaveTypes} />}
         {screen === 'requests' && <RequestsScreen key={appEntity ?? 'all'} requests={entityFilteredRequests} onApprove={approve} onDecline={requestDecline} onSave={saveRequest} onCancel={requestCancel} onNav={setScreen} onViewInCalendar={(req) => { const d = req._selectedDates?.[0] || req.startDate; if (d) { const iso = typeof d === 'string' && d.match(/^\d{4}-/) ? d : null; setCalendarJumpDate(iso ? new Date(iso) : parseDisplayDate(d)); } setCalDetail(req); setScreen('team-absences'); }} appEntity={appEntity} />}
         {(screen === 'employees' || screen === 'employees:admin') && <EmployeesScreen key={appEntity ?? 'all'} requests={entityFilteredRequests} onNav={setScreen} initialRoleFilter={screen === 'employees:admin' ? 'Admin' : 'All'} adminAccess={adminAccess} appEntity={appEntity} onAddEmployee={() => setAddEmployeeOpen(true)} />}
@@ -9768,9 +10277,10 @@ function App() {
         {screen === 'settings-documents' && <DocumentsSettings key={appEntity ?? 'all'} appEntity={appEntity} documents={settingsDocuments} onDocumentsChange={setSettingsDocuments} />}
         {screen === 'settings-payroll' && <PayrollSettings companyRegime={companyRegime} onRegimeChange={setCompanyRegime} appEntity={appEntity} onToast={setToast} />}
         {screen === 'settings-benefits' && <BenefitsSettings key={appEntity ?? 'all'} appEntity={appEntity} />}
+        {screen === 'settings-cardrules' && <CardRulesSettings physicalCardsAllowed={physicalCardsAllowed} onPhysicalCardsChange={setPhysicalCardsAllowed} onToast={setToast} />}
         {screen === 'changelog' && <ChangelogScreen />}
         {screen === 'components' && <ComponentLibraryScreen />}
-        {screen.startsWith('settings-') && screen !== 'settings-allowances' && screen !== 'settings-expenses' && screen !== 'settings-team' && screen !== 'settings-timeoff' && screen !== 'settings-entities' && screen !== 'settings-documents' && screen !== 'settings-payroll' && screen !== 'settings-benefits' && <StubScreen title={SETTINGS_TITLES[screen] || 'Settings'} description={`Configure ${(SETTINGS_TITLES[screen] || 'settings').toLowerCase()}`} />}
+        {screen.startsWith('settings-') && screen !== 'settings-allowances' && screen !== 'settings-expenses' && screen !== 'settings-team' && screen !== 'settings-timeoff' && screen !== 'settings-entities' && screen !== 'settings-documents' && screen !== 'settings-payroll' && screen !== 'settings-benefits' && screen !== 'settings-cardrules' && <StubScreen title={SETTINGS_TITLES[screen] || 'Settings'} description={`Configure ${(SETTINGS_TITLES[screen] || 'settings').toLowerCase()}`} />}
       </div>
 
       {calDetail && (
