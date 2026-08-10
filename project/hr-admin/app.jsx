@@ -5800,7 +5800,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
       </span>
     );
     return (
-      <span style={{ width: 24, height: 24, borderRadius: '50%', background: active ? P.ink : 'transparent', border: active ? 'none' : `1.5px solid ${P.inkSoft}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 12, color: active ? '#fff' : P.inkSoft }}>
+      <span style={{ width: 24, height: 24, borderRadius: '50%', background: 'transparent', border: active ? `2px solid ${P.ink}` : `1.5px solid ${P.inkSoft}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontFamily: 'var(--font-display)', fontWeight: active ? 600 : 500, fontSize: 12, color: active ? P.ink : P.inkSoft }}>
         {n}
       </span>
     );
@@ -5842,7 +5842,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
       {/* Step 1 — Select employees */}
       <div style={{ background: step === 1 ? P.white : inactiveBg, borderBottom: `1px solid ${P.border}` }}>
         {step === 1 ? (
-          <div key="m-step1-active" style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 20, animation: `stepContentEnter 250ms ${EASE_OUT}` }}>
+          <div key="m-step1-active" style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 20, animation: PREFERS_REDUCED_MOTION ? 'none' : `stepContentEnter 250ms ${EASE_OUT} 120ms both` }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
               {stepBadgeEl(1)}
               <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.ink }}>Select employees</span>
@@ -5850,44 +5850,42 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
             <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
               Choose who gets access to the Payflip Card. Only employees with a mobility budget are eligible.
             </p>
-            {/* Auto-selection callout — only shown while selection is untouched */}
-            {isDefaultSelection && (
-              <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '10px 12px', background: '#f0fdf4', borderRadius: 8 }}>
-                <Icon name="info" size={14} color='#059669' strokeWidth={2} style={{ marginTop: 1, flexShrink: 0 }} />
-                <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: '#065f46', lineHeight: '18px' }}>
-                  We pre-selected the {readyToUse.length} employee{readyToUse.length !== 1 ? 's' : ''} with a remaining mobility budget. Review and adjust before continuing.
-                </span>
-              </div>
-            )}
-            {/* Employee selector row */}
+            {/* Employee selector row — callout lives inside the card when selection is default */}
             <div
               onClick={() => setShowPickerModal(true)}
-              style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 14px', border: `1px solid ${P.border}`, borderRadius: 10, cursor: 'pointer', background: P.white, transition: `border-color 120ms ${EASE_OUT}` }}
+              style={{ border: `1px solid ${P.border}`, borderRadius: 10, cursor: 'pointer', background: P.white, transition: `border-color 120ms ${EASE_OUT}`, overflow: 'hidden' }}
               onMouseEnter={e => e.currentTarget.style.borderColor = P.inkSoft}
               onMouseLeave={e => e.currentTarget.style.borderColor = P.border}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <Icon name="users" size={16} color={P.inkSoft} strokeWidth={1.75} />
-                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.ink }}>
-                  {isDefaultSelection
-                    ? `Review selection — ${empCount} of ${allEligible.length} employees`
-                    : `${empCount} of ${allEligible.length} employees selected`}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 14px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <Icon name="users" size={16} color={P.inkSoft} strokeWidth={1.75} />
+                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.ink }}>
+                    {isDefaultSelection
+                      ? `Review selection — ${empCount} of ${allEligible.length} employees`
+                      : `${empCount} of ${allEligible.length} employees selected`}
+                  </span>
+                </div>
+                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.ink, textDecoration: 'underline', flexShrink: 0 }}>
+                  {isDefaultSelection ? 'Review' : 'Edit'}
                 </span>
               </div>
-              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.ink, textDecoration: 'underline' }}>
-                {isDefaultSelection ? 'Review' : 'Edit'}
-              </span>
+              {isDefaultSelection && (
+                <div style={{ borderTop: `1px solid ${P.border}`, padding: '10px 14px', display: 'flex', alignItems: 'flex-start', gap: 10, background: '#f0fdf4' }}>
+                  <Icon name="info" size={13} color='#059669' strokeWidth={2} style={{ marginTop: 1, flexShrink: 0 }} />
+                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: '#065f46', lineHeight: '18px' }}>
+                    We pre-selected the {readyToUse.length} employee{readyToUse.length !== 1 ? 's' : ''} with a remaining mobility budget. Review and adjust before continuing.
+                  </span>
+                </div>
+              )}
             </div>
-            {/* Deposit preview */}
-            <div style={{ border: `1px solid ${P.border}`, borderRadius: 10, padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 4 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>Deposit needed</span>
-                <span onClick={e => { e.stopPropagation(); setShowCalcModal(true); }} style={{ width: 18, height: 18, borderRadius: '50%', background: P.bg, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}>
-                  <Icon name="help-circle" size={12} color={P.inkSoft} strokeWidth={2} />
-                </span>
-              </div>
-              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 24, color: P.ink }}>
-                €<AnimatedNumber value={deposit.toLocaleString('de-DE')} />
+            {/* Deposit — plain text, no card */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, paddingLeft: 2 }}>
+              <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>
+                Deposit needed: <strong style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 24, color: P.ink }}>€<AnimatedNumber value={deposit.toLocaleString('de-DE')} /></strong>
+              </span>
+              <span onClick={e => { e.stopPropagation(); setShowCalcModal(true); }} style={{ width: 16, height: 16, borderRadius: '50%', background: P.bg, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}>
+                <Icon name="help-circle" size={10} color={P.inkSoft} strokeWidth={2} />
               </span>
             </div>
             <Button variant="primary" disabled={empCount === 0} onClick={() => setStep(2)} style={{ width: '100%', justifyContent: 'center', fontSize: 15, padding: '10px 18px' }}>Continue</Button>
@@ -6107,9 +6105,9 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
       <div style={{ display: 'flex', flexDirection: 'column' }}>
         {widgetMode === 'mobility' ? (<>
           {/* Intro overview — collapses when setup starts */}
-          <div style={{ display: 'grid', gridTemplateRows: started ? '0fr' : '1fr', transition: `grid-template-rows 350ms ${EASE_OUT}`, overflow: 'hidden' }}>
+          <div style={{ display: 'grid', gridTemplateRows: started ? '0fr' : '1fr', transition: PREFERS_REDUCED_MOTION ? 'none' : `grid-template-rows 220ms ${EASE_OUT}`, overflow: 'hidden' }}>
             <div style={{ minHeight: 0 }}>
-              <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 20 }}>
+              <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 20, opacity: started ? 0 : 1, filter: started ? 'blur(2px)' : 'blur(0)', transition: PREFERS_REDUCED_MOTION ? 'none' : `opacity 180ms ${EASE_OUT}, filter 180ms ${EASE_OUT}` }}>
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
                   {[
                     { n: 1, title: 'Select employees', desc: 'Choose who gets a card and confirm the deposit amount.' },
@@ -6129,9 +6127,9 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
               </div>
             </div>
           </div>
-          {/* Setup flow — expands when setup starts */}
-          <div style={{ display: 'grid', gridTemplateRows: started ? '1fr' : '0fr', transition: `grid-template-rows 350ms ${EASE_OUT}`, overflow: 'hidden' }}>
-            <div style={{ minHeight: 0 }}>
+          {/* Setup flow — expands when setup starts, staggered after intro collapse */}
+          <div style={{ display: 'grid', gridTemplateRows: started ? '1fr' : '0fr', transition: PREFERS_REDUCED_MOTION ? 'none' : `grid-template-rows 350ms ${EASE_OUT}`, transitionDelay: PREFERS_REDUCED_MOTION ? '0ms' : (started ? '80ms' : '0ms'), overflow: 'hidden' }}>
+            <div style={{ minHeight: 0, opacity: started ? 1 : 0, filter: started ? 'blur(0)' : 'blur(2px)', transition: PREFERS_REDUCED_MOTION ? 'none' : `opacity 300ms ${EASE_OUT}, filter 300ms ${EASE_OUT}`, transitionDelay: PREFERS_REDUCED_MOTION ? '0ms' : (started ? '200ms' : '0ms') }}>
               {mobilitySetupContent()}
             </div>
           </div>
