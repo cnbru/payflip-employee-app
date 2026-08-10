@@ -319,25 +319,30 @@ function IconButton({ icon, onClick, size = 30, iconSize = 14, color = P.ink, bl
 // ── Button — the four sanctioned button treatments. Reach for this instead of
 // a raw <button style={{...}}> — see CLAUDE.md "Shared components".
 const BUTTON_VARIANTS = {
-  primary:   { background: P.action, color: '#fff', border: 'none' },
-  secondary: { background: 'transparent', color: P.ink, border: `1px solid ${P.border}` },
-  danger:    { background: 'transparent', color: '#dc2626', border: 'none' },
-  text:      { background: 'transparent', color: P.ink, border: 'none' },
+  primary:   { background: P.action, hover: '#2d1048', color: '#fff', border: 'none' },
+  secondary: { background: 'transparent', hover: P.bg, color: P.ink, border: `1px solid ${P.border}` },
+  danger:    { background: 'transparent', hover: '#fee2e2', color: '#dc2626', border: 'none' },
+  text:      { background: 'transparent', hover: P.bg, color: P.ink, border: 'none' },
 };
 function Button({ variant = 'secondary', onClick, children, icon, iconSize = 14, disabled, type = 'button', style }) {
   const v = BUTTON_VARIANTS[variant] || BUTTON_VARIANTS.secondary;
   const flush = variant === 'text' || variant === 'danger';
+  const [hovered, setHovered] = useState(false);
   return (
-    <button type={type} onClick={onClick} disabled={disabled} style={{
-      display: 'inline-flex', alignItems: 'center', gap: 7,
-      padding: flush ? 0 : '9px 18px',
-      borderRadius: 8,
-      border: v.border, background: v.background, color: v.color,
-      cursor: disabled ? 'not-allowed' : 'pointer',
-      opacity: disabled ? 0.5 : 1,
-      fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13,
-      ...style,
-    }}>
+    <button type={type} onClick={onClick} disabled={disabled}
+      onMouseEnter={() => !disabled && setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        display: 'inline-flex', alignItems: 'center', gap: 7,
+        padding: flush ? 0 : '9px 18px',
+        borderRadius: 8,
+        border: v.border, background: hovered ? v.hover : v.background, color: v.color,
+        cursor: disabled ? 'not-allowed' : 'pointer',
+        opacity: disabled ? 0.5 : 1,
+        fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13,
+        transition: PREFERS_REDUCED_MOTION ? 'none' : `background 120ms ${EASE_OUT}`,
+        ...style,
+      }}>
       {icon && <Icon name={icon} size={iconSize} color={v.color} strokeWidth={2.5} />}
       {children}
     </button>
@@ -5813,12 +5818,17 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
     const done = n < step || live;
     const active = n === step && !live;
     if (done) return (
-      <span style={{ width: 24, height: 24, borderRadius: '50%', background: '#008556', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, animation: pop ? `badgePopIn 400ms cubic-bezier(0.34, 1.36, 0.64, 1)` : undefined }}>
-        <Icon name="check" size={12} color="#fff" strokeWidth={2.5} />
+      <span style={{ width: 24, height: 24, borderRadius: '50%', background: '#e8f5f0', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, animation: pop ? `badgePopIn 400ms cubic-bezier(0.34, 1.36, 0.64, 1)` : undefined }}>
+        <Icon name="check" size={12} color="#008556" strokeWidth={2.5} />
+      </span>
+    );
+    if (active) return (
+      <span style={{ width: 24, height: 24, borderRadius: '50%', background: '#0f0d28', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, color: '#fff' }}>
+        {n}
       </span>
     );
     return (
-      <span style={{ width: 24, height: 24, borderRadius: '50%', background: 'transparent', border: active ? `2px solid ${P.ink}` : `1.5px solid ${P.inkSoft}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontFamily: 'var(--font-display)', fontWeight: active ? 600 : 500, fontSize: 12, color: active ? P.ink : P.inkSoft }}>
+      <span style={{ width: 24, height: 24, borderRadius: '50%', background: 'transparent', border: `1.5px solid ${P.inkSoft}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 12, color: P.inkSoft }}>
         {n}
       </span>
     );
@@ -5872,7 +5882,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
             <div style={{ display: 'flex', border: `1px solid ${P.border}`, borderRadius: 10, overflow: 'hidden' }}>
               <div style={{ flex: 1, padding: '16px 20px', display: 'flex', flexDirection: 'column' }}>
                 <div style={{ ...SL, marginBottom: 6 }}>Employees</div>
-                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 36, color: P.ink, lineHeight: 1, marginBottom: 16, flex: 1 }}>
+                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 36, color: P.ink, lineHeight: 1, marginBottom: 16, flex: 1 }}>
                   {empCount}
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>
@@ -5886,7 +5896,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
               <div style={{ width: 1, background: P.border, flexShrink: 0 }} />
               <div style={{ flex: 1, padding: '16px 20px', display: 'flex', flexDirection: 'column' }}>
                 <div style={{ ...SL, marginBottom: 6 }}>Recommended deposit</div>
-                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 36, color: P.ink, lineHeight: 1, marginBottom: 16, flex: 1 }}>
+                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 36, color: P.ink, lineHeight: 1, marginBottom: 16, flex: 1 }}>
                   €<AnimatedNumber value={deposit.toLocaleString('de-DE')} />
                 </div>
                 <IconButton icon="info" size={26} onClick={e => { e.stopPropagation(); setShowCalcModal(true); }} />
@@ -5895,7 +5905,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
             <Button variant="primary" disabled={empCount === 0} onClick={() => setStep(2)} style={{ width: '100%', justifyContent: 'center', fontSize: 15, padding: '10px 18px' }}>Continue</Button>
           </div>
         ) : (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: 24, animation: `stepDoneEnter 200ms ${EASE_OUT}` }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: 24, animation: `stepDoneEnter 200ms ${EASE_OUT}`, opacity: 0.55 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
               {stepBadgeEl(1)}
               <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.inkSoft }}>{empCount} employees selected</span>
@@ -5913,27 +5923,35 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
               {stepBadgeEl(2)}
               <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.ink }}>Sign mandate</span>
             </div>
-            <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink, lineHeight: '20px', margin: 0 }}>
-              By signing this mandate, you authorise Payflip to collect <strong>€{deposit.toLocaleString('de-DE')}</strong> from your company account. Funds arrive within 3 business days. Future top-ups happen automatically when the balance runs low.
-            </p>
+
+            {/* Amount stat + orientation */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkSoft, textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 500 }}>Powered by</span>
-              <img src={TWIKEY_LOGO_IMG} alt="Twikey" style={{ width: 62, height: 27, display: 'block' }} />
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 22, color: P.ink, letterSpacing: '-0.3px' }}>€{deposit.toLocaleString('de-DE')}</span>
+                <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>initial deposit</span>
+              </div>
+              <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
+                Authorises Payflip to collect this deposit and top up automatically when the balance runs low.
+              </p>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              <Button variant="primary" onClick={() => setStep(3)} style={{ width: '100%', justifyContent: 'center', fontSize: 15, padding: '10px 18px' }}>Sign mandate</Button>
-              <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, textAlign: 'center', lineHeight: '17px' }}>
-                You'll be redirected to Twikey to sign securely. You'll return to Payflip automatically when done.
+
+            {/* Twikey trust block */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', border: `1px solid ${P.border}`, borderRadius: 10, background: P.bg }}>
+              <img src={TWIKEY_LOGO_IMG} alt="Twikey" style={{ width: 80, height: 35, display: 'block', objectFit: 'contain', flexShrink: 0 }} />
+              <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, lineHeight: '17px' }}>
+                Secured by Twikey — funds arrive within 3 business days.
               </span>
             </div>
+
+            <Button variant="primary" onClick={() => setStep(3)} style={{ width: '100%', justifyContent: 'center', fontSize: 15, padding: '10px 18px' }}>Sign with Twikey</Button>
           </div>
         ) : step < 2 ? (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 24 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 24, opacity: 0.45 }}>
             {stepBadgeEl(2)}
             <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 16, color: P.inkSoft }}>Sign mandate</span>
           </div>
         ) : (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 24, animation: `stepDoneEnter 200ms ${EASE_OUT}` }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 24, animation: `stepDoneEnter 200ms ${EASE_OUT}`, opacity: 0.55 }}>
             {stepBadgeEl(2)}
             <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.inkSoft }}>€{deposit.toLocaleString('de-DE')} · Mandate signed</span>
           </div>
@@ -5974,15 +5992,12 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
             </div>
           )
         ) : step < 3 ? (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 24 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 24, opacity: 0.45 }}>
             {stepBadgeEl(3)}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 16, color: P.inkSoft }}>Awaiting deposit</span>
-              <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>~3 business days</span>
-            </div>
+            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 16, color: P.inkSoft }}>Awaiting deposit</span>
           </div>
         ) : (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 24, animation: `stepDoneEnter 200ms ${EASE_OUT}` }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 24, animation: `stepDoneEnter 200ms ${EASE_OUT}`, opacity: 0.55 }}>
             {stepBadgeEl(3, step === 4)}
             <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.inkSoft }}>€{deposit.toLocaleString('de-DE')} received</span>
           </div>
@@ -6009,7 +6024,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
             <Button variant="primary" onClick={() => setShowConfirmModal(true)} style={{ width: '100%', justifyContent: 'center', fontSize: 15, padding: '10px 18px' }}>Send invites to {empCount} employees</Button>
           </div>
         ) : (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 24 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 24, opacity: 0.45 }}>
             {stepBadgeEl(4)}
             <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 16, color: P.inkSoft }}>Send invites</span>
           </div>
@@ -6132,14 +6147,16 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
       </div>
 
       {/* Body */}
-      {!hidden && <div style={{ display: 'flex', flexDirection: 'column' }}>
+      <div style={{ display: 'grid', gridTemplateRows: hidden ? '0fr' : '1fr', transition: `grid-template-rows 300ms ${EASE_OUT}`, overflow: 'hidden' }}>
+        <div style={{ minHeight: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
         {widgetMode === 'mobility' ? (<>
           {!live && (
             <div style={{ display: 'flex', alignItems: 'stretch' }}>
               <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
                 {mobilitySetupContent()}
               </div>
-              <div style={{ flex: 1, background: 'linear-gradient(140deg, #faf7fe 0%, #f0ebf8 40%, #ddd0f0 100%)', borderLeft: `1px solid ${P.border}`, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '48px 32px' }}>
+              <div style={{ flex: 1, background: 'linear-gradient(140deg, #faf7fe 0%, #f0ebf8 40%, #ddd0f0 100%)', borderLeft: `1px solid ${P.border}`, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '48px 32px', position: 'relative', overflow: 'hidden' }}>
+                <div className="gradient-drift" style={{ position: 'absolute', inset: 0, background: 'linear-gradient(200deg, #f5f0fe 0%, #e4d8f5 35%, #c8aee5 100%)', animation: 'gradientDrift 8s ease-in-out infinite alternate', pointerEvents: 'none' }} />
                 <CardTilt>
                   <img src={PAYFLIP_CARD_IMG} alt="Payflip Card" style={{ width: 270, height: 170, display: 'block', borderRadius: 14 }} />
                 </CardTilt>
@@ -6280,7 +6297,8 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
           </div>
 
         </>)}
-      </div>}
+        </div>
+      </div>
     </div>
 
     {/* Employee picker modal */}
