@@ -4,6 +4,22 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Payflip — HR Admin</title>
+  <script>
+    // Ensure relative asset paths (css, jsx, images) always resolve inside this
+    // directory — the app does client-side history.pushState navigation
+    // (e.g. "/hr-admin/people"), so location.pathname is often deeper than the
+    // hr-admin root, and it never has a trailing slash. Anchor on the known
+    // "hr-admin" mount segment rather than the last "/", which would otherwise
+    // treat a route like "/hr-admin/people" as the directory "/hr-admin/people/".
+    (function () {
+      var path = location.pathname;
+      var idx = path.indexOf('/hr-admin');
+      path = idx !== -1 ? path.slice(0, idx) + '/hr-admin/' : path.slice(0, path.lastIndexOf('/') + 1);
+      var base = document.createElement('base');
+      base.href = path;
+      document.head.appendChild(base);
+    })();
+  </script>
   <link rel="stylesheet" href="colors_and_type.css" />
   <style>
     *, *::before, *::after { box-sizing: border-box; }
@@ -52,6 +68,6 @@
 </head>
 <body>
   <div id="root"></div>
-  <script type="text/babel" src="app.jsx?v=1042"></script>
+  <script type="text/babel" src="app.jsx?v=1044"></script>
 </body>
 </html>
