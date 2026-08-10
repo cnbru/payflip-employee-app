@@ -24,16 +24,18 @@ jobs:
           rm -rf _site
           mkdir -p _site
 
-          # Employee app at the site root. -L dereferences symlinks (the
-          # employee app contains an "hr-admin" symlink pointing back at
-          # project/hr-admin); we remove that copy below and lay down the
-          # canonical hr-admin tree instead.
-          cp -RL project/employee-app/. _site/
+          # Employee app at the site root. Plain -R (NOT -L): the employee app
+          # carries an "hr-admin" convenience symlink whose target is a dev-only
+          # absolute path that doesn't exist in CI, so dereferencing it would
+          # fail. -R copies the symlink as-is; we drop it and lay down the real
+          # tree next.
+          cp -R project/employee-app/. _site/
           rm -rf _site/hr-admin
 
           # hr-admin as a real directory. -L dereferences its "assets" and
-          # "fonts" symlinks so real files land on gh-pages (copying the
-          # symlinks themselves would dangle — this was a past breakage).
+          # "fonts" symlinks (both relative, resolvable in CI) so real files
+          # land on gh-pages — copying the symlinks themselves would dangle,
+          # which was a past breakage.
           cp -RL project/hr-admin/. _site/hr-admin/
 
           # index.html uses relative asset paths + a <base> shim that resolves
