@@ -5990,7 +5990,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
       </div>
 
       {/* Step 4 — Awaiting first deposit */}
-      {step >= 4 && <div style={{ background: step === 4 ? P.white : inactiveBg, borderBottom: `1px solid ${P.border}` }}>
+      <div style={{ background: step === 4 ? P.white : inactiveBg, borderBottom: `1px solid ${P.border}` }}>
         {step === 4 ? (
           <div key="m-step4-active" style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16, animation: `stepContentEnter 250ms ${EASE_OUT}` }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -6004,17 +6004,25 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
               Need help?
             </a>
           </div>
-        ) : step < 4 ? null : (
+        ) : step < 4 ? (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 24 }}>
+            {stepBadgeEl(4)}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 16, color: P.inkSoft }}>Awaiting first deposit</span>
+              <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>~3 business days</span>
+            </div>
+          </div>
+        ) : (
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 24, animation: `stepDoneEnter 200ms ${EASE_OUT}` }}>
             {stepBadgeEl(4, step === 5)}
             <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.inkSoft }}>€{deposit.toLocaleString('de-DE')} received</span>
           </div>
         )}
-      </div>}
+      </div>
 
       {/* Step 5 — Send invites */}
-      {step === 5 && <div style={{ background: P.white, borderBottom: `1px solid ${P.border}` }}>
-        {(
+      <div style={{ background: step === 5 ? P.white : inactiveBg, borderBottom: `1px solid ${P.border}` }}>
+        {step === 5 ? (
           <div key="m-step5-active" style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16, animation: `stepContentEnter 250ms ${EASE_OUT}` }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
               {stepBadgeEl(5)}
@@ -6031,8 +6039,13 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
             </div>
             <Button variant="primary" onClick={() => setShowConfirmModal(true)} style={{ width: '100%', justifyContent: 'center', fontSize: 15, padding: '10px 18px' }}>Send invites to {empCount} employees</Button>
           </div>
+        ) : (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 24 }}>
+            {stepBadgeEl(5)}
+            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 16, color: P.inkSoft }}>Send invites</span>
+          </div>
         )}
-      </div>}
+      </div>
     </>);
   };
 
