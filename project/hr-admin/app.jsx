@@ -1379,7 +1379,7 @@ function EntitySwitcher({ value, onChange, mode }) {
   );
 }
 
-function AppModeSidebar({ active, onNav, pendingCount, onEnterSettings }) {
+function AppModeSidebar({ active, onNav, pendingCount, onEnterSettings, setupInProgress }) {
   const [timeoffOpen, setTimeoffOpen] = useState(active === 'requests' || active === 'team-absences');
   const [payrollOpen, setPayrollOpen] = useState(active === 'payroll-overview' || active === 'payroll-reports');
 
@@ -1388,32 +1388,34 @@ function AppModeSidebar({ active, onNav, pendingCount, onEnterSettings }) {
 
       <nav style={{ flex: 1, padding: '16px 0 10px', display: 'flex', flexDirection: 'column', gap: 3, overflow: 'auto' }}>
         <SidebarItem icon="house" label="Home" isActive={active === 'dashboard'} onClick={() => onNav('dashboard')} />
-        <SidebarItem icon="users" label="People" isActive={active === 'employees' || active === 'employees:admin' || active?.startsWith('employee-detail')} onClick={() => onNav('employees')} />
-        <SidebarItem icon="list-checks" label="Choices" isActive={active === 'choices'} onClick={() => onNav('choices')} badgeDot={pendingCount?.choices || null} />
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 3, opacity: setupInProgress ? 0.35 : 1, pointerEvents: setupInProgress ? 'none' : 'auto', transition: `opacity 250ms ${EASE_OUT}` }}>
+          <SidebarItem icon="users" label="People" isActive={active === 'employees' || active === 'employees:admin' || active?.startsWith('employee-detail')} onClick={() => onNav('employees')} />
+          <SidebarItem icon="list-checks" label="Choices" isActive={active === 'choices'} onClick={() => onNav('choices')} badgeDot={pendingCount?.choices || null} />
 
-        <SidebarItem icon="calendar-days" label="Time off" onClick={() => setTimeoffOpen(o => !o)} chevron chevronOpen={timeoffOpen} isActive={active === 'requests' || active === 'team-absences'} badgeDot={!timeoffOpen && (pendingCount?.requests ?? pendingCount) > 0 ? (pendingCount?.requests ?? pendingCount) : null} />
-        <SidebarAccordion open={timeoffOpen}>
-          <SidebarSub active={active} onNav={onNav} items={[
-            { id: 'requests', label: 'Requests', badge: pendingCount?.requests ?? pendingCount },
-            { id: 'team-absences', label: 'Team calendar' },
-          ]} />
-        </SidebarAccordion>
+          <SidebarItem icon="calendar-days" label="Time off" onClick={() => setTimeoffOpen(o => !o)} chevron chevronOpen={timeoffOpen} isActive={active === 'requests' || active === 'team-absences'} badgeDot={!timeoffOpen && (pendingCount?.requests ?? pendingCount) > 0 ? (pendingCount?.requests ?? pendingCount) : null} />
+          <SidebarAccordion open={timeoffOpen}>
+            <SidebarSub active={active} onNav={onNav} items={[
+              { id: 'requests', label: 'Requests', badge: pendingCount?.requests ?? pendingCount },
+              { id: 'team-absences', label: 'Team calendar' },
+            ]} />
+          </SidebarAccordion>
 
-        <SidebarItem icon="wallet" label="Payroll" onClick={() => setPayrollOpen(o => !o)} chevron chevronOpen={payrollOpen} />
-        <SidebarAccordion open={payrollOpen}>
-          <SidebarSub active={active} onNav={onNav} items={[
-            { id: 'payroll-overview', label: 'Overview' },
-            { id: 'payroll-reports', label: 'Reports' },
-          ]} />
-        </SidebarAccordion>
+          <SidebarItem icon="wallet" label="Payroll" onClick={() => setPayrollOpen(o => !o)} chevron chevronOpen={payrollOpen} />
+          <SidebarAccordion open={payrollOpen}>
+            <SidebarSub active={active} onNav={onNav} items={[
+              { id: 'payroll-overview', label: 'Overview' },
+              { id: 'payroll-reports', label: 'Reports' },
+            ]} />
+          </SidebarAccordion>
 
-        <SidebarItem icon="receipt" label="Expenses" isActive={active === 'expenses'} onClick={() => onNav('expenses')} badgeDot={pendingCount?.expenses || null} />
+          <SidebarItem icon="receipt" label="Expenses" isActive={active === 'expenses'} onClick={() => onNav('expenses')} badgeDot={pendingCount?.expenses || null} />
 
-        <SidebarItem icon="settings" label="Settings" onClick={onEnterSettings} />
+          <SidebarItem icon="settings" label="Settings" onClick={onEnterSettings} />
 
-        <div style={{ marginTop: 'auto', paddingTop: 10 }}>
-          <SidebarItem icon="blocks" label="Components" isActive={active === 'components'} onClick={() => onNav('components')} />
-          <SidebarItem icon="sparkles" label="Product changelog" isActive={active === 'changelog'} onClick={() => onNav('changelog')} />
+          <div style={{ marginTop: 'auto', paddingTop: 10 }}>
+            <SidebarItem icon="blocks" label="Components" isActive={active === 'components'} onClick={() => onNav('components')} />
+            <SidebarItem icon="sparkles" label="Product changelog" isActive={active === 'changelog'} onClick={() => onNav('changelog')} />
+          </div>
         </div>
       </nav>
     </React.Fragment>
@@ -1521,7 +1523,7 @@ function SettingsModeSidebar({ active, onNav }) {
 }
 
 const PANEL_DUR = 280;
-function Sidebar({ active, onNav, pendingCount, sidebarMode, onSetSidebarMode, appEntity, onSetAppEntity }) {
+function Sidebar({ active, onNav, pendingCount, sidebarMode, onSetSidebarMode, appEntity, onSetAppEntity, setupInProgress }) {
   const inSettings = sidebarMode === 'settings';
   const panelStyle = (offset) => ({
     position: 'absolute', inset: 0,
@@ -1537,7 +1539,7 @@ function Sidebar({ active, onNav, pendingCount, sidebarMode, onSetSidebarMode, a
       display: 'flex', flexDirection: 'column',
       height: '100vh', position: 'sticky', top: 0,
     }}>
-      <div style={{ borderBottom: `1px solid ${P.border}`, flexShrink: 0, position: 'relative', height: 53 }}>
+      <div style={{ borderBottom: `1px solid ${P.border}`, flexShrink: 0, position: 'relative', height: 53, opacity: setupInProgress ? 0.35 : 1, transition: `opacity 250ms ${EASE_OUT}`, pointerEvents: setupInProgress ? 'none' : 'auto' }}>
         <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', padding: '0 20px', opacity: inSettings ? 0 : 1, transition: `opacity 200ms ${EASE_OUT}`, pointerEvents: inSettings ? 'none' : 'auto' }}>
           <svg width="90" height="22" viewBox="0 0 115 28" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M45.753 5.26971C48.8202 5.29294 51.0277 7.91867 51.0277 10.5909C51.0277 13.2631 48.8202 15.8888 45.753 15.912H41.8725V22H39.1074V5.26971H45.753ZM45.7065 13.1236C47.1937 13.1236 48.2393 11.8921 48.2393 10.5909C48.2393 9.26639 47.1937 8.03485 45.7065 8.03485H41.8725V13.1236H45.7065ZM60.7159 10.01H63.481V22H60.7159V20.3502C59.8329 21.4656 58.6014 22.1394 57.0677 22.1394C54.1864 22.1394 51.8628 19.4207 51.8628 16.005C51.8628 12.5892 54.1864 9.87054 57.0677 9.87054C58.6014 9.87054 59.8794 10.5909 60.7159 11.683V10.01ZM57.6951 19.3975C59.4146 19.3975 60.7159 17.8871 60.7159 16.005C60.7159 14.1228 59.4146 12.6124 57.6951 12.6124C55.9524 12.6124 54.6511 14.1228 54.6511 16.005C54.6511 17.8871 55.9524 19.3975 57.6951 19.3975ZM77.1976 10.01V21.7444C77.1976 25.2299 74.7346 27.7162 71.4815 27.7162C67.8798 27.7162 65.9512 25.2066 65.8118 22.9062H68.6931C68.879 24.2075 69.8781 25.1369 71.5279 25.1369C73.3404 25.1369 74.4325 23.7195 74.4325 21.8141V20.4432C73.6192 21.4191 72.318 22.1394 70.9238 22.1394C68.1819 22.1394 66.6947 19.9784 66.6947 17.2365V10.01H69.4599V16.8183C69.4599 18.2357 70.552 19.3975 71.9462 19.3975C73.3404 19.3975 74.4325 18.2124 74.4325 16.8183V10.01H77.1976ZM87.1382 10.01V12.4266H84.1639V22H81.3987V12.4266H79.4701V10.01H81.3987V9.12697C81.3987 6.75684 82.9091 5.13029 85.1631 5.13029C86.046 5.13029 86.6037 5.26971 86.9755 5.36265V7.8722C86.7664 7.80249 86.2552 7.6863 85.7672 7.6863C84.8842 7.6863 84.1639 8.01162 84.1639 9.0805V10.01H87.1382ZM92.108 5.26971V22H89.3429V5.26971H92.108ZM96.8158 8.49958C95.7702 8.49958 94.9104 7.66307 94.9104 6.59419C94.9104 5.52531 95.7702 4.66556 96.8158 4.66556C97.9312 4.66556 98.7909 5.52531 98.7909 6.59419C98.7909 7.66307 97.8847 8.49958 96.8158 8.49958ZM98.1868 22H95.4216V10.01H98.1868V22ZM101.595 26.7402V10.01H104.361V11.7295C105.197 10.4282 106.452 9.87054 107.985 9.87054C110.797 9.87054 113.214 12.4498 113.214 16.005C113.214 19.5602 110.797 22.1394 107.985 22.1394C106.452 22.1394 105.127 21.3494 104.361 20.2573V26.7402H101.595ZM107.358 12.5892C105.592 12.5892 104.361 14.1228 104.361 16.005C104.361 17.8871 105.592 19.3975 107.358 19.3975C109.124 19.3975 110.449 17.8871 110.449 16.005C110.449 14.1228 109.124 12.5892 107.358 12.5892Z" fill={P.ink}/>
@@ -1551,7 +1553,9 @@ function Sidebar({ active, onNav, pendingCount, sidebarMode, onSetSidebarMode, a
           </button>
         </div>
       </div>
-      <EntitySwitcher value={appEntity} onChange={onSetAppEntity} mode="app" />
+      <div style={{ opacity: setupInProgress ? 0.35 : 1, transition: `opacity 250ms ${EASE_OUT}`, pointerEvents: setupInProgress ? 'none' : 'auto' }}>
+        <EntitySwitcher value={appEntity} onChange={onSetAppEntity} mode="app" />
+      </div>
       <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
         <div style={panelStyle(inSettings ? '-100%' : '0%')}>
           <AppModeSidebar
@@ -1559,6 +1563,7 @@ function Sidebar({ active, onNav, pendingCount, sidebarMode, onSetSidebarMode, a
             onNav={onNav}
             pendingCount={pendingCount}
             onEnterSettings={() => { onSetSidebarMode('settings'); onNav('settings-notifications'); }}
+            setupInProgress={setupInProgress}
           />
         </div>
         <div style={panelStyle(inSettings ? '0%' : '100%')}>
@@ -1568,7 +1573,9 @@ function Sidebar({ active, onNav, pendingCount, sidebarMode, onSetSidebarMode, a
           />
         </div>
       </div>
-      <AdminProfileFooter />
+      <div style={{ opacity: setupInProgress ? 0.35 : 1, transition: `opacity 250ms ${EASE_OUT}`, pointerEvents: setupInProgress ? 'none' : 'auto' }}>
+        <AdminProfileFooter />
+      </div>
     </div>
   );
 }
@@ -4335,10 +4342,10 @@ function TabBar({ tabs, activeTab, onTabChange, padding = '0 28px' }) {
   );
 }
 
-function PageHeader({ title, subtitle, badge, children, tabs, maxWidth: mw }) {
+function PageHeader({ title, subtitle, badge, children, tabs, maxWidth: mw, noBorder, padding: paddingOverride }) {
   const inner = (
     <>
-      <div style={{ padding: tabs ? '40px 28px 24px' : '40px 28px 20px', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+      <div style={{ padding: paddingOverride ?? (tabs ? '40px 28px 24px' : '40px 28px 20px'), display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
         <div>
           {badge && (
             <span style={{
@@ -4358,7 +4365,7 @@ function PageHeader({ title, subtitle, badge, children, tabs, maxWidth: mw }) {
     </>
   );
   return (
-    <div style={{ flexShrink: 0, borderBottom: `1px solid ${P.border}` }}>
+    <div style={{ flexShrink: 0, borderBottom: noBorder ? 'none' : `1px solid ${P.border}` }}>
       {mw ? <div style={{ maxWidth: mw, margin: '0 auto' }}>{inner}</div> : inner}
     </div>
   );
@@ -5647,7 +5654,7 @@ const PAYFLIP_CARD_IMG = 'assets/card.svg';
 const TWIKEY_LOGO_IMG = 'assets/twikey 1.png';
 
 // Pointer tracked on the outer flat wrapper; inner card rotates via CSS custom props.
-// Per transitions-dev/19-card-tilt.md — MAX 14° is tasteful for a credit card.
+// Per transitions-dev/19-card-tilt.md — MAX raised to 24° for a stronger lean; perspective tightened to 700px.
 function CardTilt({ children }) {
   const wrapperRef = useRef(null);
   const [rx, setRx] = React.useState(0);
@@ -5656,7 +5663,7 @@ function CardTilt({ children }) {
   const [gy, setGy] = React.useState(50);
   const [hover, setHover] = React.useState(false);
   const [tilting, setTilting] = React.useState(false);
-  const MAX = 14;
+  const MAX = 24;
 
   const track = (e) => {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
@@ -5673,7 +5680,7 @@ function CardTilt({ children }) {
     <div ref={wrapperRef} onPointerMove={track} onPointerLeave={reset} style={{ touchAction: 'none', display: 'inline-block', filter: 'drop-shadow(0 20px 40px rgba(0,0,0,0.22)) drop-shadow(0 6px 16px rgba(0,0,0,0.14))' }}>
       <div style={{
         position: 'relative',
-        transform: `perspective(1000px) rotateX(${rx}deg) rotateY(${ry}deg)`,
+        transform: `perspective(700px) rotateX(${rx}deg) rotateY(${ry}deg)`,
         transformStyle: 'preserve-3d',
         transition: tilting
           ? 'transform 400ms cubic-bezier(0.22, 1, 0.36, 1)'
@@ -5683,7 +5690,7 @@ function CardTilt({ children }) {
         {children}
         <div style={{
           position: 'absolute', inset: 0, pointerEvents: 'none',
-          opacity: hover ? 0.32 : 0,
+          opacity: hover ? 0.45 : 0,
           mixBlendMode: 'screen',
           background: `
             radial-gradient(circle 95px at ${gx}% ${gy}%, rgba(255,255,255,0.48), rgba(255,255,255,0.06) 52%, rgba(255,255,255,0) 84%),
@@ -5726,8 +5733,8 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
   const setWs = (updater) => onMobilityWidgetStateChange(prev => typeof updater === 'function' ? { ...prev, ...updater(prev) } : { ...prev, ...updater });
   const widgetMode = ws.widgetMode;
   const setWidgetMode = (v) => setWs({ widgetMode: typeof v === 'function' ? v(ws.widgetMode) : v });
-  const started = ws.started;
-  const setStarted = (v) => setWs({ started: typeof v === 'function' ? v(ws.started) : v });
+  const hidden = ws.hidden;
+  const setHidden = (v) => setWs({ hidden: typeof v === 'function' ? v(ws.hidden) : v });
   const step = ws.step;
   const setStep = (v) => setWs({ step: typeof v === 'function' ? v(ws.step) : v });
   const mandateDenied = ws.mandateDenied;
@@ -5756,7 +5763,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
       return { value: key, name: e.name, entity: e.entity, initials: e.initials, color: e.color, remaining };
     });
   const readyToUse  = allEligible.filter(e => e.remaining > 0)
-    .map(e => ({ ...e, hint: `€${e.remaining.toLocaleString('de-DE')} left`, hintColor: '#059669' }));
+    .map(e => ({ ...e, hint: `€${e.remaining.toLocaleString('de-DE')}`, hintColor: '#059669' }));
   const budgetSpent = allEligible.filter(e => e.remaining === 0);
 
   const pickerSections = [
@@ -5774,12 +5781,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
   const deposit = Math.max(50, Math.round(empCount * 37 * 3 / 50) * 50);
 
   const switchMode = (mode) => {
-    setWidgetMode(mode);
-    setStarted(false);
-    setStep(1);
-    setMandateDenied(false);
-    setLive(false);
-    setLiveVisible(false);
+    setWs({ widgetMode: mode, hidden: false, step: 1, mandateDenied: false, live: false, liveVisible: false });
   };
 
   // Mobility: simulate deposit arriving 5s after step 3 (covers bank approval + collection)
@@ -5866,45 +5868,31 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
             <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
               Choose who gets access to the Payflip Card. Only employees with a mobility budget are eligible.
             </p>
-            {/* Employee selector row — callout lives inside the card when selection is default */}
-            <div
-              onClick={() => setShowPickerModal(true)}
-              style={{ border: `1px solid ${P.border}`, borderRadius: 10, cursor: 'pointer', background: P.white, transition: `border-color 120ms ${EASE_OUT}`, overflow: 'hidden' }}
-              onMouseEnter={e => e.currentTarget.style.borderColor = P.inkSoft}
-              onMouseLeave={e => e.currentTarget.style.borderColor = P.border}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 14px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <Icon name="users" size={16} color={P.inkSoft} strokeWidth={1.75} />
-                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.ink }}>
-                    {isDefaultSelection
-                      ? `Review selection — ${empCount} of ${allEligible.length} employees`
-                      : `${empCount} of ${allEligible.length} employees selected`}
+            {/* Stat boxes */}
+            <div style={{ display: 'flex', border: `1px solid ${P.border}`, borderRadius: 10, overflow: 'hidden' }}>
+              <div style={{ flex: 1, padding: '16px 20px', display: 'flex', flexDirection: 'column' }}>
+                <div style={{ ...SL, marginBottom: 6 }}>Employees</div>
+                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 36, color: P.ink, lineHeight: 1, marginBottom: 16, flex: 1 }}>
+                  {empCount}
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>
+                  <span>{isDefaultSelection ? `${readyToUse.length} pre-selected` : `${empCount} of ${allEligible.length}`}</span>
+                  <span>·</span>
+                  <span onClick={e => { e.stopPropagation(); setShowPickerModal(true); }} style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.ink, textDecoration: 'underline', cursor: 'pointer' }}>
+                    {isDefaultSelection ? 'Review' : 'Edit'}
                   </span>
                 </div>
-                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.ink, textDecoration: 'underline', flexShrink: 0 }}>
-                  {isDefaultSelection ? 'Review' : 'Edit'}
-                </span>
               </div>
-              {isDefaultSelection && (
-                <div style={{ borderTop: `1px solid ${P.border}`, padding: '10px 14px', display: 'flex', alignItems: 'flex-start', gap: 10, background: '#f0fdf4' }}>
-                  <Icon name="info" size={13} color='#059669' strokeWidth={2} style={{ marginTop: 1, flexShrink: 0 }} />
-                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: '#065f46', lineHeight: '18px' }}>
-                    We pre-selected the {readyToUse.length} employee{readyToUse.length !== 1 ? 's' : ''} with a remaining mobility budget. Review and adjust before continuing.
-                  </span>
+              <div style={{ width: 1, background: P.border, flexShrink: 0 }} />
+              <div style={{ flex: 1, padding: '16px 20px', display: 'flex', flexDirection: 'column' }}>
+                <div style={{ ...SL, marginBottom: 6 }}>Recommended deposit</div>
+                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 36, color: P.ink, lineHeight: 1, marginBottom: 16, flex: 1 }}>
+                  €<AnimatedNumber value={deposit.toLocaleString('de-DE')} />
                 </div>
-              )}
+                <IconButton icon="info" size={26} onClick={e => { e.stopPropagation(); setShowCalcModal(true); }} />
+              </div>
             </div>
             <Button variant="primary" disabled={empCount === 0} onClick={() => setStep(2)} style={{ width: '100%', justifyContent: 'center', fontSize: 15, padding: '10px 18px' }}>Continue</Button>
-            {/* Deposit — plain text, below the action */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, paddingLeft: 2 }}>
-              <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>
-                Deposit needed: <strong style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 24, color: P.ink }}>€<AnimatedNumber value={deposit.toLocaleString('de-DE')} /></strong>
-              </span>
-              <span onClick={e => { e.stopPropagation(); setShowCalcModal(true); }} style={{ width: 16, height: 16, borderRadius: '50%', background: P.bg, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}>
-                <Icon name="help-circle" size={10} color={P.inkSoft} strokeWidth={2} />
-              </span>
-            </div>
           </div>
         ) : (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: 24, animation: `stepDoneEnter 200ms ${EASE_OUT}` }}>
@@ -6032,31 +6020,54 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
 
   const liveContent = () => {
     if (!live) return null;
-    const balance = 2400;
-    const total = 3200;
-    const pct = Math.round((balance / total) * 100);
+    // Derive live numbers from actual setup values
+    const liveBalance = Math.round(deposit * 0.725);
+    const liveSpent = deposit - liveBalance;
+    const liveActiveCards = Math.max(1, Math.floor(empCount * 0.6));
+    // Stepped path: y=0 = full deposit, y=100 = auto top-up threshold (20% of deposit)
+    // 5 simulated spend events across 30 days totalling liveSpent
+    const threshold = Math.round(deposit * 0.2);
+    const yOf = (b) => +((1 - (b - threshold) / (deposit - threshold)) * 100).toFixed(1);
+    const spendEvents = [[4, 15], [11, 12], [17, 10], [23, 8], [29, 10]]; // [day, €]
+    let _bal = deposit;
+    const _pts = [`M 0,${yOf(_bal)}`];
+    for (const [day, amt] of spendEvents) {
+      _pts.push(`L ${day * 10},${yOf(_bal)}`);
+      _bal -= amt;
+      _pts.push(`L ${day * 10},${yOf(_bal)}`);
+    }
+    _pts.push(`L 300,${yOf(_bal)}`);
+    const linePath = _pts.join(' ');
+    const areaPath = linePath + ' L 300,100 L 0,100 Z';
     return (
       <div style={{ display: 'flex', flexDirection: 'column', opacity: liveVisible ? 1 : 0, transition: `opacity 250ms ${EASE_OUT}` }}>
 
-        {/* Balance — hero */}
-        <div style={{ padding: '18px 20px 16px' }}>
-          <div style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkSoft, marginBottom: 8 }}>Account balance</div>
-          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 28, color: P.ink, letterSpacing: '-0.5px', lineHeight: 1 }}>€{balance.toLocaleString('de-DE')}</div>
-          <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, marginTop: 4 }}>of €{total.toLocaleString('de-DE')} funded</div>
-          <div style={{ marginTop: 14, height: 4, borderRadius: 2, background: P.border, overflow: 'hidden' }}>
-            <div style={{ height: '100%', borderRadius: 2, background: '#008556', width: liveVisible ? `${pct}%` : '0%', transition: `width 600ms ${EASE_OUT}` }} />
+        {/* Balance hero */}
+        <div style={{ padding: '18px 24px 14px' }}>
+          <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, marginBottom: 6 }}>Account balance</div>
+          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 28, color: P.ink, letterSpacing: '-0.5px', lineHeight: 1, marginBottom: 10 }}>
+            €{liveBalance.toLocaleString('de-DE')}
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 8 }}>
-            <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#008556', flexShrink: 0 }} />
-            <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: '#008556' }}>Auto top-up active</span>
-          </div>
+          <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>of €{deposit.toLocaleString('de-DE')} funded</div>
         </div>
+
+        {/* Area chart — bleeds edge-to-edge */}
+        <svg viewBox="0 0 300 100" preserveAspectRatio="none" style={{ width: '100%', height: 110, display: 'block' }}>
+          <defs>
+            <linearGradient id="balGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#008556" stopOpacity="0.13" />
+              <stop offset="100%" stopColor="#008556" stopOpacity="0.01" />
+            </linearGradient>
+          </defs>
+          <path d={areaPath} fill="url(#balGrad)" />
+          <path d={linePath} fill="none" stroke="#008556" strokeWidth="1.5" vectorEffect="non-scaling-stroke" />
+        </svg>
 
         {/* Stats row */}
         <div style={{ display: 'flex', borderTop: `1px solid ${P.border}` }}>
           {[
-            { label: 'Active cards', value: '9' },
-            { label: 'Spent this month', value: '€1.840' },
+            { label: 'Active cards', value: String(liveActiveCards) },
+            { label: 'Spent this month', value: `€${liveSpent.toLocaleString('de-DE')}` },
           ].map(({ label, value }, i) => (
             <div key={label} style={{ flex: 1, padding: '12px 20px', borderLeft: i === 1 ? `1px solid ${P.border}` : 'none' }}>
               <div style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkSoft, marginBottom: 3 }}>{label}</div>
@@ -6070,7 +6081,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
   };
 
   return (
-    <div style={{ marginBottom: 24, maxWidth: 460 }}>
+    <div style={{ marginBottom: 24 }}>
       {/* Prototype switcher */}
       <div style={{ position: 'fixed', bottom: 20, right: 158, zIndex: 100, display: 'inline-flex', alignItems: 'center', gap: 6, padding: '7px 10px 7px 12px', borderRadius: 20, background: P.action, boxShadow: 'rgba(15,13,40,0.2) 0px 2px 12px' }}>
         <Icon name="wrench" size={12} color="#fff" strokeWidth={2} />
@@ -6091,64 +6102,50 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
         </div>
       </div>
 
-    <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 16, overflow: 'hidden' }}>
+    <div style={{ background: P.white, borderRadius: 12, overflow: 'hidden', ...(live ? { border: `1px solid ${P.border}` } : { boxShadow: `0 0 0 1px rgba(15,13,40,0.07), 0 4px 24px rgba(15,13,40,0.08)` }) }}>
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 24px', borderBottom: `1px solid ${P.border}` }}>
         <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.ink, letterSpacing: '-0.025px' }}>
           Payflip Card
         </span>
-        {!live && !started && (
-          <DotPill bg="#e6f4ee" color="#008556" dot={false} size={11}>Ready to launch</DotPill>
-        )}
-        {!live && started && (
-          <DotPill bg={P.bg} color={P.inkSoft} dot size={11}>Setup in progress</DotPill>
-        )}
+        {!live && (() => {
+          const mobilityMeta = [
+            { label: 'Select employees', color: P.inkSoft,  bg: P.bg },
+            { label: mandateDenied ? 'Mandate declined' : 'Sign mandate', color: mandateDenied ? '#DC2626' : P.inkSoft, bg: mandateDenied ? '#FEF2F2' : P.bg },
+            { label: 'Awaiting deposit', color: '#D97706',  bg: '#FEF3C7' },
+            { label: 'Send invites',     color: P.inkSoft,  bg: P.bg },
+          ];
+          const meta = widgetMode === 'mobility'
+            ? (mobilityMeta[step - 1] || mobilityMeta[0])
+            : { label: 'Setup in progress', color: P.inkSoft, bg: P.bg };
+          return (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <DotPill bg={meta.bg} color={meta.color} dot size={11}>{meta.label}</DotPill>
+              {!hidden && <IconButton icon="X" size={28} onClick={() => setHidden(true)} />}
+              {hidden && <button onClick={() => setHidden(false)} style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.ink, background: 'none', border: 'none', cursor: 'pointer', padding: 0, textDecoration: 'underline' }}>Resume setup</button>}
+            </div>
+          );
+        })()}
         {live && (
           <IconButton icon="settings" size={28} onClick={() => onNav && onNav('settings-cardrules')} />
         )}
       </div>
 
-      {/* Card visual — shown during setup, fades out in live state */}
-      {!live && (
-        <div style={{ background: '#f0ebf8', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '48px 24px', borderBottom: `1px solid ${P.border}` }}>
-          <CardTilt>
-            <img src={PAYFLIP_CARD_IMG} alt="Payflip Card" style={{ width: 200, height: 126, display: 'block', borderRadius: 10 }} />
-          </CardTilt>
-        </div>
-      )}
-
-      {/* Body — single column */}
-      <div style={{ display: 'flex', flexDirection: 'column' }}>
+      {/* Body */}
+      {!hidden && <div style={{ display: 'flex', flexDirection: 'column' }}>
         {widgetMode === 'mobility' ? (<>
-          {/* Intro overview — collapses when setup starts */}
-          <div style={{ display: 'grid', gridTemplateRows: started ? '0fr' : '1fr', transition: PREFERS_REDUCED_MOTION ? 'none' : `grid-template-rows 220ms ${EASE_OUT}`, overflow: 'hidden' }}>
-            <div style={{ minHeight: 0 }}>
-              <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 20, opacity: started ? 0 : 1, filter: started ? 'blur(2px)' : 'blur(0)', transition: PREFERS_REDUCED_MOTION ? 'none' : `opacity 180ms ${EASE_OUT}, filter 180ms ${EASE_OUT}` }}>
-                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                  {[
-                    { n: 1, title: 'Select employees', desc: 'Choose who gets a card and confirm the deposit amount.' },
-                    { n: 2, title: 'Sign mandate', desc: 'Authorise Payflip to collect the deposit and auto top-up.' },
-                    { n: 3, title: 'Send invites', desc: 'Employees download the app and request their own card.' },
-                  ].map(({ n, title, desc }) => (
-                    <div key={n} style={{ display: 'flex', gap: 12, padding: '10px 0' }}>
-                      <span style={{ width: 24, height: 24, borderRadius: '50%', border: `1.5px solid ${P.inkSoft}`, background: 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 12, color: P.inkSoft, marginTop: 1 }}>{n}</span>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                        <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 15, color: P.ink }}>{title}</span>
-                        <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, lineHeight: '18px' }}>{desc}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <Button variant="primary" onClick={() => setStarted(true)} style={{ width: '100%', justifyContent: 'center', fontSize: 14, padding: '10px 20px' }}>Begin setup</Button>
+          {!live && (
+            <div style={{ display: 'flex', alignItems: 'stretch' }}>
+              <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
+                {mobilitySetupContent()}
+              </div>
+              <div style={{ flex: 1, background: 'linear-gradient(140deg, #faf7fe 0%, #f0ebf8 40%, #ddd0f0 100%)', borderLeft: `1px solid ${P.border}`, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '48px 32px' }}>
+                <CardTilt>
+                  <img src={PAYFLIP_CARD_IMG} alt="Payflip Card" style={{ width: 270, height: 170, display: 'block', borderRadius: 14 }} />
+                </CardTilt>
               </div>
             </div>
-          </div>
-          {/* Setup flow — expands when setup starts, staggered after intro collapse */}
-          <div style={{ display: 'grid', gridTemplateRows: started ? '1fr' : '0fr', transition: PREFERS_REDUCED_MOTION ? 'none' : `grid-template-rows 350ms ${EASE_OUT}`, transitionDelay: PREFERS_REDUCED_MOTION ? '0ms' : (started ? '80ms' : '0ms'), overflow: 'hidden' }}>
-            <div style={{ minHeight: 0, opacity: started ? 1 : 0, filter: started ? 'blur(0)' : 'blur(2px)', transition: PREFERS_REDUCED_MOTION ? 'none' : `opacity 300ms ${EASE_OUT}, filter 300ms ${EASE_OUT}`, transitionDelay: PREFERS_REDUCED_MOTION ? '0ms' : (started ? '200ms' : '0ms') }}>
-              {mobilitySetupContent()}
-            </div>
-          </div>
+          )}
           {liveContent()}
         </>) : (<>
 
@@ -6283,7 +6280,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
           </div>
 
         </>)}
-      </div>
+      </div>}
     </div>
 
     {/* Employee picker modal */}
@@ -6347,10 +6344,20 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
             <Button variant="primary" onClick={sendInvites}>Yes, send invites</Button>
           </div>
         )}>
-        <div style={{ padding: '20px 22px' }}>
+        <div style={{ padding: '20px 22px', display: 'flex', flexDirection: 'column', gap: 16 }}>
           <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink, lineHeight: '20px', margin: 0 }}>
             {empCount} employees will receive an email right now inviting them to download the Payflip app and request their Payflip Card. This can't be undone.
           </p>
+          <div onClick={() => onPhysicalCardsChange && onPhysicalCardsChange(!physicalCardsAllowed)}
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 14px', border: `1px solid ${P.border}`, borderRadius: 10, cursor: 'pointer', background: physicalCardsAllowed ? '#faf8ff' : P.bg }}>
+            <div>
+              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.ink }}>Allow physical card requests</div>
+              <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, marginTop: 2 }}>
+                {physicalCardsAllowed ? 'Virtual + physical card' : 'Virtual card only'}
+              </div>
+            </div>
+            <Switch checked={!!physicalCardsAllowed} onChange={() => {}} />
+          </div>
         </div>
       </ModalShell>
     )}
@@ -6380,6 +6387,7 @@ function DashboardScreen({ requests, onNav, onToast, appEntity = null, physicalC
   const employeeCount = Object.keys(EMPLOYEES).length;
   const activeBenefits = BENEFIT_TYPES_SEED.filter(b => b.active).length;
   const firstName = CURRENT_USER.name.split(' ')[0];
+  const setupInProgress = !mobilityWidgetState.live && !mobilityWidgetState.hidden;
 
   const attentionItems = [
     pendingRequests > 0 && { icon: 'calendar-days', label: 'Time-off requests', count: pendingRequests, screen: 'requests', iconBg: '#e8f0fe', iconColor: '#2563eb' },
@@ -6389,17 +6397,28 @@ function DashboardScreen({ requests, onNav, onToast, appEntity = null, physicalC
 
   return (
     <div style={{ flex: 1, overflow: 'auto', animation: `screenEnter 180ms ${EASE_OUT}` }}>
-      <PageHeader
-        title={`Hey, ${firstName}`}
-        subtitle={today.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
-        badge={appEntity ? (ENTITIES.find(e => e.id === appEntity)?.name) : null}
-        maxWidth={960}
-      />
+      <div style={{ opacity: setupInProgress ? 0.35 : 1, transition: `opacity 250ms ${EASE_OUT}`, pointerEvents: setupInProgress ? 'none' : 'auto' }}>
+        <PageHeader
+          title={`Hey, ${firstName}`}
+          subtitle={today.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+          badge={appEntity ? (ENTITIES.find(e => e.id === appEntity)?.name) : null}
+          maxWidth={960}
+          noBorder
+          padding="40px 0 20px"
+        />
+      </div>
       <div style={{ padding: '24px 32px' }}>
       <div style={{ maxWidth: 960, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 28 }}>
 
+        {/* Full-width setup widget — always full-width until live */}
+        {!mobilityWidgetState.live && (
+          <div style={{ position: 'relative', zIndex: 2 }}>
+            <MobilityLaunchWidget onToast={onToast} onNav={onNav} physicalCardsAllowed={physicalCardsAllowed} onPhysicalCardsChange={onPhysicalCardsChange} mobilityWidgetState={mobilityWidgetState} onMobilityWidgetStateChange={onMobilityWidgetStateChange} />
+          </div>
+        )}
+
         {/* Overview stats */}
-        <div style={{ border: `1px solid ${P.border}`, borderRadius: 12, background: P.white, display: 'flex', overflow: 'hidden' }}>
+        <div style={{ border: `1px solid ${P.border}`, borderRadius: 12, background: P.white, display: 'flex', overflow: 'hidden', opacity: setupInProgress ? 0.35 : 1, transition: `opacity 250ms ${EASE_OUT}`, pointerEvents: setupInProgress ? 'none' : 'auto' }}>
           {[
             { label: 'Employees', value: employeeCount, icon: 'users' },
             { label: 'Active budgets', value: activeBudgets, icon: 'wallet' },
@@ -6415,12 +6434,16 @@ function DashboardScreen({ requests, onNav, onToast, appEntity = null, physicalC
           ))}
         </div>
 
-        {/* Widget row */}
-        <div style={{ display: 'flex', gap: 20, alignItems: 'flex-start' }}>
-          <MobilityLaunchWidget onToast={onToast} onNav={onNav} physicalCardsAllowed={physicalCardsAllowed} onPhysicalCardsChange={onPhysicalCardsChange} mobilityWidgetState={mobilityWidgetState} onMobilityWidgetStateChange={onMobilityWidgetStateChange} />
+        {/* Widget row — grid layout once setup is live or hidden */}
+        <div style={{ display: 'flex', gap: 20, alignItems: 'flex-start', opacity: setupInProgress ? 0.35 : 1, transition: `opacity 250ms ${EASE_OUT}`, pointerEvents: setupInProgress ? 'none' : 'auto' }}>
+          {mobilityWidgetState.live && (
+            <div style={{ width: 420, flexShrink: 0 }}>
+              <MobilityLaunchWidget onToast={onToast} onNav={onNav} physicalCardsAllowed={physicalCardsAllowed} onPhysicalCardsChange={onPhysicalCardsChange} mobilityWidgetState={mobilityWidgetState} onMobilityWidgetStateChange={onMobilityWidgetStateChange} />
+            </div>
+          )}
 
           {/* Needs attention */}
-          <div style={{ flex: 1, border: `1px solid ${P.border}`, borderRadius: 16, background: P.white, overflow: 'hidden', minWidth: 0 }}>
+          <div style={{ flex: 1, border: `1px solid ${P.border}`, borderRadius: 12, background: P.white, overflow: 'hidden', minWidth: 0 }}>
             <div style={{ padding: '16px 24px', borderBottom: `1px solid ${P.border}` }}>
               <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.ink }}>Needs attention</span>
             </div>
@@ -6906,21 +6929,21 @@ function PersonPickerModal({ title, value, candidates, sections, singleSelect, o
     const subtitle = appEntity ? emp.dept : [emp.dept, emp.entity].filter(Boolean).join(' · ');
     return (
       <div key={emp.value} onClick={() => toggle(emp.value, close)}
-        style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 20px', cursor: 'pointer', opacity: emp.dimmed ? 0.5 : 1 }}
+        style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 20px', cursor: 'pointer', opacity: emp.dimmed ? 0.5 : 1 }}
         onMouseEnter={e => { e.currentTarget.style.background = 'rgba(15,13,40,0.04)'; }}
         onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}>
         <div style={{ width: 22, height: 22, borderRadius: '50%', background: emp.color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
           <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 9, color: P.ink }}>{emp.initials}</span>
         </div>
         <div style={{ flex: 1, display: 'flex', alignItems: 'baseline', gap: 5, minWidth: 0 }}>
-          <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.ink }}>{emp.name}</span>
+          <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, fontWeight: 500, color: P.ink }}>{emp.name}</span>
           {subtitle && <>
             <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkFaint }}>·</span>
             <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkSoft }}>{subtitle}</span>
           </>}
         </div>
         {emp.hint && (
-          <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: emp.hintColor || P.inkSoft, flexShrink: 0, marginRight: 8 }}>{emp.hint}</span>
+          <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, fontWeight: 500, color: emp.hintColor || P.inkSoft, flexShrink: 0, marginRight: 8 }}>{emp.hint}</span>
         )}
         {singleSelect
           ? <div style={{ width: 18, height: 18, borderRadius: '50%', border: `2px solid ${on ? P.action : P.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: `border-color 120ms` }}>
@@ -6942,17 +6965,13 @@ function PersonPickerModal({ title, value, candidates, sections, singleSelect, o
           <>
         {/* Tabs first (when sections provided) */}
         {sections && (
-          <div style={{ display: 'flex', borderBottom: `1px solid ${P.border}`, flexShrink: 0, padding: '16px 16px 0', gap: 4 }}>
-            {sections.map((s, i) => (
-              <button key={i} onClick={() => { setActiveTab(i); setSearch(''); }} style={{
-                padding: '9px 10px', border: 'none', background: 'none', cursor: 'pointer',
-                fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 12,
-                color: activeTab === i ? P.ink : P.inkSoft,
-                borderBottom: activeTab === i ? `2px solid ${P.ink}` : '2px solid transparent',
-                transition: 'color 120ms, border-color 120ms',
-                marginBottom: -1,
-              }}>{s.label}</button>
-            ))}
+          <div style={{ borderBottom: `1px solid ${P.border}`, flexShrink: 0 }}>
+            <TabBar
+              tabs={sections.map((s, i) => ({ id: String(i), label: s.label }))}
+              activeTab={String(activeTab)}
+              onTabChange={i => { setActiveTab(Number(i)); setSearch(''); }}
+              padding="0 16px"
+            />
           </div>
         )}
 
@@ -6973,7 +6992,7 @@ function PersonPickerModal({ title, value, candidates, sections, singleSelect, o
         )}
 
         {/* List */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '8px 0', minHeight: 220 }}>
+        <div style={{ flex: 1, overflowY: 'auto', padding: '12px 0', minHeight: 220 }}>
           <div key={activeTab} style={{ animation: PREFERS_REDUCED_MOTION ? 'tableEnterReduced 150ms ' + EASE_OUT : 'tableEnter 150ms ' + EASE_OUT }}>
           {sections ? (
             activeItems.length > 0
@@ -7630,7 +7649,7 @@ function AllowanceSettingsPage({ config, typeInfo, onSave, onBack, backLabel = '
                           <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 9, color: P.ink }}>{emp.initials}</span>
                         </div>
                         <div style={{ flex: 1, display: 'flex', alignItems: 'baseline', gap: 5 }}>
-                          <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.ink }}>{emp.name}</span>
+                          <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, fontWeight: 500, color: P.ink }}>{emp.name}</span>
                           {subtitle && <>
                             <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkFaint }}>·</span>
                             <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkSoft }}>{subtitle}</span>
@@ -9992,7 +10011,7 @@ function App() {
   const [physicalCardsAllowed, setPhysicalCardsAllowed] = useState(false);
   const [mobilityWidgetState, setMobilityWidgetState] = useState({
     widgetMode: 'mobility',
-    started: false,
+    hidden: false,
     step: 1,
     mandateDenied: false,
     live: false,
@@ -10263,7 +10282,11 @@ function App() {
         ::placeholder { color: #9ca3af; opacity: 1; }
       `}</style>
 
-      <Sidebar active={screen} onNav={handleNav} pendingCount={pendingCount} sidebarMode={sidebarMode} onSetSidebarMode={setSidebarMode} appEntity={appEntity} onSetAppEntity={setAppEntity} />
+      {screen === 'dashboard' && !mobilityWidgetState.live && !mobilityWidgetState.hidden && (
+        <div onClick={() => setMobilityWidgetState(prev => ({ ...prev, hidden: true }))} style={{ position: 'fixed', inset: 0, zIndex: 1, cursor: 'pointer' }} />
+      )}
+
+      <Sidebar active={screen} onNav={handleNav} pendingCount={pendingCount} sidebarMode={sidebarMode} onSetSidebarMode={setSidebarMode} appEntity={appEntity} onSetAppEntity={setAppEntity} setupInProgress={screen === 'dashboard' && !mobilityWidgetState.live && !mobilityWidgetState.hidden} />
 
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, overflow: 'hidden' }}>
         {screen === 'dashboard' && <DashboardScreen key={appEntity ?? 'all'} requests={entityFilteredRequests} onNav={setScreen} onToast={setToast} appEntity={appEntity} physicalCardsAllowed={physicalCardsAllowed} onPhysicalCardsChange={setPhysicalCardsAllowed} mobilityWidgetState={mobilityWidgetState} onMobilityWidgetStateChange={setMobilityWidgetState} pendingRequests={pendingRequestsCount} pendingExpenses={pendingExpensesCount} pendingChoices={pendingChoicesCount} activeBudgets={allowances.filter(a => a.active).length} />}
