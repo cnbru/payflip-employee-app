@@ -5627,8 +5627,8 @@ function DashboardListRow({ onClick, children }) {
   );
 }
 
-const PAYFLIP_CARD_IMG = '/hr-admin/assets/card.svg';
-const TWIKEY_LOGO_IMG = '/hr-admin/assets/twikey 1.png';
+const PAYFLIP_CARD_IMG = 'assets/card.svg';
+const TWIKEY_LOGO_IMG = 'assets/twikey 1.png';
 
 // Pointer tracked on the outer flat wrapper; inner card rotates via CSS custom props.
 // Per transitions-dev/19-card-tilt.md — MAX 14° is tasteful for a credit card.
@@ -5879,7 +5879,8 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
                 </div>
               )}
             </div>
-            {/* Deposit — plain text, no card */}
+            <Button variant="primary" disabled={empCount === 0} onClick={() => setStep(2)} style={{ width: '100%', justifyContent: 'center', fontSize: 15, padding: '10px 18px' }}>Continue</Button>
+            {/* Deposit — plain text, below the action */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, paddingLeft: 2 }}>
               <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>
                 Deposit needed: <strong style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 24, color: P.ink }}>€<AnimatedNumber value={deposit.toLocaleString('de-DE')} /></strong>
@@ -5888,7 +5889,6 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
                 <Icon name="help-circle" size={10} color={P.inkSoft} strokeWidth={2} />
               </span>
             </div>
-            <Button variant="primary" disabled={empCount === 0} onClick={() => setStep(2)} style={{ width: '100%', justifyContent: 'center', fontSize: 15, padding: '10px 18px' }}>Continue</Button>
           </div>
         ) : (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: 24, animation: `stepDoneEnter 200ms ${EASE_OUT}` }}>
@@ -6094,7 +6094,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
 
       {/* Card visual — shown during setup, fades out in live state */}
       {!live && (
-        <div style={{ background: '#f0ebf8', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '28px 24px', borderBottom: `1px solid ${P.border}` }}>
+        <div style={{ background: '#f0ebf8', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '48px 24px', borderBottom: `1px solid ${P.border}` }}>
           <CardTilt>
             <img src={PAYFLIP_CARD_IMG} alt="Payflip Card" style={{ width: 200, height: 126, display: 'block', borderRadius: 10 }} />
           </CardTilt>
