@@ -1,0 +1,6 @@
+{
+  "rewrites": [
+    { "source": "/hr-admin", "destination": "/hr-admin/index.html" },
+    { "source": "/hr-admin/", "destination": "/hr-admin/index.html" }
+  ]
+}

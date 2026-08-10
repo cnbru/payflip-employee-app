@@ -1451,15 +1451,31 @@ const ROUTE_MAP = [
   { screen: 'components',             path: '/hr-admin/components' },
 ];
 
+// The path prefix this app is mounted under: "" for local dev (served at
+// /hr-admin) and "/payflip-employee-app" on GitHub Pages. Computed once from the
+// initial URL by locating the "/hr-admin" segment. Client-side routing must
+// prepend this — hardcoding "/hr-admin/..." drops the Pages prefix, so a nav
+// click rewrites the URL to the wrong origin-root path and a reload/share 404s.
+const BASE_PATH = (() => {
+  const i = window.location.pathname.indexOf('/hr-admin');
+  return i > 0 ? window.location.pathname.slice(0, i) : '';
+})();
+
 function screenToPath(screen) {
-  if (screen.startsWith('employee-detail:')) return '/hr-admin/people/' + screen.split(':')[1];
-  if (screen === 'employees:admin') return '/hr-admin/people';
-  const entry = ROUTE_MAP.find(r => r.screen === screen);
-  return entry ? entry.path : '/hr-admin';
+  let p;
+  if (screen.startsWith('employee-detail:')) p = '/hr-admin/people/' + screen.split(':')[1];
+  else if (screen === 'employees:admin') p = '/hr-admin/people';
+  else {
+    const entry = ROUTE_MAP.find(r => r.screen === screen);
+    p = entry ? entry.path : '/hr-admin';
+  }
+  return BASE_PATH + p;
 }
 
 function pathToScreen(path) {
-  const clean = path.replace(/\/$/, '') || '/hr-admin';
+  let clean = path;
+  if (BASE_PATH && clean.startsWith(BASE_PATH)) clean = clean.slice(BASE_PATH.length);
+  clean = clean.replace(/\/$/, '') || '/hr-admin';
   const empMatch = clean.match(/^\/hr-admin\/people\/(.+)$/);
   if (empMatch) return 'employee-detail:' + empMatch[1];
   const entry = ROUTE_MAP.find(r => r.path === clean);
