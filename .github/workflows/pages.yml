@@ -23,6 +23,11 @@ jobs:
           cp -r project/employee-app/fonts/. _site/hr-admin/fonts/
           # Copy benefit/choice images (referenced as assets/ in app.jsx)
           cp -r project/assets/. _site/hr-admin/assets/
+          # hr-admin/index.html references /hr-admin/... as domain-absolute paths, which
+          # is correct for local dev (served under that subpath) but resolves to the
+          # wrong origin-root path once nested under this repo's Pages site. Rewrite to
+          # relative paths so they resolve correctly at whatever depth this is served from.
+          sed -i 's#/hr-admin/#./#g' _site/hr-admin/index.html
       - uses: JamesIves/github-pages-deploy-action@v4
         with:
           folder: _site
