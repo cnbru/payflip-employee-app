@@ -6496,10 +6496,6 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
           <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 28, color: fundingIssue ? '#dc2626' : P.ink, letterSpacing: '-0.5px', lineHeight: 1, marginBottom: 10 }}>
             €{liveBalance.toLocaleString('de-DE')}
           </div>
-          {/* Balance bar — visually shows how depleted the account is */}
-          <div style={{ height: 4, background: P.border, borderRadius: 2, overflow: 'hidden', marginBottom: 6 }}>
-            <div style={{ height: '100%', width: `${balPct}%`, background: fundingIssue ? '#dc2626' : '#008556', borderRadius: 2, transition: 'width 600ms ease-out' }} />
-          </div>
           <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>of €{deposit.toLocaleString('de-DE')} funded</div>
         </div>
 
