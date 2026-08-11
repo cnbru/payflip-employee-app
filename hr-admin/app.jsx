@@ -5921,13 +5921,13 @@ function CardTab({ empId, emp, mobilityLive, onToast, onNav }) {
         <ModalShell title="Report card as lost or stolen" onClose={() => setLostConfirmOpen(false)} width={440}
           footer={close => (
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, padding: '14px 22px', borderTop: `1px solid ${P.border}` }}>
-              <Button variant="secondary" onClick={close}>Cancel</Button>
-              <Button variant="danger" onClick={() => {
+              <Button variant="secondary" onClick={close}>Keep card</Button>
+              <Button variant="primary" style={{ background: '#dc2626' }} onClick={() => {
                 const newPan = String(Math.floor(1000 + Math.random() * 9000));
                 setDisplayPan(newPan);
                 close();
                 onToast && onToast({ message: `${first}'s card cancelled — replacement issued`, type: 'approve' });
-              }}>Cancel and replace</Button>
+              }}>Report and replace</Button>
             </div>
           )}
         >
