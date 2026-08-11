@@ -6077,9 +6077,9 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
     onToast?.({ message: `Invites sent. ${empCount} employees have been invited to request their Payflip Card.`, type: 'approve' });
   };
 
-  // All employees not yet in the card program (excludes admin-only account)
+  // All employees available to invite (excludes admin-only account)
   const nonEnrolled = Object.entries(EMPLOYEES)
-    .filter(([key, e]) => e.isEmployee !== false && !CARD_SEED[key])
+    .filter(([, e]) => e.isEmployee !== false && e.status === 'Active')
     .map(([key, e]) => ({ value: key, name: e.name, entity: e.entity, initials: e.initials, color: e.color }));
 
   const sendMoreInvites = (keys) => {
@@ -6315,13 +6315,8 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
 
         {/* Actions */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 20px', borderTop: `1px solid ${P.border}` }}>
-          {nonEnrolled.length > 0 && (
-            <Button variant="primary" icon="user-plus" onClick={() => setShowInviteMoreModal(true)} style={{ padding: '7px 14px', fontSize: 13 }}>
-              Invite more employees
-            </Button>
-          )}
-          <Button variant="secondary" icon="send" onClick={() => onToast?.({ message: 'Invites resent to employees who haven\'t activated yet', type: 'approve' })} style={{ padding: '7px 14px', fontSize: 13 }}>
-            Resend invites
+          <Button variant="primary" icon="user-plus" onClick={() => setShowInviteMoreModal(true)} style={{ padding: '7px 14px', fontSize: 13 }}>
+            Invite more employees
           </Button>
         </div>
 
