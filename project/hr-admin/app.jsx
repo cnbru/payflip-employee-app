@@ -6077,10 +6077,15 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
     onToast?.({ message: `Invites sent. ${empCount} employees have been invited to request their Payflip Card.`, type: 'approve' });
   };
 
-  // All employees available to invite (excludes admin-only account)
-  const nonEnrolled = Object.entries(EMPLOYEES)
-    .filter(([, e]) => e.isEmployee !== false && e.status === 'Active')
-    .map(([key, e]) => ({ value: key, name: e.name, entity: e.entity, initials: e.initials, color: e.color }));
+  // Post-launch invite picker — reuse readyToUse/budgetSpent, add zero-budget employees
+  const noBudgetEmps = Object.entries(EMPLOYEES)
+    .filter(([, e]) => e.isEmployee !== false && e.status === 'Active' && !(e.budget > 0))
+    .map(([key, e]) => ({ value: key, name: e.name, entity: e.entity, initials: e.initials, color: e.color, hint: 'No budget', hintColor: P.inkFaint }));
+  const usedUpEmps = [...budgetSpent, ...noBudgetEmps];
+  const inviteMoreSections = [
+    { label: `Has budget (${readyToUse.length})`, items: readyToUse },
+    { label: `Budget used up (${usedUpEmps.length})`, items: usedUpEmps },
+  ];
 
   const sendMoreInvites = (keys) => {
     setShowInviteMoreModal(false);
@@ -6622,7 +6627,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
       <PersonPickerModal
         title="Invite employees to Payflip Card"
         value={[]}
-        candidates={nonEnrolled}
+        sections={inviteMoreSections}
         onSave={sendMoreInvites}
         onClose={() => setShowInviteMoreModal(false)}
       />
