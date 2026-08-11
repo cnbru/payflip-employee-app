@@ -6503,42 +6503,41 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
           <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>of €{deposit.toLocaleString('de-DE')} funded</div>
         </div>
 
-        {/* Area chart and stats — hidden when there's a payment issue to resolve */}
-        {!fundingIssue && (<>
-          {/* Area chart — bleeds edge-to-edge (or empty state when no activity yet) */}
-          {justLaunched ? (
-            <div style={{ height: 110, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4, background: `linear-gradient(180deg, ${P.bg} 0%, ${P.white} 100%)`, borderTop: `1px solid ${P.border}` }}>
-              <Icon name="line-chart" size={16} color={P.inkFaint} strokeWidth={1.5} />
-              <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>No transactions yet</span>
-              <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkFaint }}>Activity will appear here once your team starts spending</span>
-            </div>
-          ) : (
-            <svg viewBox="0 0 300 100" preserveAspectRatio="none" style={{ width: '100%', height: 110, display: 'block' }}>
-              <defs>
-                <linearGradient id="balGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#008556" stopOpacity="0.13" />
-                  <stop offset="100%" stopColor="#008556" stopOpacity="0.01" />
-                </linearGradient>
-              </defs>
-              <path d={areaPath} fill="url(#balGrad)" />
-              <path d={linePath} fill="none" stroke="#008556" strokeWidth="1.5" vectorEffect="non-scaling-stroke" />
-            </svg>
-          )}
-
-          {/* Stats row */}
-          <div style={{ display: 'flex', borderTop: `1px solid ${P.border}` }}>
-            {[
-              { label: 'Active cards', value: String(liveActiveCards) },
-              { label: 'Spent this month', value: `€${liveSpent.toLocaleString('de-DE')}` },
-            ].map(({ label, value }, i) => (
-              <div key={label} style={{ flex: 1, padding: '12px 20px', borderLeft: i === 1 ? `1px solid ${P.border}` : 'none' }}>
-                <div style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkSoft, marginBottom: 3 }}>{label}</div>
-                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.ink }}>{value}</div>
-              </div>
-            ))}
+        {/* Area chart — bleeds edge-to-edge (or empty state when no activity yet) */}
+        {justLaunched ? (
+          <div style={{ height: 110, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4, background: `linear-gradient(180deg, ${P.bg} 0%, ${P.white} 100%)`, borderTop: `1px solid ${P.border}` }}>
+            <Icon name="line-chart" size={16} color={P.inkFaint} strokeWidth={1.5} />
+            <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>No transactions yet</span>
+            <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkFaint }}>Activity will appear here once your team starts spending</span>
           </div>
+        ) : (
+          <svg viewBox="0 0 300 100" preserveAspectRatio="none" style={{ width: '100%', height: 110, display: 'block' }}>
+            <defs>
+              <linearGradient id="balGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor={fundingIssue ? '#dc2626' : '#008556'} stopOpacity="0.1" />
+                <stop offset="100%" stopColor={fundingIssue ? '#dc2626' : '#008556'} stopOpacity="0.01" />
+              </linearGradient>
+            </defs>
+            <path d={areaPath} fill="url(#balGrad)" />
+            <path d={linePath} fill="none" stroke={fundingIssue ? '#dc2626' : '#008556'} strokeWidth="1.5" vectorEffect="non-scaling-stroke" />
+          </svg>
+        )}
 
-          {/* Actions */}
+        {/* Stats row */}
+        <div style={{ display: 'flex', borderTop: `1px solid ${P.border}` }}>
+          {[
+            { label: 'Active cards', value: String(liveActiveCards) },
+            { label: 'Spent this month', value: `€${liveSpent.toLocaleString('de-DE')}` },
+          ].map(({ label, value }, i) => (
+            <div key={label} style={{ flex: 1, padding: '12px 20px', borderLeft: i === 1 ? `1px solid ${P.border}` : 'none' }}>
+              <div style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkSoft, marginBottom: 3 }}>{label}</div>
+              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.ink }}>{value}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* Invite CTA — hidden when there's a payment issue to resolve */}
+        {!fundingIssue && (
           <div style={{ padding: '14px 20px', borderTop: `1px solid ${P.border}` }}>
             {nooneToInvite ? (
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '7px 14px', fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>
@@ -6551,7 +6550,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
               </Button>
             )}
           </div>
-        </>)}
+        )}
 
         {/* Dev-only simulation links */}
         <div style={{ display: 'flex', gap: 14, padding: '8px 20px 12px', borderTop: `1px solid ${P.border}` }}>
