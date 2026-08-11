@@ -5962,8 +5962,6 @@ function CardTab({ empId, emp, mobilityLive, onToast, onNav }) {
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, padding: '14px 22px', borderTop: `1px solid ${P.border}` }}>
               <Button variant="secondary" onClick={close}>Keep card</Button>
               <Button variant="primary" onClick={() => {
-                const newPan = String(Math.floor(1000 + Math.random() * 9000));
-                setDisplayPan(newPan);
                 close();
                 onToast && onToast({ message: `Replacement card ordered for ${first}`, type: 'approve' });
               }}>Order replacement</Button>
@@ -5979,7 +5977,7 @@ function CardTab({ empId, emp, mobilityLive, onToast, onNav }) {
               </div>
             </div>
             <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, lineHeight: 1.55 }}>
-              The current card will be cancelled and a new one issued automatically. {first} can use it right away in the Payflip app. This cannot be undone.
+              A new card will be sent to {first}. The card number stays the same — their existing card details keep working until the new one arrives.
             </p>
           </div>
         </ModalShell>
