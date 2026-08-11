@@ -552,6 +552,31 @@ const EMPLOYEES = {
 };
 const CURRENT_USER = EMPLOYEES['bruno-coen'];
 
+// ── Per-employee card data (prototype seed) ───────────────────────────────
+// status: 'not_invited' | 'invited' | 'app_downloaded' | 'card_requested' | 'active' | 'frozen'
+const CARD_SEED = {
+  'bram-goossens':     { status: 'active',         pan: '8231', cardType: 'virtual',  invitedDate: '12/05/2026', lastTx: '2 days ago',   lastTxAmount: 24.50  },
+  'mathias-de-smedt':  { status: 'frozen',          pan: '4417', cardType: 'virtual',  invitedDate: '12/05/2026', lastTx: '14 days ago',  lastTxAmount: 38.00  },
+  'thomas-janssens':   { status: 'active',         pan: '9902', cardType: 'physical', invitedDate: '12/05/2026', lastTx: 'yesterday',    lastTxAmount: 12.80  },
+  'charlotte-pieters': { status: 'active',         pan: '6654', cardType: 'virtual',  invitedDate: '12/05/2026', lastTx: '5 days ago',   lastTxAmount: 55.20  },
+  'lasse-willems':     { status: 'active',         pan: '3378', cardType: 'virtual',  invitedDate: '12/05/2026', lastTx: '1 week ago',   lastTxAmount: 18.00  },
+  'nathalie-cox':      { status: 'active',         pan: '7745', cardType: 'virtual',  invitedDate: '12/05/2026', lastTx: '3 days ago',   lastTxAmount: 42.00  },
+  'ruben-declercq':    { status: 'active',         pan: '2290', cardType: 'virtual',  invitedDate: '12/05/2026', lastTx: '4 days ago',   lastTxAmount: 31.60  },
+  'ines-baert':        { status: 'active',         pan: '5563', cardType: 'virtual',  invitedDate: '12/05/2026', lastTx: '6 days ago',   lastTxAmount: 22.40  },
+  'joachim-nijs':      { status: 'active',         pan: '1184', cardType: 'virtual',  invitedDate: '12/05/2026', lastTx: '2 days ago',   lastTxAmount: 67.90  },
+  'sara-verbeke':      { status: 'active',         pan: '8847', cardType: 'virtual',  invitedDate: '12/05/2026', lastTx: '1 day ago',    lastTxAmount: 15.30  },
+  'wout-desmet':       { status: 'active',         pan: '3321', cardType: 'virtual',  invitedDate: '12/05/2026', lastTx: '3 days ago',   lastTxAmount: 48.75  },
+  'amber-claes':       { status: 'active',         pan: '6698', cardType: 'virtual',  invitedDate: '12/05/2026', lastTx: '5 days ago',   lastTxAmount: 27.50  },
+  'pieter-verheyen':   { status: 'active',         pan: '9034', cardType: 'virtual',  invitedDate: '12/05/2026', lastTx: '1 week ago',   lastTxAmount: 35.00  },
+  'david':             { status: 'active',         pan: '4456', cardType: 'virtual',  invitedDate: '12/05/2026', lastTx: '2 days ago',   lastTxAmount: 19.20  },
+  'stijn-laurent':     { status: 'app_downloaded', pan: null,   cardType: null,       invitedDate: '12/05/2026', lastTx: null,           lastTxAmount: null   },
+  'jana-goossens':     { status: 'card_requested', pan: null,   cardType: null,       invitedDate: '12/05/2026', lastTx: null,           lastTxAmount: null   },
+  'laura-mertens':     { status: 'invited',        pan: null,   cardType: null,       invitedDate: '12/05/2026', lastTx: null,           lastTxAmount: null   },
+  'pieter-mertens':    { status: 'active',         pan: '7712', cardType: 'virtual',  invitedDate: '12/05/2026', lastTx: 'today',        lastTxAmount: 88.00  },
+  'sarah-de-smedt':    { status: 'active',         pan: '3390', cardType: 'virtual',  invitedDate: '12/05/2026', lastTx: '4 days ago',   lastTxAmount: 29.40  },
+  'julie-goossens':    { status: 'active',         pan: '6621', cardType: 'virtual',  invitedDate: '12/05/2026', lastTx: '2 days ago',   lastTxAmount: 53.60  },
+};
+
 // ── Per-employee supplemental data ────────────────────────────────────────
 const EMP_EXTRA = {
   'bram-goossens':       { payrollId: '000041', hireDate: '15/03/2023', lang: 'Dutch'   },
@@ -5258,7 +5283,7 @@ function EditBalancesModal({ emp, balances, onSave, onClose, isNewEmployee, onCo
 }
 
 // ── Employee detail screen ────────────────────────────────────────────────
-function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, onApprove, onDecline, onViewTeamCalendar, employeeBalance, onUpdateBalance, needsSetup, confirmedDate, onConfirmBalances, onToast, adminAccess, onAdminSave, companyRegime, onEmployeeUpdate, getEmpWithOverrides, initialTab = 'choices' }) {
+function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, onApprove, onDecline, onViewTeamCalendar, employeeBalance, onUpdateBalance, needsSetup, confirmedDate, onConfirmBalances, onToast, adminAccess, onAdminSave, companyRegime, onEmployeeUpdate, getEmpWithOverrides, physicalCardsAllowed, mobilityWidgetState, initialTab = 'choices' }) {
   const emp = getEmpWithOverrides ? getEmpWithOverrides(employeeId) : EMPLOYEES[employeeId];
   const [activeTab, setActiveTab] = useState(initialTab);
   const [addModal, setAddModal] = useState(null); // null | 'add' | request object (edit)
@@ -5304,6 +5329,7 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, o
   const tabs = [
     { id: 'choices', label: 'Choices' },
     { id: 'budgets', label: 'Budgets' },
+    { id: 'card', label: 'Card' },
     { id: 'salary', label: 'Compensation' },
     { id: 'details', label: 'Details & roles' },
     { id: 'timeoff', label: 'Leave & absences' },
@@ -5563,6 +5589,8 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, o
           <div><ChoicesTab empId={employeeId} /></div>
         ) : activeTab === 'budgets' ? (
           <div><BudgetsTab empId={employeeId} /></div>
+        ) : activeTab === 'card' ? (
+          <CardTab empId={employeeId} emp={emp} physicalCardsAllowed={physicalCardsAllowed} mobilityLive={!!(mobilityWidgetState && mobilityWidgetState.live)} onToast={onToast} />
         ) : activeTab === 'salary' ? (
           <div><SalaryTab empId={employeeId} emp={emp} companyRegime={companyRegime || COMPANY_REGIME_DEFAULTS} onEmployeeUpdate={onEmployeeUpdate} /></div>
         ) : activeTab === 'details' ? (
@@ -5657,6 +5685,304 @@ function DashboardListRow({ onClick, children }) {
 
 const PAYFLIP_CARD_IMG = 'assets/card.svg';
 const TWIKEY_LOGO_IMG = 'assets/twikey 1.png';
+
+// ── CardTab — manage an employee's Payflip Card ───────────────────────────
+function CardTab({ empId, emp, physicalCardsAllowed, mobilityLive, onToast }) {
+  const seed = CARD_SEED[empId];
+  const initialStatus = seed ? seed.status : 'not_invited';
+  const [status, setStatus] = useState(initialStatus);
+  const [freezeConfirmOpen, setFreezeConfirmOpen] = useState(false);
+  const [blockConfirmOpen, setBlockConfirmOpen] = useState(false);
+  const [physicalRequested, setPhysicalRequested] = useState(seed?.cardType === 'physical');
+
+  const isActive = status === 'active';
+  const isFrozen = status === 'frozen';
+  const isPending = status === 'card_requested';
+  const isDownloaded = status === 'app_downloaded';
+  const isInvited = status === 'invited';
+  const isNotInvited = status === 'not_invited';
+  const hasActiveCard = isActive || isFrozen;
+
+  const cardStatusMeta = {
+    active:         { label: 'Active',          bg: '#dcfce7', color: '#16a34a' },
+    frozen:         { label: 'Frozen',          bg: '#f0f9ff', color: '#0369a1' },
+    card_requested: { label: 'Card requested',  bg: '#fef9c3', color: '#ca8a04' },
+    app_downloaded: { label: 'App downloaded',  bg: '#f0f9ff', color: '#0369a1' },
+    invited:        { label: 'Invite sent',     bg: '#f5f3ff', color: '#7c3aed' },
+    not_invited:    { label: 'Not enrolled',    bg: P.bg,      color: P.inkSoft },
+  };
+  const meta = cardStatusMeta[status] || cardStatusMeta.not_invited;
+
+  const budget = emp.budget || 0;
+  const budgetUsed = emp.budgetUsed || 0;
+  const remaining = Math.max(0, budget - budgetUsed);
+  const spendPct = budget > 0 ? Math.min(100, (budgetUsed / budget) * 100) : 0;
+
+  if (!mobilityLive && !seed) {
+    return (
+      <div style={{ maxWidth: 520 }}>
+        <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 14, padding: 32, textAlign: 'center' }}>
+          <div style={{ width: 48, height: 48, borderRadius: 12, background: P.bg, border: `1px solid ${P.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+            <Icon name="credit-card" size={22} color={P.inkSoft} strokeWidth={1.5} />
+          </div>
+          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 16, color: P.ink, marginBottom: 6 }}>
+            Payflip Card not set up
+          </div>
+          <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, lineHeight: 1.55, marginBottom: 20 }}>
+            The mobility card program hasn't been launched yet. Set it up from the dashboard to invite employees and fund the account.
+          </div>
+          <Button variant="secondary" icon="arrow-up-right" onClick={() => {}}>Go to dashboard</Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (isNotInvited) {
+    return (
+      <div style={{ maxWidth: 520 }}>
+        <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 14, padding: 32, textAlign: 'center' }}>
+          <div style={{ width: 48, height: 48, borderRadius: 12, background: P.bg, border: `1px solid ${P.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+            <Icon name="mail" size={22} color={P.inkSoft} strokeWidth={1.5} />
+          </div>
+          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 16, color: P.ink, marginBottom: 6 }}>
+            Not enrolled
+          </div>
+          <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, lineHeight: 1.55, marginBottom: 20 }}>
+            {emp.name.split(' ')[0]} hasn't been invited to the Payflip Card program. You can send them an invite from the dashboard.
+          </div>
+          <Button variant="primary" icon="send" onClick={() => { setStatus('invited'); onToast && onToast({ message: `Invite sent to ${emp.name.split(' ')[0]}`, type: 'approve' }); }}>
+            Send invite
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ maxWidth: 600 }}>
+
+      {/* Card visual + status */}
+      <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 14, padding: 24, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 28 }}>
+        <div style={{ flexShrink: 0, opacity: isFrozen ? 0.55 : 1, transition: 'opacity 300ms', filter: isFrozen ? 'saturate(0)' : 'none' }}>
+          <CardTilt>
+            <img src={PAYFLIP_CARD_IMG} alt="Payflip Card" style={{ width: 160, height: 100, display: 'block', borderRadius: 9 }} />
+          </CardTilt>
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 16, color: P.ink }}>Payflip Card</span>
+            <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, fontWeight: 500, padding: '2px 8px', borderRadius: 20, background: meta.bg, color: meta.color }}>{meta.label}</span>
+          </div>
+          {hasActiveCard && seed?.pan && (
+            <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, marginBottom: 4, letterSpacing: '0.04em' }}>
+              •••• •••• •••• {seed.pan}
+            </div>
+          )}
+          {hasActiveCard && (
+            <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkFaint }}>
+              {seed?.cardType === 'physical' ? 'Physical card' : 'Virtual card'}
+              {seed?.lastTx && ` · Last used ${seed.lastTx}`}
+            </div>
+          )}
+          {(isInvited || isDownloaded || isPending) && (
+            <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>
+              {isInvited && `Invite sent ${seed?.invitedDate || ''}`}
+              {isDownloaded && 'App downloaded · Hasn\'t requested a card yet'}
+              {isPending && 'Card request pending · Awaiting issuance'}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Quick actions */}
+      {(hasActiveCard || isPending || isInvited || isDownloaded) && (
+        <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+          {hasActiveCard && (
+            <button
+              onClick={() => setFreezeConfirmOpen(true)}
+              style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '8px 14px', borderRadius: 8, border: `1px solid ${isFrozen ? '#bfdbfe' : P.border}`, background: isFrozen ? '#eff6ff' : P.white, cursor: 'pointer', fontFamily: 'var(--font-body)', fontSize: 13, color: isFrozen ? '#1d4ed8' : P.ink, transition: 'all 120ms' }}
+              onMouseEnter={e => { e.currentTarget.style.background = isFrozen ? '#dbeafe' : P.bg; }}
+              onMouseLeave={e => { e.currentTarget.style.background = isFrozen ? '#eff6ff' : P.white; }}
+            >
+              <Icon name={isFrozen ? 'play' : 'snowflake'} size={14} color={isFrozen ? '#1d4ed8' : P.ink} strokeWidth={isFrozen ? 2 : 1.75} />
+              {isFrozen ? 'Unfreeze card' : 'Freeze card'}
+            </button>
+          )}
+          {hasActiveCard && (
+            <button
+              onClick={() => {}}
+              style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '8px 14px', borderRadius: 8, border: `1px solid ${P.border}`, background: P.white, cursor: 'pointer', fontFamily: 'var(--font-body)', fontSize: 13, color: P.ink, transition: 'background 120ms' }}
+              onMouseEnter={e => { e.currentTarget.style.background = P.bg; }}
+              onMouseLeave={e => { e.currentTarget.style.background = P.white; }}
+            >
+              <Icon name="list" size={14} color={P.ink} strokeWidth={1.75} />
+              View transactions
+            </button>
+          )}
+          {(isInvited || isDownloaded) && (
+            <button
+              onClick={() => { onToast && onToast({ message: `Invite resent to ${emp.name.split(' ')[0]}`, type: 'approve' }); }}
+              style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '8px 14px', borderRadius: 8, border: `1px solid ${P.border}`, background: P.white, cursor: 'pointer', fontFamily: 'var(--font-body)', fontSize: 13, color: P.ink, transition: 'background 120ms' }}
+              onMouseEnter={e => { e.currentTarget.style.background = P.bg; }}
+              onMouseLeave={e => { e.currentTarget.style.background = P.white; }}
+            >
+              <Icon name="send" size={14} color={P.ink} strokeWidth={1.75} />
+              Resend invite
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* Budget / spending */}
+      {hasActiveCard && budget > 0 && (
+        <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 14, overflow: 'hidden', marginBottom: 16 }}>
+          <div style={{ padding: '14px 20px 12px', borderBottom: `1px solid ${P.border}` }}>
+            <span style={SL}>Budget</span>
+          </div>
+          <div style={{ padding: '16px 20px 4px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 8 }}>
+              <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>Spent this year</span>
+              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 15, color: P.ink }}>
+                €{budgetUsed.toLocaleString('de-DE')} <span style={{ fontFamily: 'var(--font-body)', fontWeight: 400, fontSize: 12, color: P.inkSoft }}>/ €{budget.toLocaleString('de-DE')}</span>
+              </span>
+            </div>
+            <div style={{ height: 6, borderRadius: 3, background: P.border, overflow: 'hidden', marginBottom: 16 }}>
+              <div style={{ height: '100%', borderRadius: 3, background: spendPct >= 95 ? '#f97316' : '#10b981', width: `${spendPct}%`, transition: 'width 600ms ease-out' }} />
+            </div>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', borderTop: `1px solid ${P.border}` }}>
+            {[
+              { label: 'Remaining', value: `€${remaining.toLocaleString('de-DE')}`, color: remaining < 20 ? '#f97316' : P.ink },
+              { label: 'Budget', value: `€${budget.toLocaleString('de-DE')}`, color: P.ink },
+            ].map((item, i, arr) => (
+              <div key={item.label} style={{ padding: '12px 20px', borderRight: i < arr.length - 1 ? `1px solid ${P.border}` : 'none' }}>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkSoft, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 2 }}>{item.label}</div>
+                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 15, color: item.color }}>{item.value}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Card settings */}
+      {hasActiveCard && (
+        <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 14, overflow: 'hidden', marginBottom: 16 }}>
+          <div style={{ padding: '14px 20px 12px', borderBottom: `1px solid ${P.border}` }}>
+            <span style={SL}>Card settings</span>
+          </div>
+          <div style={{ padding: '4px 0' }}>
+            {[
+              { label: 'Online payments', icon: 'globe', on: true },
+              { label: 'Contactless', icon: 'wifi', on: true },
+              { label: 'Cash withdrawal', icon: 'banknote', on: false },
+              { label: 'Abroad payments', icon: 'plane', on: true },
+            ].map((row, i, arr) => (
+              <div key={row.label} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '11px 20px', borderBottom: i < arr.length - 1 ? `1px solid ${P.border}` : 'none' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <Icon name={row.icon} size={15} color={P.inkSoft} strokeWidth={1.75} />
+                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.ink }}>{row.label}</span>
+                </div>
+                <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: row.on ? '#16a34a' : P.inkSoft }}>{row.on ? 'Allowed' : 'Blocked'}</span>
+              </div>
+            ))}
+          </div>
+          {physicalCardsAllowed && (
+            <div style={{ borderTop: `1px solid ${P.border}`, padding: '11px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }}
+              onClick={() => setPhysicalRequested(v => !v)}
+              onMouseEnter={e => e.currentTarget.style.background = P.bg}
+              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <Icon name="credit-card" size={15} color={P.inkSoft} strokeWidth={1.75} />
+                <div>
+                  <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.ink }}>Physical card</div>
+                  <div style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkSoft }}>Allow employee to request a physical card</div>
+                </div>
+              </div>
+              <Switch checked={physicalRequested} onChange={() => {}} />
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Danger zone */}
+      {hasActiveCard && (
+        <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 14, overflow: 'hidden' }}>
+          <div style={{ padding: '14px 20px 12px', borderBottom: `1px solid ${P.border}` }}>
+            <span style={SL}>Danger zone</span>
+          </div>
+          <div style={{ padding: '14px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div>
+              <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.ink, fontWeight: 500 }}>Block card</div>
+              <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>Permanently blocks the card. The employee will need to request a new one.</div>
+            </div>
+            <button
+              onClick={() => setBlockConfirmOpen(true)}
+              style={{ padding: '7px 14px', borderRadius: 8, border: '1px solid #fecaca', background: '#fff5f5', color: '#dc2626', cursor: 'pointer', fontFamily: 'var(--font-body)', fontSize: 13, fontWeight: 500, flexShrink: 0, marginLeft: 16, transition: 'background 120ms' }}
+              onMouseEnter={e => e.currentTarget.style.background = '#fee2e2'}
+              onMouseLeave={e => e.currentTarget.style.background = '#fff5f5'}
+            >
+              Block card
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Freeze confirm modal */}
+      {freezeConfirmOpen && (
+        <ModalShell
+          title={isFrozen ? 'Unfreeze card' : 'Freeze card'}
+          onClose={() => setFreezeConfirmOpen(false)}
+          width={400}
+          footer={close => (
+            <>
+              <Button variant="secondary" onClick={close}>Cancel</Button>
+              <Button variant="primary" onClick={() => {
+                const next = isFrozen ? 'active' : 'frozen';
+                setStatus(next);
+                close();
+                onToast && onToast({ message: isFrozen ? `${emp.name.split(' ')[0]}'s card unfrozen` : `${emp.name.split(' ')[0]}'s card frozen`, type: isFrozen ? 'approve' : 'decline' });
+              }}>
+                {isFrozen ? 'Yes, unfreeze' : 'Yes, freeze'}
+              </Button>
+            </>
+          )}
+        >
+          <div style={{ padding: '20px 24px', fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, lineHeight: 1.55 }}>
+            {isFrozen
+              ? `${emp.name.split(' ')[0]}'s card will be reactivated immediately. They'll be able to make payments again.`
+              : `${emp.name.split(' ')[0]}'s card will be paused immediately. No payments can be made until you unfreeze it.`
+            }
+          </div>
+        </ModalShell>
+      )}
+
+      {/* Block confirm modal */}
+      {blockConfirmOpen && (
+        <ModalShell
+          title="Block card permanently"
+          onClose={() => setBlockConfirmOpen(false)}
+          width={400}
+          footer={close => (
+            <>
+              <Button variant="secondary" onClick={close}>Cancel</Button>
+              <button
+                onClick={() => { close(); setStatus('not_invited'); onToast && onToast({ message: `${emp.name.split(' ')[0]}'s card blocked`, type: 'decline' }); }}
+                style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: '#dc2626', color: '#fff', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}
+              >
+                Block card
+              </button>
+            </>
+          )}
+        >
+          <div style={{ padding: '20px 24px', fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, lineHeight: 1.55 }}>
+            {emp.name.split(' ')[0]}'s card will be permanently blocked. This cannot be undone. They will need to request a new card from the Payflip app.
+          </div>
+        </ModalShell>
+      )}
+    </div>
+  );
+}
 
 // Pointer tracked on the outer flat wrapper; inner card rotates via CSS custom props.
 // Per transitions-dev/19-card-tilt.md — MAX raised to 24° for a stronger lean; perspective tightened to 700px.
@@ -7078,7 +7404,7 @@ function PersonPickerModal({ title, value, candidates, sections, singleSelect, o
         })()}
 
         {/* Footer */}
-        <div style={{ padding: '14px 22px', borderTop: `1px solid ${P.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
+        <div style={{ padding: '14px 20px', borderTop: `1px solid ${P.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
           {!singleSelect
             ? <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: selected.length > 0 ? P.ink : P.inkSoft }}>
                 {selected.length > 0 ? `${selected.length} selected` : 'None selected'}
@@ -10381,7 +10707,7 @@ function App() {
         {screen === 'team-absences' && <TeamAbsencesScreen key={appEntity ?? 'all'} requests={entityFilteredRequests} pendingCount={pendingRequestsCount} onNav={setScreen} onShowDetail={setCalDetail} activeReqId={calDetail?.id} onSave={saveRequest} companyEvents={companyEvents} onCancelCompanyEvent={cancelCompanyEvent} initialDate={calendarJumpDate} initialDeptFilter={calendarDeptFilter} appEntity={appEntity} leaveTypes={leaveTypes} />}
         {screen === 'requests' && <RequestsScreen key={appEntity ?? 'all'} requests={entityFilteredRequests} onApprove={approve} onDecline={requestDecline} onSave={saveRequest} onCancel={requestCancel} onNav={setScreen} onViewInCalendar={(req) => { const d = req._selectedDates?.[0] || req.startDate; if (d) { const iso = typeof d === 'string' && d.match(/^\d{4}-/) ? d : null; setCalendarJumpDate(iso ? new Date(iso) : parseDisplayDate(d)); } setCalDetail(req); setScreen('team-absences'); }} appEntity={appEntity} />}
         {(screen === 'employees' || screen === 'employees:admin') && <EmployeesScreen key={appEntity ?? 'all'} requests={entityFilteredRequests} onNav={setScreen} initialRoleFilter={screen === 'employees:admin' ? 'Admin' : 'All'} adminAccess={adminAccess} appEntity={appEntity} onAddEmployee={() => setAddEmployeeOpen(true)} />}
-        {screen.startsWith('employee-detail:') && (() => { const [, detailEmpId, detailTab] = screen.split(':'); return <EmployeeDetailScreen employeeId={detailEmpId} requests={requests} onNav={setScreen} onSave={saveRequest} onCancel={cancelRequest} onApprove={approve} onDecline={requestDecline} onViewTeamCalendar={(dept) => { setCalendarDeptFilter(dept || null); setScreen('team-absences'); }} employeeBalance={employeeBalances[detailEmpId]} onUpdateBalance={(newBal) => updateBalances(detailEmpId, newBal)} needsSetup={needsBalanceSetup.has(detailEmpId)} confirmedDate={balanceConfirmedDates[detailEmpId]} onConfirmBalances={() => confirmBalancesFor(detailEmpId)} onToast={setToast} adminAccess={adminAccess} onAdminSave={handleAdminSave} companyRegime={companyRegime} onEmployeeUpdate={handleEmployeeUpdate} getEmpWithOverrides={getEmpWithOverrides} initialTab={detailTab || (freshEmployeeId === detailEmpId ? 'details' : 'choices')} />; })()}
+        {screen.startsWith('employee-detail:') && (() => { const [, detailEmpId, detailTab] = screen.split(':'); return <EmployeeDetailScreen employeeId={detailEmpId} requests={requests} onNav={setScreen} onSave={saveRequest} onCancel={cancelRequest} onApprove={approve} onDecline={requestDecline} onViewTeamCalendar={(dept) => { setCalendarDeptFilter(dept || null); setScreen('team-absences'); }} employeeBalance={employeeBalances[detailEmpId]} onUpdateBalance={(newBal) => updateBalances(detailEmpId, newBal)} needsSetup={needsBalanceSetup.has(detailEmpId)} confirmedDate={balanceConfirmedDates[detailEmpId]} onConfirmBalances={() => confirmBalancesFor(detailEmpId)} onToast={setToast} adminAccess={adminAccess} onAdminSave={handleAdminSave} companyRegime={companyRegime} onEmployeeUpdate={handleEmployeeUpdate} getEmpWithOverrides={getEmpWithOverrides} physicalCardsAllowed={physicalCardsAllowed} mobilityWidgetState={mobilityWidgetState} initialTab={detailTab || (freshEmployeeId === detailEmpId ? 'details' : 'choices')} />; })()}
         {screen === 'expenses' && <ExpensesScreen key={appEntity ?? 'all'} expenses={entityFilteredExpenses} categories={expenseCategories} onApprove={approveExpense} onDetail={(exp) => setExpDetail(exp)} onAdd={addExpense} appEntity={appEntity} />}
         {screen === 'choices' && <ChoicesScreen key={appEntity ?? 'all'} choices={entityFilteredChoices} onApprove={approveChoice} onDecline={declineChoice} onDetail={setChoiceDetail} appEntity={appEntity} />}
         {screen === 'payroll-overview' && <StubScreen title="Payroll Overview" description="Monthly payroll run and submission" />}
