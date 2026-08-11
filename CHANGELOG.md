@@ -6,6 +6,37 @@ This file is not part of the prototype itself — it's project documentation to 
 
 ---
 
+## 2026-08-11 — Mobility card widget: full setup flow and live state
+
+The mobility card widget was rebuilt from a rough stub into a complete product flow — covering the admin journey from first setup through post-launch monitoring.
+
+### What the widget now does
+
+**Setup flow (4 steps, Mercury-style stacked):**
+- **Step 1 — Select employees.** Shows employee count and recommended deposit (formula: 3 months of expected card spend, rounded to nearest €50). A "How is this calculated?" modal explains the formula across three admin concerns: justifying the amount to finance, deciding whether to adjust, and understanding where the money goes.
+- **Step 2 — Sign mandate.** Admin authorises Payflip to collect the deposit via Twikey direct debit and to auto-top-up when the balance runs low. Signing is handled externally by Twikey; the admin returns to Payflip automatically. Includes a mandate denial path — if Twikey rejects the mandate, the admin is prompted to retry.
+- **Step 3 — Awaiting deposit.** System-managed. Shows a waiting state while the first deposit clears (~3 business days in production; auto-advances in the prototype).
+- **Step 4 — Send invites.** Sends email invites to all selected employees so they can download the app and request their card. Requires confirmation before sending (irreversible action). Mental model callout — "You don't issue cards yourself. Employees request their card when they're ready." — placed deliberately here to reframe the admin's expectations before they click.
+
+**Live state (post-launch):** After invites are sent, the widget transforms from a setup wizard into a persistent monitoring card:
+- Account balance hero with a chart showing balance over time. Chart anchors at the auto-top-up threshold (20% of deposit) rather than €0 — so a healthy balance reads as "well above the danger zone" rather than compressing into the top of the frame. The chart uses a step function (horizontal hold → vertical drop per transaction) to show real spend events rather than smooth interpolation.
+- Adoption funnel: Invited → Downloaded → Card requested → First transaction.
+- Actions: View transactions (deep-link to Choices with card filter), Resend invites.
+
+### Key product decisions
+
+- **Widget is persistent, not a one-time wizard.** Once launched, it stays on the dashboard as a live monitoring surface. The admin's relationship with the mobility card doesn't end at setup.
+- **Twikey mandate replaces manual bank transfer.** No IBAN entry, no manual payment instruction — admin signs once, Payflip handles collection and future top-ups automatically. This is the correct mental model for direct debit.
+- **Invite confirmation is required.** Sending invites is irreversible — employees get an email immediately. The confirmation step ("19 employees will receive an email right now") sets the scope and consequence before the admin commits.
+- **Collapsed/resume state.** The widget can be dismissed and re-entered via a "Resume setup" button that accordion-expands the content. *Why:* setup rarely happens in one sitting — an admin might check the deposit amount, leave to consult finance, and come back. The widget needs to survive that.
+- **Widget renamed "Mobility card".** In an already-branded app, repeating the product name in a card header adds nothing. "Mobility card" names the benefit category and works equally well during setup and in the live state.
+
+### Interface design decisions
+
+- **Active step gets a filled near-black badge; done and future steps fade.** Active: filled #0f0d28 circle, white number. Done: soft green tint, recedes to 55% opacity. Future: 45% opacity. *Why:* The step list always shows all four steps — fading resolved and upcoming work is the only way to make the active step legible without hiding context. The filled black badge for the active step was chosen specifically over the P.action purple (#220a35) used for "Needs attention" count badges on the same dashboard; two badge types using the same color on the same screen would conflate "where you are in the flow" with "something needs your attention" — opposite signals.
+- **Step 2 body copy reduced to one sentence.** The original paragraph covered authorization, timing, and auto-top-up. Timing moved to the Twikey trust block where it's contextually relevant. *Why:* by step 2 the admin has already committed to proceeding — three sentences of explanation before a single CTA is friction, not information.
+- **All button variants now have hover states** (120ms transition). *Why:* a desktop-only tool with no hover feedback feels unfinished — the mouse is the primary input and the UI should respond to it.
+
 ## 2026-08-10 — Dashboard: visual language separation between step indicators and category icons
 
 - **Setup step badges redesigned** from bordered gray squares to open circles with a thin `P.inkSoft` ring. *Why:* the step numbers (1, 2, 3) and the "Needs attention" category icon boxes were using the same visual treatment — same gray fill, same border, same shape — despite serving completely different semantic roles (sequence vs. category). Numbered circles are the established convention for ordinal progress; filled/bordered squares read as badges or icons. The open-circle treatment makes the distinction legible at a glance without requiring any mental parsing.

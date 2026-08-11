@@ -6121,7 +6121,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 24px', borderBottom: `1px solid ${P.border}` }}>
         <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.ink, letterSpacing: '-0.025px' }}>
-          Payflip Card
+          Mobility card
         </span>
         {!live && (() => {
           const mobilityMeta = [
@@ -9168,6 +9168,20 @@ function BenefitsSettings({ appEntity = null }) {
 
 // ── Changelog ──────────────────────────────────────────────────────────────
 const CHANGELOG_ENTRIES = [
+  {
+    date: '11 Aug 2026',
+    title: 'Mobility card widget: full setup flow and live state',
+    items: [
+      { summary: 'Complete 4-step setup flow built', detail: 'Step 1: select employees + recommended deposit with a "How is this calculated?" modal. Step 2: sign Twikey mandate (authorises collection + future auto-top-ups) with a mandate denial path. Step 3: awaiting first deposit (~3 business days). Step 4: send invites to employees with a confirmation dialog before sending.', why: 'The widget previously had no end-to-end flow — it stopped before the mandate and had no post-launch state. This completes the admin journey from first setup through ongoing monitoring.' },
+      { summary: 'Live state added: balance chart, adoption funnel, and actions', detail: 'After invites are sent the widget transforms into a monitoring card. Balance hero with a stepped chart anchored at the auto-top-up threshold (not €0). Adoption funnel: Invited → Downloaded → Card requested → First transaction. Actions: View transactions, Resend invites.', why: 'The mobility card doesn\'t end at setup. HR admins need to see that the account is funded and employees are actually adopting the card — those are the two things that could go wrong post-launch.' },
+      { summary: 'Balance chart anchored at top-up threshold, not €0', detail: 'The chart y-axis bottom maps to the auto-top-up threshold (20% of deposit). Spend events render as a step function — horizontal hold, vertical drop per transaction.', why: 'Anchoring at €0 compressed a healthy balance into the top 5% of the chart, making it read as nearly flat. The threshold anchor keeps the line in the upper portion, reading as "well above the danger zone." Step function shows real transaction events rather than smooth interpolation.' },
+      { summary: 'Widget can be dismissed and resumed', detail: 'Collapsing the widget reveals a "Resume setup" button that accordion-expands the content back.', why: 'Setup rarely happens in one sitting — an admin might check the deposit amount, leave to consult finance, and return later. The widget needs to survive that workflow.' },
+      { summary: 'Invite confirmation required before sending', detail: 'Sending invites triggers a confirmation modal: "19 employees will receive an email right now." Dismissed by "Not yet" or confirmed by "Yes, send invites."', why: 'Invites are irreversible — employees receive the email immediately. The confirmation step names the scope and consequence so the admin can\'t accidentally trigger a company-wide email.' },
+      { summary: 'Step badge focus model: active filled, resolved faded, future dimmed', detail: 'Active step: filled near-black (#0f0d28) badge, white number. Done rows: 55% opacity, soft green check. Future rows: 45% opacity.', why: 'With all four steps always visible, fading resolved and upcoming steps is the only way to make the active step legible without hiding context. Near-black for the active badge (not P.action purple #220a35) avoids conflating "where you are in the flow" with the "Needs attention" count badges using the same color on the same dashboard.' },
+      { summary: 'Widget renamed "Mobility card"', why: 'In an already-branded app, repeating the product name in a persistent card header adds nothing. "Mobility card" names the benefit category and works equally well during setup and in the live state.' },
+      { summary: 'Button hover states added across all variants', detail: 'Primary lightens to #2d1048, secondary/text fills with P.bg, danger tints #fee2e2. 120ms transition.', why: 'A desktop-only tool with no hover feedback feels unfinished — the mouse is the primary input and the UI should respond to it.' },
+    ],
+  },
   {
     date: '10 Aug 2026',
     title: 'Design system: ChoiceCard for bordered option lists',
