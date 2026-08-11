@@ -560,14 +560,14 @@ const CARD_SEED = {
   'thomas-janssens':   { status: 'active',         pan: '9902', cardType: 'physical', invitedDate: '12/05/2026', lastTx: 'yesterday',    lastTxAmount: 12.80  },
   'charlotte-pieters': { status: 'active',         pan: '6654', cardType: 'virtual',  invitedDate: '12/05/2026', lastTx: '5 days ago',   lastTxAmount: 55.20  },
   'lasse-willems':     { status: 'active',         pan: '3378', cardType: 'virtual',  invitedDate: '12/05/2026', lastTx: '1 week ago',   lastTxAmount: 18.00  },
-  'nathalie-cox':      { status: 'active',         pan: '7745', cardType: 'virtual',  invitedDate: '12/05/2026', lastTx: '3 days ago',   lastTxAmount: 42.00  },
+  // nathalie-cox: not yet invited (demo: invite-more flow)
   'ruben-declercq':    { status: 'active',         pan: '2290', cardType: 'virtual',  invitedDate: '12/05/2026', lastTx: '4 days ago',   lastTxAmount: 31.60  },
   'ines-baert':        { status: 'active',         pan: '5563', cardType: 'virtual',  invitedDate: '12/05/2026', lastTx: '6 days ago',   lastTxAmount: 22.40  },
   'joachim-nijs':      { status: 'active',         pan: '1184', cardType: 'virtual',  invitedDate: '12/05/2026', lastTx: '2 days ago',   lastTxAmount: 67.90  },
   'sara-verbeke':      { status: 'active',         pan: '8847', cardType: 'virtual',  invitedDate: '12/05/2026', lastTx: '1 day ago',    lastTxAmount: 15.30  },
   'wout-desmet':       { status: 'active',         pan: '3321', cardType: 'virtual',  invitedDate: '12/05/2026', lastTx: '3 days ago',   lastTxAmount: 48.75  },
-  'amber-claes':       { status: 'active',         pan: '6698', cardType: 'virtual',  invitedDate: '12/05/2026', lastTx: '5 days ago',   lastTxAmount: 27.50  },
-  'pieter-verheyen':   { status: 'active',         pan: '9034', cardType: 'virtual',  invitedDate: '12/05/2026', lastTx: '1 week ago',   lastTxAmount: 35.00  },
+  // amber-claes: not yet invited (demo: invite-more flow)
+  // pieter-verheyen: not yet invited (demo: invite-more flow)
   'david':             { status: 'active',         pan: '4456', cardType: 'virtual',  invitedDate: '12/05/2026', lastTx: '2 days ago',   lastTxAmount: 19.20  },
   'stijn-laurent':     { status: 'app_downloaded', pan: null,   cardType: null,       invitedDate: '12/05/2026', lastTx: null,           lastTxAmount: null   },
   'jana-goossens':     { status: 'card_requested', pan: null,   cardType: null,       invitedDate: '12/05/2026', lastTx: null,           lastTxAmount: null   },
@@ -5962,6 +5962,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
   const [showCalcModal, setShowCalcModal] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showPickerModal, setShowPickerModal] = useState(false);
+  const [showInviteMoreModal, setShowInviteMoreModal] = useState(false);
 
   // Food-mode state (untouched)
   const [socialSecretariat, setSocialSecretariat] = useState('SD Worx');
@@ -6074,6 +6075,22 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
     setShowConfirmModal(false);
     setLive(true);
     onToast?.({ message: `Invites sent. ${empCount} employees have been invited to request their Payflip Card.`, type: 'approve' });
+  };
+
+  // All employees not yet in the card program (excludes admin-only account)
+  const nonEnrolled = Object.entries(EMPLOYEES)
+    .filter(([key, e]) => e.isEmployee !== false && !CARD_SEED[key])
+    .map(([key, e]) => ({ value: key, name: e.name, entity: e.entity, initials: e.initials, color: e.color }));
+
+  const sendMoreInvites = (keys) => {
+    setShowInviteMoreModal(false);
+    if (!keys || keys.length === 0) return;
+    keys.forEach(k => {
+      if (!CARD_SEED[k]) {
+        CARD_SEED[k] = { status: 'invited', pan: null, cardType: null, invitedDate: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }), lastTx: null, lastTxAmount: null };
+      }
+    });
+    onToast?.({ message: `Invite${keys.length > 1 ? 's' : ''} sent to ${keys.length} employee${keys.length > 1 ? 's' : ''}`, type: 'approve' });
   };
 
   const mobilitySetupContent = () => {
@@ -6294,6 +6311,18 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
               <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.ink }}>{value}</div>
             </div>
           ))}
+        </div>
+
+        {/* Actions */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 20px', borderTop: `1px solid ${P.border}` }}>
+          {nonEnrolled.length > 0 && (
+            <Button variant="primary" icon="user-plus" onClick={() => setShowInviteMoreModal(true)} style={{ padding: '7px 14px', fontSize: 13 }}>
+              Invite more employees
+            </Button>
+          )}
+          <Button variant="secondary" icon="send" onClick={() => onToast?.({ message: 'Invites resent to employees who haven\'t activated yet', type: 'approve' })} style={{ padding: '7px 14px', fontSize: 13 }}>
+            Resend invites
+          </Button>
         </div>
 
       </div>
@@ -6591,6 +6620,17 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
           </div>
         </div>
       </ModalShell>
+    )}
+
+    {/* Invite more employees (post-launch) */}
+    {showInviteMoreModal && (
+      <PersonPickerModal
+        title="Invite employees to Payflip Card"
+        value={[]}
+        candidates={nonEnrolled}
+        onSave={sendMoreInvites}
+        onClose={() => setShowInviteMoreModal(false)}
+      />
     )}
 
     </div>
