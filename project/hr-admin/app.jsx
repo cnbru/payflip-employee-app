@@ -5924,16 +5924,9 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
               <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.ink }}>Sign mandate</span>
             </div>
 
-            {/* Amount stat + orientation */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 22, color: P.ink, letterSpacing: '-0.3px' }}>€{deposit.toLocaleString('de-DE')}</span>
-                <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>initial deposit</span>
-              </div>
-              <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
-                Authorises Payflip to collect this deposit and top up automatically when the balance runs low.
-              </p>
-            </div>
+            <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
+              Authorises Payflip to collect <strong style={{ color: P.ink }}>€{deposit.toLocaleString('de-DE')}</strong> and top up automatically when the balance runs low.
+            </p>
 
             {/* Twikey trust block */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', border: `1px solid ${P.border}`, borderRadius: 10, background: P.bg }}>
@@ -6135,9 +6128,17 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
             : { label: 'Setup in progress', color: P.inkSoft, bg: P.bg };
           return (
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <DotPill bg={meta.bg} color={meta.color} dot size={11}>{meta.label}</DotPill>
-              {!hidden && <IconButton icon="X" size={28} onClick={() => setHidden(true)} />}
-              {hidden && <button onClick={() => setHidden(false)} style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.ink, background: 'none', border: 'none', cursor: 'pointer', padding: 0, textDecoration: 'underline' }}>Resume setup</button>}
+              {!hidden ? (
+                <>
+                  <DotPill bg={meta.bg} color={meta.color} dot size={11}>{meta.label}</DotPill>
+                  <IconButton icon="X" size={28} onClick={() => setHidden(true)} />
+                </>
+              ) : (
+                <>
+                  <DotPill bg={meta.bg} color={meta.color} dot size={11}>{meta.label}</DotPill>
+                  <Button variant="primary" icon="chevron-right" onClick={() => setHidden(false)} style={{ padding: '5px 12px', fontSize: 12 }}>Resume setup</Button>
+                </>
+              )}
             </div>
           );
         })()}
@@ -9511,8 +9512,7 @@ function Toast({ toast, onDone }) {
   };
 
   useEffect(() => {
-    const duration = toast.type === 'decline' ? 5000 : 2500;
-    const t = setTimeout(dismiss, duration);
+    const t = setTimeout(dismiss, 8000);
     return () => clearTimeout(t);
   }, [toast.message]);
 
@@ -9520,8 +9520,8 @@ function Toast({ toast, onDone }) {
 
   return (
     <div style={{
-      position: 'fixed', bottom: 24, left: 'calc((100vw + 255px) / 2)',
-      transform: exiting ? 'translateX(-50%) translateY(8px)' : 'translateX(-50%) translateY(0)',
+      position: 'fixed', top: 24, right: 24,
+      transform: exiting ? 'translateY(-8px)' : 'translateY(0)',
       opacity: exiting ? 0 : 1,
       transition: exiting ? `opacity 180ms ${EASE_OUT}, transform 180ms ${EASE_OUT}` : 'none',
       background: P.action, color: '#fff',
@@ -9530,7 +9530,7 @@ function Toast({ toast, onDone }) {
       fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13,
       boxShadow: '0 4px 16px rgba(15,13,40,0.2)', zIndex: 300,
       display: 'flex', alignItems: 'center', gap: 8,
-      animation: exiting ? 'none' : 'fadeUp 0.2s ease-out',
+      animation: exiting ? 'none' : 'fadeDown 0.2s ease-out',
       whiteSpace: 'nowrap',
     }}>
       <Icon name={isDecline ? 'X' : 'Check'} size={15} color={isDecline ? '#f87171' : '#4ade80'} strokeWidth={2.5} />
@@ -9554,7 +9554,7 @@ function FollowUpBanner({ prompt, onLog, onDismiss }) {
   const dateLabel = d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
   const halfLabel = prompt.half === 'pm' ? 'PM' : 'AM';
   return (
-    <div style={{ position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)', zIndex: 300, pointerEvents: 'none' }}>
+    <div style={{ position: 'fixed', top: 24, right: 24, zIndex: 300, pointerEvents: 'none' }}>
       <div style={{
         pointerEvents: 'auto',
         background: P.action, borderRadius: 10, padding: '8px 8px 8px 18px',
@@ -10213,6 +10213,10 @@ function App() {
         @keyframes fadeUp {
           from { opacity: 0; transform: translateX(-50%) translateY(8px); }
           to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+        @keyframes fadeDown {
+          from { opacity: 0; transform: translateY(-8px); }
+          to   { opacity: 1; transform: translateY(0); }
         }
         @keyframes pillFadeUp {
           from { opacity: 0; transform: translateY(8px); }
