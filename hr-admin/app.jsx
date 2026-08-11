@@ -5829,7 +5829,7 @@ function CardTab({ empId, emp, mobilityLive, onToast, onNav }) {
   const txTh = { textAlign: 'left', padding: '9px 16px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em', whiteSpace: 'nowrap' };
   const recentActivityPanel = hasActiveCard && seed?.txs?.length > 0 && (
     <div style={{ maxWidth: 620 }}>
-      <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.ink, marginBottom: 10 }}>Recent activity</div>
+      <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18, color: P.ink, marginBottom: 12 }}>Recent activity</div>
       <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 12, overflow: 'hidden' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-body)', fontSize: 13 }}>
           <thead>
