@@ -6548,14 +6548,18 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
           </div>
         )}
 
-        {/* Dev-only simulation links */}
+        {/* Dev-only simulation links — mutually exclusive states */}
         <div style={{ display: 'flex', gap: 14, padding: '8px 20px 12px', borderTop: `1px solid ${P.border}` }}>
-          <a href="#" onClick={e => { e.preventDefault(); setWs({ justLaunched: !ws.justLaunched }); }} style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkFaint, textDecoration: 'underline' }}>
+          {/* justLaunched toggle — always visible; activating clears fundingIssue */}
+          <a href="#" onClick={e => { e.preventDefault(); setWs({ justLaunched: !ws.justLaunched, fundingIssue: false }); }} style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkFaint, textDecoration: 'underline' }}>
             {ws.justLaunched ? 'Simulate activity ↗' : 'Simulate just launched ↗'}
           </a>
-          <a href="#" onClick={e => { e.preventDefault(); setWs({ fundingIssue: !ws.fundingIssue, justLaunched: ws.fundingIssue ? ws.justLaunched : false }); }} style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkFaint, textDecoration: 'underline' }}>
-            {ws.fundingIssue ? 'Clear top-up issue ↗' : 'Simulate top-up failure ↗'}
-          </a>
+          {/* top-up failure — only meaningful when the account has activity; hidden in just-launched state */}
+          {!ws.justLaunched && (
+            <a href="#" onClick={e => { e.preventDefault(); setWs({ fundingIssue: !ws.fundingIssue }); }} style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkFaint, textDecoration: 'underline' }}>
+              {ws.fundingIssue ? 'Clear top-up issue ↗' : 'Simulate top-up failure ↗'}
+            </a>
+          )}
         </div>
 
       </div>
