@@ -23,6 +23,16 @@ The mobility card widget was rebuilt from a rough stub into a complete product f
 - Adoption funnel: Invited → Downloaded → Card requested → First transaction.
 - Actions: View transactions (deep-link to Choices with card filter), Resend invites.
 
+**Balance chart — prototype assumptions and scale considerations (for engineers and PMs):**
+
+The chart is a static SVG step function seeded with ~5 hardcoded transactions. Three decisions embedded in the prototype that need revisiting before production:
+
+1. **Step function works at small scale only.** Each horizontal-then-vertical step represents one card transaction. At 5–20 employees this makes individual spend events legible. At 50+ employees transacting daily the steps become sub-pixel and the chart degrades into a noisy approximation of a smooth line. At real scale (100+ employees), the right data shape is **daily aggregated end-of-day balance** plotted as a smooth line — same information, readable at any employee count.
+
+2. **Chart anchor needs to come from real data.** The prototype anchors the y-axis at the auto-top-up threshold (20% of deposit). In production, the threshold is a function of the mandate terms and the funded amount — the chart component needs this value passed in so the "danger zone" line stays accurate rather than hardcoded.
+
+3. **Interactivity deferred.** The prototype has no hover tooltips or time range filter. At small scale (prototype) this is fine. At real scale, two interactions become necessary: (a) a time range switcher — "this week / this month / 3 months" — because the default view compresses months of daily activity into an unreadable smear; (b) hover tooltip showing the balance and date at a given point (and at small scale, the triggering transaction). Neither is blocking for the prototype demo but both are table-stakes for the production surface.
+
 ### Key product decisions
 
 - **Widget is persistent, not a one-time wizard.** Once launched, it stays on the dashboard as a live monitoring surface. The admin's relationship with the mobility card doesn't end at setup.
