@@ -5883,12 +5883,24 @@ function CardTab({ empId, emp, mobilityLive, onToast, onNav }) {
 
       {/* Card + action circles side by side */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 36, marginBottom: 28 }}>
-        <div style={{ flexShrink: 0, opacity: isFrozen ? 0.5 : isBlocked ? 0.3 : isReissuing ? 0.55 : 1, filter: (isFrozen || isBlocked) ? 'saturate(0)' : isReissuing ? 'saturate(0) brightness(1.08)' : 'none', transition: 'opacity 600ms, filter 600ms' }}>
-          <img src={PAYFLIP_CARD_IMG} alt="Payflip Card" style={{ width: 240, height: 151, display: 'block', borderRadius: 14, boxShadow: '0 6px 20px rgba(15,13,40,0.2)' }} />
+        <div style={{ flexShrink: 0, position: 'relative' }}>
+          <div style={{ opacity: isFrozen ? 0.5 : isBlocked ? 0.25 : isReissuing ? 0.55 : 1, filter: (isFrozen || isBlocked) ? 'saturate(0)' : isReissuing ? 'saturate(0) brightness(1.08)' : 'none', transition: 'opacity 600ms, filter 600ms' }}>
+            <img src={PAYFLIP_CARD_IMG} alt="Payflip Card" style={{ width: 240, height: 151, display: 'block', borderRadius: 14, boxShadow: '0 6px 20px rgba(15,13,40,0.2)' }} />
+          </div>
+          {isBlocked && (
+            <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 14 }}>
+              <div style={{ width: 48, height: 48, borderRadius: '50%', background: 'rgba(255,255,255,0.85)', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(4px)' }}>
+                <Icon name="ban" size={22} color="#dc2626" strokeWidth={1.75} />
+              </div>
+            </div>
+          )}
         </div>
         {isBlocked ? (
-          <div style={{ padding: '18px 20px', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 10, maxWidth: 300 }}>
-            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: '#dc2626', marginBottom: 6 }}>Card permanently blocked</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxWidth: 280 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Icon name="ban" size={14} color={P.inkSoft} strokeWidth={2} />
+              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.ink }}>Card permanently blocked</span>
+            </div>
             <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, lineHeight: 1.55 }}>{first} can request a new card from the Payflip app.</div>
           </div>
         ) : quickActionCircles}
