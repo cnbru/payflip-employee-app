@@ -7260,9 +7260,11 @@ function PersonPickerModal({ title, value, candidates, sections, singleSelect, o
 
         {/* Note callout */}
         {note && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px', background: '#f0fdf4', borderBottom: `1px solid ${P.border}`, flexShrink: 0 }}>
-            <Icon name="circle-check" size={13} color="#16a34a" strokeWidth={2} />
-            <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: '#15803d' }}>{note}</span>
+          <div style={{ padding: '10px 20px', flexShrink: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 8 }}>
+              <Icon name="circle-check" size={13} color="#16a34a" strokeWidth={2} />
+              <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: '#15803d' }}>{note}</span>
+            </div>
           </div>
         )}
 
