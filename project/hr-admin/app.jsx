@@ -555,26 +555,40 @@ const CURRENT_USER = EMPLOYEES['bruno-coen'];
 // ── Per-employee card data (prototype seed) ───────────────────────────────
 // status: 'not_invited' | 'invited' | 'app_downloaded' | 'card_requested' | 'active' | 'frozen'
 const CARD_SEED = {
-  'bram-goossens':     { status: 'active',         pan: '8231', cardType: 'virtual',  invitedDate: '12/05/2026', lastTx: '2 days ago',   lastTxAmount: 24.50  },
-  'mathias-de-smedt':  { status: 'frozen',          pan: '4417', cardType: 'virtual',  invitedDate: '12/05/2026', lastTx: '14 days ago',  lastTxAmount: 38.00  },
-  'thomas-janssens':   { status: 'active',         pan: '9902', cardType: 'physical', invitedDate: '12/05/2026', lastTx: 'yesterday',    lastTxAmount: 12.80  },
-  'charlotte-pieters': { status: 'active',         pan: '6654', cardType: 'virtual',  invitedDate: '12/05/2026', lastTx: '5 days ago',   lastTxAmount: 55.20  },
-  'lasse-willems':     { status: 'active',         pan: '3378', cardType: 'virtual',  invitedDate: '12/05/2026', lastTx: '1 week ago',   lastTxAmount: 18.00  },
+  'bram-goossens':     { status: 'active',         pan: '8231', cardType: 'virtual',  invitedDate: '12/05/2026', lastTx: '2 days ago',  lastTxAmount: 24.50,
+    txs: [{ merchant: 'NMBS — Brussels–Antwerp', amount: 24.50, date: '09/08/2026', icon: 'train' }, { merchant: 'Velo Antwerp', amount: 3.50, date: '06/08/2026', icon: 'bike' }, { merchant: 'De Lijn — Monthly pass', amount: 36.00, date: '01/08/2026', icon: 'bus' }] },
+  'mathias-de-smedt':  { status: 'frozen',          pan: '4417', cardType: 'virtual',  invitedDate: '12/05/2026', lastTx: '14 days ago', lastTxAmount: 38.00,
+    txs: [{ merchant: 'SNCB — Ghent–Brussels', amount: 38.00, date: '28/07/2026', icon: 'train' }, { merchant: 'Blue-bike', amount: 4.00, date: '25/07/2026', icon: 'bike' }, { merchant: 'Parking Interparking', amount: 12.00, date: '22/07/2026', icon: 'car' }] },
+  'thomas-janssens':   { status: 'active',         pan: '9902', cardType: 'physical', invitedDate: '12/05/2026', lastTx: 'yesterday',   lastTxAmount: 12.80,
+    txs: [{ merchant: 'Tec — Day ticket', amount: 12.80, date: '10/08/2026', icon: 'bus' }, { merchant: 'NMBS — Namur–Brussels', amount: 19.40, date: '08/08/2026', icon: 'train' }, { merchant: 'Villo! Brussels', amount: 3.00, date: '07/08/2026', icon: 'bike' }] },
+  'charlotte-pieters': { status: 'active',         pan: '6654', cardType: 'virtual',  invitedDate: '12/05/2026', lastTx: '5 days ago',  lastTxAmount: 55.20,
+    txs: [{ merchant: 'NMBS — Bruges–Ghent', amount: 55.20, date: '06/08/2026', icon: 'train' }, { merchant: 'De Lijn — Day pass', amount: 8.00, date: '04/08/2026', icon: 'bus' }, { merchant: 'Blue-bike', amount: 4.00, date: '01/08/2026', icon: 'bike' }] },
+  'lasse-willems':     { status: 'active',         pan: '3378', cardType: 'virtual',  invitedDate: '12/05/2026', lastTx: '1 week ago',  lastTxAmount: 18.00,
+    txs: [{ merchant: 'STib — Weekly pass', amount: 18.00, date: '04/08/2026', icon: 'bus' }, { merchant: 'Villo! Brussels', amount: 3.00, date: '02/08/2026', icon: 'bike' }, { merchant: 'NMBS — Brussels–Leuven', amount: 14.60, date: '30/07/2026', icon: 'train' }] },
   // nathalie-cox: not yet invited (demo: invite-more flow)
-  'ruben-declercq':    { status: 'active',         pan: '2290', cardType: 'virtual',  invitedDate: '12/05/2026', lastTx: '4 days ago',   lastTxAmount: 31.60  },
-  'ines-baert':        { status: 'active',         pan: '5563', cardType: 'virtual',  invitedDate: '12/05/2026', lastTx: '6 days ago',   lastTxAmount: 22.40  },
-  'joachim-nijs':      { status: 'active',         pan: '1184', cardType: 'virtual',  invitedDate: '12/05/2026', lastTx: '2 days ago',   lastTxAmount: 67.90  },
-  'sara-verbeke':      { status: 'active',         pan: '8847', cardType: 'virtual',  invitedDate: '12/05/2026', lastTx: '1 day ago',    lastTxAmount: 15.30  },
-  'wout-desmet':       { status: 'active',         pan: '3321', cardType: 'virtual',  invitedDate: '12/05/2026', lastTx: '3 days ago',   lastTxAmount: 48.75  },
+  'ruben-declercq':    { status: 'active',         pan: '2290', cardType: 'virtual',  invitedDate: '12/05/2026', lastTx: '4 days ago',  lastTxAmount: 31.60,
+    txs: [{ merchant: 'NMBS — Mechelen–Antwerp', amount: 31.60, date: '07/08/2026', icon: 'train' }, { merchant: 'Velo Antwerp', amount: 3.50, date: '05/08/2026', icon: 'bike' }, { merchant: 'De Lijn — Monthly pass', amount: 36.00, date: '01/08/2026', icon: 'bus' }] },
+  'ines-baert':        { status: 'active',         pan: '5563', cardType: 'virtual',  invitedDate: '12/05/2026', lastTx: '6 days ago',  lastTxAmount: 22.40,
+    txs: [{ merchant: 'De Lijn — Day pass', amount: 22.40, date: '05/08/2026', icon: 'bus' }, { merchant: 'Blue-bike', amount: 4.00, date: '03/08/2026', icon: 'bike' }, { merchant: 'NMBS — Hasselt–Brussels', amount: 28.80, date: '01/08/2026', icon: 'train' }] },
+  'joachim-nijs':      { status: 'active',         pan: '1184', cardType: 'virtual',  invitedDate: '12/05/2026', lastTx: '2 days ago',  lastTxAmount: 67.90,
+    txs: [{ merchant: 'NMBS — Liège–Brussels', amount: 67.90, date: '09/08/2026', icon: 'train' }, { merchant: 'Tec — Monthly pass', amount: 49.00, date: '01/08/2026', icon: 'bus' }, { merchant: 'Parking Interparking', amount: 9.00, date: '29/07/2026', icon: 'car' }] },
+  'sara-verbeke':      { status: 'active',         pan: '8847', cardType: 'virtual',  invitedDate: '12/05/2026', lastTx: '1 day ago',   lastTxAmount: 15.30,
+    txs: [{ merchant: 'STib — Day ticket', amount: 15.30, date: '10/08/2026', icon: 'bus' }, { merchant: 'Villo! Brussels', amount: 3.00, date: '09/08/2026', icon: 'bike' }, { merchant: 'NMBS — Brussels–Namur', amount: 22.50, date: '07/08/2026', icon: 'train' }] },
+  'wout-desmet':       { status: 'active',         pan: '3321', cardType: 'virtual',  invitedDate: '12/05/2026', lastTx: '3 days ago',  lastTxAmount: 48.75,
+    txs: [{ merchant: 'NMBS — Kortrijk–Brussels', amount: 48.75, date: '08/08/2026', icon: 'train' }, { merchant: 'Blue-bike', amount: 4.00, date: '07/08/2026', icon: 'bike' }, { merchant: 'De Lijn — Day pass', amount: 8.00, date: '05/08/2026', icon: 'bus' }] },
   // amber-claes: not yet invited (demo: invite-more flow)
   // pieter-verheyen: not yet invited (demo: invite-more flow)
-  'david':             { status: 'active',         pan: '4456', cardType: 'virtual',  invitedDate: '12/05/2026', lastTx: '2 days ago',   lastTxAmount: 19.20  },
-  'stijn-laurent':     { status: 'app_downloaded', pan: null,   cardType: null,       invitedDate: '12/05/2026', lastTx: null,           lastTxAmount: null   },
-  'jana-goossens':     { status: 'card_requested', pan: null,   cardType: null,       invitedDate: '12/05/2026', lastTx: null,           lastTxAmount: null   },
-  'laura-mertens':     { status: 'invited',        pan: null,   cardType: null,       invitedDate: '12/05/2026', lastTx: null,           lastTxAmount: null   },
-  'pieter-mertens':    { status: 'active',         pan: '7712', cardType: 'virtual',  invitedDate: '12/05/2026', lastTx: 'today',        lastTxAmount: 88.00  },
-  'sarah-de-smedt':    { status: 'active',         pan: '3390', cardType: 'virtual',  invitedDate: '12/05/2026', lastTx: '4 days ago',   lastTxAmount: 29.40  },
-  'julie-goossens':    { status: 'active',         pan: '6621', cardType: 'virtual',  invitedDate: '12/05/2026', lastTx: '2 days ago',   lastTxAmount: 53.60  },
+  'david':             { status: 'active',         pan: '4456', cardType: 'virtual',  invitedDate: '12/05/2026', lastTx: '2 days ago',  lastTxAmount: 19.20,
+    txs: [{ merchant: 'TGV — Paris–Brussels', amount: 19.20, date: '09/08/2026', icon: 'train' }, { merchant: 'Vélib Paris', amount: 5.00, date: '08/08/2026', icon: 'bike' }, { merchant: 'RATP — Week pass', amount: 30.00, date: '04/08/2026', icon: 'bus' }] },
+  'stijn-laurent':     { status: 'app_downloaded', pan: null,   cardType: null,       invitedDate: '12/05/2026', lastTx: null,          lastTxAmount: null,   txs: [] },
+  'jana-goossens':     { status: 'card_requested', pan: null,   cardType: null,       invitedDate: '12/05/2026', lastTx: null,          lastTxAmount: null,   txs: [] },
+  'laura-mertens':     { status: 'invited',        pan: null,   cardType: null,       invitedDate: '12/05/2026', lastTx: null,          lastTxAmount: null,   txs: [] },
+  'pieter-mertens':    { status: 'active',         pan: '7712', cardType: 'virtual',  invitedDate: '12/05/2026', lastTx: 'today',       lastTxAmount: 88.00,
+    txs: [{ merchant: 'Eurostar — Brussels–London', amount: 88.00, date: '11/08/2026', icon: 'train' }, { merchant: 'TfL — Oyster top-up', amount: 20.00, date: '11/08/2026', icon: 'bus' }, { merchant: 'NMBS — Antwerp–Brussels', amount: 24.50, date: '08/08/2026', icon: 'train' }] },
+  'sarah-de-smedt':    { status: 'active',         pan: '3390', cardType: 'virtual',  invitedDate: '12/05/2026', lastTx: '4 days ago',  lastTxAmount: 29.40,
+    txs: [{ merchant: 'NMBS — Groningen–Brussels', amount: 29.40, date: '07/08/2026', icon: 'train' }, { merchant: 'OV-chipkaart top-up', amount: 20.00, date: '05/08/2026', icon: 'bus' }, { merchant: 'Blue-bike', amount: 4.00, date: '04/08/2026', icon: 'bike' }] },
+  'julie-goossens':    { status: 'active',         pan: '6621', cardType: 'virtual',  invitedDate: '12/05/2026', lastTx: '2 days ago',  lastTxAmount: 53.60,
+    txs: [{ merchant: 'NS — Utrecht–Amsterdam', amount: 53.60, date: '09/08/2026', icon: 'train' }, { merchant: 'OV-Fiets rental', amount: 3.85, date: '09/08/2026', icon: 'bike' }, { merchant: 'GVB Amsterdam — Day pass', amount: 9.00, date: '08/08/2026', icon: 'bus' }] },
 };
 
 // ── Per-employee supplemental data ────────────────────────────────────────
@@ -5766,49 +5780,43 @@ function CardTab({ empId, emp, mobilityLive, onToast }) {
 
   return (
     <div style={{ maxWidth: 480 }}>
-      {/* Card visual + status */}
-      <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 14, padding: 24, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 28 }}>
-        <div style={{ flexShrink: 0, opacity: isFrozen ? 0.5 : 1, transition: 'opacity 300ms', filter: isFrozen ? 'saturate(0)' : 'none' }}>
-          <CardTilt>
-            <img src={PAYFLIP_CARD_IMG} alt="Payflip Card" style={{ width: 148, height: 93, display: 'block', borderRadius: 9 }} />
-          </CardTilt>
+      {/* Compact card identity row */}
+      <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 12, padding: '16px 20px', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 14 }}>
+        <div style={{ flexShrink: 0, opacity: isFrozen ? 0.45 : 1, filter: isFrozen ? 'saturate(0)' : 'none', transition: 'opacity 300ms, filter 300ms' }}>
+          <img src={PAYFLIP_CARD_IMG} alt="Payflip Card" style={{ width: 54, height: 34, display: 'block', borderRadius: 5, boxShadow: '0 2px 8px rgba(15,13,40,0.18)' }} />
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 16, color: P.ink }}>Payflip Card</span>
-            <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, fontWeight: 500, padding: '2px 8px', borderRadius: 20, background: meta.bg, color: meta.color }}>{meta.label}</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3 }}>
+            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 14, color: P.ink, letterSpacing: '0.02em' }}>
+              {seed?.cardType === 'physical' ? 'Physical' : 'Virtual'} ···· {seed?.pan}
+            </span>
+            <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, fontWeight: 500, padding: '2px 7px', borderRadius: 20, background: meta.bg, color: meta.color, flexShrink: 0 }}>{meta.label}</span>
           </div>
-          {hasActiveCard && seed?.pan && (
-            <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, marginBottom: 3, letterSpacing: '0.04em' }}>•••• •••• •••• {seed.pan}</div>
-          )}
-          {hasActiveCard && (
-            <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkFaint }}>
-              {seed?.cardType === 'physical' ? 'Physical card' : 'Virtual card'}
-              {seed?.lastTx && ` · Last used ${seed.lastTx}`}
-            </div>
-          )}
-          {(isInvited || isDownloaded || isPending) && (
-            <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>
-              {isInvited && `Invite sent ${seed?.invitedDate || ''}`}
-              {isDownloaded && "App downloaded · Card not yet requested"}
-              {isPending && 'Card request pending · Awaiting issuance'}
-            </div>
-          )}
+          <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>
+            {hasActiveCard && seed?.lastTx && `Last used ${seed.lastTx}`}
+            {(isInvited) && `Invite sent ${seed?.invitedDate || ''}`}
+            {isDownloaded && 'App downloaded · Card not yet requested'}
+            {isPending && 'Card request pending · Awaiting issuance'}
+          </div>
         </div>
       </div>
 
       {/* Actions */}
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 16 }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 20 }}>
         {hasActiveCard && actionBtn(
           () => setFreezeConfirmOpen(true),
           isFrozen ? 'play' : 'snowflake',
           isFrozen ? 'Unfreeze card' : 'Freeze card',
           isFrozen ? { border: '#bfdbfe', bg: '#eff6ff', hoverBg: '#dbeafe', color: '#1d4ed8', sw: 2 } : {}
         )}
-        {hasActiveCard && actionBtn(() => setReplaceConfirmOpen(true), 'refresh-cw', 'Replace card')}
+        {hasActiveCard && actionBtn(
+          () => setReplaceConfirmOpen(true),
+          'refresh-cw', 'Replace card',
+          { border: '#fcd34d', bg: '#fffbeb', hoverBg: '#fef3c7', color: '#78350f' }
+        )}
         {hasActiveCard && actionBtn(
           () => setBlockConfirmOpen(true),
-          'ban', 'Block card',
+          'ban', 'Block card permanently',
           { border: '#fecaca', bg: '#fff5f5', hoverBg: '#fee2e2', color: '#dc2626' }
         )}
         {(isInvited || isDownloaded) && actionBtn(
@@ -5816,6 +5824,27 @@ function CardTab({ empId, emp, mobilityLive, onToast }) {
           'send', 'Resend invite'
         )}
       </div>
+
+      {/* Recent activity */}
+      {hasActiveCard && seed?.txs?.length > 0 && (
+        <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 12, overflow: 'hidden' }}>
+          <div style={{ padding: '12px 20px', borderBottom: `1px solid ${P.border}` }}>
+            <div style={SL}>Recent activity</div>
+          </div>
+          {seed.txs.map((tx, i) => (
+            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 20px', borderBottom: i < seed.txs.length - 1 ? `1px solid ${P.border}` : 'none' }}>
+              <div style={{ width: 32, height: 32, borderRadius: 8, background: P.bg, border: `1px solid ${P.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <Icon name={tx.icon || 'credit-card'} size={14} color={P.inkSoft} strokeWidth={1.75} />
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, fontWeight: 500, color: P.ink, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tx.merchant}</div>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkSoft }}>{tx.date}</div>
+              </div>
+              <div style={{ fontFamily: 'var(--font-display)', fontSize: 13, fontWeight: 600, color: P.ink, flexShrink: 0 }}>€{tx.amount.toFixed(2)}</div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Freeze confirm */}
       {freezeConfirmOpen && (
