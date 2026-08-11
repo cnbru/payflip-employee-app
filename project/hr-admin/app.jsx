@@ -6501,10 +6501,8 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
 
         {/* Area chart — bleeds edge-to-edge (or empty state when no activity yet) */}
         {justLaunched ? (
-          <div style={{ height: 110, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4, background: `linear-gradient(180deg, ${P.bg} 0%, ${P.white} 100%)`, borderTop: `1px solid ${P.border}` }}>
-            <Icon name="line-chart" size={16} color={P.inkFaint} strokeWidth={1.5} />
-            <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>No transactions yet</span>
-            <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkFaint }}>Activity will appear here once your team starts spending</span>
+          <div style={{ borderTop: `1px solid ${P.border}` }}>
+            <EmptyState icon="line-chart" title="No transactions yet" description="Activity will appear here once your team starts spending." />
           </div>
         ) : (
           <svg viewBox="0 0 300 100" preserveAspectRatio="none" style={{ width: '100%', height: 110, display: 'block' }}>
