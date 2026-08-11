@@ -5863,6 +5863,7 @@ function CardTab({ empId, emp, mobilityLive, onToast, onNav }) {
       {/* Page title */}
       <div style={{ marginBottom: 20 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 3 }}>
+          <img src={PAYFLIP_CARD_IMG} alt="" style={{ width: 36, height: 23, borderRadius: 4, display: 'block', flexShrink: 0, opacity: isFrozen ? 0.45 : 1, filter: isFrozen ? 'saturate(0)' : 'none', transition: 'opacity 300ms, filter 300ms' }} />
           <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18, color: P.ink }}>
             {seed?.cardType === 'physical' ? 'Physical' : 'Virtual'} card ···· {displayPan}
           </span>
