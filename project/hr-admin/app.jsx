@@ -7246,7 +7246,17 @@ function PersonPickerModal({ title, value, candidates, sections, singleSelect, o
         const save = () => { onSave(selected); close(); };
         return (
           <>
-        {/* Tabs first (when sections provided) */}
+        {/* Note callout */}
+        {note && (
+          <div style={{ padding: '10px 20px', flexShrink: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 8 }}>
+              <Icon name="circle-check" size={13} color="#16a34a" strokeWidth={2} />
+              <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: '#15803d' }}>{note}</span>
+            </div>
+          </div>
+        )}
+
+        {/* Tabs (when sections provided) */}
         {sections && (
           <div style={{ borderBottom: `1px solid ${P.border}`, flexShrink: 0 }}>
             <TabBar
@@ -7255,16 +7265,6 @@ function PersonPickerModal({ title, value, candidates, sections, singleSelect, o
               onTabChange={i => { setActiveTab(Number(i)); setSearch(''); }}
               padding="0 20px"
             />
-          </div>
-        )}
-
-        {/* Note callout */}
-        {note && (
-          <div style={{ padding: '10px 20px', flexShrink: 0 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 8 }}>
-              <Icon name="circle-check" size={13} color="#16a34a" strokeWidth={2} />
-              <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: '#15803d' }}>{note}</span>
-            </div>
           </div>
         )}
 
