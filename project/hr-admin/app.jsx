@@ -6441,9 +6441,15 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
     if (!live) return null;
     // Derive live numbers from actual setup values
     const justLaunched = !!ws.justLaunched;
-    const liveBalance = justLaunched ? deposit : Math.round(deposit * 0.725);
+    const fundingIssue = !!ws.fundingIssue;
+    // Top-up failure only makes sense after spending has depleted the balance —
+    // so when fundingIssue is true the balance is always near-empty (just below the
+    // 20% auto-top-up threshold that triggered the failed collection attempt).
+    const liveBalance = fundingIssue
+      ? Math.round(deposit * 0.12)
+      : justLaunched ? deposit : Math.round(deposit * 0.725);
     const liveSpent = deposit - liveBalance;
-    const liveActiveCards = justLaunched ? 0 : Math.max(1, Math.floor(empCount * 0.6));
+    const liveActiveCards = (justLaunched && !fundingIssue) ? 0 : Math.max(1, Math.floor(empCount * 0.6));
     // Stepped path: y=0 = full deposit, y=100 = auto top-up threshold (20% of deposit)
     // 5 simulated spend events across 30 days totalling liveSpent
     const threshold = Math.round(deposit * 0.2);
@@ -6459,89 +6465,100 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
     _pts.push(`L 300,${yOf(_bal)}`);
     const linePath = _pts.join(' ');
     const areaPath = linePath + ' L 300,100 L 0,100 Z';
-    const fundingIssue = !!ws.fundingIssue;
+    const balPct = Math.round(liveBalance / deposit * 100);
     return (
       <div style={{ display: 'flex', flexDirection: 'column', opacity: liveVisible ? 1 : 0, transition: `opacity 250ms ${EASE_OUT}` }}>
 
-        {/* Funding-issue banner */}
+        {/* Funding-issue state — widget has one job: resolve the payment */}
         {fundingIssue && (
-          <div style={{ display: 'flex', gap: 12, padding: '12px 20px', background: '#FEF2F2', borderBottom: `1px solid ${P.border}`, alignItems: 'flex-start' }}>
-            <Icon name="alert-triangle" size={16} color="#dc2626" strokeWidth={2} style={{ flexShrink: 0, marginTop: 2 }} />
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: '#dc2626', marginBottom: 2 }}>Top-up failed</div>
-              <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, lineHeight: '17px', marginBottom: 8 }}>
-                We couldn't collect the last top-up from your account. Your team's cards will keep working until the balance runs out.
+          <div style={{ padding: '20px 24px 18px', borderBottom: `1px solid ${P.border}` }}>
+            <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start', marginBottom: 16 }}>
+              <div style={{ flexShrink: 0, width: 32, height: 32, borderRadius: '50%', background: '#FEE2E2', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Icon name="alert-triangle" size={15} color="#dc2626" strokeWidth={2} />
               </div>
-              <div style={{ display: 'flex', gap: 8 }}>
-                <Button variant="primary" onClick={() => { setWs({ fundingIssue: false }); onToast?.({ message: 'Top-up retry queued', type: 'approve' }); }} style={{ fontSize: 12, padding: '4px 10px' }}>Retry top-up</Button>
-                <Button variant="secondary" onClick={() => { window.location.href = 'mailto:support@payflip.be?subject=Mobility%20card%20top-up%20failed'; }} style={{ fontSize: 12, padding: '4px 10px' }}>Contact support</Button>
+              <div>
+                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 15, color: P.ink, marginBottom: 4 }}>Top-up failed</div>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, lineHeight: '18px' }}>
+                  We couldn't collect the scheduled top-up. Card balance is low — retry now to avoid disruption.
+                </div>
               </div>
+            </div>
+            <Button variant="primary" onClick={() => { setWs({ fundingIssue: false }); onToast?.({ message: 'Top-up retry queued', type: 'approve' }); }} style={{ width: '100%', justifyContent: 'center', fontSize: 13, padding: '9px 14px', marginBottom: 10 }}>Retry top-up</Button>
+            <div style={{ textAlign: 'center' }}>
+              <a href="mailto:support@payflip.be?subject=Mobility%20card%20top-up%20failed" style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, textDecoration: 'underline' }}>Contact support</a>
             </div>
           </div>
         )}
 
         {/* Balance hero */}
-        <div style={{ padding: '18px 24px 14px' }}>
+        <div style={{ padding: '18px 24px 16px' }}>
           <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, marginBottom: 6 }}>Account balance</div>
-          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 28, color: P.ink, letterSpacing: '-0.5px', lineHeight: 1, marginBottom: 10 }}>
+          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 28, color: fundingIssue ? '#dc2626' : P.ink, letterSpacing: '-0.5px', lineHeight: 1, marginBottom: 10 }}>
             €{liveBalance.toLocaleString('de-DE')}
+          </div>
+          {/* Balance bar — visually shows how depleted the account is */}
+          <div style={{ height: 4, background: P.border, borderRadius: 2, overflow: 'hidden', marginBottom: 6 }}>
+            <div style={{ height: '100%', width: `${balPct}%`, background: fundingIssue ? '#dc2626' : '#008556', borderRadius: 2, transition: 'width 600ms ease-out' }} />
           </div>
           <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>of €{deposit.toLocaleString('de-DE')} funded</div>
         </div>
 
-        {/* Area chart — bleeds edge-to-edge (or empty state when no activity yet) */}
-        {justLaunched ? (
-          <div style={{ height: 110, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4, background: `linear-gradient(180deg, ${P.bg} 0%, ${P.white} 100%)`, borderTop: `1px solid ${P.border}` }}>
-            <Icon name="line-chart" size={16} color={P.inkFaint} strokeWidth={1.5} />
-            <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>No transactions yet</span>
-            <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkFaint }}>Activity will appear here once your team starts spending</span>
-          </div>
-        ) : (
-          <svg viewBox="0 0 300 100" preserveAspectRatio="none" style={{ width: '100%', height: 110, display: 'block' }}>
-            <defs>
-              <linearGradient id="balGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#008556" stopOpacity="0.13" />
-                <stop offset="100%" stopColor="#008556" stopOpacity="0.01" />
-              </linearGradient>
-            </defs>
-            <path d={areaPath} fill="url(#balGrad)" />
-            <path d={linePath} fill="none" stroke="#008556" strokeWidth="1.5" vectorEffect="non-scaling-stroke" />
-          </svg>
-        )}
-
-        {/* Stats row */}
-        <div style={{ display: 'flex', borderTop: `1px solid ${P.border}` }}>
-          {[
-            { label: 'Active cards', value: String(liveActiveCards) },
-            { label: 'Spent this month', value: `€${liveSpent.toLocaleString('de-DE')}` },
-          ].map(({ label, value }, i) => (
-            <div key={label} style={{ flex: 1, padding: '12px 20px', borderLeft: i === 1 ? `1px solid ${P.border}` : 'none' }}>
-              <div style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkSoft, marginBottom: 3 }}>{label}</div>
-              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.ink }}>{value}</div>
-            </div>
-          ))}
-        </div>
-
-        {/* Actions */}
-        <div style={{ padding: '14px 20px', borderTop: `1px solid ${P.border}` }}>
-          {nooneToInvite ? (
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '7px 14px', fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>
-              <Icon name="check" size={13} color={P.inkSoft} strokeWidth={2} />
-              <span>All eligible employees have been invited</span>
+        {/* Area chart and stats — hidden when there's a payment issue to resolve */}
+        {!fundingIssue && (<>
+          {/* Area chart — bleeds edge-to-edge (or empty state when no activity yet) */}
+          {justLaunched ? (
+            <div style={{ height: 110, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4, background: `linear-gradient(180deg, ${P.bg} 0%, ${P.white} 100%)`, borderTop: `1px solid ${P.border}` }}>
+              <Icon name="line-chart" size={16} color={P.inkFaint} strokeWidth={1.5} />
+              <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>No transactions yet</span>
+              <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkFaint }}>Activity will appear here once your team starts spending</span>
             </div>
           ) : (
-            <Button variant="secondary" icon="user-plus" onClick={() => setShowInviteMoreModal(true)} style={{ width: '100%', justifyContent: 'center', padding: '7px 14px', fontSize: 13 }}>
-              Invite more employees
-            </Button>
+            <svg viewBox="0 0 300 100" preserveAspectRatio="none" style={{ width: '100%', height: 110, display: 'block' }}>
+              <defs>
+                <linearGradient id="balGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#008556" stopOpacity="0.13" />
+                  <stop offset="100%" stopColor="#008556" stopOpacity="0.01" />
+                </linearGradient>
+              </defs>
+              <path d={areaPath} fill="url(#balGrad)" />
+              <path d={linePath} fill="none" stroke="#008556" strokeWidth="1.5" vectorEffect="non-scaling-stroke" />
+            </svg>
           )}
-        </div>
+
+          {/* Stats row */}
+          <div style={{ display: 'flex', borderTop: `1px solid ${P.border}` }}>
+            {[
+              { label: 'Active cards', value: String(liveActiveCards) },
+              { label: 'Spent this month', value: `€${liveSpent.toLocaleString('de-DE')}` },
+            ].map(({ label, value }, i) => (
+              <div key={label} style={{ flex: 1, padding: '12px 20px', borderLeft: i === 1 ? `1px solid ${P.border}` : 'none' }}>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkSoft, marginBottom: 3 }}>{label}</div>
+                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.ink }}>{value}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* Actions */}
+          <div style={{ padding: '14px 20px', borderTop: `1px solid ${P.border}` }}>
+            {nooneToInvite ? (
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '7px 14px', fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>
+                <Icon name="check" size={13} color={P.inkSoft} strokeWidth={2} />
+                <span>All eligible employees have been invited</span>
+              </div>
+            ) : (
+              <Button variant="secondary" icon="user-plus" onClick={() => setShowInviteMoreModal(true)} style={{ width: '100%', justifyContent: 'center', padding: '7px 14px', fontSize: 13 }}>
+                Invite more employees
+              </Button>
+            )}
+          </div>
+        </>)}
 
         {/* Dev-only simulation links */}
-        <div style={{ display: 'flex', gap: 14, padding: '8px 20px 12px' }}>
+        <div style={{ display: 'flex', gap: 14, padding: '8px 20px 12px', borderTop: `1px solid ${P.border}` }}>
           <a href="#" onClick={e => { e.preventDefault(); setWs({ justLaunched: !ws.justLaunched }); }} style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkFaint, textDecoration: 'underline' }}>
             {ws.justLaunched ? 'Simulate activity ↗' : 'Simulate just launched ↗'}
           </a>
-          <a href="#" onClick={e => { e.preventDefault(); setWs({ fundingIssue: !ws.fundingIssue }); }} style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkFaint, textDecoration: 'underline' }}>
+          <a href="#" onClick={e => { e.preventDefault(); setWs({ fundingIssue: !ws.fundingIssue, justLaunched: ws.fundingIssue ? ws.justLaunched : false }); }} style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkFaint, textDecoration: 'underline' }}>
             {ws.fundingIssue ? 'Clear top-up issue ↗' : 'Simulate top-up failure ↗'}
           </a>
         </div>
