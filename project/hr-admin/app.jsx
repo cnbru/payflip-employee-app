@@ -5687,21 +5687,20 @@ const PAYFLIP_CARD_IMG = 'assets/card.svg';
 const TWIKEY_LOGO_IMG = 'assets/twikey 1.png';
 
 // ── CardTab — manage an employee's Payflip Card ───────────────────────────
-function CardTab({ empId, emp, physicalCardsAllowed, mobilityLive, onToast }) {
+function CardTab({ empId, emp, mobilityLive, onToast }) {
   const seed = CARD_SEED[empId];
   const initialStatus = seed ? seed.status : 'not_invited';
   const [status, setStatus] = useState(initialStatus);
   const [freezeConfirmOpen, setFreezeConfirmOpen] = useState(false);
   const [blockConfirmOpen, setBlockConfirmOpen] = useState(false);
-  const [physicalRequested, setPhysicalRequested] = useState(seed?.cardType === 'physical');
+  const [replaceConfirmOpen, setReplaceConfirmOpen] = useState(false);
 
-  const isActive = status === 'active';
   const isFrozen = status === 'frozen';
   const isPending = status === 'card_requested';
   const isDownloaded = status === 'app_downloaded';
   const isInvited = status === 'invited';
   const isNotInvited = status === 'not_invited';
-  const hasActiveCard = isActive || isFrozen;
+  const hasActiveCard = status === 'active' || isFrozen;
 
   const cardStatusMeta = {
     active:         { label: 'Active',          bg: '#dcfce7', color: '#16a34a' },
@@ -5712,11 +5711,7 @@ function CardTab({ empId, emp, physicalCardsAllowed, mobilityLive, onToast }) {
     not_invited:    { label: 'Not enrolled',    bg: P.bg,      color: P.inkSoft },
   };
   const meta = cardStatusMeta[status] || cardStatusMeta.not_invited;
-
-  const budget = emp.budget || 0;
-  const budgetUsed = emp.budgetUsed || 0;
-  const remaining = Math.max(0, budget - budgetUsed);
-  const spendPct = budget > 0 ? Math.min(100, (budgetUsed / budget) * 100) : 0;
+  const first = emp.name.split(' ')[0];
 
   if (!mobilityLive && !seed) {
     return (
@@ -5725,9 +5720,7 @@ function CardTab({ empId, emp, physicalCardsAllowed, mobilityLive, onToast }) {
           <div style={{ width: 48, height: 48, borderRadius: 12, background: P.bg, border: `1px solid ${P.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
             <Icon name="credit-card" size={22} color={P.inkSoft} strokeWidth={1.5} />
           </div>
-          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 16, color: P.ink, marginBottom: 6 }}>
-            Payflip Card not set up
-          </div>
+          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 16, color: P.ink, marginBottom: 6 }}>Payflip Card not set up</div>
           <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, lineHeight: 1.55, marginBottom: 20 }}>
             The mobility card program hasn't been launched yet. Set it up from the dashboard to invite employees and fund the account.
           </div>
@@ -5744,13 +5737,11 @@ function CardTab({ empId, emp, physicalCardsAllowed, mobilityLive, onToast }) {
           <div style={{ width: 48, height: 48, borderRadius: 12, background: P.bg, border: `1px solid ${P.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
             <Icon name="mail" size={22} color={P.inkSoft} strokeWidth={1.5} />
           </div>
-          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 16, color: P.ink, marginBottom: 6 }}>
-            Not enrolled
-          </div>
+          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 16, color: P.ink, marginBottom: 6 }}>Not enrolled</div>
           <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, lineHeight: 1.55, marginBottom: 20 }}>
-            {emp.name.split(' ')[0]} hasn't been invited to the Payflip Card program. You can send them an invite from the dashboard.
+            {first} hasn't been invited to the Payflip Card program. You can send them an invite from the dashboard.
           </div>
-          <Button variant="primary" icon="send" onClick={() => { setStatus('invited'); onToast && onToast({ message: `Invite sent to ${emp.name.split(' ')[0]}`, type: 'approve' }); }}>
+          <Button variant="primary" icon="send" onClick={() => { setStatus('invited'); onToast && onToast({ message: `Invite sent to ${first}`, type: 'approve' }); }}>
             Send invite
           </Button>
         </div>
@@ -5758,14 +5749,28 @@ function CardTab({ empId, emp, physicalCardsAllowed, mobilityLive, onToast }) {
     );
   }
 
-  return (
-    <div style={{ maxWidth: 600 }}>
+  const actionBtn = (onClick, icon, label, opts = {}) => (
+    <button onClick={onClick} style={{
+      display: 'flex', alignItems: 'center', gap: 7, padding: '8px 14px', borderRadius: 8,
+      border: `1px solid ${opts.border || P.border}`, background: opts.bg || P.white,
+      cursor: 'pointer', fontFamily: 'var(--font-body)', fontSize: 13,
+      color: opts.color || P.ink, transition: 'background 120ms',
+    }}
+      onMouseEnter={e => { e.currentTarget.style.background = opts.hoverBg || P.bg; }}
+      onMouseLeave={e => { e.currentTarget.style.background = opts.bg || P.white; }}
+    >
+      <Icon name={icon} size={14} color={opts.color || P.ink} strokeWidth={opts.sw || 1.75} />
+      {label}
+    </button>
+  );
 
+  return (
+    <div style={{ maxWidth: 480 }}>
       {/* Card visual + status */}
       <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 14, padding: 24, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 28 }}>
-        <div style={{ flexShrink: 0, opacity: isFrozen ? 0.55 : 1, transition: 'opacity 300ms', filter: isFrozen ? 'saturate(0)' : 'none' }}>
+        <div style={{ flexShrink: 0, opacity: isFrozen ? 0.5 : 1, transition: 'opacity 300ms', filter: isFrozen ? 'saturate(0)' : 'none' }}>
           <CardTilt>
-            <img src={PAYFLIP_CARD_IMG} alt="Payflip Card" style={{ width: 160, height: 100, display: 'block', borderRadius: 9 }} />
+            <img src={PAYFLIP_CARD_IMG} alt="Payflip Card" style={{ width: 148, height: 93, display: 'block', borderRadius: 9 }} />
           </CardTilt>
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
@@ -5774,9 +5779,7 @@ function CardTab({ empId, emp, physicalCardsAllowed, mobilityLive, onToast }) {
             <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, fontWeight: 500, padding: '2px 8px', borderRadius: 20, background: meta.bg, color: meta.color }}>{meta.label}</span>
           </div>
           {hasActiveCard && seed?.pan && (
-            <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, marginBottom: 4, letterSpacing: '0.04em' }}>
-              •••• •••• •••• {seed.pan}
-            </div>
+            <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, marginBottom: 3, letterSpacing: '0.04em' }}>•••• •••• •••• {seed.pan}</div>
           )}
           {hasActiveCard && (
             <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkFaint }}>
@@ -5787,196 +5790,78 @@ function CardTab({ empId, emp, physicalCardsAllowed, mobilityLive, onToast }) {
           {(isInvited || isDownloaded || isPending) && (
             <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>
               {isInvited && `Invite sent ${seed?.invitedDate || ''}`}
-              {isDownloaded && 'App downloaded · Hasn\'t requested a card yet'}
+              {isDownloaded && "App downloaded · Card not yet requested"}
               {isPending && 'Card request pending · Awaiting issuance'}
             </div>
           )}
         </div>
       </div>
 
-      {/* Quick actions */}
-      {(hasActiveCard || isPending || isInvited || isDownloaded) && (
-        <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
-          {hasActiveCard && (
-            <button
-              onClick={() => setFreezeConfirmOpen(true)}
-              style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '8px 14px', borderRadius: 8, border: `1px solid ${isFrozen ? '#bfdbfe' : P.border}`, background: isFrozen ? '#eff6ff' : P.white, cursor: 'pointer', fontFamily: 'var(--font-body)', fontSize: 13, color: isFrozen ? '#1d4ed8' : P.ink, transition: 'all 120ms' }}
-              onMouseEnter={e => { e.currentTarget.style.background = isFrozen ? '#dbeafe' : P.bg; }}
-              onMouseLeave={e => { e.currentTarget.style.background = isFrozen ? '#eff6ff' : P.white; }}
-            >
-              <Icon name={isFrozen ? 'play' : 'snowflake'} size={14} color={isFrozen ? '#1d4ed8' : P.ink} strokeWidth={isFrozen ? 2 : 1.75} />
-              {isFrozen ? 'Unfreeze card' : 'Freeze card'}
-            </button>
-          )}
-          {hasActiveCard && (
-            <button
-              onClick={() => {}}
-              style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '8px 14px', borderRadius: 8, border: `1px solid ${P.border}`, background: P.white, cursor: 'pointer', fontFamily: 'var(--font-body)', fontSize: 13, color: P.ink, transition: 'background 120ms' }}
-              onMouseEnter={e => { e.currentTarget.style.background = P.bg; }}
-              onMouseLeave={e => { e.currentTarget.style.background = P.white; }}
-            >
-              <Icon name="list" size={14} color={P.ink} strokeWidth={1.75} />
-              View transactions
-            </button>
-          )}
-          {(isInvited || isDownloaded) && (
-            <button
-              onClick={() => { onToast && onToast({ message: `Invite resent to ${emp.name.split(' ')[0]}`, type: 'approve' }); }}
-              style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '8px 14px', borderRadius: 8, border: `1px solid ${P.border}`, background: P.white, cursor: 'pointer', fontFamily: 'var(--font-body)', fontSize: 13, color: P.ink, transition: 'background 120ms' }}
-              onMouseEnter={e => { e.currentTarget.style.background = P.bg; }}
-              onMouseLeave={e => { e.currentTarget.style.background = P.white; }}
-            >
-              <Icon name="send" size={14} color={P.ink} strokeWidth={1.75} />
-              Resend invite
-            </button>
-          )}
-        </div>
-      )}
+      {/* Actions */}
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 16 }}>
+        {hasActiveCard && actionBtn(
+          () => setFreezeConfirmOpen(true),
+          isFrozen ? 'play' : 'snowflake',
+          isFrozen ? 'Unfreeze card' : 'Freeze card',
+          isFrozen ? { border: '#bfdbfe', bg: '#eff6ff', hoverBg: '#dbeafe', color: '#1d4ed8', sw: 2 } : {}
+        )}
+        {hasActiveCard && actionBtn(() => setReplaceConfirmOpen(true), 'refresh-cw', 'Replace card')}
+        {hasActiveCard && actionBtn(
+          () => setBlockConfirmOpen(true),
+          'ban', 'Block card',
+          { border: '#fecaca', bg: '#fff5f5', hoverBg: '#fee2e2', color: '#dc2626' }
+        )}
+        {(isInvited || isDownloaded) && actionBtn(
+          () => { onToast && onToast({ message: `Invite resent to ${first}`, type: 'approve' }); },
+          'send', 'Resend invite'
+        )}
+      </div>
 
-      {/* Budget / spending */}
-      {hasActiveCard && budget > 0 && (
-        <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 14, overflow: 'hidden', marginBottom: 16 }}>
-          <div style={{ padding: '14px 20px 12px', borderBottom: `1px solid ${P.border}` }}>
-            <span style={SL}>Budget</span>
-          </div>
-          <div style={{ padding: '16px 20px 4px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 8 }}>
-              <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>Spent this year</span>
-              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 15, color: P.ink }}>
-                €{budgetUsed.toLocaleString('de-DE')} <span style={{ fontFamily: 'var(--font-body)', fontWeight: 400, fontSize: 12, color: P.inkSoft }}>/ €{budget.toLocaleString('de-DE')}</span>
-              </span>
-            </div>
-            <div style={{ height: 6, borderRadius: 3, background: P.border, overflow: 'hidden', marginBottom: 16 }}>
-              <div style={{ height: '100%', borderRadius: 3, background: spendPct >= 95 ? '#f97316' : '#10b981', width: `${spendPct}%`, transition: 'width 600ms ease-out' }} />
-            </div>
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', borderTop: `1px solid ${P.border}` }}>
-            {[
-              { label: 'Remaining', value: `€${remaining.toLocaleString('de-DE')}`, color: remaining < 20 ? '#f97316' : P.ink },
-              { label: 'Budget', value: `€${budget.toLocaleString('de-DE')}`, color: P.ink },
-            ].map((item, i, arr) => (
-              <div key={item.label} style={{ padding: '12px 20px', borderRight: i < arr.length - 1 ? `1px solid ${P.border}` : 'none' }}>
-                <div style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkSoft, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 2 }}>{item.label}</div>
-                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 15, color: item.color }}>{item.value}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Card settings */}
-      {hasActiveCard && (
-        <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 14, overflow: 'hidden', marginBottom: 16 }}>
-          <div style={{ padding: '14px 20px 12px', borderBottom: `1px solid ${P.border}` }}>
-            <span style={SL}>Card settings</span>
-          </div>
-          <div style={{ padding: '4px 0' }}>
-            {[
-              { label: 'Online payments', icon: 'globe', on: true },
-              { label: 'Contactless', icon: 'wifi', on: true },
-              { label: 'Cash withdrawal', icon: 'banknote', on: false },
-              { label: 'Abroad payments', icon: 'plane', on: true },
-            ].map((row, i, arr) => (
-              <div key={row.label} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '11px 20px', borderBottom: i < arr.length - 1 ? `1px solid ${P.border}` : 'none' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <Icon name={row.icon} size={15} color={P.inkSoft} strokeWidth={1.75} />
-                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.ink }}>{row.label}</span>
-                </div>
-                <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: row.on ? '#16a34a' : P.inkSoft }}>{row.on ? 'Allowed' : 'Blocked'}</span>
-              </div>
-            ))}
-          </div>
-          {physicalCardsAllowed && (
-            <div style={{ borderTop: `1px solid ${P.border}`, padding: '11px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }}
-              onClick={() => setPhysicalRequested(v => !v)}
-              onMouseEnter={e => e.currentTarget.style.background = P.bg}
-              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <Icon name="credit-card" size={15} color={P.inkSoft} strokeWidth={1.75} />
-                <div>
-                  <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.ink }}>Physical card</div>
-                  <div style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkSoft }}>Allow employee to request a physical card</div>
-                </div>
-              </div>
-              <Switch checked={physicalRequested} onChange={() => {}} />
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Danger zone */}
-      {hasActiveCard && (
-        <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 14, overflow: 'hidden' }}>
-          <div style={{ padding: '14px 20px 12px', borderBottom: `1px solid ${P.border}` }}>
-            <span style={SL}>Danger zone</span>
-          </div>
-          <div style={{ padding: '14px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div>
-              <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.ink, fontWeight: 500 }}>Block card</div>
-              <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>Permanently blocks the card. The employee will need to request a new one.</div>
-            </div>
-            <button
-              onClick={() => setBlockConfirmOpen(true)}
-              style={{ padding: '7px 14px', borderRadius: 8, border: '1px solid #fecaca', background: '#fff5f5', color: '#dc2626', cursor: 'pointer', fontFamily: 'var(--font-body)', fontSize: 13, fontWeight: 500, flexShrink: 0, marginLeft: 16, transition: 'background 120ms' }}
-              onMouseEnter={e => e.currentTarget.style.background = '#fee2e2'}
-              onMouseLeave={e => e.currentTarget.style.background = '#fff5f5'}
-            >
-              Block card
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Freeze confirm modal */}
+      {/* Freeze confirm */}
       {freezeConfirmOpen && (
-        <ModalShell
-          title={isFrozen ? 'Unfreeze card' : 'Freeze card'}
-          onClose={() => setFreezeConfirmOpen(false)}
-          width={400}
-          footer={close => (
-            <>
-              <Button variant="secondary" onClick={close}>Cancel</Button>
-              <Button variant="primary" onClick={() => {
-                const next = isFrozen ? 'active' : 'frozen';
-                setStatus(next);
-                close();
-                onToast && onToast({ message: isFrozen ? `${emp.name.split(' ')[0]}'s card unfrozen` : `${emp.name.split(' ')[0]}'s card frozen`, type: isFrozen ? 'approve' : 'decline' });
-              }}>
-                {isFrozen ? 'Yes, unfreeze' : 'Yes, freeze'}
-              </Button>
-            </>
-          )}
+        <ModalShell title={isFrozen ? 'Unfreeze card' : 'Freeze card'} onClose={() => setFreezeConfirmOpen(false)} width={400}
+          footer={close => (<>
+            <Button variant="secondary" onClick={close}>Cancel</Button>
+            <Button variant="primary" onClick={() => {
+              setStatus(isFrozen ? 'active' : 'frozen'); close();
+              onToast && onToast({ message: isFrozen ? `${first}'s card unfrozen` : `${first}'s card frozen`, type: isFrozen ? 'approve' : 'decline' });
+            }}>{isFrozen ? 'Yes, unfreeze' : 'Yes, freeze'}</Button>
+          </>)}
         >
           <div style={{ padding: '20px 24px', fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, lineHeight: 1.55 }}>
-            {isFrozen
-              ? `${emp.name.split(' ')[0]}'s card will be reactivated immediately. They'll be able to make payments again.`
-              : `${emp.name.split(' ')[0]}'s card will be paused immediately. No payments can be made until you unfreeze it.`
-            }
+            {isFrozen ? `${first}'s card will be reactivated immediately. They'll be able to make payments again.`
+              : `${first}'s card will be paused immediately. No payments can be made until you unfreeze it.`}
           </div>
         </ModalShell>
       )}
 
-      {/* Block confirm modal */}
-      {blockConfirmOpen && (
-        <ModalShell
-          title="Block card permanently"
-          onClose={() => setBlockConfirmOpen(false)}
-          width={400}
-          footer={close => (
-            <>
-              <Button variant="secondary" onClick={close}>Cancel</Button>
-              <button
-                onClick={() => { close(); setStatus('not_invited'); onToast && onToast({ message: `${emp.name.split(' ')[0]}'s card blocked`, type: 'decline' }); }}
-                style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: '#dc2626', color: '#fff', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}
-              >
-                Block card
-              </button>
-            </>
-          )}
+      {/* Replace confirm */}
+      {replaceConfirmOpen && (
+        <ModalShell title="Replace card" onClose={() => setReplaceConfirmOpen(false)} width={400}
+          footer={close => (<>
+            <Button variant="secondary" onClick={close}>Cancel</Button>
+            <Button variant="primary" onClick={() => { close(); onToast && onToast({ message: `Replacement card ordered for ${first}`, type: 'approve' }); }}>Order replacement</Button>
+          </>)}
         >
           <div style={{ padding: '20px 24px', fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, lineHeight: 1.55 }}>
-            {emp.name.split(' ')[0]}'s card will be permanently blocked. This cannot be undone. They will need to request a new card from the Payflip app.
+            The current card will be cancelled and a new virtual card will be issued to {first} automatically.
+          </div>
+        </ModalShell>
+      )}
+
+      {/* Block confirm */}
+      {blockConfirmOpen && (
+        <ModalShell title="Block card permanently" onClose={() => setBlockConfirmOpen(false)} width={400}
+          footer={close => (<>
+            <Button variant="secondary" onClick={close}>Cancel</Button>
+            <button onClick={() => { close(); setStatus('not_invited'); onToast && onToast({ message: `${first}'s card blocked`, type: 'decline' }); }}
+              style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: '#dc2626', color: '#fff', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>
+              Block card
+            </button>
+          </>)}
+        >
+          <div style={{ padding: '20px 24px', fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, lineHeight: 1.55 }}>
+            {first}'s card will be permanently blocked. This cannot be undone — they will need to request a new card from the Payflip app.
           </div>
         </ModalShell>
       )}
