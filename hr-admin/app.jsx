@@ -5712,6 +5712,7 @@ function CardTab({ empId, emp, mobilityLive, onToast, onNav }) {
   const [displayPan, setDisplayPan] = useState(seed?.pan);
 
   const isFrozen = status === 'frozen';
+  const isBlocked = status === 'blocked';
   const isPending = status === 'card_requested';
   const isDownloaded = status === 'app_downloaded';
   const isInvited = status === 'invited';
@@ -5721,6 +5722,7 @@ function CardTab({ empId, emp, mobilityLive, onToast, onNav }) {
   const cardStatusMeta = {
     active:         { label: 'Active',          bg: '#dcfce7', color: '#16a34a' },
     frozen:         { label: 'Frozen',          bg: '#f0f9ff', color: '#0369a1' },
+    blocked:        { label: 'Blocked',         bg: '#fee2e2', color: '#dc2626' },
     card_requested: { label: 'Card requested',  bg: '#fef9c3', color: '#ca8a04' },
     app_downloaded: { label: 'App downloaded',  bg: '#f0f9ff', color: '#0369a1' },
     invited:        { label: 'Invite sent',     bg: '#f5f3ff', color: '#7c3aed' },
@@ -5879,10 +5881,15 @@ function CardTab({ empId, emp, mobilityLive, onToast, onNav }) {
 
       {/* Card + action circles side by side */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 36, marginBottom: 28 }}>
-        <div style={{ flexShrink: 0, opacity: isFrozen ? 0.5 : 1, filter: isFrozen ? 'saturate(0)' : 'none', transition: 'opacity 300ms, filter 300ms' }}>
+        <div style={{ flexShrink: 0, opacity: isFrozen ? 0.5 : isBlocked ? 0.3 : 1, filter: (isFrozen || isBlocked) ? 'saturate(0)' : 'none', transition: 'opacity 300ms, filter 300ms' }}>
           <img src={PAYFLIP_CARD_IMG} alt="Payflip Card" style={{ width: 240, height: 151, display: 'block', borderRadius: 14, boxShadow: '0 6px 20px rgba(15,13,40,0.2)' }} />
         </div>
-        {quickActionCircles}
+        {isBlocked ? (
+          <div style={{ padding: '18px 20px', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 10, maxWidth: 300 }}>
+            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: '#dc2626', marginBottom: 6 }}>Card permanently blocked</div>
+            <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, lineHeight: 1.55 }}>{first} can request a new card from the Payflip app.</div>
+          </div>
+        ) : quickActionCircles}
       </div>
 
       {/* Recent activity — below, not beside */}
@@ -5984,7 +5991,7 @@ function CardTab({ empId, emp, mobilityLive, onToast, onNav }) {
           footer={close => (
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, padding: '14px 22px', borderTop: `1px solid ${P.border}` }}>
               <Button variant="secondary" onClick={close}>Keep card</Button>
-              <Button variant="primary" style={{ background: '#dc2626' }} onClick={() => { close(); setStatus('not_invited'); onToast && onToast({ message: `${first}'s card blocked`, type: 'decline' }); }}>Block card</Button>
+              <Button variant="primary" style={{ background: '#dc2626' }} onClick={() => { close(); setStatus('blocked'); onToast && onToast({ message: `${first}'s card blocked`, type: 'decline' }); }}>Block card</Button>
             </div>
           )}
         >
