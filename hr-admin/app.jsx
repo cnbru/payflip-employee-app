@@ -5710,6 +5710,7 @@ function CardTab({ empId, emp, mobilityLive, onToast, onNav }) {
   const [replaceConfirmOpen, setReplaceConfirmOpen] = useState(false);
   const [lostConfirmOpen, setLostConfirmOpen] = useState(false);
   const [displayPan, setDisplayPan] = useState(seed?.pan);
+  const [reissued, setReissued] = useState(false);
 
   const isFrozen = status === 'frozen';
   const isBlocked = status === 'blocked';
@@ -5871,7 +5872,7 @@ function CardTab({ empId, emp, mobilityLive, onToast, onNav }) {
           <DotPill bg={meta.bg} color={meta.color}>{meta.label}</DotPill>
         </div>
         <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>
-          {hasActiveCard && seed?.lastTx && `Last used ${seed.lastTx}`}
+          {hasActiveCard && (reissued ? 'Credentials reissued · just now' : (seed?.lastTx && `Last used ${seed.lastTx}`))}
           {isInvited && `Invite sent ${seed?.invitedDate || ''}`}
           {isDownloaded && 'App downloaded · Card not yet requested'}
           {isPending && 'Card request pending · Awaiting issuance'}
@@ -5962,9 +5963,9 @@ function CardTab({ empId, emp, mobilityLive, onToast, onNav }) {
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, padding: '14px 22px', borderTop: `1px solid ${P.border}` }}>
               <Button variant="secondary" onClick={close}>Keep card</Button>
               <Button variant="primary" onClick={() => {
-                close();
-                onToast && onToast({ message: `Replacement card ordered for ${first}`, type: 'approve' });
-              }}>Order replacement</Button>
+                setReissued(true); close();
+                onToast && onToast({ message: `Card reissued for ${first}`, type: 'approve' });
+              }}>Reissue card</Button>
             </div>
           )}
         >
@@ -5977,7 +5978,10 @@ function CardTab({ empId, emp, mobilityLive, onToast, onNav }) {
               </div>
             </div>
             <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, lineHeight: 1.55 }}>
-              A new card will be sent to {first}. The card number stays the same — their existing card details keep working until the new one arrives.
+              New credentials will be issued immediately. The card number stays the same.
+            </p>
+            <p style={{ margin: '10px 0 0', fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, lineHeight: 1.55 }}>
+              If the security code changes, {first} may need to update saved payment methods.
             </p>
           </div>
         </ModalShell>
