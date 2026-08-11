@@ -6628,6 +6628,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
         title="Invite employees to Payflip Card"
         value={[]}
         sections={inviteMoreSections}
+        note="Only showing employees who haven't received an invite yet."
         onSave={sendMoreInvites}
         onClose={() => setShowInviteMoreModal(false)}
       />
@@ -7173,7 +7174,7 @@ function ExpenseCategorySettings({ categories, onSave, appEntity = null }) {
   );
 }
 
-function PersonPickerModal({ title, value, candidates, sections, singleSelect, onSave, onClose, appEntity }) {
+function PersonPickerModal({ title, value, candidates, sections, singleSelect, onSave, onClose, appEntity, note }) {
   const [selected, setSelected] = useState(singleSelect ? (value ? [value] : []) : (value || []));
   const [search, setSearch] = useState('');
   const [activeTab, setActiveTab] = useState(0);
@@ -7254,6 +7255,14 @@ function PersonPickerModal({ title, value, candidates, sections, singleSelect, o
               onTabChange={i => { setActiveTab(Number(i)); setSearch(''); }}
               padding="0 20px"
             />
+          </div>
+        )}
+
+        {/* Note callout */}
+        {note && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px', background: '#f0fdf4', borderBottom: `1px solid ${P.border}`, flexShrink: 0 }}>
+            <Icon name="circle-check" size={13} color="#16a34a" strokeWidth={2} />
+            <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: '#15803d' }}>{note}</span>
           </div>
         )}
 
