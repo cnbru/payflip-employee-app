@@ -5767,9 +5767,10 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
       // no dept — picker shows entity only
       return { value: key, name: e.name, entity: e.entity, initials: e.initials, color: e.color, remaining };
     });
-  const readyToUse  = allEligible.filter(e => e.remaining > 0)
+  const readyToUse  = allEligible.filter(e => e.remaining >= 5)
     .map(e => ({ ...e, hint: `€${e.remaining.toLocaleString('de-DE')}`, hintColor: '#059669' }));
-  const budgetSpent = allEligible.filter(e => e.remaining === 0);
+  const budgetSpent = allEligible.filter(e => e.remaining < 5)
+    .map(e => ({ ...e, hint: `€${e.remaining.toLocaleString('de-DE')}`, hintColor: P.inkFaint }));
 
   const pickerSections = [
     { label: `Has budget (${readyToUse.length})`, items: readyToUse },
@@ -6925,6 +6926,8 @@ function PersonPickerModal({ title, value, candidates, sections, singleSelect, o
   const [selected, setSelected] = useState(singleSelect ? (value ? [value] : []) : (value || []));
   const [search, setSearch] = useState('');
   const [activeTab, setActiveTab] = useState(0);
+  const [page, setPage] = useState(1);
+  useEffect(() => setPage(1), [search, activeTab]);
 
   const toggle = (key, close) => {
     if (singleSelect) { onSave(key); close(); return; }
@@ -6943,41 +6946,50 @@ function PersonPickerModal({ title, value, candidates, sections, singleSelect, o
     : null;
   const filtered = sections ? null : pool.filter(matchesSearch);
 
-  const renderRow = (emp, close) => {
+  const renderRow = (emp, close, isLast, showEntity, hasHints) => {
     const on = selected.includes(emp.value);
-    const subtitle = appEntity ? emp.dept : [emp.dept, emp.entity].filter(Boolean).join(' · ');
     return (
       <div key={emp.value} onClick={() => toggle(emp.value, close)}
-        style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 20px', cursor: 'pointer', opacity: emp.dimmed ? 0.5 : 1 }}
-        onMouseEnter={e => { e.currentTarget.style.background = 'rgba(15,13,40,0.04)'; }}
+        style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 20px', cursor: 'pointer', borderBottom: isLast ? 'none' : `1px solid ${P.border}`, opacity: emp.dimmed ? 0.5 : 1 }}
+        onMouseEnter={e => { e.currentTarget.style.background = 'rgba(15,13,40,0.03)'; }}
         onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}>
-        <div style={{ width: 22, height: 22, borderRadius: '50%', background: emp.color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-          <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 9, color: P.ink }}>{emp.initials}</span>
+        {/* Col 1: checkbox / radio */}
+        <div style={{ width: 18, flexShrink: 0 }}>
+          {singleSelect
+            ? <div style={{ width: 18, height: 18, borderRadius: '50%', border: `2px solid ${on ? P.action : P.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', transition: `border-color 120ms` }}>
+                {on && <div style={{ width: 8, height: 8, borderRadius: '50%', background: P.action }} />}
+              </div>
+            : <div style={{ width: 18, height: 18, borderRadius: 4, border: `2px solid ${on ? P.action : P.border}`, background: on ? P.action : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: `background 120ms, border-color 120ms` }}>
+                {on && <Icon name="check" size={11} color="#fff" strokeWidth={3} />}
+              </div>
+          }
         </div>
-        <div style={{ flex: 1, display: 'flex', alignItems: 'baseline', gap: 5, minWidth: 0 }}>
-          <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, fontWeight: 500, color: P.ink }}>{emp.name}</span>
-          {subtitle && <>
-            <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkFaint }}>·</span>
-            <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkSoft }}>{subtitle}</span>
-          </>}
+        {/* Col 2: avatar + name */}
+        <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+          <Avatar employeeId={emp.value} size={22} />
+          <div style={{ minWidth: 0 }}>
+            <div style={{ fontFamily: 'var(--font-body)', fontSize: 14, fontWeight: 500, color: P.ink, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{emp.name}</div>
+            {emp.dept && <div style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkSoft, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{emp.dept}</div>}
+          </div>
         </div>
-        {emp.hint && (
-          <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, fontWeight: 500, color: emp.hintColor || P.inkSoft, flexShrink: 0, marginRight: 8 }}>{emp.hint}</span>
+        {/* Col 3: entity */}
+        {showEntity && (
+          <div style={{ width: 100, fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flexShrink: 0 }}>
+            {emp.entity}
+          </div>
         )}
-        {singleSelect
-          ? <div style={{ width: 18, height: 18, borderRadius: '50%', border: `2px solid ${on ? P.action : P.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: `border-color 120ms` }}>
-              {on && <div style={{ width: 8, height: 8, borderRadius: '50%', background: P.action }} />}
-            </div>
-          : <div style={{ width: 18, height: 18, borderRadius: 4, border: `2px solid ${on ? P.action : P.border}`, background: on ? P.action : P.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: `background 120ms, border-color 120ms` }}>
-              {on && <Icon name="check" size={11} color="#fff" strokeWidth={3} />}
-            </div>
-        }
+        {/* Col 4: budget / hint */}
+        {hasHints && (
+          <div style={{ width: 64, fontFamily: 'var(--font-body)', fontSize: 13, fontWeight: 500, color: emp.hintColor || P.inkSoft, textAlign: 'right', flexShrink: 0 }}>
+            {emp.hint || ''}
+          </div>
+        )}
       </div>
     );
   };
 
   return (
-    <ModalShell title={title} onClose={onClose} width={480} maxHeight="70vh">
+    <ModalShell title={title} onClose={onClose} width={580} maxHeight="70vh">
       {close => {
         const save = () => { onSave(selected); close(); };
         return (
@@ -6989,14 +7001,14 @@ function PersonPickerModal({ title, value, candidates, sections, singleSelect, o
               tabs={sections.map((s, i) => ({ id: String(i), label: s.label }))}
               activeTab={String(activeTab)}
               onTabChange={i => { setActiveTab(Number(i)); setSearch(''); }}
-              padding="0 16px"
+              padding="0 20px"
             />
           </div>
         )}
 
         {/* Search — hidden when active tab is small */}
         {(!sections || (sections[activeTab]?.items || []).length >= 6) && (
-          <div style={{ padding: '12px 16px', borderBottom: `1px solid ${P.border}`, display: 'flex', gap: 8, flexShrink: 0 }}>
+          <div style={{ padding: '12px 20px', borderBottom: `1px solid ${P.border}`, display: 'flex', gap: 8, flexShrink: 0 }}>
             <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 5, border: `1px solid ${P.border}`, borderRadius: 7, padding: '8px 11px', background: P.white }}>
               <Icon name="search" size={12} color={P.inkFaint} strokeWidth={2} />
               <input autoFocus value={search} onChange={e => setSearch(e.target.value)} placeholder="Search employees"
@@ -7011,19 +7023,59 @@ function PersonPickerModal({ title, value, candidates, sections, singleSelect, o
         )}
 
         {/* List */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '12px 0', minHeight: 220 }}>
-          <div key={activeTab} style={{ animation: PREFERS_REDUCED_MOTION ? 'tableEnterReduced 150ms ' + EASE_OUT : 'tableEnter 150ms ' + EASE_OUT }}>
-          {sections ? (
-            activeItems.length > 0
-              ? activeItems.map(emp => renderRow(emp, close))
-              : <div style={{ padding: '20px 10px', fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, textAlign: 'center' }}>No results</div>
-          ) : (
-            filtered.length > 0
-              ? filtered.map(emp => renderRow(emp, close))
-              : <div style={{ padding: '20px 10px', fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, textAlign: 'center' }}>No results</div>
-          )}
-          </div>
-        </div>
+        {(() => {
+          const listItems = sections ? activeItems : filtered;
+          const PAGE_SIZE = 10;
+          const pageCount = Math.ceil(listItems.length / PAGE_SIZE);
+          const safePage = Math.min(page, Math.max(1, pageCount));
+          const paginated = listItems.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
+          const allChecked = !singleSelect && paginated.length > 0 && paginated.every(e => selected.includes(e.value));
+          const someChecked = !singleSelect && paginated.some(e => selected.includes(e.value)) && !allChecked;
+          const toggleAll = () => {
+            if (allChecked) setSelected(prev => prev.filter(k => !paginated.some(e => e.value === k)));
+            else setSelected(prev => [...new Set([...prev, ...paginated.map(e => e.value)])]);
+          };
+          const showEntity = !appEntity;
+          const hasHints = listItems.some(e => e.hint);
+          return (
+            <div style={{ flex: 1, overflowY: 'auto', minHeight: 220 }}>
+              {/* Column header */}
+              {!singleSelect && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '9px 20px', borderTop: `1px solid ${P.border}`, borderBottom: `1px solid ${P.border}`, background: P.bg, position: 'sticky', top: 0, zIndex: 1 }}>
+                  <div onClick={toggleAll} style={{ width: 18, height: 18, borderRadius: 4, border: `2px solid ${allChecked || someChecked ? P.action : P.border}`, background: allChecked ? P.action : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, cursor: 'pointer', transition: `background 120ms, border-color 120ms` }}>
+                    {allChecked && <Icon name="check" size={11} color="#fff" strokeWidth={3} />}
+                    {someChecked && <Icon name="minus" size={11} color={P.action} strokeWidth={3} />}
+                  </div>
+                  <div style={{ flex: 1 }}><span style={SL}>Employee</span></div>
+                  {showEntity && <div style={{ width: 100, flexShrink: 0 }}><span style={SL}>Entity</span></div>}
+                  {hasHints && <div style={{ width: 64, flexShrink: 0, textAlign: 'right' }}><span style={SL}>Available</span></div>}
+                </div>
+              )}
+              <div key={`${activeTab}-${safePage}`} style={{ animation: PREFERS_REDUCED_MOTION ? 'tableEnterReduced 150ms ' + EASE_OUT : 'tableEnter 150ms ' + EASE_OUT }}>
+                {paginated.length > 0
+                  ? paginated.map((emp, idx) => renderRow(emp, close, idx === paginated.length - 1, showEntity, hasHints))
+                  : <div style={{ padding: '20px 10px', fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, textAlign: 'center' }}>No results</div>
+                }
+              </div>
+              {pageCount > 1 && (
+                <div style={{ padding: '8px 20px', borderTop: `1px solid ${P.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkFaint }}>
+                    {(safePage - 1) * PAGE_SIZE + 1}–{Math.min(safePage * PAGE_SIZE, listItems.length)} of {listItems.length}
+                  </span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={safePage === 1} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 10px', borderRadius: 6, border: `1px solid ${P.border}`, background: P.white, cursor: safePage === 1 ? 'default' : 'pointer', fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 12, color: safePage === 1 ? P.inkFaint : P.ink, opacity: safePage === 1 ? 0.5 : 1 }}>
+                      <Icon name="ChevronLeft" size={13} color={safePage === 1 ? P.inkFaint : P.ink} strokeWidth={2} /> Prev
+                    </button>
+                    <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 12, color: P.inkSoft, padding: '0 6px' }}>{safePage} / {pageCount}</span>
+                    <button onClick={() => setPage(p => Math.min(pageCount, p + 1))} disabled={safePage === pageCount} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 10px', borderRadius: 6, border: `1px solid ${P.border}`, background: P.white, cursor: safePage === pageCount ? 'default' : 'pointer', fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 12, color: safePage === pageCount ? P.inkFaint : P.ink, opacity: safePage === pageCount ? 0.5 : 1 }}>
+                      Next <Icon name="ChevronRight" size={13} color={safePage === pageCount ? P.inkFaint : P.ink} strokeWidth={2} />
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })()}
 
         {/* Footer */}
         <div style={{ padding: '14px 22px', borderTop: `1px solid ${P.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
