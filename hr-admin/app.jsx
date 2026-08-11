@@ -5829,7 +5829,7 @@ function CardTab({ empId, emp, mobilityLive, onToast, onNav }) {
   const txTh = { textAlign: 'left', padding: '9px 16px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em', whiteSpace: 'nowrap' };
   const recentActivityPanel = hasActiveCard && seed?.txs?.length > 0 && (
     <div style={{ maxWidth: 620 }}>
-      <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.ink, marginBottom: 10 }}>Recent activity</div>
+      <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.ink, marginBottom: 10 }}>Recent activity</div>
       <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 12, overflow: 'hidden' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-body)', fontSize: 13 }}>
           <thead>
@@ -5903,11 +5903,13 @@ function CardTab({ empId, emp, mobilityLive, onToast, onNav }) {
           )}
         >
           <div style={{ padding: '20px 22px' }}>
-            <div style={{ marginBottom: 16 }}>
-              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 15, color: P.ink, marginBottom: 2 }}>{emp.name}</div>
-              <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>{seed?.cardType === 'physical' ? 'Physical' : 'Virtual'} card ···· {displayPan || '—'}</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <img src={PAYFLIP_CARD_IMG} alt="" style={{ width: 52, height: 33, borderRadius: 5, display: 'block', flexShrink: 0 }} />
+              <div>
+                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 15, color: P.ink, marginBottom: 2 }}>{emp.name}</div>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>{seed?.cardType === 'physical' ? 'Physical' : 'Virtual'} card ···· {displayPan || '—'}</div>
+              </div>
             </div>
-            <img src={PAYFLIP_CARD_IMG} alt="Payflip Card" style={{ width: '100%', borderRadius: 12, display: 'block', boxShadow: '0 4px 16px rgba(15,13,40,0.15)' }} />
           </div>
         </ModalShell>
       )}
@@ -5928,11 +5930,13 @@ function CardTab({ empId, emp, mobilityLive, onToast, onNav }) {
           )}
         >
           <div style={{ padding: '20px 22px' }}>
-            <div style={{ marginBottom: 16 }}>
-              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 15, color: P.ink, marginBottom: 2 }}>{emp.name}</div>
-              <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>{seed?.cardType === 'physical' ? 'Physical' : 'Virtual'} card ···· {displayPan || '—'}</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <img src={PAYFLIP_CARD_IMG} alt="" style={{ width: 52, height: 33, borderRadius: 5, display: 'block', flexShrink: 0 }} />
+              <div>
+                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 15, color: P.ink, marginBottom: 2 }}>{emp.name}</div>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>{seed?.cardType === 'physical' ? 'Physical' : 'Virtual'} card ···· {displayPan || '—'}</div>
+              </div>
             </div>
-            <img src={PAYFLIP_CARD_IMG} alt="Payflip Card" style={{ width: '100%', borderRadius: 12, display: 'block', boxShadow: '0 4px 16px rgba(15,13,40,0.15)' }} />
           </div>
         </ModalShell>
       )}
@@ -5953,11 +5957,13 @@ function CardTab({ empId, emp, mobilityLive, onToast, onNav }) {
           )}
         >
           <div style={{ padding: '20px 22px' }}>
-            <div style={{ marginBottom: 16 }}>
-              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 15, color: P.ink, marginBottom: 2 }}>{emp.name}</div>
-              <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>{seed?.cardType === 'physical' ? 'Physical' : 'Virtual'} card ···· {displayPan || '—'}</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <img src={PAYFLIP_CARD_IMG} alt="" style={{ width: 52, height: 33, borderRadius: 5, display: 'block', flexShrink: 0 }} />
+              <div>
+                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 15, color: P.ink, marginBottom: 2 }}>{emp.name}</div>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>{seed?.cardType === 'physical' ? 'Physical' : 'Virtual'} card ···· {displayPan || '—'}</div>
+              </div>
             </div>
-            <img src={PAYFLIP_CARD_IMG} alt="Payflip Card" style={{ width: '100%', borderRadius: 12, display: 'block', boxShadow: '0 4px 16px rgba(15,13,40,0.15)' }} />
           </div>
         </ModalShell>
       )}
@@ -5973,11 +5979,13 @@ function CardTab({ empId, emp, mobilityLive, onToast, onNav }) {
           )}
         >
           <div style={{ padding: '20px 22px' }}>
-            <div style={{ marginBottom: 16 }}>
-              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 15, color: P.ink, marginBottom: 2 }}>{emp.name}</div>
-              <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>{seed?.cardType === 'physical' ? 'Physical' : 'Virtual'} card ···· {displayPan || '—'}</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <img src={PAYFLIP_CARD_IMG} alt="" style={{ width: 52, height: 33, borderRadius: 5, display: 'block', flexShrink: 0 }} />
+              <div>
+                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 15, color: P.ink, marginBottom: 2 }}>{emp.name}</div>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>{seed?.cardType === 'physical' ? 'Physical' : 'Virtual'} card ···· {displayPan || '—'}</div>
+              </div>
             </div>
-            <img src={PAYFLIP_CARD_IMG} alt="Payflip Card" style={{ width: '100%', borderRadius: 12, display: 'block', boxShadow: '0 4px 16px rgba(15,13,40,0.15)' }} />
           </div>
         </ModalShell>
       )}
