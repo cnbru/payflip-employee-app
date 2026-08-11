@@ -555,26 +555,40 @@ const CURRENT_USER = EMPLOYEES['bruno-coen'];
 // ── Per-employee card data (prototype seed) ───────────────────────────────
 // status: 'not_invited' | 'invited' | 'app_downloaded' | 'card_requested' | 'active' | 'frozen'
 const CARD_SEED = {
-  'bram-goossens':     { status: 'active',         pan: '8231', cardType: 'virtual',  invitedDate: '12/05/2026', lastTx: '2 days ago',   lastTxAmount: 24.50  },
-  'mathias-de-smedt':  { status: 'frozen',          pan: '4417', cardType: 'virtual',  invitedDate: '12/05/2026', lastTx: '14 days ago',  lastTxAmount: 38.00  },
-  'thomas-janssens':   { status: 'active',         pan: '9902', cardType: 'physical', invitedDate: '12/05/2026', lastTx: 'yesterday',    lastTxAmount: 12.80  },
-  'charlotte-pieters': { status: 'active',         pan: '6654', cardType: 'virtual',  invitedDate: '12/05/2026', lastTx: '5 days ago',   lastTxAmount: 55.20  },
-  'lasse-willems':     { status: 'active',         pan: '3378', cardType: 'virtual',  invitedDate: '12/05/2026', lastTx: '1 week ago',   lastTxAmount: 18.00  },
-  'nathalie-cox':      { status: 'active',         pan: '7745', cardType: 'virtual',  invitedDate: '12/05/2026', lastTx: '3 days ago',   lastTxAmount: 42.00  },
-  'ruben-declercq':    { status: 'active',         pan: '2290', cardType: 'virtual',  invitedDate: '12/05/2026', lastTx: '4 days ago',   lastTxAmount: 31.60  },
-  'ines-baert':        { status: 'active',         pan: '5563', cardType: 'virtual',  invitedDate: '12/05/2026', lastTx: '6 days ago',   lastTxAmount: 22.40  },
-  'joachim-nijs':      { status: 'active',         pan: '1184', cardType: 'virtual',  invitedDate: '12/05/2026', lastTx: '2 days ago',   lastTxAmount: 67.90  },
-  'sara-verbeke':      { status: 'active',         pan: '8847', cardType: 'virtual',  invitedDate: '12/05/2026', lastTx: '1 day ago',    lastTxAmount: 15.30  },
-  'wout-desmet':       { status: 'active',         pan: '3321', cardType: 'virtual',  invitedDate: '12/05/2026', lastTx: '3 days ago',   lastTxAmount: 48.75  },
-  'amber-claes':       { status: 'active',         pan: '6698', cardType: 'virtual',  invitedDate: '12/05/2026', lastTx: '5 days ago',   lastTxAmount: 27.50  },
-  'pieter-verheyen':   { status: 'active',         pan: '9034', cardType: 'virtual',  invitedDate: '12/05/2026', lastTx: '1 week ago',   lastTxAmount: 35.00  },
-  'david':             { status: 'active',         pan: '4456', cardType: 'virtual',  invitedDate: '12/05/2026', lastTx: '2 days ago',   lastTxAmount: 19.20  },
-  'stijn-laurent':     { status: 'app_downloaded', pan: null,   cardType: null,       invitedDate: '12/05/2026', lastTx: null,           lastTxAmount: null   },
-  'jana-goossens':     { status: 'card_requested', pan: null,   cardType: null,       invitedDate: '12/05/2026', lastTx: null,           lastTxAmount: null   },
-  'laura-mertens':     { status: 'invited',        pan: null,   cardType: null,       invitedDate: '12/05/2026', lastTx: null,           lastTxAmount: null   },
-  'pieter-mertens':    { status: 'active',         pan: '7712', cardType: 'virtual',  invitedDate: '12/05/2026', lastTx: 'today',        lastTxAmount: 88.00  },
-  'sarah-de-smedt':    { status: 'active',         pan: '3390', cardType: 'virtual',  invitedDate: '12/05/2026', lastTx: '4 days ago',   lastTxAmount: 29.40  },
-  'julie-goossens':    { status: 'active',         pan: '6621', cardType: 'virtual',  invitedDate: '12/05/2026', lastTx: '2 days ago',   lastTxAmount: 53.60  },
+  'bram-goossens':     { status: 'active',         pan: '8231', cardType: 'virtual',  invitedDate: '12/05/2026', lastTx: '2 days ago',  lastTxAmount: 24.50,
+    txs: [{ merchant: 'NMBS — Brussels–Antwerp', amount: 24.50, date: '09/08/2026', icon: 'train' }, { merchant: 'Velo Antwerp', amount: 3.50, date: '06/08/2026', icon: 'bike' }, { merchant: 'De Lijn — Monthly pass', amount: 36.00, date: '01/08/2026', icon: 'bus' }] },
+  'mathias-de-smedt':  { status: 'frozen',          pan: '4417', cardType: 'virtual',  invitedDate: '12/05/2026', lastTx: '14 days ago', lastTxAmount: 38.00,
+    txs: [{ merchant: 'SNCB — Ghent–Brussels', amount: 38.00, date: '28/07/2026', icon: 'train' }, { merchant: 'Blue-bike', amount: 4.00, date: '25/07/2026', icon: 'bike' }, { merchant: 'Parking Interparking', amount: 12.00, date: '22/07/2026', icon: 'car' }] },
+  'thomas-janssens':   { status: 'active',         pan: '9902', cardType: 'physical', invitedDate: '12/05/2026', lastTx: 'yesterday',   lastTxAmount: 12.80,
+    txs: [{ merchant: 'Tec — Day ticket', amount: 12.80, date: '10/08/2026', icon: 'bus' }, { merchant: 'NMBS — Namur–Brussels', amount: 19.40, date: '08/08/2026', icon: 'train' }, { merchant: 'Villo! Brussels', amount: 3.00, date: '07/08/2026', icon: 'bike' }] },
+  'charlotte-pieters': { status: 'active',         pan: '6654', cardType: 'virtual',  invitedDate: '12/05/2026', lastTx: '5 days ago',  lastTxAmount: 55.20,
+    txs: [{ merchant: 'NMBS — Bruges–Ghent', amount: 55.20, date: '06/08/2026', icon: 'train' }, { merchant: 'De Lijn — Day pass', amount: 8.00, date: '04/08/2026', icon: 'bus' }, { merchant: 'Blue-bike', amount: 4.00, date: '01/08/2026', icon: 'bike' }] },
+  'lasse-willems':     { status: 'active',         pan: '3378', cardType: 'virtual',  invitedDate: '12/05/2026', lastTx: '1 week ago',  lastTxAmount: 18.00,
+    txs: [{ merchant: 'STib — Weekly pass', amount: 18.00, date: '04/08/2026', icon: 'bus' }, { merchant: 'Villo! Brussels', amount: 3.00, date: '02/08/2026', icon: 'bike' }, { merchant: 'NMBS — Brussels–Leuven', amount: 14.60, date: '30/07/2026', icon: 'train' }] },
+  // nathalie-cox: not yet invited (demo: invite-more flow)
+  'ruben-declercq':    { status: 'active',         pan: '2290', cardType: 'virtual',  invitedDate: '12/05/2026', lastTx: '4 days ago',  lastTxAmount: 31.60,
+    txs: [{ merchant: 'NMBS — Mechelen–Antwerp', amount: 31.60, date: '07/08/2026', icon: 'train' }, { merchant: 'Velo Antwerp', amount: 3.50, date: '05/08/2026', icon: 'bike' }, { merchant: 'De Lijn — Monthly pass', amount: 36.00, date: '01/08/2026', icon: 'bus' }] },
+  'ines-baert':        { status: 'active',         pan: '5563', cardType: 'virtual',  invitedDate: '12/05/2026', lastTx: '6 days ago',  lastTxAmount: 22.40,
+    txs: [{ merchant: 'De Lijn — Day pass', amount: 22.40, date: '05/08/2026', icon: 'bus' }, { merchant: 'Blue-bike', amount: 4.00, date: '03/08/2026', icon: 'bike' }, { merchant: 'NMBS — Hasselt–Brussels', amount: 28.80, date: '01/08/2026', icon: 'train' }] },
+  'joachim-nijs':      { status: 'active',         pan: '1184', cardType: 'virtual',  invitedDate: '12/05/2026', lastTx: '2 days ago',  lastTxAmount: 67.90,
+    txs: [{ merchant: 'NMBS — Liège–Brussels', amount: 67.90, date: '09/08/2026', icon: 'train' }, { merchant: 'Tec — Monthly pass', amount: 49.00, date: '01/08/2026', icon: 'bus' }, { merchant: 'Parking Interparking', amount: 9.00, date: '29/07/2026', icon: 'car' }] },
+  'sara-verbeke':      { status: 'active',         pan: '8847', cardType: 'virtual',  invitedDate: '12/05/2026', lastTx: '1 day ago',   lastTxAmount: 15.30,
+    txs: [{ merchant: 'STib — Day ticket', amount: 15.30, date: '10/08/2026', icon: 'bus' }, { merchant: 'Villo! Brussels', amount: 3.00, date: '09/08/2026', icon: 'bike' }, { merchant: 'NMBS — Brussels–Namur', amount: 22.50, date: '07/08/2026', icon: 'train' }] },
+  'wout-desmet':       { status: 'active',         pan: '3321', cardType: 'virtual',  invitedDate: '12/05/2026', lastTx: '3 days ago',  lastTxAmount: 48.75,
+    txs: [{ merchant: 'NMBS — Kortrijk–Brussels', amount: 48.75, date: '08/08/2026', icon: 'train' }, { merchant: 'Blue-bike', amount: 4.00, date: '07/08/2026', icon: 'bike' }, { merchant: 'De Lijn — Day pass', amount: 8.00, date: '05/08/2026', icon: 'bus' }] },
+  // amber-claes: not yet invited (demo: invite-more flow)
+  // pieter-verheyen: not yet invited (demo: invite-more flow)
+  'david':             { status: 'active',         pan: '4456', cardType: 'virtual',  invitedDate: '12/05/2026', lastTx: '2 days ago',  lastTxAmount: 19.20,
+    txs: [{ merchant: 'TGV — Paris–Brussels', amount: 19.20, date: '09/08/2026', icon: 'train' }, { merchant: 'Vélib Paris', amount: 5.00, date: '08/08/2026', icon: 'bike' }, { merchant: 'RATP — Week pass', amount: 30.00, date: '04/08/2026', icon: 'bus' }] },
+  'stijn-laurent':     { status: 'app_downloaded', pan: null,   cardType: null,       invitedDate: '12/05/2026', lastTx: null,          lastTxAmount: null,   txs: [] },
+  'jana-goossens':     { status: 'card_requested', pan: null,   cardType: null,       invitedDate: '12/05/2026', lastTx: null,          lastTxAmount: null,   txs: [] },
+  'laura-mertens':     { status: 'invited',        pan: null,   cardType: null,       invitedDate: '12/05/2026', lastTx: null,          lastTxAmount: null,   txs: [] },
+  'pieter-mertens':    { status: 'active',         pan: '7712', cardType: 'virtual',  invitedDate: '12/05/2026', lastTx: 'today',       lastTxAmount: 88.00,
+    txs: [{ merchant: 'Eurostar — Brussels–London', amount: 88.00, date: '11/08/2026', icon: 'train' }, { merchant: 'TfL — Oyster top-up', amount: 20.00, date: '11/08/2026', icon: 'bus' }, { merchant: 'NMBS — Antwerp–Brussels', amount: 24.50, date: '08/08/2026', icon: 'train' }] },
+  'sarah-de-smedt':    { status: 'active',         pan: '3390', cardType: 'virtual',  invitedDate: '12/05/2026', lastTx: '4 days ago',  lastTxAmount: 29.40,
+    txs: [{ merchant: 'NMBS — Groningen–Brussels', amount: 29.40, date: '07/08/2026', icon: 'train' }, { merchant: 'OV-chipkaart top-up', amount: 20.00, date: '05/08/2026', icon: 'bus' }, { merchant: 'Blue-bike', amount: 4.00, date: '04/08/2026', icon: 'bike' }] },
+  'julie-goossens':    { status: 'active',         pan: '6621', cardType: 'virtual',  invitedDate: '12/05/2026', lastTx: '2 days ago',  lastTxAmount: 53.60,
+    txs: [{ merchant: 'NS — Utrecht–Amsterdam', amount: 53.60, date: '09/08/2026', icon: 'train' }, { merchant: 'OV-Fiets rental', amount: 3.85, date: '09/08/2026', icon: 'bike' }, { merchant: 'GVB Amsterdam — Day pass', amount: 9.00, date: '08/08/2026', icon: 'bus' }] },
 };
 
 // ── Per-employee supplemental data ────────────────────────────────────────
@@ -5231,7 +5245,7 @@ function EditBalancesModal({ emp, balances, onSave, onClose, isNewEmployee, onCo
                 {section.label}
               </div>
               {section.types.map((type, ti) => {
-                const dot = getLvColor(type);
+                const dot = LEAVE_COLORS[type] || '#2563eb';
                 const isLast = ti === section.types.length - 1;
                 if (section.editable) {
                   return (
@@ -5590,7 +5604,7 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, o
         ) : activeTab === 'budgets' ? (
           <div><BudgetsTab empId={employeeId} /></div>
         ) : activeTab === 'card' ? (
-          <CardTab empId={employeeId} emp={emp} physicalCardsAllowed={physicalCardsAllowed} mobilityLive={!!(mobilityWidgetState && mobilityWidgetState.live)} onToast={onToast} />
+          <CardTab empId={employeeId} emp={emp} physicalCardsAllowed={physicalCardsAllowed} mobilityLive={!!(mobilityWidgetState && mobilityWidgetState.live)} onToast={onToast} onNav={onNav} />
         ) : activeTab === 'salary' ? (
           <div><SalaryTab empId={employeeId} emp={emp} companyRegime={companyRegime || COMPANY_REGIME_DEFAULTS} onEmployeeUpdate={onEmployeeUpdate} /></div>
         ) : activeTab === 'details' ? (
@@ -5687,13 +5701,15 @@ const PAYFLIP_CARD_IMG = 'assets/card.svg';
 const TWIKEY_LOGO_IMG = 'assets/twikey 1.png';
 
 // ── CardTab — manage an employee's Payflip Card ───────────────────────────
-function CardTab({ empId, emp, mobilityLive, onToast }) {
+function CardTab({ empId, emp, mobilityLive, onToast, onNav }) {
   const seed = CARD_SEED[empId];
   const initialStatus = seed ? seed.status : 'not_invited';
   const [status, setStatus] = useState(initialStatus);
   const [freezeConfirmOpen, setFreezeConfirmOpen] = useState(false);
   const [blockConfirmOpen, setBlockConfirmOpen] = useState(false);
   const [replaceConfirmOpen, setReplaceConfirmOpen] = useState(false);
+  const [lostConfirmOpen, setLostConfirmOpen] = useState(false);
+  const [displayPan, setDisplayPan] = useState(seed?.pan);
 
   const isFrozen = status === 'frozen';
   const isPending = status === 'card_requested';
@@ -5724,7 +5740,7 @@ function CardTab({ empId, emp, mobilityLive, onToast }) {
           <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, lineHeight: 1.55, marginBottom: 20 }}>
             The mobility card program hasn't been launched yet. Set it up from the dashboard to invite employees and fund the account.
           </div>
-          <Button variant="secondary" icon="arrow-up-right" onClick={() => {}}>Go to dashboard</Button>
+          <Button variant="secondary" icon="arrow-up-right" onClick={() => onNav && onNav('dashboard')}>Go to dashboard</Button>
         </div>
       </div>
     );
@@ -5751,117 +5767,233 @@ function CardTab({ empId, emp, mobilityLive, onToast }) {
 
   const actionBtn = (onClick, icon, label, opts = {}) => (
     <button onClick={onClick} style={{
-      display: 'flex', alignItems: 'center', gap: 7, padding: '8px 14px', borderRadius: 8,
-      border: `1px solid ${opts.border || P.border}`, background: opts.bg || P.white,
+      display: 'flex', alignItems: 'center', gap: 10, padding: '11px 20px', width: '100%',
+      border: 'none', borderBottom: `1px solid ${P.border}`, background: 'transparent',
       cursor: 'pointer', fontFamily: 'var(--font-body)', fontSize: 13,
-      color: opts.color || P.ink, transition: 'background 120ms',
+      color: opts.color || P.ink, transition: 'background 120ms', textAlign: 'left',
     }}
-      onMouseEnter={e => { e.currentTarget.style.background = opts.hoverBg || P.bg; }}
-      onMouseLeave={e => { e.currentTarget.style.background = opts.bg || P.white; }}
+      onMouseEnter={e => { e.currentTarget.style.background = P.bg; }}
+      onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
     >
-      <Icon name={icon} size={14} color={opts.color || P.ink} strokeWidth={opts.sw || 1.75} />
-      {label}
+      <span style={{ width: 32, height: 32, borderRadius: 8, background: P.bg, border: `1px solid ${P.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+        <Icon name={icon} size={14} color={opts.color || P.inkSoft} strokeWidth={opts.sw || 1.75} />
+      </span>
+      <span style={{ flex: 1, minWidth: 0 }}>
+        <span style={{ display: 'block' }}>{label}</span>
+        {opts.sublabel && <span style={{ display: 'block', fontSize: 11, color: P.inkSoft, marginTop: 1 }}>{opts.sublabel}</span>}
+      </span>
+      <Icon name="chevron-right" size={14} color={P.inkFaint} strokeWidth={1.5} />
     </button>
   );
 
-  return (
-    <div style={{ maxWidth: 480 }}>
-      {/* Card visual + status */}
-      <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 14, padding: 24, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 28 }}>
-        <div style={{ flexShrink: 0, opacity: isFrozen ? 0.5 : 1, transition: 'opacity 300ms', filter: isFrozen ? 'saturate(0)' : 'none' }}>
-          <CardTilt>
-            <img src={PAYFLIP_CARD_IMG} alt="Payflip Card" style={{ width: 148, height: 93, display: 'block', borderRadius: 9 }} />
-          </CardTilt>
+  const quickActionCircles = (
+    <div style={{ display: 'flex', gap: 20 }}>
+      {hasActiveCard && [
+        { icon: isFrozen ? 'play' : 'snowflake', label: isFrozen ? 'Unfreeze' : 'Freeze card', onClick: () => setFreezeConfirmOpen(true), color: isFrozen ? '#1d4ed8' : P.inkSoft },
+        { icon: 'alert-triangle', label: 'Lost or stolen', onClick: () => setLostConfirmOpen(true), color: P.inkSoft },
+        { icon: 'refresh-cw', label: 'Replace', onClick: () => setReplaceConfirmOpen(true), color: P.inkSoft },
+        { icon: 'ban', label: 'Block', onClick: () => setBlockConfirmOpen(true), color: P.inkSoft },
+      ].map(({ icon, label, onClick, color }) => (
+        <div key={icon} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
+          <button onClick={onClick} style={{
+            width: 48, height: 48, borderRadius: '50%', border: `1px solid ${P.border}`,
+            background: P.white, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            transition: 'background 120ms',
+          }}
+            onMouseEnter={e => { e.currentTarget.style.background = P.bg; }}
+            onMouseLeave={e => { e.currentTarget.style.background = P.white; }}
+          >
+            <Icon name={icon} size={18} color={color} strokeWidth={1.75} />
+          </button>
+          <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkSoft, textAlign: 'center', whiteSpace: 'nowrap' }}>{label}</span>
         </div>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 16, color: P.ink }}>Payflip Card</span>
-            <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, fontWeight: 500, padding: '2px 8px', borderRadius: 20, background: meta.bg, color: meta.color }}>{meta.label}</span>
-          </div>
-          {hasActiveCard && seed?.pan && (
-            <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, marginBottom: 3, letterSpacing: '0.04em' }}>•••• •••• •••• {seed.pan}</div>
-          )}
-          {hasActiveCard && (
-            <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkFaint }}>
-              {seed?.cardType === 'physical' ? 'Physical card' : 'Virtual card'}
-              {seed?.lastTx && ` · Last used ${seed.lastTx}`}
-            </div>
-          )}
-          {(isInvited || isDownloaded || isPending) && (
-            <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>
-              {isInvited && `Invite sent ${seed?.invitedDate || ''}`}
-              {isDownloaded && "App downloaded · Card not yet requested"}
-              {isPending && 'Card request pending · Awaiting issuance'}
-            </div>
-          )}
+      ))}
+      {(isInvited || isDownloaded) && (
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
+          <button onClick={() => { onToast && onToast({ message: `Invite resent to ${first}`, type: 'approve' }); }} style={{
+            width: 48, height: 48, borderRadius: '50%', border: `1px solid ${P.border}`,
+            background: P.white, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            transition: 'background 120ms',
+          }}
+            onMouseEnter={e => { e.currentTarget.style.background = P.bg; }}
+            onMouseLeave={e => { e.currentTarget.style.background = P.white; }}
+          >
+            <Icon name="send" size={18} color={P.inkSoft} strokeWidth={1.75} />
+          </button>
+          <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkSoft, textAlign: 'center' }}>Resend invite</span>
+        </div>
+      )}
+    </div>
+  );
+
+  const txTh = { textAlign: 'left', padding: '9px 16px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em', whiteSpace: 'nowrap' };
+  const recentActivityPanel = hasActiveCard && seed?.txs?.length > 0 && (
+    <div style={{ maxWidth: 620 }}>
+      <div style={SL}>Recent activity</div>
+      <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 12, overflow: 'hidden' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-body)', fontSize: 13 }}>
+          <thead>
+            <tr style={{ borderBottom: `1px solid ${P.border}` }}>
+              <th style={{ ...txTh, paddingLeft: 16 }}>Merchant</th>
+              <th style={txTh}>Date</th>
+              <th style={{ ...txTh, textAlign: 'right', paddingRight: 16 }}>Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            {seed.txs.map((tx, i) => (
+              <tr key={i} style={{ borderBottom: i < seed.txs.length - 1 ? `1px solid ${P.border}` : 'none' }}>
+                <td style={{ padding: '11px 16px', display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <div style={{ width: 32, height: 32, borderRadius: 8, background: P.bg, border: `1px solid ${P.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <Icon name={tx.icon || 'credit-card'} size={14} color={P.inkSoft} strokeWidth={1.75} />
+                  </div>
+                  <span style={{ fontWeight: 500, color: P.ink }}>{tx.merchant}</span>
+                </td>
+                <td style={{ padding: '11px 16px', color: P.inkSoft, whiteSpace: 'nowrap' }}>{tx.date}</td>
+                <td style={{ padding: '11px 16px', textAlign: 'right', fontFamily: 'var(--font-display)', fontWeight: 600, color: P.ink, whiteSpace: 'nowrap' }}>€{tx.amount.toFixed(2)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+
+  return (
+    <div>
+      {/* Page title */}
+      <div style={{ marginBottom: 20 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 3 }}>
+          <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18, color: P.ink }}>
+            {seed?.cardType === 'physical' ? 'Physical' : 'Virtual'} card ···· {displayPan}
+          </span>
+          <DotPill bg={meta.bg} color={meta.color}>{meta.label}</DotPill>
+        </div>
+        <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>
+          {hasActiveCard && seed?.lastTx && `Last used ${seed.lastTx}`}
+          {isInvited && `Invite sent ${seed?.invitedDate || ''}`}
+          {isDownloaded && 'App downloaded · Card not yet requested'}
+          {isPending && 'Card request pending · Awaiting issuance'}
+          {isNotInvited && 'Not yet enrolled in Payflip Card'}
         </div>
       </div>
 
-      {/* Actions */}
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 16 }}>
-        {hasActiveCard && actionBtn(
-          () => setFreezeConfirmOpen(true),
-          isFrozen ? 'play' : 'snowflake',
-          isFrozen ? 'Unfreeze card' : 'Freeze card',
-          isFrozen ? { border: '#bfdbfe', bg: '#eff6ff', hoverBg: '#dbeafe', color: '#1d4ed8', sw: 2 } : {}
-        )}
-        {hasActiveCard && actionBtn(() => setReplaceConfirmOpen(true), 'refresh-cw', 'Replace card')}
-        {hasActiveCard && actionBtn(
-          () => setBlockConfirmOpen(true),
-          'ban', 'Block card',
-          { border: '#fecaca', bg: '#fff5f5', hoverBg: '#fee2e2', color: '#dc2626' }
-        )}
-        {(isInvited || isDownloaded) && actionBtn(
-          () => { onToast && onToast({ message: `Invite resent to ${first}`, type: 'approve' }); },
-          'send', 'Resend invite'
-        )}
+      {/* Card + action circles side by side */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 36, marginBottom: 28 }}>
+        <div style={{ flexShrink: 0, opacity: isFrozen ? 0.5 : 1, filter: isFrozen ? 'saturate(0)' : 'none', transition: 'opacity 300ms, filter 300ms' }}>
+          <img src={PAYFLIP_CARD_IMG} alt="Payflip Card" style={{ width: 240, height: 151, display: 'block', borderRadius: 14, boxShadow: '0 6px 20px rgba(15,13,40,0.2)' }} />
+        </div>
+        {quickActionCircles}
       </div>
+
+      {/* Recent activity — below, not beside */}
+      {recentActivityPanel}
 
       {/* Freeze confirm */}
       {freezeConfirmOpen && (
-        <ModalShell title={isFrozen ? 'Unfreeze card' : 'Freeze card'} onClose={() => setFreezeConfirmOpen(false)} width={400}
-          footer={close => (<>
-            <Button variant="secondary" onClick={close}>Cancel</Button>
-            <Button variant="primary" onClick={() => {
-              setStatus(isFrozen ? 'active' : 'frozen'); close();
-              onToast && onToast({ message: isFrozen ? `${first}'s card unfrozen` : `${first}'s card frozen`, type: isFrozen ? 'approve' : 'decline' });
-            }}>{isFrozen ? 'Yes, unfreeze' : 'Yes, freeze'}</Button>
-          </>)}
+        <ModalShell title={isFrozen ? 'Unfreeze card' : 'Freeze card'} onClose={() => setFreezeConfirmOpen(false)} width={420}
+          footer={close => (
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, padding: '14px 22px', borderTop: `1px solid ${P.border}` }}>
+              <Button variant="secondary" onClick={close}>Cancel</Button>
+              <Button variant="primary" onClick={() => {
+                setStatus(isFrozen ? 'active' : 'frozen'); close();
+                onToast && onToast({ message: isFrozen ? `${first}'s card unfrozen` : `${first}'s card frozen`, type: isFrozen ? 'approve' : 'decline' });
+              }}>{isFrozen ? 'Yes, unfreeze' : 'Yes, freeze'}</Button>
+            </div>
+          )}
         >
-          <div style={{ padding: '20px 24px', fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, lineHeight: 1.55 }}>
-            {isFrozen ? `${first}'s card will be reactivated immediately. They'll be able to make payments again.`
-              : `${first}'s card will be paused immediately. No payments can be made until you unfreeze it.`}
+          <div style={{ padding: '20px 22px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', background: P.bg, borderRadius: 10, marginBottom: 16, border: `1px solid ${P.border}` }}>
+              <img src={PAYFLIP_CARD_IMG} alt="" style={{ width: 44, height: 28, borderRadius: 4, objectFit: 'cover', flexShrink: 0 }} />
+              <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>
+                {seed?.cardType === 'physical' ? 'Physical' : 'Virtual'} card ···· {displayPan || '—'}
+              </span>
+            </div>
+            <div style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, lineHeight: 1.55 }}>
+              {isFrozen ? `${first}'s card will be reactivated immediately. They'll be able to make payments again.`
+                : `${first}'s card will be paused immediately. No payments can be made until you unfreeze it.`}
+            </div>
+          </div>
+        </ModalShell>
+      )}
+
+      {/* Lost or stolen confirm */}
+      {lostConfirmOpen && (
+        <ModalShell title="Report card as lost or stolen" onClose={() => setLostConfirmOpen(false)} width={440}
+          footer={close => (
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, padding: '14px 22px', borderTop: `1px solid ${P.border}` }}>
+              <Button variant="secondary" onClick={close}>Cancel</Button>
+              <Button variant="danger" onClick={() => {
+                const newPan = String(Math.floor(1000 + Math.random() * 9000));
+                setDisplayPan(newPan);
+                close();
+                onToast && onToast({ message: `${first}'s card cancelled — replacement issued`, type: 'approve' });
+              }}>Cancel and replace</Button>
+            </div>
+          )}
+        >
+          <div style={{ padding: '20px 22px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', background: P.bg, borderRadius: 10, marginBottom: 16, border: `1px solid ${P.border}` }}>
+              <img src={PAYFLIP_CARD_IMG} alt="" style={{ width: 44, height: 28, borderRadius: 4, objectFit: 'cover', flexShrink: 0 }} />
+              <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>
+                {seed?.cardType === 'physical' ? 'Physical' : 'Virtual'} card ···· {displayPan || '—'}
+              </span>
+            </div>
+            <div style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, lineHeight: 1.55 }}>
+              {first}'s current card will be cancelled immediately and a new virtual card will be issued. {seed?.cardType === 'physical' ? 'A replacement physical card will be shipped within 3–5 business days.' : `${first} can start using the new card right away in the Payflip app.`}
+            </div>
           </div>
         </ModalShell>
       )}
 
       {/* Replace confirm */}
       {replaceConfirmOpen && (
-        <ModalShell title="Replace card" onClose={() => setReplaceConfirmOpen(false)} width={400}
-          footer={close => (<>
-            <Button variant="secondary" onClick={close}>Cancel</Button>
-            <Button variant="primary" onClick={() => { close(); onToast && onToast({ message: `Replacement card ordered for ${first}`, type: 'approve' }); }}>Order replacement</Button>
-          </>)}
+        <ModalShell title="Replace card" onClose={() => setReplaceConfirmOpen(false)} width={420}
+          footer={close => (
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, padding: '14px 22px', borderTop: `1px solid ${P.border}` }}>
+              <Button variant="secondary" onClick={close}>Cancel</Button>
+              <Button variant="primary" onClick={() => {
+                const newPan = String(Math.floor(1000 + Math.random() * 9000));
+                setDisplayPan(newPan);
+                close();
+                onToast && onToast({ message: `Replacement card ordered for ${first}`, type: 'approve' });
+              }}>Order replacement</Button>
+            </div>
+          )}
         >
-          <div style={{ padding: '20px 24px', fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, lineHeight: 1.55 }}>
-            The current card will be cancelled and a new virtual card will be issued to {first} automatically.
+          <div style={{ padding: '20px 22px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', background: P.bg, borderRadius: 10, marginBottom: 16, border: `1px solid ${P.border}` }}>
+              <img src={PAYFLIP_CARD_IMG} alt="" style={{ width: 44, height: 28, borderRadius: 4, objectFit: 'cover', flexShrink: 0 }} />
+              <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>
+                {seed?.cardType === 'physical' ? 'Physical' : 'Virtual'} card ···· {displayPan || '—'}
+              </span>
+            </div>
+            <div style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, lineHeight: 1.55 }}>
+              The current card will be cancelled and a new virtual card will be issued to {first} automatically.
+            </div>
           </div>
         </ModalShell>
       )}
 
       {/* Block confirm */}
       {blockConfirmOpen && (
-        <ModalShell title="Block card permanently" onClose={() => setBlockConfirmOpen(false)} width={400}
-          footer={close => (<>
-            <Button variant="secondary" onClick={close}>Cancel</Button>
-            <button onClick={() => { close(); setStatus('not_invited'); onToast && onToast({ message: `${first}'s card blocked`, type: 'decline' }); }}
-              style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: '#dc2626', color: '#fff', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>
-              Block card
-            </button>
-          </>)}
+        <ModalShell title="Block card permanently" onClose={() => setBlockConfirmOpen(false)} width={420}
+          footer={close => (
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, padding: '14px 22px', borderTop: `1px solid ${P.border}` }}>
+              <Button variant="secondary" onClick={close}>Cancel</Button>
+              <Button variant="danger" onClick={() => { close(); setStatus('not_invited'); onToast && onToast({ message: `${first}'s card blocked`, type: 'decline' }); }}>Block card</Button>
+            </div>
+          )}
         >
-          <div style={{ padding: '20px 24px', fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, lineHeight: 1.55 }}>
-            {first}'s card will be permanently blocked. This cannot be undone — they will need to request a new card from the Payflip app.
+          <div style={{ padding: '20px 22px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', background: P.bg, borderRadius: 10, marginBottom: 16, border: `1px solid ${P.border}` }}>
+              <img src={PAYFLIP_CARD_IMG} alt="" style={{ width: 44, height: 28, borderRadius: 4, objectFit: 'cover', flexShrink: 0 }} />
+              <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>
+                {seed?.cardType === 'physical' ? 'Physical' : 'Virtual'} card ···· {displayPan || '—'}
+              </span>
+            </div>
+            <div style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, lineHeight: 1.55 }}>
+              {first}'s card will be permanently blocked. This cannot be undone — they will need to request a new card from the Payflip app.
+            </div>
           </div>
         </ModalShell>
       )}
@@ -5962,6 +6094,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
   const [showCalcModal, setShowCalcModal] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showPickerModal, setShowPickerModal] = useState(false);
+  const [showInviteMoreModal, setShowInviteMoreModal] = useState(false);
 
   // Food-mode state (untouched)
   const [socialSecretariat, setSocialSecretariat] = useState('SD Worx');
@@ -6076,6 +6209,31 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
     onToast?.({ message: `Invites sent. ${empCount} employees have been invited to request their Payflip Card.`, type: 'approve' });
   };
 
+  // Post-launch invite picker — reuse readyToUse/budgetSpent, add zero-budget employees.
+  // Filter out anyone who already has a card seed (already invited/enrolled).
+  const isEnrolled = (key) => !!CARD_SEED[key];
+  const noBudgetEmps = Object.entries(EMPLOYEES)
+    .filter(([, e]) => e.isEmployee !== false && e.status === 'Active' && !(e.budget > 0))
+    .map(([key, e]) => ({ value: key, name: e.name, entity: e.entity, initials: e.initials, color: e.color, hint: 'No budget', hintColor: P.inkFaint }));
+  const readyToInvite = readyToUse.filter(e => !isEnrolled(e.value));
+  const usedUpEmps = [...budgetSpent, ...noBudgetEmps].filter(e => !isEnrolled(e.value));
+  const inviteMoreSections = [
+    { label: `Has budget (${readyToInvite.length})`, items: readyToInvite },
+    { label: `Budget used up (${usedUpEmps.length})`, items: usedUpEmps },
+  ];
+  const nooneToInvite = readyToInvite.length === 0 && usedUpEmps.length === 0;
+
+  const sendMoreInvites = (keys) => {
+    setShowInviteMoreModal(false);
+    if (!keys || keys.length === 0) return;
+    keys.forEach(k => {
+      if (!CARD_SEED[k]) {
+        CARD_SEED[k] = { status: 'invited', pan: null, cardType: null, invitedDate: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }), lastTx: null, lastTxAmount: null };
+      }
+    });
+    onToast?.({ message: `Invite${keys.length > 1 ? 's' : ''} sent to ${keys.length} employee${keys.length > 1 ? 's' : ''}`, type: 'approve' });
+  };
+
   const mobilitySetupContent = () => {
     if (live) return null;
     return (<>
@@ -6090,6 +6248,18 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
             <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
               Choose who gets access to the Payflip Card. Only employees with a mobility budget are eligible.
             </p>
+            {allEligible.length === 0 ? (
+              <div style={{ padding: '18px 20px', border: `1px solid ${P.border}`, borderRadius: 10, background: P.bg, display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+                <Icon name="info" size={16} color={P.inkSoft} strokeWidth={2} style={{ flexShrink: 0, marginTop: 2 }} />
+                <div>
+                  <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.ink, marginBottom: 4 }}>No eligible employees yet</div>
+                  <p style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, lineHeight: '18px', margin: 0 }}>
+                    Only employees with a mobility budget can use the Payflip Card. Assign a mobility budget in <a href="#" onClick={e => { e.preventDefault(); onNav && onNav('settings-allowances'); }} style={{ color: P.ink, textDecoration: 'underline' }}>Allowances</a> to get started.
+                  </p>
+                </div>
+              </div>
+            ) : (
+            <>
             {/* Stat boxes */}
             <div style={{ display: 'flex', border: `1px solid ${P.border}`, borderRadius: 10, overflow: 'hidden' }}>
               <div style={{ flex: 1, padding: '16px 20px', display: 'flex', flexDirection: 'column' }}>
@@ -6115,6 +6285,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
               </div>
             </div>
             <Button variant="primary" disabled={empCount === 0} onClick={() => setStep(2)} style={{ width: '100%', justifyContent: 'center', fontSize: 15, padding: '10px 18px' }}>Continue</Button>
+            </>)}
           </div>
         ) : (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: 24, animation: `stepDoneEnter 200ms ${EASE_OUT}`, opacity: 0.55 }}>
@@ -6179,7 +6350,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
               </p>
               <div style={{ display: 'flex', gap: 10 }}>
                 <Button variant="primary" onClick={() => { setMandateDenied(false); setStep(2); }} style={{ justifyContent: 'center', fontSize: 14, padding: '8px 20px' }}>Re-sign mandate</Button>
-                <Button variant="secondary" onClick={() => {}} style={{ justifyContent: 'center', fontSize: 14, padding: '8px 16px' }}>Contact support</Button>
+                <Button variant="secondary" onClick={() => { window.location.href = 'mailto:support@payflip.be?subject=Mobility%20card%20mandate%20declined'; }} style={{ justifyContent: 'center', fontSize: 14, padding: '8px 16px' }}>Contact support</Button>
               </div>
             </div>
           ) : (
@@ -6241,9 +6412,10 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
   const liveContent = () => {
     if (!live) return null;
     // Derive live numbers from actual setup values
-    const liveBalance = Math.round(deposit * 0.725);
+    const justLaunched = !!ws.justLaunched;
+    const liveBalance = justLaunched ? deposit : Math.round(deposit * 0.725);
     const liveSpent = deposit - liveBalance;
-    const liveActiveCards = Math.max(1, Math.floor(empCount * 0.6));
+    const liveActiveCards = justLaunched ? 0 : Math.max(1, Math.floor(empCount * 0.6));
     // Stepped path: y=0 = full deposit, y=100 = auto top-up threshold (20% of deposit)
     // 5 simulated spend events across 30 days totalling liveSpent
     const threshold = Math.round(deposit * 0.2);
@@ -6259,8 +6431,26 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
     _pts.push(`L 300,${yOf(_bal)}`);
     const linePath = _pts.join(' ');
     const areaPath = linePath + ' L 300,100 L 0,100 Z';
+    const fundingIssue = !!ws.fundingIssue;
     return (
       <div style={{ display: 'flex', flexDirection: 'column', opacity: liveVisible ? 1 : 0, transition: `opacity 250ms ${EASE_OUT}` }}>
+
+        {/* Funding-issue banner */}
+        {fundingIssue && (
+          <div style={{ display: 'flex', gap: 12, padding: '12px 20px', background: '#FEF2F2', borderBottom: `1px solid ${P.border}`, alignItems: 'flex-start' }}>
+            <Icon name="alert-triangle" size={16} color="#dc2626" strokeWidth={2} style={{ flexShrink: 0, marginTop: 2 }} />
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: '#dc2626', marginBottom: 2 }}>Top-up failed</div>
+              <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, lineHeight: '17px', marginBottom: 8 }}>
+                We couldn't collect the last top-up from your account. Your team's cards will keep working until the balance runs out.
+              </div>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <Button variant="primary" onClick={() => { setWs({ fundingIssue: false }); onToast?.({ message: 'Top-up retry queued', type: 'approve' }); }} style={{ fontSize: 12, padding: '4px 10px' }}>Retry top-up</Button>
+                <Button variant="secondary" onClick={() => { window.location.href = 'mailto:support@payflip.be?subject=Mobility%20card%20top-up%20failed'; }} style={{ fontSize: 12, padding: '4px 10px' }}>Contact support</Button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Balance hero */}
         <div style={{ padding: '18px 24px 14px' }}>
@@ -6271,17 +6461,25 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
           <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>of €{deposit.toLocaleString('de-DE')} funded</div>
         </div>
 
-        {/* Area chart — bleeds edge-to-edge */}
-        <svg viewBox="0 0 300 100" preserveAspectRatio="none" style={{ width: '100%', height: 110, display: 'block' }}>
-          <defs>
-            <linearGradient id="balGrad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#008556" stopOpacity="0.13" />
-              <stop offset="100%" stopColor="#008556" stopOpacity="0.01" />
-            </linearGradient>
-          </defs>
-          <path d={areaPath} fill="url(#balGrad)" />
-          <path d={linePath} fill="none" stroke="#008556" strokeWidth="1.5" vectorEffect="non-scaling-stroke" />
-        </svg>
+        {/* Area chart — bleeds edge-to-edge (or empty state when no activity yet) */}
+        {justLaunched ? (
+          <div style={{ height: 110, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4, background: `linear-gradient(180deg, ${P.bg} 0%, ${P.white} 100%)`, borderTop: `1px solid ${P.border}` }}>
+            <Icon name="line-chart" size={16} color={P.inkFaint} strokeWidth={1.5} />
+            <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>No transactions yet</span>
+            <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkFaint }}>Activity will appear here once your team starts spending</span>
+          </div>
+        ) : (
+          <svg viewBox="0 0 300 100" preserveAspectRatio="none" style={{ width: '100%', height: 110, display: 'block' }}>
+            <defs>
+              <linearGradient id="balGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#008556" stopOpacity="0.13" />
+                <stop offset="100%" stopColor="#008556" stopOpacity="0.01" />
+              </linearGradient>
+            </defs>
+            <path d={areaPath} fill="url(#balGrad)" />
+            <path d={linePath} fill="none" stroke="#008556" strokeWidth="1.5" vectorEffect="non-scaling-stroke" />
+          </svg>
+        )}
 
         {/* Stats row */}
         <div style={{ display: 'flex', borderTop: `1px solid ${P.border}` }}>
@@ -6294,6 +6492,30 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
               <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.ink }}>{value}</div>
             </div>
           ))}
+        </div>
+
+        {/* Actions */}
+        <div style={{ padding: '14px 20px', borderTop: `1px solid ${P.border}` }}>
+          {nooneToInvite ? (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '7px 14px', fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>
+              <Icon name="check" size={13} color={P.inkSoft} strokeWidth={2} />
+              <span>All eligible employees have been invited</span>
+            </div>
+          ) : (
+            <Button variant="secondary" icon="user-plus" onClick={() => setShowInviteMoreModal(true)} style={{ width: '100%', justifyContent: 'center', padding: '7px 14px', fontSize: 13 }}>
+              Invite more employees
+            </Button>
+          )}
+        </div>
+
+        {/* Dev-only simulation links */}
+        <div style={{ display: 'flex', gap: 14, padding: '8px 20px 12px' }}>
+          <a href="#" onClick={e => { e.preventDefault(); setWs({ justLaunched: !ws.justLaunched }); }} style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkFaint, textDecoration: 'underline' }}>
+            {ws.justLaunched ? 'Simulate activity ↗' : 'Simulate just launched ↗'}
+          </a>
+          <a href="#" onClick={e => { e.preventDefault(); setWs({ fundingIssue: !ws.fundingIssue }); }} style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkFaint, textDecoration: 'underline' }}>
+            {ws.fundingIssue ? 'Clear top-up issue ↗' : 'Simulate top-up failure ↗'}
+          </a>
         </div>
 
       </div>
@@ -6591,6 +6813,18 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
           </div>
         </div>
       </ModalShell>
+    )}
+
+    {/* Invite more employees (post-launch) */}
+    {showInviteMoreModal && (
+      <PersonPickerModal
+        title="Invite employees to Payflip Card"
+        value={[]}
+        sections={inviteMoreSections}
+        note="Only showing employees who haven't received an invite yet."
+        onSave={sendMoreInvites}
+        onClose={() => setShowInviteMoreModal(false)}
+      />
     )}
 
     </div>
@@ -7133,7 +7367,7 @@ function ExpenseCategorySettings({ categories, onSave, appEntity = null }) {
   );
 }
 
-function PersonPickerModal({ title, value, candidates, sections, singleSelect, onSave, onClose, appEntity }) {
+function PersonPickerModal({ title, value, candidates, sections, singleSelect, onSave, onClose, appEntity, note }) {
   const [selected, setSelected] = useState(singleSelect ? (value ? [value] : []) : (value || []));
   const [search, setSearch] = useState('');
   const [activeTab, setActiveTab] = useState(0);
@@ -7205,7 +7439,17 @@ function PersonPickerModal({ title, value, candidates, sections, singleSelect, o
         const save = () => { onSave(selected); close(); };
         return (
           <>
-        {/* Tabs first (when sections provided) */}
+        {/* Note callout */}
+        {note && (
+          <div style={{ padding: '10px 20px', flexShrink: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 8 }}>
+              <Icon name="circle-check" size={13} color="#16a34a" strokeWidth={2} />
+              <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: '#15803d' }}>{note}</span>
+            </div>
+          </div>
+        )}
+
+        {/* Tabs (when sections provided) */}
         {sections && (
           <div style={{ borderBottom: `1px solid ${P.border}`, flexShrink: 0 }}>
             <TabBar
