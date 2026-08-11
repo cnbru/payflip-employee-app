@@ -6499,11 +6499,9 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
           <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>of €{deposit.toLocaleString('de-DE')} funded</div>
         </div>
 
-        {/* Area chart — bleeds edge-to-edge (or empty state when no activity yet) */}
+        {/* Area chart — bleeds edge-to-edge, or empty state (no border — flows from balance hero with spacing only) */}
         {justLaunched ? (
-          <div style={{ borderTop: `1px solid ${P.border}` }}>
-            <EmptyState icon="line-chart" title="No transactions yet" description="Activity will appear here once your team starts spending." />
-          </div>
+          <EmptyState icon="line-chart" title="No transactions yet" description="Activity will appear here once your team starts spending." />
         ) : (
           <svg viewBox="0 0 300 100" preserveAspectRatio="none" style={{ width: '100%', height: 110, display: 'block' }}>
             <defs>
@@ -6517,18 +6515,20 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
           </svg>
         )}
 
-        {/* Stats row */}
-        <div style={{ display: 'flex', borderTop: `1px solid ${P.border}` }}>
-          {[
-            { label: 'Active cards', value: String(liveActiveCards) },
-            { label: 'Spent this month', value: `€${liveSpent.toLocaleString('de-DE')}` },
-          ].map(({ label, value }, i) => (
-            <div key={label} style={{ flex: 1, padding: '12px 20px', borderLeft: i === 1 ? `1px solid ${P.border}` : 'none' }}>
-              <div style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkSoft, marginBottom: 3 }}>{label}</div>
-              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.ink }}>{value}</div>
-            </div>
-          ))}
-        </div>
+        {/* Stats row — hidden when just launched (0/€0 adds no information) */}
+        {!justLaunched && (
+          <div style={{ display: 'flex', borderTop: `1px solid ${P.border}` }}>
+            {[
+              { label: 'Active cards', value: String(liveActiveCards) },
+              { label: 'Spent this month', value: `€${liveSpent.toLocaleString('de-DE')}` },
+            ].map(({ label, value }, i) => (
+              <div key={label} style={{ flex: 1, padding: '12px 20px', borderLeft: i === 1 ? `1px solid ${P.border}` : 'none' }}>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkSoft, marginBottom: 3 }}>{label}</div>
+                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.ink }}>{value}</div>
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* Invite CTA — hidden when there's a payment issue to resolve */}
         {!fundingIssue && (
