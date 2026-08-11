@@ -5902,14 +5902,11 @@ function CardTab({ empId, emp, mobilityLive, onToast, onNav }) {
           )}
         >
           <div style={{ padding: '20px 22px' }}>
-            <div style={{ marginBottom: 14 }}>
+            <div style={{ marginBottom: 16 }}>
               <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 15, color: P.ink, marginBottom: 2 }}>{emp.name}</div>
               <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>{seed?.cardType === 'physical' ? 'Physical' : 'Virtual'} card ···· {displayPan || '—'}</div>
             </div>
-            <div style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, lineHeight: 1.55 }}>
-              {isFrozen ? `${first}'s card will be reactivated immediately. They'll be able to make payments again.`
-                : `${first}'s card will be paused immediately. No payments can be made until you unfreeze it.`}
-            </div>
+            <img src={PAYFLIP_CARD_IMG} alt="Payflip Card" style={{ width: '100%', borderRadius: 12, display: 'block', boxShadow: '0 4px 16px rgba(15,13,40,0.15)' }} />
           </div>
         </ModalShell>
       )}
@@ -5930,13 +5927,11 @@ function CardTab({ empId, emp, mobilityLive, onToast, onNav }) {
           )}
         >
           <div style={{ padding: '20px 22px' }}>
-            <div style={{ marginBottom: 14 }}>
+            <div style={{ marginBottom: 16 }}>
               <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 15, color: P.ink, marginBottom: 2 }}>{emp.name}</div>
               <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>{seed?.cardType === 'physical' ? 'Physical' : 'Virtual'} card ···· {displayPan || '—'}</div>
             </div>
-            <div style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, lineHeight: 1.55 }}>
-              {first}'s current card will be cancelled immediately and a new virtual card will be issued. {seed?.cardType === 'physical' ? 'A replacement physical card will be shipped within 3–5 business days.' : `${first} can start using the new card right away in the Payflip app.`}
-            </div>
+            <img src={PAYFLIP_CARD_IMG} alt="Payflip Card" style={{ width: '100%', borderRadius: 12, display: 'block', boxShadow: '0 4px 16px rgba(15,13,40,0.15)' }} />
           </div>
         </ModalShell>
       )}
@@ -5957,13 +5952,11 @@ function CardTab({ empId, emp, mobilityLive, onToast, onNav }) {
           )}
         >
           <div style={{ padding: '20px 22px' }}>
-            <div style={{ marginBottom: 14 }}>
+            <div style={{ marginBottom: 16 }}>
               <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 15, color: P.ink, marginBottom: 2 }}>{emp.name}</div>
               <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>{seed?.cardType === 'physical' ? 'Physical' : 'Virtual'} card ···· {displayPan || '—'}</div>
             </div>
-            <div style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, lineHeight: 1.55 }}>
-              The current card will be cancelled and a new virtual card will be issued to {first} automatically.
-            </div>
+            <img src={PAYFLIP_CARD_IMG} alt="Payflip Card" style={{ width: '100%', borderRadius: 12, display: 'block', boxShadow: '0 4px 16px rgba(15,13,40,0.15)' }} />
           </div>
         </ModalShell>
       )}
@@ -5979,13 +5972,11 @@ function CardTab({ empId, emp, mobilityLive, onToast, onNav }) {
           )}
         >
           <div style={{ padding: '20px 22px' }}>
-            <div style={{ marginBottom: 14 }}>
+            <div style={{ marginBottom: 16 }}>
               <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 15, color: P.ink, marginBottom: 2 }}>{emp.name}</div>
               <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>{seed?.cardType === 'physical' ? 'Physical' : 'Virtual'} card ···· {displayPan || '—'}</div>
             </div>
-            <div style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, lineHeight: 1.55 }}>
-              {first}'s card will be permanently blocked. This cannot be undone — they will need to request a new card from the Payflip app.
-            </div>
+            <img src={PAYFLIP_CARD_IMG} alt="Payflip Card" style={{ width: '100%', borderRadius: 12, display: 'block', boxShadow: '0 4px 16px rgba(15,13,40,0.15)' }} />
           </div>
         </ModalShell>
       )}
