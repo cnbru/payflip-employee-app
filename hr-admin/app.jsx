@@ -5893,7 +5893,7 @@ function CardTab({ empId, emp, mobilityLive, onToast, onNav }) {
         <ModalShell title={isFrozen ? 'Unfreeze card' : 'Freeze card'} onClose={() => setFreezeConfirmOpen(false)} width={420}
           footer={close => (
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, padding: '14px 22px', borderTop: `1px solid ${P.border}` }}>
-              <Button variant="secondary" onClick={close}>Cancel</Button>
+              <Button variant="secondary" onClick={close}>Keep card</Button>
               <Button variant="primary" onClick={() => {
                 setStatus(isFrozen ? 'active' : 'frozen'); close();
                 onToast && onToast({ message: isFrozen ? `${first}'s card unfrozen` : `${first}'s card frozen`, type: isFrozen ? 'approve' : 'decline' });
@@ -5902,20 +5902,25 @@ function CardTab({ empId, emp, mobilityLive, onToast, onNav }) {
           )}
         >
           <div style={{ padding: '20px 22px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
               <img src={PAYFLIP_CARD_IMG} alt="" style={{ width: 52, height: 33, borderRadius: 5, display: 'block', flexShrink: 0 }} />
               <div>
                 <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 15, color: P.ink, marginBottom: 2 }}>{emp.name}</div>
                 <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>{seed?.cardType === 'physical' ? 'Physical' : 'Virtual'} card ···· {displayPan || '—'}</div>
               </div>
             </div>
+            <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, lineHeight: 1.55 }}>
+              {isFrozen
+                ? `Payments will resume immediately. ${first} won't be notified.`
+                : `Payments will be paused immediately. ${first} won't be notified. You can unfreeze at any time.`}
+            </p>
           </div>
         </ModalShell>
       )}
 
       {/* Lost or stolen confirm */}
       {lostConfirmOpen && (
-        <ModalShell title="Report card as lost or stolen" onClose={() => setLostConfirmOpen(false)} width={440}
+        <ModalShell title="Report lost or stolen" onClose={() => setLostConfirmOpen(false)} width={420}
           footer={close => (
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, padding: '14px 22px', borderTop: `1px solid ${P.border}` }}>
               <Button variant="secondary" onClick={close}>Keep card</Button>
@@ -5929,13 +5934,16 @@ function CardTab({ empId, emp, mobilityLive, onToast, onNav }) {
           )}
         >
           <div style={{ padding: '20px 22px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
               <img src={PAYFLIP_CARD_IMG} alt="" style={{ width: 52, height: 33, borderRadius: 5, display: 'block', flexShrink: 0 }} />
               <div>
                 <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 15, color: P.ink, marginBottom: 2 }}>{emp.name}</div>
                 <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>{seed?.cardType === 'physical' ? 'Physical' : 'Virtual'} card ···· {displayPan || '—'}</div>
               </div>
             </div>
+            <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, lineHeight: 1.55 }}>
+              The current card will be cancelled immediately and a new virtual card issued. {first} won't be notified. This cannot be undone.
+            </p>
           </div>
         </ModalShell>
       )}
@@ -5945,7 +5953,7 @@ function CardTab({ empId, emp, mobilityLive, onToast, onNav }) {
         <ModalShell title="Replace card" onClose={() => setReplaceConfirmOpen(false)} width={420}
           footer={close => (
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, padding: '14px 22px', borderTop: `1px solid ${P.border}` }}>
-              <Button variant="secondary" onClick={close}>Cancel</Button>
+              <Button variant="secondary" onClick={close}>Keep card</Button>
               <Button variant="primary" onClick={() => {
                 const newPan = String(Math.floor(1000 + Math.random() * 9000));
                 setDisplayPan(newPan);
@@ -5956,35 +5964,41 @@ function CardTab({ empId, emp, mobilityLive, onToast, onNav }) {
           )}
         >
           <div style={{ padding: '20px 22px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
               <img src={PAYFLIP_CARD_IMG} alt="" style={{ width: 52, height: 33, borderRadius: 5, display: 'block', flexShrink: 0 }} />
               <div>
                 <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 15, color: P.ink, marginBottom: 2 }}>{emp.name}</div>
                 <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>{seed?.cardType === 'physical' ? 'Physical' : 'Virtual'} card ···· {displayPan || '—'}</div>
               </div>
             </div>
+            <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, lineHeight: 1.55 }}>
+              The current card will be cancelled and a new one issued automatically. {first} can use it right away in the Payflip app. This cannot be undone.
+            </p>
           </div>
         </ModalShell>
       )}
 
       {/* Block confirm */}
       {blockConfirmOpen && (
-        <ModalShell title="Block card permanently" onClose={() => setBlockConfirmOpen(false)} width={420}
+        <ModalShell title="Block card" onClose={() => setBlockConfirmOpen(false)} width={420}
           footer={close => (
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, padding: '14px 22px', borderTop: `1px solid ${P.border}` }}>
-              <Button variant="secondary" onClick={close}>Cancel</Button>
-              <Button variant="danger" onClick={() => { close(); setStatus('not_invited'); onToast && onToast({ message: `${first}'s card blocked`, type: 'decline' }); }}>Block card</Button>
+              <Button variant="secondary" onClick={close}>Keep card</Button>
+              <Button variant="primary" style={{ background: '#dc2626' }} onClick={() => { close(); setStatus('not_invited'); onToast && onToast({ message: `${first}'s card blocked`, type: 'decline' }); }}>Block card</Button>
             </div>
           )}
         >
           <div style={{ padding: '20px 22px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
               <img src={PAYFLIP_CARD_IMG} alt="" style={{ width: 52, height: 33, borderRadius: 5, display: 'block', flexShrink: 0 }} />
               <div>
                 <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 15, color: P.ink, marginBottom: 2 }}>{emp.name}</div>
                 <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>{seed?.cardType === 'physical' ? 'Physical' : 'Virtual'} card ···· {displayPan || '—'}</div>
               </div>
             </div>
+            <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, lineHeight: 1.55 }}>
+              {first}'s card will be permanently blocked. This cannot be undone — they'll need to request a new card from the Payflip app.
+            </p>
           </div>
         </ModalShell>
       )}
