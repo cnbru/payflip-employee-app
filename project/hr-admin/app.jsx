@@ -5711,6 +5711,7 @@ function CardTab({ empId, emp, mobilityLive, onToast, onNav }) {
   const [lostConfirmOpen, setLostConfirmOpen] = useState(false);
   const [displayPan, setDisplayPan] = useState(seed?.pan);
   const [reissued, setReissued] = useState(false);
+  const [isReissuing, setIsReissuing] = useState(false);
 
   const isFrozen = status === 'frozen';
   const isBlocked = status === 'blocked';
@@ -5882,7 +5883,7 @@ function CardTab({ empId, emp, mobilityLive, onToast, onNav }) {
 
       {/* Card + action circles side by side */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 36, marginBottom: 28 }}>
-        <div style={{ flexShrink: 0, opacity: isFrozen ? 0.5 : isBlocked ? 0.3 : 1, filter: (isFrozen || isBlocked) ? 'saturate(0)' : 'none', transition: 'opacity 300ms, filter 300ms' }}>
+        <div style={{ flexShrink: 0, opacity: isFrozen ? 0.5 : isBlocked ? 0.3 : isReissuing ? 0.55 : 1, filter: (isFrozen || isBlocked) ? 'saturate(0)' : isReissuing ? 'saturate(0) brightness(1.08)' : 'none', transition: 'opacity 600ms, filter 600ms' }}>
           <img src={PAYFLIP_CARD_IMG} alt="Payflip Card" style={{ width: 240, height: 151, display: 'block', borderRadius: 14, boxShadow: '0 6px 20px rgba(15,13,40,0.2)' }} />
         </div>
         {isBlocked ? (
@@ -5963,7 +5964,8 @@ function CardTab({ empId, emp, mobilityLive, onToast, onNav }) {
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, padding: '14px 22px', borderTop: `1px solid ${P.border}` }}>
               <Button variant="secondary" onClick={close}>Keep card</Button>
               <Button variant="primary" onClick={() => {
-                setReissued(true); close();
+                setIsReissuing(true); close();
+                setTimeout(() => { setIsReissuing(false); setReissued(true); }, 1500);
                 onToast && onToast({ message: `Card reissued for ${first}`, type: 'approve' });
               }}>Reissue card</Button>
             </div>
