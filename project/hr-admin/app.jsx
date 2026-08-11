@@ -6319,8 +6319,8 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
         </div>
 
         {/* Actions */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 20px', borderTop: `1px solid ${P.border}` }}>
-          <Button variant="primary" icon="user-plus" onClick={() => setShowInviteMoreModal(true)} style={{ padding: '7px 14px', fontSize: 13 }}>
+        <div style={{ padding: '14px 20px', borderTop: `1px solid ${P.border}` }}>
+          <Button variant="secondary" icon="user-plus" onClick={() => setShowInviteMoreModal(true)} style={{ width: '100%', justifyContent: 'center', padding: '7px 14px', fontSize: 13 }}>
             Invite more employees
           </Button>
         </div>
