@@ -5809,16 +5809,8 @@ function CardTab({ empId, emp, mobilityLive, onToast }) {
           isFrozen ? 'Unfreeze card' : 'Freeze card',
           isFrozen ? { border: '#bfdbfe', bg: '#eff6ff', hoverBg: '#dbeafe', color: '#1d4ed8', sw: 2 } : {}
         )}
-        {hasActiveCard && actionBtn(
-          () => setReplaceConfirmOpen(true),
-          'refresh-cw', 'Replace card',
-          { border: '#fcd34d', bg: '#fffbeb', hoverBg: '#fef3c7', color: '#78350f' }
-        )}
-        {hasActiveCard && actionBtn(
-          () => setBlockConfirmOpen(true),
-          'ban', 'Block card permanently',
-          { border: '#fecaca', bg: '#fff5f5', hoverBg: '#fee2e2', color: '#dc2626' }
-        )}
+        {hasActiveCard && actionBtn(() => setReplaceConfirmOpen(true), 'refresh-cw', 'Replace card')}
+        {hasActiveCard && actionBtn(() => setBlockConfirmOpen(true), 'ban', 'Block card permanently')}
         {(isInvited || isDownloaded) && actionBtn(
           () => { onToast && onToast({ message: `Invite resent to ${first}`, type: 'approve' }); },
           'send', 'Resend invite'
