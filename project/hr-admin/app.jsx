@@ -9814,6 +9814,17 @@ function BenefitsSettings({ appEntity = null }) {
 // ── Changelog ──────────────────────────────────────────────────────────────
 const CHANGELOG_ENTRIES = [
   {
+    date: '12 Aug 2026',
+    title: 'Meal voucher setup widget + CardTab modal copy',
+    items: [
+      { summary: 'Meal voucher widget: full 5-step setup flow', detail: 'Select employees → Sign mandate → Awaiting approval → Select social secretariat → Notify employees. Two-column layout with lavender gradient and card artwork, matching the mobility widget exactly.', why: 'The food widget was a stub with a different visual language and no end-to-end flow. Now has full parity with mobility, with the correct meal-voucher-specific step for social secretariat selection.' },
+      { summary: 'Mandate copy corrected for meal vouchers', detail: 'Previous copy ("top up automatically when the balance runs low") described the mobility funding model, not the meal voucher one. New copy: "collect the exact meal voucher amount each month, based on the number of days employees have worked."', why: 'In Belgium, meal vouchers are calculated per worked day and collected precisely — no deposit buffer, no top-up events. Using the mobility copy would confuse any admin who knows how social secretariats work.' },
+      { summary: 'Employee picker: flat list, no budget tabs', detail: 'Food picker shows "All employees (N)" with no section tabs and no tab bar (tab bar is now suppressed whenever there is only one section).', why: 'Meal vouchers have no budget eligibility filter — all active employees qualify regardless of mobility budget. Showing "Has budget / Budget used up" tabs in the food picker was incorrect and misleading.' },
+      { summary: 'Widget header: "Launch meal vouchers" in food mode', why: 'The header was "Mobility card" in both modes. Food mode needed its own title to name what the admin is actually setting up.' },
+      { summary: 'CardTab modals: outcome distinction and notification disclosure', detail: 'Lost/stolen vs. Block now have explicitly different consequence copy — Lost/stolen auto-issues a replacement immediately; Block requires the employee to request a new card from the app. All four modals (Freeze, Lost/stolen, Replace, Block) now state consistently whether the employee is notified.', why: 'The two permanent-action modals looked nearly identical despite having opposite recovery paths. Not knowing whether the employee is notified is material for irreversible actions — the admin needs to decide whether to reach out manually.' },
+    ],
+  },
+  {
     date: '11 Aug 2026',
     title: 'Mobility card widget: full setup flow and live state',
     items: [

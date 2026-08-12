@@ -6,6 +6,41 @@ This file is not part of the prototype itself — it's project documentation to 
 
 ---
 
+## 2026-08-12 — Meal voucher setup widget and CardTab modal copy
+
+### Meal voucher setup widget
+
+The food widget was a stub. It now mirrors the mobility widget's design language end-to-end, with meal-voucher-specific logic where the two products diverge.
+
+**Layout.** Two-column: setup steps on the left, lavender gradient with card artwork on the right — matching the mobility setup widget exactly. Same CardTilt 3D hover effect.
+
+**Setup flow (5 steps):**
+- **Step 1 — Select employees.** Stat box showing employee count (all active employees pre-selected). "Review" link opens the picker. *Why 5 steps instead of 4:* meal vouchers require a social secretariat selection that mobility doesn't — the extra step belongs between the mandate approval and employee notification.
+- **Step 2 — Sign mandate.** Admin authorises Payflip via Twikey direct debit. Copy updated to reflect the meal voucher funding model: Payflip collects the **exact amount owed each month, based on days worked** — no deposit buffer, no top-up logic. This is categorically different from mobility's "collect a deposit and top up when low" model.
+- **Step 3 — Awaiting approval.** System-managed; auto-advances in the prototype with a toast. Calm copy — no action needed.
+- **Step 4 — Select social secretariat.** Meal-voucher-only step (Partena, SD Worx, Securex, Acerta). Confirm advances to step 5.
+- **Step 5 — Notify employees.** Matches mobility's invite step verbatim, including the "You don't issue cards yourself" mental model callout.
+
+**Employee picker.** Meal vouchers have no budget eligibility filter — all active employees are eligible regardless of mobility budget. The picker now shows a flat "All employees (N)" list with no tabs. The tab bar is also suppressed entirely when there's only one section (mobility's picker keeps tabs because it splits "Has budget" vs "Budget used up").
+
+**Widget header.** Shows "Launch meal vouchers" in food mode, "Mobility card" in mobility mode.
+
+### Key product decisions
+
+- **Mandate copy must reflect the actual funding model.** The mobility copy ("top up automatically when the balance runs low") was incorrect for meal vouchers. In Belgium, meal vouchers are collected per worked day — the right amount is calculated precisely each month with no buffer and no top-up events. Using the wrong copy would confuse any admin who knows how social secretariats work.
+- **No budget eligibility filter for meal vouchers.** Mobility filters employees by remaining budget (has budget / budget used up) because employees without budget can't use the mobility card. Meal vouchers don't work that way — eligibility is by contract type, not by a budget balance. Showing budget tabs in the food picker was misleading.
+- **Tab bar hidden for single-section pickers.** A tab bar with one tab adds visual chrome without providing navigation value. Generalised the rule in `PersonPickerModal`: tabs only render when there are two or more sections.
+
+### CardTab modals (apple-design review)
+
+Reviewed the four action modals triggered from CardTab (Freeze/Unfreeze, Lost or stolen, Replace, Block) and tightened copy across all four:
+
+- **Outcome distinction clarified: Lost/stolen vs. Block.** These two looked nearly identical but have opposite recovery paths. Lost/stolen cancels the current card and immediately issues a new virtual card — employee is back up and running without any action. Block permanently stops the card and requires the employee to request a new one themselves from the app. The distinction is now explicit in both modals.
+- **Notification disclosure added consistently.** All four modals now say explicitly whether the employee is notified. Previously only Freeze mentioned it. For modals covering irreversible actions (Lost/stolen, Block), knowing the employee won't be notified is material — the admin needs to decide whether to reach out manually.
+- **Action circle labels.** "Lost or stolen" shortened to "Report lost" (fits the circle label width); action circles gap reduced for tighter visual grouping.
+
+---
+
 ## 2026-08-11 — Mobility card widget: full setup flow and live state
 
 The mobility card widget was rebuilt from a rough stub into a complete product flow — covering the admin journey from first setup through post-launch monitoring.
