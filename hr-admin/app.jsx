@@ -10832,7 +10832,7 @@ function App() {
   const [companyEvents, setCompanyEvents] = useState([]);
   const [toasts, setToasts] = useState([]);
   const addToast = (t) => setToasts(prev => [{ id: `t-${prev.length}-${Date.now()}`, ...t }, ...prev]);
-  const removeToast = (id) => setToasts(prev => prev.filter(t => t.id !== id));
+  const removeToast = () => setToasts([]);
   const [addEmployeeOpen, setAddEmployeeOpen] = useState(false);
   const [freshEmployeeId, setFreshEmployeeId] = useState(null);
   const handleAddEmployee = (id, emp, extra, fullName, sendInvite, inviteToCard) => {
