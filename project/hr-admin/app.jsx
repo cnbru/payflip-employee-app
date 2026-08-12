@@ -6419,16 +6419,19 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
               <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
                 Virtual cards are included automatically. Physical cards are optional — employees request their own from the app if you enable it here.
               </p>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div style={{ border: `1px solid ${P.border}`, borderRadius: 10, overflow: 'hidden', background: physicalCardsAllowed ? '#faf8ff' : P.bg }}>
                 <div onClick={() => onPhysicalCardsChange && onPhysicalCardsChange(!physicalCardsAllowed)}
-                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 14px', border: `1px solid ${P.border}`, borderRadius: 10, cursor: 'pointer', background: physicalCardsAllowed ? '#faf8ff' : P.bg }}>
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 14px', cursor: 'pointer' }}>
                   <div>
                     <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.ink }}>Allow employees to request physical cards</div>
                     <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, marginTop: 2 }}>€10 per card</div>
                   </div>
                   <Switch checked={!!physicalCardsAllowed} onChange={() => {}} />
                 </div>
-                <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, textAlign: 'center' }}>You can change this any time in Payflip Card settings.</div>
+                <div style={{ borderTop: `1px solid ${P.border}`, padding: '10px 14px', display: 'flex', alignItems: 'flex-start', gap: 7 }}>
+                  <Icon name="info" size={13} color={P.inkSoft} strokeWidth={2} style={{ flexShrink: 0, paddingTop: 2 }} />
+                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>You can change this any time in Payflip Card settings.</span>
+                </div>
               </div>
               <Button variant="primary" onClick={() => setStep(4)} style={{ width: '100%', justifyContent: 'center', fontSize: 15, padding: '10px 18px' }}>Continue</Button>
             </div>
@@ -6924,7 +6927,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
         )}>
         <div style={{ padding: '20px 22px' }}>
           <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink, lineHeight: '20px', margin: 0 }}>
-            {empCount} employees will receive an email right now inviting them to download the Payflip app and request their Payflip Card. This can't be undone.
+            Emails go out immediately and can't be recalled.
           </p>
         </div>
       </ModalShell>
