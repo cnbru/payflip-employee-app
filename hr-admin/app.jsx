@@ -3809,8 +3809,8 @@ function AddExpenseModal({ categories, onClose, onSave }) {
           </div>
         </div>
         <div style={{ flexShrink: 0, display: 'flex', gap: 10, padding: '16px 24px', borderTop: `1px solid ${P.border}` }}>
-          <Button variant="secondary" onClick={close} style={{ flex: 1, padding: '10px 0', color: P.inkSoft }}>Cancel</Button>
-          <Button variant="primary" onClick={submit} style={{ flex: 2, padding: '10px 0' }}>Add expense</Button>
+          <Button variant="secondary" onClick={close} style={{ flex: 1, justifyContent: 'center', color: P.inkSoft }}>Cancel</Button>
+          <Button variant="primary" onClick={submit} style={{ flex: 2, justifyContent: 'center' }}>Add expense</Button>
         </div>
           </>
         );
