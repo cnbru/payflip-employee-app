@@ -10309,9 +10309,46 @@ function ToastItem({ toast, onDone }) {
 }
 
 function ToastStack({ toasts, onRemove }) {
+  const MAX_VISIBLE = 3;
+  const PEEK = 14; // px each back toast peeks above the front
+  const visible = toasts.slice(0, MAX_VISIBLE);
+  if (!visible.length) return null;
+
+  // Shift the container DOWN by (n-1)*PEEK so back toasts peek above
+  // without going above viewport. Front toast always sits at the container bottom.
+  const extra = (visible.length - 1) * PEEK;
+
   return (
-    <div style={{ position: 'fixed', top: 24, right: 24, display: 'flex', flexDirection: 'column', gap: 8, zIndex: 300, alignItems: 'flex-end' }}>
-      {toasts.map(t => <ToastItem key={t.id} toast={t} onDone={() => onRemove(t.id)} />)}
+    <div style={{ position: 'fixed', top: 24 + extra, right: 24, zIndex: 300 }}>
+      {[...visible].reverse().map((t, ri) => {
+        const i = visible.length - 1 - ri; // 0 = newest/front
+        const isBack = i > 0;
+        return (
+          <div key={t.id} style={{
+            position: i === 0 ? 'relative' : 'absolute',
+            top: i === 0 ? 'auto' : -(i * PEEK),
+            right: 0,
+            left: i === 0 ? 'auto' : 0,
+            zIndex: MAX_VISIBLE - i,
+            transform: isBack ? `scale(${1 - i * 0.06})` : 'none',
+            transformOrigin: 'top center',
+            transition: `transform 250ms ${EASE_OUT}`,
+            pointerEvents: i === 0 ? 'auto' : 'none',
+          }}>
+            {isBack ? (
+              <div style={{
+                background: P.white,
+                borderRadius: 10,
+                border: `1px solid ${P.border}`,
+                boxShadow: '0 4px 20px rgba(15,13,40,0.08)',
+                height: 44,
+              }} />
+            ) : (
+              <ToastItem toast={t} onDone={() => onRemove(t.id)} />
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 }
