@@ -6385,6 +6385,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
                 <Switch checked={!!physicalCardsAllowed} onChange={() => {}} />
               </div>
               <Button variant="primary" onClick={() => setStep(4)} style={{ width: '100%', justifyContent: 'center', fontSize: 15, padding: '10px 18px' }}>Continue</Button>
+              <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, textAlign: 'center' }}>You can change this any time in Payflip Card settings.</div>
             </div>
           </div>
         </div>
