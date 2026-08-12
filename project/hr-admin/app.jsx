@@ -7041,8 +7041,15 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, onToas
   // Y axis: 0 = full deposit (top), 100 = empty (bottom). Threshold sits at ~80% down.
   const thresholdY2 = +((1 - threshold2 / deposit2) * 100).toFixed(1);
   const yOf2 = (b) => +((1 - Math.max(0, b) / deposit2) * 100).toFixed(1);
-  // Scale spend events so the path ends at the actual simulated balance
-  const rawSpend2 = [[4, 15], [11, 12], [17, 10], [23, 8], [29, 10]];
+  // Per-state spend cadence — shape tells the story, scaling aligns to the actual balance
+  // Normal: 5 even steps, regular healthy spend
+  // Topping-up: 3 large accelerating steps, rapid depletion that triggered auto top-up
+  // Funding issue: 4 front-heavy steps, big initial burst that drained the account
+  const rawSpend2 = fundingIssue2
+    ? [[3, 38], [11, 28], [20, 22], [28, 12]]
+    : toppingUp2
+    ? [[5, 20], [14, 32], [24, 48]]
+    : [[5, 18], [11, 22], [17, 20], [23, 22], [29, 18]];
   const rawTotal2 = rawSpend2.reduce((s, [, a]) => s + a, 0);
   const spendScale2 = (deposit2 - liveBalance2) / rawTotal2;
   const spendEvents2 = rawSpend2.map(([day, amt]) => [day, amt * spendScale2]);
