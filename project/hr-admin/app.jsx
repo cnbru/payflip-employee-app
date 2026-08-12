@@ -6129,6 +6129,8 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showPickerModal, setShowPickerModal] = useState(false);
   const [showInviteMoreModal, setShowInviteMoreModal] = useState(false);
+  const [liveMenuOpen, setLiveMenuOpen] = useState(false);
+  const { rendered: liveMenuRendered, visible: liveMenuVisible } = usePopoverTransition(liveMenuOpen);
 
   // Food-mode state (untouched)
   const [socialSecretariat, setSocialSecretariat] = useState('SD Worx');
@@ -6253,6 +6255,15 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
     setWs({ live: true, invitedKeys: selectedEmployees });
     onToast?.({ message: `Invites sent. ${empCount} employees have been invited to request their Payflip Card.`, type: 'approve' });
   };
+
+  useEffect(() => {
+    if (!liveMenuOpen) return;
+    const handler = (e) => {
+      if (!e.target.closest('[data-live-menu]')) setLiveMenuOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [liveMenuOpen]);
 
   // Post-launch invite picker — same employee pool as setup (allEligible = has a mobility budget),
   // minus anyone already invited. Employees with zero/no mobility budget don't appear here.
@@ -6455,11 +6466,15 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
     // Derive live numbers from actual setup values
     const justLaunched = !!ws.justLaunched;
     const fundingIssue = !!ws.fundingIssue;
-    // Top-up failure only makes sense after spending has depleted the balance —
-    // so when fundingIssue is true the balance is always near-empty (just below the
-    // 20% auto-top-up threshold that triggered the failed collection attempt).
+    const toppingUp = !!ws.toppingUp;
+    // Balance varies by state:
+    // - toppingUp: just below the 20% threshold that triggered collection
+    // - fundingIssue: same threshold region, but collection failed
+    // - justLaunched: full deposit (no spend yet)
+    // - healthy: ~72% remaining (some spend events have occurred)
     const liveBalance = fundingIssue
       ? Math.round(deposit * 0.12)
+      : toppingUp ? Math.round(deposit * 0.15)
       : justLaunched ? deposit : Math.round(deposit * 0.725);
     const liveSpent = deposit - liveBalance;
     const liveActiveCards = (justLaunched && !fundingIssue) ? 0 : Math.max(1, Math.floor(empCount * 0.6));
@@ -6485,18 +6500,12 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
         {/* Funding-issue state — widget has one job: resolve the payment */}
         {fundingIssue && (
           <div style={{ padding: '20px 24px 18px', borderBottom: `1px solid ${P.border}` }}>
-            <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start', marginBottom: 16 }}>
-              <div style={{ flexShrink: 0, width: 32, height: 32, borderRadius: '50%', background: '#FEE2E2', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Icon name="alert-triangle" size={15} color="#dc2626" strokeWidth={2} />
-              </div>
-              <div>
-                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 15, color: P.ink, marginBottom: 4 }}>Top-up failed</div>
-                <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, lineHeight: '18px' }}>
-                  We couldn't collect the scheduled top-up. Balance is €{liveBalance.toLocaleString('de-DE')} — retry now to avoid disruption.
-                </div>
-              </div>
+            <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, lineHeight: '18px', marginBottom: 16 }}>
+              The scheduled top-up couldn't be collected. Open Twikey to see the reason — it may require correcting bank details or re-signing the mandate before retrying.
             </div>
-            <Button variant="primary" onClick={() => { setWs({ fundingIssue: false }); onToast?.({ message: 'Top-up retry queued', type: 'approve' }); }} style={{ width: '100%', justifyContent: 'center', fontSize: 13, padding: '9px 14px', marginBottom: 10 }}>Retry top-up</Button>
+            <Button variant="primary" onClick={() => { window.open('https://app.twikey.com', '_blank'); }} style={{ width: '100%', justifyContent: 'center', fontSize: 13, padding: '9px 14px', marginBottom: 10 }}>
+              Resolve in Twikey →
+            </Button>
             <div style={{ textAlign: 'center' }}>
               <a href="mailto:support@payflip.be?subject=Mobility%20card%20top-up%20failed" style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, textDecoration: 'underline' }}>Contact support</a>
             </div>
@@ -6506,10 +6515,18 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
         {/* Balance hero */}
         <div style={{ padding: '18px 24px 16px' }}>
           <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, marginBottom: 6 }}>Account balance</div>
-          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 28, color: fundingIssue ? '#dc2626' : P.ink, letterSpacing: '-0.5px', lineHeight: 1, marginBottom: 10 }}>
+          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 28, color: fundingIssue ? '#dc2626' : P.ink, letterSpacing: '-0.5px', lineHeight: 1, marginBottom: toppingUp ? 6 : 10 }}>
             €{liveBalance.toLocaleString('de-DE')}
           </div>
-          <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>of €{deposit.toLocaleString('de-DE')} funded</div>
+          {toppingUp && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontFamily: 'var(--font-body)', fontSize: 13, color: '#1d4ed8', fontWeight: 500, marginBottom: 8 }}>
+              <Icon name="arrow-down-circle" size={13} color="#1d4ed8" strokeWidth={2} />
+              <span>+ €{deposit.toLocaleString('de-DE')} incoming</span>
+            </div>
+          )}
+          <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>
+            {toppingUp ? `Auto top-up threshold: €${threshold.toLocaleString('de-DE')}` : `of €${deposit.toLocaleString('de-DE')} funded`}
+          </div>
         </div>
 
         {/* Area chart — bleeds edge-to-edge, or empty state (no border — flows from balance hero with spacing only) */}
@@ -6519,12 +6536,12 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
           <svg viewBox="0 0 300 100" preserveAspectRatio="none" style={{ width: '100%', height: 110, display: 'block' }}>
             <defs>
               <linearGradient id="balGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor={fundingIssue ? '#dc2626' : '#008556'} stopOpacity="0.1" />
-                <stop offset="100%" stopColor={fundingIssue ? '#dc2626' : '#008556'} stopOpacity="0.01" />
+                <stop offset="0%" stopColor={fundingIssue ? '#dc2626' : toppingUp ? '#1d4ed8' : '#008556'} stopOpacity="0.1" />
+                <stop offset="100%" stopColor={fundingIssue ? '#dc2626' : toppingUp ? '#1d4ed8' : '#008556'} stopOpacity="0.01" />
               </linearGradient>
             </defs>
             <path d={areaPath} fill="url(#balGrad)" />
-            <path d={linePath} fill="none" stroke={fundingIssue ? '#dc2626' : '#008556'} strokeWidth="1.5" vectorEffect="non-scaling-stroke" />
+            <path d={linePath} fill="none" stroke={fundingIssue ? '#dc2626' : toppingUp ? '#1d4ed8' : '#008556'} strokeWidth="1.5" vectorEffect="non-scaling-stroke" />
           </svg>
         )}
 
@@ -6543,38 +6560,21 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
           </div>
         )}
 
-        {/* Invite CTA — hidden when there's a payment issue to resolve, or just launched (invites just went out) */}
-        {!fundingIssue && !justLaunched && (
-          <div style={{ padding: '14px 20px', borderTop: `1px solid ${P.border}` }}>
-            {nooneToInvite ? (
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '7px 14px', fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>
-                <Icon name="check" size={13} color={P.inkSoft} strokeWidth={2} />
-                <span>All eligible employees have been invited</span>
-              </div>
-            ) : (
-              <Button variant="secondary" icon="user-plus" onClick={() => setShowInviteMoreModal(true)} style={{ width: '100%', justifyContent: 'center', padding: '7px 14px', fontSize: 13 }}>
-                Invite more employees
-              </Button>
-            )}
-          </div>
-        )}
-
-        {/* View transactions link — only in active state with spend data */}
-        {!fundingIssue && !justLaunched && (
-          <div style={{ padding: '10px 20px', borderTop: `1px solid ${P.border}`, textAlign: 'center' }}>
-            <a href="#" onClick={e => { e.preventDefault(); onNav && onNav('choices'); }} style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.ink, textDecoration: 'underline' }}>View transactions</a>
-          </div>
-        )}
-
         {/* Dev-only simulation links — mutually exclusive states */}
-        <div style={{ display: 'flex', gap: 14, padding: '8px 20px 12px', borderTop: `1px solid ${P.border}` }}>
-          {/* justLaunched toggle — always visible; activating clears fundingIssue */}
-          <a href="#" onClick={e => { e.preventDefault(); setWs({ justLaunched: !ws.justLaunched, fundingIssue: false }); }} style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkFaint, textDecoration: 'underline' }}>
+        <div style={{ display: 'flex', gap: 14, padding: '8px 20px 12px', borderTop: `1px solid ${P.border}`, flexWrap: 'wrap' }}>
+          {/* justLaunched toggle — always visible; activating clears other states */}
+          <a href="#" onClick={e => { e.preventDefault(); setWs({ justLaunched: !ws.justLaunched, fundingIssue: false, toppingUp: false }); }} style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkFaint, textDecoration: 'underline' }}>
             {ws.justLaunched ? 'Simulate activity ↗' : 'Simulate just launched ↗'}
           </a>
+          {/* top-up in progress — only meaningful after spend; hidden in just-launched state */}
+          {!ws.justLaunched && (
+            <a href="#" onClick={e => { e.preventDefault(); setWs({ toppingUp: !ws.toppingUp, fundingIssue: false }); }} style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: ws.toppingUp ? '#1d4ed8' : P.inkFaint, textDecoration: 'underline' }}>
+              {ws.toppingUp ? 'Clear top-up in progress ↗' : 'Simulate top-up in progress ↗'}
+            </a>
+          )}
           {/* top-up failure — only meaningful when the account has activity; hidden in just-launched state */}
           {!ws.justLaunched && (
-            <a href="#" onClick={e => { e.preventDefault(); setWs({ fundingIssue: !ws.fundingIssue }); }} style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkFaint, textDecoration: 'underline' }}>
+            <a href="#" onClick={e => { e.preventDefault(); setWs({ fundingIssue: !ws.fundingIssue, toppingUp: false }); }} style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkFaint, textDecoration: 'underline' }}>
               {ws.fundingIssue ? 'Clear top-up issue ↗' : 'Simulate top-up failure ↗'}
             </a>
           )}
@@ -6648,9 +6648,45 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
             </div>
           );
         })()}
-        {live && (
-          <IconButton icon="settings" size={28} onClick={() => onNav && onNav('settings-cardrules')} />
-        )}
+        {live && (() => {
+          const livePill = ws.fundingIssue
+            ? { label: 'Top-up failed', bg: '#FEF2F2', color: '#DC2626', icon: 'alert-triangle', tooltip: null }
+            : ws.toppingUp
+            ? { label: 'Collecting funds', bg: '#EFF6FF', color: '#1d4ed8', icon: 'refresh-cw', tooltip: `Collecting €${deposit.toLocaleString('de-DE')} via direct debit — arrives in ~3 days` }
+            : ws.justLaunched
+            ? { label: 'Just launched', bg: P.bg, color: P.inkSoft, icon: null, tooltip: null }
+            : { label: 'Active', bg: '#F0FDF4', color: '#16a34a', icon: null, tooltip: null };
+          return (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <DotPill bg={livePill.bg} color={livePill.color} dot={!livePill.icon} size={11}>
+                {livePill.icon && <Icon name={livePill.icon} size={10} color={livePill.color} strokeWidth={2} style={{ display: 'inline', marginRight: 4 }} />}
+                {livePill.label}
+                {livePill.tooltip && <span title={livePill.tooltip} style={{ marginLeft: 3, opacity: 0.6, cursor: 'help' }}>
+                  <Icon name="info" size={10} color={livePill.color} strokeWidth={2} />
+                </span>}
+              </DotPill>
+              <div style={{ position: 'relative' }} data-live-menu>
+                <IconButton icon="more-horizontal" size={28} onClick={() => setLiveMenuOpen(o => !o)} />
+                {liveMenuRendered && (
+                  <div style={{ position: 'absolute', top: 34, right: 0, minWidth: 190, background: P.white, border: `1px solid ${P.border}`, borderRadius: 10, boxShadow: '0 4px 16px rgba(15,13,40,0.10)', zIndex: 50, overflow: 'hidden', ...popoverStyle(liveMenuVisible, 'top right') }}>
+                    {[
+                      { label: 'View transactions', icon: 'receipt', action: () => { onNav && onNav('choices'); setLiveMenuOpen(false); } },
+                      ...(!ws.justLaunched && !nooneToInvite ? [{ label: 'Invite more employees', icon: 'user-plus', action: () => { setShowInviteMoreModal(true); setLiveMenuOpen(false); } }] : []),
+                      { label: 'Card rules', icon: 'settings', action: () => { onNav && onNav('settings-cardrules'); setLiveMenuOpen(false); } },
+                    ].map(({ label, icon, action }) => (
+                      <button key={label} onClick={action} style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '10px 14px', border: 'none', background: 'transparent', fontFamily: 'var(--font-body)', fontSize: 13, color: P.ink, cursor: 'pointer', textAlign: 'left' }}
+                        onMouseEnter={e => e.currentTarget.style.background = P.bg}
+                        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                        <Icon name={icon} size={14} color={P.inkSoft} strokeWidth={2} />
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })()}
       </div>
 
       {/* Body */}
