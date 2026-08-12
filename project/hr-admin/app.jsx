@@ -9852,6 +9852,18 @@ function BenefitsSettings({ appEntity = null }) {
 const CHANGELOG_ENTRIES = [
   {
     date: '12 Aug 2026',
+    title: 'Payflip Card settings page restructure',
+    items: [
+      { summary: '"Card rules" renamed to "Payflip Card" everywhere', detail: 'Sidebar label, screen title, page h1, and toast copy all updated.', why: '"Card rules" described a configuration surface. The screen now covers the full account — balance, mandate, issuance — so the name needed to match the scope.' },
+      { summary: 'Account monitoring moved from dashboard widget to settings page', detail: 'Live widget now shows a compact summary: balance hero + "Manage →" link. The full chart, stats, and account detail live on the Payflip Card settings page instead.', why: 'The dashboard widget should orient and redirect. Full monitoring belongs in settings, alongside the mandate and issuance controls — the context an admin needs to understand what they\'re seeing.' },
+      { summary: 'Funding issue: three-level notification path', detail: '(1) Dashboard widget: compact inline warning with "Resolve in Twikey →". (2) Needs attention section: "Mobility top-up failed" row with a red ! badge. (3) Payflip Card settings: standalone red callout with full diagnosis and both recovery actions.', why: 'A failed collection requires immediate action — the account will soon be unable to fund transactions. Three levels match admin context: glance → attention → full detail.' },
+      { summary: 'Balance chart: Y-axis redesigned, per-state spend cadences', detail: 'Y-axis now spans deposit→empty with a threshold dashed reference line. Each state has a distinct step pattern: Normal = 5 even steps; Topping-up = 3 large accelerating steps (visibly crosses threshold); Funding issue = 4 front-heavy steps (stays below threshold).', why: 'The old axis clipped the chart in funding-issue state (balance below threshold = y > 100). The shared step template made all three states look identical at a glance — the shape should tell the story, not just the final value.' },
+      { summary: 'Setup step 3: reassurance line added below Continue', detail: '"You can change this any time in Payflip Card settings." in P.inkSoft below the Continue button.', why: 'The physical card toggle looked like a permanent commitment. Naming the destination removes anxiety without adding visual weight to the step.' },
+      { summary: 'Overflow menu label: "Payflip Card" → "Card settings"', why: 'Action labels should describe what the action does, not name the destination. "Card settings" is unambiguous as a navigation action.' },
+    ],
+  },
+  {
+    date: '12 Aug 2026',
     title: 'Meal voucher setup widget + CardTab modal copy',
     items: [
       { summary: 'Meal voucher widget: full 5-step setup flow', detail: 'Select employees → Sign mandate → Awaiting approval → Select social secretariat → Notify employees. Two-column layout with lavender gradient and card artwork, matching the mobility widget exactly.', why: 'The food widget was a stub with a different visual language and no end-to-end flow. Now has full parity with mobility, with the correct meal-voucher-specific step for social secretariat selection.' },

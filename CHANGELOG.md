@@ -6,6 +6,52 @@ This file is not part of the prototype itself — it's project documentation to 
 
 ---
 
+## 2026-08-12 — Payflip Card settings page restructure
+
+### "Card rules" → "Payflip Card"
+
+Renamed the settings screen, sidebar label, page title, and all related copy from "Card rules" to "Payflip Card." *Why:* "Card rules" described the configuration surface, not the product. The screen now covers the full account — balance, mandate, issuance settings — so the name needed to match the scope.
+
+### Account monitoring moved from widget to settings page
+
+The live widget previously showed the full balance chart and stats inline on the dashboard. That surface is now split:
+
+- **Dashboard widget (live state): compact summary.** Balance hero + "Manage →" link. If the top-up collection failed, a short inline warning appears with a "Resolve in Twikey →" button.
+- **Payflip Card settings page: full account detail.** Balance hero, stepped balance chart with threshold reference line, Active cards and Spent this month stats. This is where the admin goes for full context and all actions.
+
+*Why:* the dashboard widget should orient and redirect, not be the primary monitoring surface. Full monitoring belongs in settings, alongside the mandate and issuance controls that affect the account — the context an admin needs to understand or respond to what they're seeing.
+
+### Funding issue: three-level notification path
+
+A failed top-up collection now surfaces at three levels of specificity:
+
+1. **Dashboard widget** — compact inline warning: "The scheduled top-up couldn't be collected. Open Twikey to resolve it." with a "Resolve in Twikey →" button.
+2. **Needs attention section** — "Mobility top-up failed" row with a red `!` badge, linking to the Payflip Card settings page.
+3. **Payflip Card settings page** — standalone red callout above the Account section, with the full diagnosis and both recovery actions: "Resolve in Twikey →" and "Contact support."
+
+*Why:* a failed collection requires immediate admin action — it means the account will soon be unable to fund employee transactions. Three levels match the admin's context: a glance at the dashboard should surface the alert, the "Needs attention" section gives it appropriate urgency, and the settings page gives the full picture with the right actions.
+
+### Balance chart: redesigned Y-axis and per-state spend cadences
+
+**Y-axis:** The chart now spans deposit (top) to empty (bottom), with the auto-top-up threshold drawn as a dashed reference line. Previously the y-axis anchored at the threshold as a bottom bound, which clipped the chart entirely in the funding-issue state (balance below threshold = y-value above 100). The new axis always accommodates any balance.
+
+**Per-state spend cadences:** Each account state now uses a distinct spend event pattern rather than a single scaled template:
+- **Normal** (healthy, ~72.5% balance): 5 even moderate steps — regular, predictable spend.
+- **Topping-up** (~15% balance): 3 large accelerating steps — rapid depletion that triggered the auto top-up. The line visibly crosses the threshold dashed reference.
+- **Funding issue** (~12% balance): 4 front-heavy steps — a big initial burst, then tapering. The line stays critically below threshold.
+
+*Why:* using the same step pattern scaled to different heights made all three states look identical at a glance. The shape of the chart should tell the story — not just its final value.
+
+### Setup step 3: forgiveness line
+
+"You can change this any time in Payflip Card settings." added below the Continue button on the Physical cards step. *Why:* the toggle looked like a permanent commitment. Naming the destination (not just "later") removes anxiety without adding visual weight to the step itself.
+
+### Overflow menu: "Payflip Card" → "Card settings"
+
+The three-dot menu in the live widget labelled the navigation action "Payflip Card" after the rename. Reverted to "Card settings." *Why:* action labels should describe what the action does, not name the destination page. "Go to Payflip Card" reads like a product name; "Card settings" is self-explanatory as a navigation action.
+
+---
+
 ## 2026-08-12 — Meal voucher setup widget and CardTab modal copy
 
 ### Meal voucher setup widget
