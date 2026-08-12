@@ -6650,34 +6650,29 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
         })()}
         {live && (() => {
           const livePill = ws.fundingIssue
-            ? { label: 'Top-up failed', bg: '#FEF2F2', color: '#DC2626', icon: 'alert-triangle', tooltip: null }
+            ? { label: 'Top-up failed', bg: '#FEF2F2', color: '#DC2626' }
             : ws.toppingUp
-            ? { label: 'Collecting funds', bg: '#EFF6FF', color: '#1d4ed8', icon: 'refresh-cw', tooltip: `Collecting €${deposit.toLocaleString('de-DE')} via direct debit — arrives in ~3 days` }
+            ? { label: 'Collecting funds', bg: '#EFF6FF', color: '#1d4ed8' }
             : ws.justLaunched
-            ? { label: 'Just launched', bg: P.bg, color: P.inkSoft, icon: null, tooltip: null }
-            : { label: 'Active', bg: '#F0FDF4', color: '#16a34a', icon: null, tooltip: null };
+            ? { label: 'Just launched', bg: P.bg, color: P.inkSoft }
+            : { label: 'Active', bg: '#F0FDF4', color: '#16a34a' };
           return (
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <DotPill bg={livePill.bg} color={livePill.color} dot={!livePill.icon} size={11}>
-                {livePill.icon && <Icon name={livePill.icon} size={10} color={livePill.color} strokeWidth={2} style={{ display: 'inline', marginRight: 4 }} />}
+              <DotPill bg={livePill.bg} color={livePill.color} dot size={11}>
                 {livePill.label}
-                {livePill.tooltip && <span title={livePill.tooltip} style={{ marginLeft: 3, opacity: 0.6, cursor: 'help' }}>
-                  <Icon name="info" size={10} color={livePill.color} strokeWidth={2} />
-                </span>}
               </DotPill>
               <div style={{ position: 'relative' }} data-live-menu>
                 <IconButton icon="more-horizontal" size={28} onClick={() => setLiveMenuOpen(o => !o)} />
                 {liveMenuRendered && (
                   <div style={{ position: 'absolute', top: 34, right: 0, minWidth: 190, background: P.white, border: `1px solid ${P.border}`, borderRadius: 10, boxShadow: '0 4px 16px rgba(15,13,40,0.10)', zIndex: 50, overflow: 'hidden', ...popoverStyle(liveMenuVisible, 'top right') }}>
                     {[
-                      { label: 'View transactions', icon: 'receipt', action: () => { onNav && onNav('choices'); setLiveMenuOpen(false); } },
-                      ...(!ws.justLaunched && !nooneToInvite ? [{ label: 'Invite more employees', icon: 'user-plus', action: () => { setShowInviteMoreModal(true); setLiveMenuOpen(false); } }] : []),
-                      { label: 'Card rules', icon: 'settings', action: () => { onNav && onNav('settings-cardrules'); setLiveMenuOpen(false); } },
-                    ].map(({ label, icon, action }) => (
-                      <button key={label} onClick={action} style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '10px 14px', border: 'none', background: 'transparent', fontFamily: 'var(--font-body)', fontSize: 13, color: P.ink, cursor: 'pointer', textAlign: 'left' }}
+                      { label: 'View transactions', action: () => { onNav && onNav('choices'); setLiveMenuOpen(false); } },
+                      ...(!ws.justLaunched && !nooneToInvite ? [{ label: 'Invite more employees', action: () => { setShowInviteMoreModal(true); setLiveMenuOpen(false); } }] : []),
+                      { label: 'Card settings', action: () => { onNav && onNav('settings-cardrules'); setLiveMenuOpen(false); } },
+                    ].map(({ label, action }) => (
+                      <button key={label} onClick={action} style={{ display: 'flex', alignItems: 'center', width: '100%', padding: '9px 14px', border: 'none', background: 'transparent', fontFamily: 'var(--font-body)', fontSize: 12, color: P.ink, cursor: 'pointer', textAlign: 'left' }}
                         onMouseEnter={e => e.currentTarget.style.background = P.bg}
                         onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                        <Icon name={icon} size={14} color={P.inkSoft} strokeWidth={2} />
                         {label}
                       </button>
                     ))}
