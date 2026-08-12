@@ -3111,11 +3111,11 @@ function OverlapPopover({ req, overlapping, empDept }) {
 }
 
 // ── Expense drawer ─────────────────────────────────────────────────────────
-function ExpenseDrawer({ expense, onClose, onApprove, onReject }) {
+function ExpenseDrawer({ expense, onClose, onApprove, onReject, initialRejectMode = false }) {
   const emp = EMPLOYEES[expense.employee] || { name: expense.employee, initials: '?', color: '#e5e7eb' };
   const isPending = expense.status === 'pending';
 
-  const [rejectMode, setRejectMode] = React.useState(false);
+  const [rejectMode, setRejectMode] = React.useState(initialRejectMode);
   const [rejectReason, setRejectReason] = React.useState('');
 
   const SLIDE_DUR = 300;
@@ -3820,7 +3820,7 @@ function AddExpenseModal({ categories, onClose, onSave }) {
 }
 
 // ── Expense row ────────────────────────────────────────────────────────────
-function ExpenseRow({ exp, onApprove, onDetail, showStatus, showEntity, selected, onToggle }) {
+function ExpenseRow({ exp, onApprove, onDetail, onRejectDirectly, showStatus, showEntity, selected, onToggle }) {
   const emp = EMPLOYEES[exp.employee] || { name: exp.employee, initials: '?', color: '#e5e7eb' };
   const [hover, setHover] = useState(false);
   const gridCols = showStatus
@@ -3852,7 +3852,7 @@ function ExpenseRow({ exp, onApprove, onDetail, showStatus, showEntity, selected
       <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkFaint }}>{exp.submittedAt}</span>
       <div onClick={e => e.stopPropagation()} style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4 }}>
         {exp.status === 'pending' && (<>
-          <button title="Reject" onClick={() => onDetail(exp)}
+          <button title="Reject" onClick={(e) => { e.stopPropagation(); onRejectDirectly(exp); }}
             onMouseEnter={e => { e.currentTarget.style.background = '#fee2e2'; e.currentTarget.style.borderColor = '#fca5a5'; }}
             onMouseLeave={e => { e.currentTarget.style.background = '#fef2f2'; e.currentTarget.style.borderColor = '#fecaca'; }}
             style={{ width: 28, height: 28, borderRadius: 6, border: '1px solid #fecaca', background: '#fef2f2', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -3871,7 +3871,7 @@ function ExpenseRow({ exp, onApprove, onDetail, showStatus, showEntity, selected
 }
 
 // ── Expenses screen ─────────────────────────────────────────────────────────
-function ExpensesScreen({ expenses, categories, onApprove, onDetail, onAdd, appEntity = null }) {
+function ExpensesScreen({ expenses, categories, onApprove, onDetail, onRejectDirectly, onAdd, appEntity = null }) {
   const categoryOpts = [['all', 'All categories'], ...categories.map(c => [c, c])];
   const [tab, setTab] = useState('pending');
   const [addOpen, setAddOpen] = useState(false);
@@ -3957,7 +3957,7 @@ function ExpensesScreen({ expenses, categories, onApprove, onDetail, onAdd, appE
               <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.inkFaint }}>No {tab === 'pending' ? 'pending ' : tab === 'approved' ? 'approved ' : tab === 'declined' ? 'declined ' : ''}expenses</div>
             </div>
           ) : filtered.map(exp => (
-            <ExpenseRow key={exp.id} exp={exp} onApprove={onApprove} onDetail={onDetail} showStatus={showStatus} showEntity={showEntity} selected={selected.has(exp.id)} onToggle={toggleSelect} />
+            <ExpenseRow key={exp.id} exp={exp} onApprove={onApprove} onDetail={onDetail} onRejectDirectly={onRejectDirectly} showStatus={showStatus} showEntity={showEntity} selected={selected.has(exp.id)} onToggle={toggleSelect} />
           ))}
         </div>
       </div>
@@ -10792,6 +10792,7 @@ function App() {
   const [expenseCategories, setExpenseCategories] = useState(EXPENSE_CATEGORIES_SEED);
   const [allowances, setAllowances] = useState(ALLOWANCE_TYPES.map(t => ({ id: t.id, active: ['mileage', 'home-office', 'mobile-internet'].includes(t.id), rate: t.defaultRate })));
   const [expDetail, setExpDetail] = useState(null);
+  const [expDetailRejectMode, setExpDetailRejectMode] = useState(false);
 
   const approveExpense = (id) => {
     setExpenses(prev => prev.map(e => e.id === id ? { ...e, status: 'approved' } : e));
@@ -11067,7 +11068,7 @@ function App() {
         {screen === 'requests' && <RequestsScreen key={appEntity ?? 'all'} requests={entityFilteredRequests} onApprove={approve} onDecline={requestDecline} onSave={saveRequest} onCancel={requestCancel} onNav={setScreen} onViewInCalendar={(req) => { const d = req._selectedDates?.[0] || req.startDate; if (d) { const iso = typeof d === 'string' && d.match(/^\d{4}-/) ? d : null; setCalendarJumpDate(iso ? new Date(iso) : parseDisplayDate(d)); } setCalDetail(req); setScreen('team-absences'); }} appEntity={appEntity} />}
         {(screen === 'employees' || screen === 'employees:admin') && <EmployeesScreen key={appEntity ?? 'all'} requests={entityFilteredRequests} onNav={setScreen} initialRoleFilter={screen === 'employees:admin' ? 'Admin' : 'All'} adminAccess={adminAccess} appEntity={appEntity} onAddEmployee={() => setAddEmployeeOpen(true)} />}
         {screen.startsWith('employee-detail:') && (() => { const [, detailEmpId, detailTab] = screen.split(':'); return <EmployeeDetailScreen employeeId={detailEmpId} requests={requests} onNav={setScreen} onSave={saveRequest} onCancel={cancelRequest} onApprove={approve} onDecline={requestDecline} onViewTeamCalendar={(dept) => { setCalendarDeptFilter(dept || null); setScreen('team-absences'); }} employeeBalance={employeeBalances[detailEmpId]} onUpdateBalance={(newBal) => updateBalances(detailEmpId, newBal)} needsSetup={needsBalanceSetup.has(detailEmpId)} confirmedDate={balanceConfirmedDates[detailEmpId]} onConfirmBalances={() => confirmBalancesFor(detailEmpId)} onToast={setToast} adminAccess={adminAccess} onAdminSave={handleAdminSave} companyRegime={companyRegime} onEmployeeUpdate={handleEmployeeUpdate} getEmpWithOverrides={getEmpWithOverrides} physicalCardsAllowed={physicalCardsAllowed} mobilityWidgetState={mobilityWidgetState} initialTab={detailTab || (freshEmployeeId === detailEmpId ? 'details' : 'choices')} />; })()}
-        {screen === 'expenses' && <ExpensesScreen key={appEntity ?? 'all'} expenses={entityFilteredExpenses} categories={expenseCategories} onApprove={approveExpense} onDetail={(exp) => setExpDetail(exp)} onAdd={addExpense} appEntity={appEntity} />}
+        {screen === 'expenses' && <ExpensesScreen key={appEntity ?? 'all'} expenses={entityFilteredExpenses} categories={expenseCategories} onApprove={approveExpense} onDetail={(exp) => { setExpDetailRejectMode(false); setExpDetail(exp); }} onRejectDirectly={(exp) => { setExpDetailRejectMode(true); setExpDetail(exp); }} onAdd={addExpense} appEntity={appEntity} />}
         {screen === 'choices' && <ChoicesScreen key={appEntity ?? 'all'} choices={entityFilteredChoices} onApprove={approveChoice} onDecline={declineChoice} onDetail={setChoiceDetail} appEntity={appEntity} />}
         {screen === 'payroll-overview' && <StubScreen title="Payroll Overview" description="Monthly payroll run and submission" />}
         {screen === 'payroll-reports' && <StubScreen title="Payroll Reports" description="Reporting and exports" />}
@@ -11102,9 +11103,10 @@ function App() {
         <ExpenseDrawer
           key={expDetail.id}
           expense={expDetail}
-          onClose={() => setExpDetail(null)}
-          onApprove={(id) => { approveExpense(id); setExpDetail(null); }}
-          onReject={(id, reason) => { rejectExpense(id, reason); setExpDetail(null); }}
+          initialRejectMode={expDetailRejectMode}
+          onClose={() => { setExpDetail(null); setExpDetailRejectMode(false); }}
+          onApprove={(id) => { approveExpense(id); setExpDetail(null); setExpDetailRejectMode(false); }}
+          onReject={(id, reason) => { rejectExpense(id, reason); setExpDetail(null); setExpDetailRejectMode(false); }}
         />
       )}
       {choiceDetail && (
