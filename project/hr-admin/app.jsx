@@ -6571,7 +6571,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
                     {[
                       { label: 'View transactions', action: () => { onNav && onNav('choices'); setLiveMenuOpen(false); } },
                       ...(!ws.justLaunched && !nooneToInvite ? [{ label: 'Invite more employees', action: () => { setShowInviteMoreModal(true); setLiveMenuOpen(false); } }] : []),
-                      { label: 'Payflip Card', action: () => { onNav && onNav('settings-cardrules'); setLiveMenuOpen(false); } },
+                      { label: 'Card settings', action: () => { onNav && onNav('settings-cardrules'); setLiveMenuOpen(false); } },
                     ].map(({ label, action }) => (
                       <button key={label} onClick={action} style={{ display: 'flex', alignItems: 'center', width: '100%', padding: '9px 14px', border: 'none', background: 'transparent', fontFamily: 'var(--font-body)', fontSize: 12, color: P.ink, cursor: 'pointer', textAlign: 'left' }}
                         onMouseEnter={e => e.currentTarget.style.background = P.bg}
