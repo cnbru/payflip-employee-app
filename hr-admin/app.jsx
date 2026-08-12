@@ -3218,12 +3218,14 @@ function ExpenseDrawer({ expense, onClose, onApprove, onReject, onEdit, categori
             {isPending && (
               <div style={{ flexShrink: 0, padding: '12px 20px', borderTop: `1px solid ${P.border}`, display: 'flex', gap: 10 }}>
                 <Button variant="secondary" icon="pencil" onClick={() => { setEditAmount(String(expense.amount)); setEditCategory(expense.category); setEditDescription(expense.description || ''); setEditMode(true); }}>Edit</Button>
-                <button onClick={() => { setRejectReason(''); setRejectMode(true); }} style={{ flex: 1, padding: '10px 0', borderRadius: 10, border: '1px solid #fecaca', background: '#fef2f2', color: '#dc2626', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
-                  <Icon name="X" size={13} color="#dc2626" strokeWidth={2.5} /> Reject
-                </button>
-                <button onClick={() => { onApprove(expense.id); close(); }} style={{ flex: 1, padding: '10px 0', borderRadius: 10, border: 'none', background: P.ink, color: P.white, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
-                  <Icon name="Check" size={13} color={P.white} strokeWidth={2.5} /> Approve
-                </button>
+                <div style={{ marginLeft: 'auto', display: 'flex', gap: 10 }}>
+                  <button onClick={() => { setRejectReason(''); setRejectMode(true); }} style={{ padding: '10px 18px', borderRadius: 10, border: '1px solid #fecaca', background: '#fef2f2', color: '#dc2626', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <Icon name="X" size={13} color="#dc2626" strokeWidth={2.5} /> Reject
+                  </button>
+                  <button onClick={() => { onApprove(expense.id); close(); }} style={{ padding: '10px 18px', borderRadius: 10, border: 'none', background: P.ink, color: P.white, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <Icon name="Check" size={13} color={P.white} strokeWidth={2.5} /> Approve
+                  </button>
+                </div>
               </div>
             )}
           </div>
