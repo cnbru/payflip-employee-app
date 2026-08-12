@@ -6612,7 +6612,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 24px', borderBottom: `1px solid ${P.border}` }}>
         <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.ink, letterSpacing: '-0.025px' }}>
-          {widgetMode === 'food' ? 'Launch meal vouchers' : 'Mobility card'}
+          {widgetMode === 'food' ? 'Launch meal vouchers' : 'Mobility account'}
         </span>
         {!live && (() => {
           const mobilityMeta = [
