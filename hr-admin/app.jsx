@@ -1555,7 +1555,7 @@ function SettingsModeSidebar({ active, onNav }) {
             { id: 'settings-payroll',      label: 'Payroll' },
             { id: 'settings-allowances',   label: 'Allowances' },
             { id: 'settings-expenses',     label: 'Expenses' },
-            { id: 'settings-cardrules',    label: 'Card rules' },
+            { id: 'settings-cardrules',    label: 'Payflip Card' },
             { id: 'settings-integrations', label: 'Integrations' },
             { id: 'settings-team',         label: 'Team & access' },
             { id: 'settings-billing',      label: 'Billing' },
@@ -6127,7 +6127,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
   const setLiveVisible = (v) => setWs({ liveVisible: typeof v === 'function' ? v(ws.liveVisible) : v });
   const [showCalcModal, setShowCalcModal] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
-  const [showPickerModal, setShowPickerModal] = useState(false);
+  const [showInviteListModal, setShowInviteListModal] = useState(false);
   const [showInviteMoreModal, setShowInviteMoreModal] = useState(false);
   const [liveMenuOpen, setLiveMenuOpen] = useState(false);
   const { rendered: liveMenuRendered, visible: liveMenuVisible } = usePopoverTransition(liveMenuOpen);
@@ -6157,12 +6157,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
     { label: `Budget used up (${budgetSpent.length})`, items: budgetSpent },
   ];
 
-  // Default: only employees with remaining budget
-  const defaultSelection = readyToUse.map(e => e.value);
-  const [selectedEmployees, setSelectedEmployees] = useState(defaultSelection);
-
-  const empCount = selectedEmployees.length;
-  const isDefaultSelection = selectedEmployees.length === defaultSelection.length && selectedEmployees.every(id => defaultSelection.includes(id));
+  const empCount = allEligible.length;
 
   // Food: all active employees are eligible (no budget filter)
   const allFoodEmployees = Object.entries(EMPLOYEES)
@@ -6181,11 +6176,11 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
     setWs({ widgetMode: mode, hidden: false, step: 1, mandateDenied: false, live: false, liveVisible: false });
   };
 
-  // Mobility: simulate deposit arriving 5s after step 3 (covers bank approval + collection)
+  // Mobility: simulate deposit arriving 5s after step 2 (covers bank approval + collection)
   React.useEffect(() => {
-    if (widgetMode !== 'mobility' || step !== 3 || mandateDenied) return;
+    if (widgetMode !== 'mobility' || step !== 2 || mandateDenied) return;
     const t = setTimeout(() => {
-      setStep(4);
+      setStep(3);
       onToast?.({ message: 'Funds received — your account is ready', type: 'approve' });
     }, 5000);
     return () => clearTimeout(t);
@@ -6252,7 +6247,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
 
   const sendInvites = () => {
     setShowConfirmModal(false);
-    setWs({ live: true, invitedKeys: selectedEmployees });
+    setWs({ live: true, invitedKeys: allEligible.map(e => e.value) });
     onToast?.({ message: `Invites sent. ${empCount} employees have been invited to request their Payflip Card.`, type: 'approve' });
   };
 
@@ -6287,299 +6282,205 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
   const mobilitySetupContent = () => {
     if (live) return null;
     return (<>
-      {/* Step 1 — Select employees */}
-      <div style={{ background: step === 1 ? P.white : inactiveBg, borderBottom: `1px solid ${P.border}` }}>
-        {step === 1 ? (
-          <div key="m-step1-active" style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 20, animation: PREFERS_REDUCED_MOTION ? 'none' : `stepContentEnter 250ms ${EASE_OUT} 120ms both` }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              {stepBadgeEl(1)}
-              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.ink }}>Select employees</span>
-            </div>
-            <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
-              Choose who gets access to the Payflip Card. Only employees with a mobility budget are eligible.
-            </p>
-            {allEligible.length === 0 ? (
-              <div style={{ padding: '18px 20px', border: `1px solid ${P.border}`, borderRadius: 10, background: P.bg, display: 'flex', gap: 12, alignItems: 'flex-start' }}>
-                <Icon name="info" size={16} color={P.inkSoft} strokeWidth={2} style={{ flexShrink: 0, marginTop: 2 }} />
-                <div>
-                  <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.ink, marginBottom: 4 }}>No eligible employees yet</div>
-                  <p style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, lineHeight: '18px', margin: 0 }}>
-                    Only employees with a mobility budget can use the Payflip Card. Assign a mobility budget in <a href="#" onClick={e => { e.preventDefault(); onNav && onNav('settings-allowances'); }} style={{ color: P.ink, textDecoration: 'underline' }}>Allowances</a> to get started.
-                  </p>
-                </div>
+      {/* Step 1 — Sign mandate */}
+      <div style={{ background: step === 1 ? P.white : inactiveBg, borderBottom: `1px solid ${P.border}`, transition: `background 260ms ${EASE_OUT}` }}>
+        <div style={{ display: 'grid', gridTemplateRows: step === 1 ? '1fr' : '0fr', transition: PREFERS_REDUCED_MOTION ? 'none' : `grid-template-rows 260ms ${EASE_OUT}`, overflow: 'hidden' }}>
+          <div style={{ overflow: 'hidden' }}>
+            <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 20 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                {stepBadgeEl(1)}
+                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.ink }}>Sign mandate</span>
               </div>
-            ) : (
-            <>
-            {/* Stat boxes */}
-            <div style={{ display: 'flex', border: `1px solid ${P.border}`, borderRadius: 10, overflow: 'hidden' }}>
-              <div style={{ flex: 1, padding: '16px 20px', display: 'flex', flexDirection: 'column' }}>
-                <div style={{ ...SL, marginBottom: 6 }}>Employees</div>
-                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 36, color: P.ink, lineHeight: 1, marginBottom: 16, flex: 1 }}>
-                  {empCount}
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>
-                  <span>{isDefaultSelection ? `${readyToUse.length} pre-selected` : `${empCount} of ${allEligible.length}`}</span>
-                  <span>·</span>
-                  <span onClick={e => { e.stopPropagation(); setShowPickerModal(true); }} style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.ink, textDecoration: 'underline', cursor: 'pointer' }}>
-                    {isDefaultSelection ? 'Review' : 'Edit'}
-                  </span>
-                </div>
+              <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
+                Authorises Payflip to collect <strong style={{ color: P.ink }}>€{deposit.toLocaleString('de-DE')}</strong> for your {empCount} employees, and top up automatically when the balance runs low.
+              </p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', border: `1px solid ${P.border}`, borderRadius: 10, background: P.bg }}>
+                <img src={TWIKEY_LOGO_IMG} alt="Twikey" style={{ width: 80, height: 35, display: 'block', objectFit: 'contain', flexShrink: 0 }} />
+                <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, lineHeight: '17px' }}>
+                  Secured by Twikey — funds arrive within 3 business days.
+                </span>
               </div>
-              <div style={{ width: 1, background: P.border, flexShrink: 0 }} />
-              <div style={{ flex: 1, padding: '16px 20px', display: 'flex', flexDirection: 'column' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
-                  <div style={SL}>Recommended deposit</div>
-                  <IconButton icon="info" size={20} onClick={e => { e.stopPropagation(); setShowCalcModal(true); }} />
-                </div>
-                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 36, color: P.ink, lineHeight: 1 }}>
-                  €<AnimatedNumber value={deposit.toLocaleString('de-DE')} />
-                </div>
-              </div>
+              <Button variant="primary" onClick={() => setStep(2)} style={{ width: '100%', justifyContent: 'center', fontSize: 15, padding: '10px 18px' }}>Sign with Twikey</Button>
             </div>
-            <Button variant="primary" disabled={empCount === 0} onClick={() => setStep(2)} style={{ width: '100%', justifyContent: 'center', fontSize: 15, padding: '10px 18px' }}>Continue</Button>
-            </>)}
           </div>
-        ) : (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: 24, animation: `stepDoneEnter 200ms ${EASE_OUT}`, opacity: 0.70 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              {stepBadgeEl(1)}
-              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.inkSoft }}>{empCount} employees selected</span>
-            </div>
-            {step === 2 && <a href="#" onClick={e => { e.preventDefault(); setStep(1); }} style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.ink, textDecoration: 'underline' }}>Edit</a>}
-          </div>
-        )}
-      </div>
-
-      {/* Step 2 — Sign mandate */}
-      <div style={{ background: step === 2 ? P.white : inactiveBg, borderBottom: `1px solid ${P.border}` }}>
-        {step === 2 ? (
-          <div key="m-step2-active" style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 20, animation: `stepContentEnter 250ms ${EASE_OUT}` }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              {stepBadgeEl(2)}
-              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.ink }}>Sign mandate</span>
-            </div>
-
-            <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
-              Authorises Payflip to collect <strong style={{ color: P.ink }}>€{deposit.toLocaleString('de-DE')}</strong> and top up automatically when the balance runs low.
-            </p>
-
-            {/* Twikey trust block */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', border: `1px solid ${P.border}`, borderRadius: 10, background: P.bg }}>
-              <img src={TWIKEY_LOGO_IMG} alt="Twikey" style={{ width: 80, height: 35, display: 'block', objectFit: 'contain', flexShrink: 0 }} />
-              <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, lineHeight: '17px' }}>
-                Secured by Twikey — funds arrive within 3 business days.
-              </span>
-            </div>
-
-            <Button variant="primary" onClick={() => setStep(3)} style={{ width: '100%', justifyContent: 'center', fontSize: 15, padding: '10px 18px' }}>Sign with Twikey</Button>
-          </div>
-        ) : step < 2 ? (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 24, opacity: 0.55 }}>
-            {stepBadgeEl(2)}
-            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 16, color: P.inkSoft }}>Sign mandate</span>
-          </div>
-        ) : (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 24, animation: `stepDoneEnter 200ms ${EASE_OUT}`, opacity: 0.70 }}>
-            {stepBadgeEl(2)}
+        </div>
+        {step > 1 && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 24, animation: PREFERS_REDUCED_MOTION ? 'none' : `stepDoneEnter 200ms ${EASE_OUT} 140ms both` }}>
+            {stepBadgeEl(1)}
             <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.inkSoft }}>€{deposit.toLocaleString('de-DE')} · Mandate signed</span>
           </div>
         )}
       </div>
 
-      {/* Step 3 — Awaiting deposit (bank approval + collection, system-managed) */}
-      <div style={{ background: step === 3 ? P.white : inactiveBg, borderBottom: `1px solid ${P.border}` }}>
-        {step === 3 ? (
-          mandateDenied ? (
-            <div key="m-step3-denied" style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16, animation: `stepContentEnter 250ms ${EASE_OUT}` }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <span style={{ width: 24, height: 24, borderRadius: 4, background: '#dc2626', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <Icon name="x" size={12} color="#fff" strokeWidth={2.5} />
-                </span>
-                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: '#dc2626' }}>Mandate declined</span>
+      {/* Step 2 — Awaiting deposit */}
+      <div style={{ background: step === 2 ? P.white : inactiveBg, borderBottom: `1px solid ${P.border}`, transition: `background 260ms ${EASE_OUT}` }}>
+        <div style={{ display: 'grid', gridTemplateRows: step === 2 ? '1fr' : '0fr', transition: PREFERS_REDUCED_MOTION ? 'none' : `grid-template-rows 260ms ${EASE_OUT}`, overflow: 'hidden' }}>
+          <div style={{ overflow: 'hidden' }}>
+            {mandateDenied ? (
+              <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <span style={{ width: 24, height: 24, borderRadius: 4, background: '#dc2626', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <Icon name="x" size={12} color="#fff" strokeWidth={2.5} />
+                  </span>
+                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: '#dc2626' }}>Mandate declined</span>
+                </div>
+                <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink, lineHeight: '20px', margin: 0 }}>
+                  Your bank declined the mandate. This is usually due to account settings or an authorization limit on direct debits. Contact your bank to resolve it, then re-sign.
+                </p>
+                <div style={{ display: 'flex', gap: 10 }}>
+                  <Button variant="primary" onClick={() => { setMandateDenied(false); setStep(1); }} style={{ justifyContent: 'center', fontSize: 14, padding: '8px 20px' }}>Re-sign mandate</Button>
+                  <Button variant="secondary" onClick={() => { window.location.href = 'mailto:support@payflip.be?subject=Mobility%20card%20mandate%20declined'; }} style={{ justifyContent: 'center', fontSize: 14, padding: '8px 16px' }}>Contact support</Button>
+                </div>
               </div>
-              <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink, lineHeight: '20px', margin: 0 }}>
-                Your bank declined the mandate. This is usually due to account settings or an authorization limit on direct debits. Contact your bank to resolve it, then re-sign.
-              </p>
-              <div style={{ display: 'flex', gap: 10 }}>
-                <Button variant="primary" onClick={() => { setMandateDenied(false); setStep(2); }} style={{ justifyContent: 'center', fontSize: 14, padding: '8px 20px' }}>Re-sign mandate</Button>
-                <Button variant="secondary" onClick={() => { window.location.href = 'mailto:support@payflip.be?subject=Mobility%20card%20mandate%20declined'; }} style={{ justifyContent: 'center', fontSize: 14, padding: '8px 16px' }}>Contact support</Button>
+            ) : (
+              <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  {stepBadgeEl(2)}
+                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.ink }}>Awaiting deposit</span>
+                </div>
+                <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
+                  We're collecting €{deposit.toLocaleString('de-DE')} via direct debit. Funds are usually available within 3 business days — no action needed, this card will update automatically.
+                </p>
+                <a href="#" onClick={e => { e.preventDefault(); setMandateDenied(true); }} style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, textDecoration: 'underline' }}>
+                  Simulate denial ↗
+                </a>
               </div>
-            </div>
-          ) : (
-            <div key="m-step3-active" style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16, animation: `stepContentEnter 250ms ${EASE_OUT}` }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                {stepBadgeEl(3)}
-                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.ink }}>Awaiting deposit</span>
-              </div>
-              <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
-                We're collecting €{deposit.toLocaleString('de-DE')} via direct debit. Funds are usually available within 3 business days — no action needed, this card will update automatically.
-              </p>
-              <a href="#" onClick={e => { e.preventDefault(); setMandateDenied(true); }} style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, textDecoration: 'underline' }}>
-                Simulate denial ↗
-              </a>
-            </div>
-          )
-        ) : step < 3 ? (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 24, opacity: 0.55 }}>
-            {stepBadgeEl(3)}
-            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 16, color: P.inkSoft }}>Awaiting deposit</span>
+            )}
           </div>
-        ) : (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 24, animation: `stepDoneEnter 200ms ${EASE_OUT}`, opacity: 0.70 }}>
-            {stepBadgeEl(3, step === 4)}
+        </div>
+        <div style={{ display: 'grid', gridTemplateRows: step < 2 ? '1fr' : '0fr', transition: PREFERS_REDUCED_MOTION ? 'none' : `grid-template-rows 260ms ${EASE_OUT}`, overflow: 'hidden' }}>
+          <div style={{ overflow: 'hidden' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 24, opacity: 0.55 }}>
+              {stepBadgeEl(2)}
+              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 16, color: P.inkSoft }}>Awaiting deposit</span>
+            </div>
+          </div>
+        </div>
+        {step > 2 && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 24, animation: PREFERS_REDUCED_MOTION ? 'none' : `stepDoneEnter 200ms ${EASE_OUT} 140ms both` }}>
+            {stepBadgeEl(2, step === 3)}
             <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.inkSoft }}>€{deposit.toLocaleString('de-DE')} received</span>
           </div>
         )}
       </div>
 
-      {/* Step 4 — Send invites */}
-      <div style={{ background: step === 4 ? P.white : inactiveBg, borderBottom: `1px solid ${P.border}` }}>
-        {step === 4 ? (
-          <div key="m-step4-active" style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16, animation: `stepContentEnter 250ms ${EASE_OUT}` }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              {stepBadgeEl(4)}
-              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.ink }}>Send invites</span>
-            </div>
-            <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
-              {empCount} employees will receive an email to download the Payflip app and request their own card.
-            </p>
-            <div style={{ display: 'flex', gap: 12, padding: 14, borderRadius: 10, background: P.bg, alignItems: 'flex-start' }}>
-              <Icon name="info" size={16} color={P.inkSoft} strokeWidth={2} style={{ flexShrink: 0, marginTop: 1 }} />
-              <p style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.ink, lineHeight: '18px', margin: 0 }}>
-                You don't issue cards yourself. Employees request their card when they're ready by downloading the app. This keeps admin work minimal.
+      {/* Step 3 — Physical cards */}
+      <div style={{ background: step === 3 ? P.white : inactiveBg, borderBottom: `1px solid ${P.border}`, transition: `background 260ms ${EASE_OUT}` }}>
+        <div style={{ display: 'grid', gridTemplateRows: step === 3 ? '1fr' : '0fr', transition: PREFERS_REDUCED_MOTION ? 'none' : `grid-template-rows 260ms ${EASE_OUT}`, overflow: 'hidden' }}>
+          <div style={{ overflow: 'hidden' }}>
+            <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                {stepBadgeEl(3)}
+                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.ink }}>Physical cards</span>
+              </div>
+              <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
+                Employees automatically get a virtual card — it works everywhere Apple Pay and Google Pay are accepted. Physical cards are optional and ordered individually from the app.
               </p>
+              <div onClick={() => onPhysicalCardsChange && onPhysicalCardsChange(!physicalCardsAllowed)}
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 14px', border: `1px solid ${P.border}`, borderRadius: 10, cursor: 'pointer', background: physicalCardsAllowed ? '#faf8ff' : P.bg }}>
+                <div>
+                  <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.ink }}>Allow employees to request physical cards</div>
+                  <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, marginTop: 2 }}>€10 per card</div>
+                </div>
+                <Switch checked={!!physicalCardsAllowed} onChange={() => {}} />
+              </div>
+              <Button variant="primary" onClick={() => setStep(4)} style={{ width: '100%', justifyContent: 'center', fontSize: 15, padding: '10px 18px' }}>Continue</Button>
             </div>
-            <Button variant="primary" onClick={() => setShowConfirmModal(true)} style={{ width: '100%', justifyContent: 'center', fontSize: 15, padding: '10px 18px' }}>Send invites to {empCount} employees</Button>
           </div>
-        ) : (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 24, opacity: 0.55 }}>
-            {stepBadgeEl(4)}
-            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 16, color: P.inkSoft }}>Send invites</span>
+        </div>
+        <div style={{ display: 'grid', gridTemplateRows: step < 3 ? '1fr' : '0fr', transition: PREFERS_REDUCED_MOTION ? 'none' : `grid-template-rows 260ms ${EASE_OUT}`, overflow: 'hidden' }}>
+          <div style={{ overflow: 'hidden' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 24, opacity: 0.55 }}>
+              {stepBadgeEl(3)}
+              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 16, color: P.inkSoft }}>Physical cards</span>
+            </div>
+          </div>
+        </div>
+        {step > 3 && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 24, animation: PREFERS_REDUCED_MOTION ? 'none' : `stepDoneEnter 200ms ${EASE_OUT} 140ms both` }}>
+            {stepBadgeEl(3)}
+            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.inkSoft }}>
+              {physicalCardsAllowed ? 'Physical cards · €10/card' : 'Virtual only'}
+            </span>
+            <a href="#" onClick={e => { e.preventDefault(); setStep(3); }} style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.ink, textDecoration: 'underline', marginLeft: 'auto' }}>Edit</a>
           </div>
         )}
+      </div>
+
+      {/* Step 4 — Send invites */}
+      <div style={{ background: step === 4 ? P.white : inactiveBg, borderBottom: `1px solid ${P.border}`, transition: `background 260ms ${EASE_OUT}` }}>
+        <div style={{ display: 'grid', gridTemplateRows: step === 4 ? '1fr' : '0fr', transition: PREFERS_REDUCED_MOTION ? 'none' : `grid-template-rows 260ms ${EASE_OUT}`, overflow: 'hidden' }}>
+          <div style={{ overflow: 'hidden' }}>
+            <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                {stepBadgeEl(4)}
+                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.ink }}>Send invites</span>
+              </div>
+              <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
+                {empCount} employees will receive an email to download the Payflip app and request their own card.
+              </p>
+              <div style={{ display: 'flex', gap: 12, padding: 14, borderRadius: 10, background: P.bg, alignItems: 'flex-start' }}>
+                <Icon name="info" size={16} color={P.inkSoft} strokeWidth={2} style={{ flexShrink: 0, marginTop: 1 }} />
+                <p style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.ink, lineHeight: '18px', margin: 0 }}>
+                  You don't issue cards yourself. Employees request their card when they're ready by downloading the app.
+                </p>
+              </div>
+              <Button variant="primary" onClick={() => setShowConfirmModal(true)} style={{ width: '100%', justifyContent: 'center', fontSize: 15, padding: '10px 18px' }}>Send invites to {empCount} employees</Button>
+            </div>
+          </div>
+        </div>
+        <div style={{ display: 'grid', gridTemplateRows: step < 4 ? '1fr' : '0fr', transition: PREFERS_REDUCED_MOTION ? 'none' : `grid-template-rows 260ms ${EASE_OUT}`, overflow: 'hidden' }}>
+          <div style={{ overflow: 'hidden' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 24, opacity: 0.55 }}>
+              {stepBadgeEl(4)}
+              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 16, color: P.inkSoft }}>Send invites</span>
+            </div>
+          </div>
+        </div>
       </div>
     </>);
   };
 
   const liveContent = () => {
     if (!live) return null;
-    // Derive live numbers from actual setup values
     const justLaunched = !!ws.justLaunched;
     const fundingIssue = !!ws.fundingIssue;
     const toppingUp = !!ws.toppingUp;
-    // Balance varies by state:
-    // - toppingUp: just below the 20% threshold that triggered collection
-    // - fundingIssue: same threshold region, but collection failed
-    // - justLaunched: full deposit (no spend yet)
-    // - healthy: ~72% remaining (some spend events have occurred)
     const liveBalance = fundingIssue
       ? Math.round(deposit * 0.12)
       : toppingUp ? Math.round(deposit * 0.15)
       : justLaunched ? deposit : Math.round(deposit * 0.725);
-    const liveSpent = deposit - liveBalance;
-    const liveActiveCards = (justLaunched && !fundingIssue) ? 0 : Math.max(1, Math.floor(empCount * 0.6));
-    // Stepped path: y=0 = full deposit, y=100 = auto top-up threshold (20% of deposit)
-    // 5 simulated spend events across 30 days totalling liveSpent
-    const threshold = Math.round(deposit * 0.2);
-    const yOf = (b) => +((1 - (b - threshold) / (deposit - threshold)) * 100).toFixed(1);
-    const spendEvents = [[4, 15], [11, 12], [17, 10], [23, 8], [29, 10]]; // [day, €]
-    let _bal = deposit;
-    const _pts = [`M 0,${yOf(_bal)}`];
-    for (const [day, amt] of spendEvents) {
-      _pts.push(`L ${day * 10},${yOf(_bal)}`);
-      _bal -= amt;
-      _pts.push(`L ${day * 10},${yOf(_bal)}`);
-    }
-    _pts.push(`L 300,${yOf(_bal)}`);
-    const linePath = _pts.join(' ');
-    const areaPath = linePath + ' L 300,100 L 0,100 Z';
-    const balPct = Math.round(liveBalance / deposit * 100);
     return (
       <div style={{ display: 'flex', flexDirection: 'column', opacity: liveVisible ? 1 : 0, transition: `opacity 250ms ${EASE_OUT}` }}>
 
-        {/* Funding-issue state — widget has one job: resolve the payment */}
+        {/* Funding-issue state */}
         {fundingIssue && (
-          <div style={{ padding: '20px 24px 18px', borderBottom: `1px solid ${P.border}` }}>
-            <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, lineHeight: '18px', marginBottom: 16 }}>
-              The scheduled top-up couldn't be collected. Open Twikey to see the reason — it may require correcting bank details or re-signing the mandate before retrying.
+          <div style={{ padding: '16px 24px 14px', borderBottom: `1px solid ${P.border}` }}>
+            <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, lineHeight: '18px', marginBottom: 12 }}>
+              The scheduled top-up couldn't be collected. Open Twikey to resolve it.
             </div>
-            <Button variant="primary" onClick={() => { window.open('https://app.twikey.com', '_blank'); }} style={{ width: '100%', justifyContent: 'center', fontSize: 13, padding: '9px 14px', marginBottom: 10 }}>
+            <Button variant="primary" onClick={() => { window.open('https://app.twikey.com', '_blank'); }} style={{ width: '100%', justifyContent: 'center', fontSize: 13, padding: '9px 14px' }}>
               Resolve in Twikey →
             </Button>
-            <div style={{ textAlign: 'center' }}>
-              <a href="mailto:support@payflip.be?subject=Mobility%20card%20top-up%20failed" style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, textDecoration: 'underline' }}>Contact support</a>
+          </div>
+        )}
+
+        {/* Compact balance row */}
+        <div style={{ padding: '20px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
+          <div>
+            <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, marginBottom: 4 }}>Account balance</div>
+            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 22, color: fundingIssue ? '#dc2626' : P.ink, letterSpacing: '-0.02em', lineHeight: 1, marginBottom: 4 }}>
+              €{liveBalance.toLocaleString('de-DE')}
+            </div>
+            <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>
+              {justLaunched
+                ? `Invites sent to ${invitedKeys.length} ${invitedKeys.length === 1 ? 'employee' : 'employees'}`
+                : toppingUp
+                ? `+ €${deposit.toLocaleString('de-DE')} top-up incoming`
+                : `of €${deposit.toLocaleString('de-DE')} funded`}
             </div>
           </div>
-        )}
-
-        {/* Balance hero */}
-        <div style={{ padding: '18px 24px 16px' }}>
-          <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, marginBottom: 6 }}>Account balance</div>
-          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 28, color: fundingIssue ? '#dc2626' : P.ink, letterSpacing: '-0.5px', lineHeight: 1, marginBottom: toppingUp ? 6 : 10 }}>
-            €{liveBalance.toLocaleString('de-DE')}
-          </div>
-          {toppingUp && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontFamily: 'var(--font-body)', fontSize: 13, color: '#1d4ed8', fontWeight: 500, marginBottom: 8 }}>
-              <Icon name="arrow-down-circle" size={13} color="#1d4ed8" strokeWidth={2} />
-              <span>+ €{deposit.toLocaleString('de-DE')} incoming</span>
-            </div>
-          )}
-          <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>
-            {justLaunched
-              ? `Invites sent to ${invitedKeys.length} ${invitedKeys.length === 1 ? 'employee' : 'employees'}`
-              : toppingUp
-              ? `Auto top-up threshold: €${threshold.toLocaleString('de-DE')}`
-              : `of €${deposit.toLocaleString('de-DE')} funded`}
-          </div>
-        </div>
-
-        {/* Area chart — hidden when just launched (no activity yet) */}
-        {!justLaunched && (
-          <svg viewBox="0 0 300 100" preserveAspectRatio="none" style={{ width: '100%', height: 110, display: 'block' }}>
-            <defs>
-              <linearGradient id="balGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor={fundingIssue ? '#dc2626' : toppingUp ? '#1d4ed8' : '#008556'} stopOpacity="0.1" />
-                <stop offset="100%" stopColor={fundingIssue ? '#dc2626' : toppingUp ? '#1d4ed8' : '#008556'} stopOpacity="0.01" />
-              </linearGradient>
-            </defs>
-            <path d={areaPath} fill="url(#balGrad)" />
-            <path d={linePath} fill="none" stroke={fundingIssue ? '#dc2626' : toppingUp ? '#1d4ed8' : '#008556'} strokeWidth="1.5" vectorEffect="non-scaling-stroke" />
-          </svg>
-        )}
-
-        {/* Stats row — hidden when just launched (0/€0 adds no information) */}
-        {!justLaunched && (
-          <div style={{ display: 'flex', borderTop: `1px solid ${P.border}` }}>
-            {[
-              { label: 'Active cards', value: `${liveActiveCards} of ${invitedKeys.length}` },
-              { label: 'Spent this month', value: `€${liveSpent.toLocaleString('de-DE')}` },
-            ].map(({ label, value }, i) => (
-              <div key={label} style={{ flex: 1, padding: '12px 20px', borderLeft: i === 1 ? `1px solid ${P.border}` : 'none' }}>
-                <div style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkSoft, marginBottom: 3 }}>{label}</div>
-                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.ink }}>{value}</div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Dev-only simulation links — mutually exclusive states */}
-        <div style={{ display: 'flex', gap: 14, padding: '8px 20px 12px', borderTop: `1px solid ${P.border}`, flexWrap: 'wrap' }}>
-          {/* justLaunched toggle — always visible; activating clears other states */}
-          <a href="#" onClick={e => { e.preventDefault(); setWs({ justLaunched: !ws.justLaunched, fundingIssue: false, toppingUp: false }); }} style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkFaint, textDecoration: 'underline' }}>
-            {ws.justLaunched ? 'Simulate activity ↗' : 'Simulate just launched ↗'}
-          </a>
-          {/* top-up in progress — only meaningful after spend; hidden in just-launched state */}
-          {!ws.justLaunched && (
-            <a href="#" onClick={e => { e.preventDefault(); setWs({ toppingUp: !ws.toppingUp, fundingIssue: false }); }} style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: ws.toppingUp ? '#1d4ed8' : P.inkFaint, textDecoration: 'underline' }}>
-              {ws.toppingUp ? 'Clear top-up in progress ↗' : 'Simulate top-up in progress ↗'}
-            </a>
-          )}
-          {/* top-up failure — only meaningful when the account has activity; hidden in just-launched state */}
-          {!ws.justLaunched && (
-            <a href="#" onClick={e => { e.preventDefault(); setWs({ fundingIssue: !ws.fundingIssue, toppingUp: false }); }} style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkFaint, textDecoration: 'underline' }}>
-              {ws.fundingIssue ? 'Clear top-up issue ↗' : 'Simulate top-up failure ↗'}
-            </a>
-          )}
+          <a href="#" onClick={e => { e.preventDefault(); onNav && onNav('settings-cardrules'); }} style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.ink, textDecoration: 'underline', whiteSpace: 'nowrap' }}>Manage →</a>
         </div>
 
       </div>
@@ -6610,15 +6511,15 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
 
     <div style={{ background: P.white, borderRadius: 12, overflow: 'hidden', ...(live ? { border: `1px solid ${P.border}` } : { boxShadow: `0 0 0 1px rgba(15,13,40,0.07), 0 4px 24px rgba(15,13,40,0.08)` }) }}>
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 24px', borderBottom: `1px solid ${P.border}` }}>
+      <div onClick={hidden ? () => setHidden(false) : undefined} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 24px', borderBottom: `1px solid ${P.border}`, cursor: hidden ? 'pointer' : 'default' }}>
         <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.ink, letterSpacing: '-0.025px' }}>
           {widgetMode === 'food' ? 'Launch meal vouchers' : 'Mobility account'}
         </span>
         {!live && (() => {
           const mobilityMeta = [
-            { label: 'Select employees', color: P.inkSoft,  bg: P.bg },
             { label: mandateDenied ? 'Mandate declined' : 'Sign mandate', color: mandateDenied ? '#DC2626' : P.inkSoft, bg: mandateDenied ? '#FEF2F2' : P.bg },
             { label: 'Awaiting deposit', color: '#D97706',  bg: '#FEF3C7' },
+            { label: 'Physical cards',   color: P.inkSoft,  bg: P.bg },
             { label: 'Send invites',     color: P.inkSoft,  bg: P.bg },
           ];
           const foodMeta = [
@@ -6670,7 +6571,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
                     {[
                       { label: 'View transactions', action: () => { onNav && onNav('choices'); setLiveMenuOpen(false); } },
                       ...(!ws.justLaunched && !nooneToInvite ? [{ label: 'Invite more employees', action: () => { setShowInviteMoreModal(true); setLiveMenuOpen(false); } }] : []),
-                      { label: 'Card settings', action: () => { onNav && onNav('settings-cardrules'); setLiveMenuOpen(false); } },
+                      { label: 'Payflip Card', action: () => { onNav && onNav('settings-cardrules'); setLiveMenuOpen(false); } },
                     ].map(({ label, action }) => (
                       <button key={label} onClick={action} style={{ display: 'flex', alignItems: 'center', width: '100%', padding: '9px 14px', border: 'none', background: 'transparent', fontFamily: 'var(--font-body)', fontSize: 12, color: P.ink, cursor: 'pointer', textAlign: 'left' }}
                         onMouseEnter={e => e.currentTarget.style.background = P.bg}
@@ -6895,15 +6796,23 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
       </div>
     </div>
 
-    {/* Employee picker modal */}
-    {showPickerModal && (
-      <PersonPickerModal
-        title="Select employees"
-        value={selectedEmployees}
-        sections={pickerSections}
-        onSave={keys => setSelectedEmployees(keys)}
-        onClose={() => setShowPickerModal(false)}
-      />
+    {/* Read-only invite list modal */}
+    {showInviteListModal && (
+      <ModalShell title={`Invited employees (${empCount})`} onClose={() => setShowInviteListModal(false)} width={400}>
+        {() => (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 2, padding: '8px 0' }}>
+            {[...readyToUse, ...budgetSpent].map((e, i, arr) => (
+              <div key={e.value} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 24px', borderBottom: i < arr.length - 1 ? `1px solid ${P.border}` : 'none' }}>
+                <span style={{ width: 32, height: 32, borderRadius: '50%', background: e.color || P.action, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, color: '#fff' }}>{e.initials}</span>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.ink, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{e.name}</div>
+                  {e.hint && <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: e.hintColor || P.inkSoft }}>{e.hint} remaining</div>}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </ModalShell>
     )}
 
     {/* Food employee picker modal — no budget tabs, all active employees */}
@@ -6967,20 +6876,10 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
             <Button variant="primary" onClick={sendInvites}>Yes, send invites</Button>
           </div>
         )}>
-        <div style={{ padding: '20px 22px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div style={{ padding: '20px 22px' }}>
           <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink, lineHeight: '20px', margin: 0 }}>
             {empCount} employees will receive an email right now inviting them to download the Payflip app and request their Payflip Card. This can't be undone.
           </p>
-          <div onClick={() => onPhysicalCardsChange && onPhysicalCardsChange(!physicalCardsAllowed)}
-            style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 14px', border: `1px solid ${P.border}`, borderRadius: 10, cursor: 'pointer', background: physicalCardsAllowed ? '#faf8ff' : P.bg }}>
-            <div>
-              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.ink }}>Allow physical card requests</div>
-              <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, marginTop: 2 }}>
-                {physicalCardsAllowed ? 'Virtual + physical card' : 'Virtual card only'}
-              </div>
-            </div>
-            <Switch checked={!!physicalCardsAllowed} onChange={() => {}} />
-          </div>
         </div>
       </ModalShell>
     )}
@@ -7010,7 +6909,7 @@ function AttentionRow({ item, last, onNav }) {
         <Icon name={item.icon} size={15} color={item.iconColor ?? '#3d4047'} strokeWidth={1.5} />
       </div>
       <span style={{ flex: 1, fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.ink }}>{item.label}</span>
-      <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, color: P.white, background: P.action, borderRadius: 20, padding: '2px 8px', flexShrink: 0 }}>{item.count}</span>
+      <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, color: P.white, background: item.badgeBg ?? P.action, borderRadius: 20, padding: '2px 8px', flexShrink: 0 }}>{item.count}</span>
       <Icon name="chevron-right" size={15} color={P.inkSoft} strokeWidth={1.75} />
     </div>
   );
@@ -7018,13 +6917,15 @@ function AttentionRow({ item, last, onNav }) {
 
 function DashboardScreen({ requests, onNav, onToast, appEntity = null, physicalCardsAllowed, onPhysicalCardsChange, mobilityWidgetState, onMobilityWidgetStateChange, pendingRequests = 0, pendingExpenses = 0, pendingChoices = 0, activeBudgets = 0 }) {
   const today = new Date(); today.setHours(0,0,0,0);
-  const totalPending = pendingRequests + pendingExpenses + pendingChoices;
+  const fundingIssue = mobilityWidgetState.live && !!mobilityWidgetState.fundingIssue;
+  const totalPending = pendingRequests + pendingExpenses + pendingChoices + (fundingIssue ? 1 : 0);
   const employeeCount = Object.keys(EMPLOYEES).length;
   const activeBenefits = BENEFIT_TYPES_SEED.filter(b => b.active).length;
   const firstName = CURRENT_USER.name.split(' ')[0];
   const setupInProgress = !mobilityWidgetState.live && !mobilityWidgetState.hidden;
 
   const attentionItems = [
+    fundingIssue && { icon: 'alert-circle', label: 'Mobility top-up failed', count: '!', screen: 'settings-cardrules', iconBg: '#fef2f2', iconColor: '#dc2626', badgeBg: '#dc2626' },
     pendingRequests > 0 && { icon: 'calendar-days', label: 'Time-off requests', count: pendingRequests, screen: 'requests', iconBg: '#e8f0fe', iconColor: '#2563eb' },
     pendingExpenses > 0 && { icon: 'receipt', label: 'Expense reports', count: pendingExpenses, screen: 'expenses', iconBg: '#fef3c7', iconColor: '#b45309' },
     pendingChoices > 0 && { icon: 'list-checks', label: 'Choices to approve', count: pendingChoices, screen: 'choices', iconBg: '#ede9fe', iconColor: '#6d28d9' },
@@ -7099,21 +7000,18 @@ function DashboardScreen({ requests, onNav, onToast, appEntity = null, physicalC
   );
 }
 
-// ── Card rules settings ────────────────────────────────────────────────────
-function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, onToast }) {
-  const [autoTopUp, setAutoTopUp] = useState(true);
+// ── Payflip Card settings ───────────────────────────────────────────────────
+function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, onToast, mobilityWidgetState, onMobilityWidgetStateChange }) {
   const [draftPhysicalCards, setDraftPhysicalCards] = useState(physicalCardsAllowed);
   const [showResignModal, setShowResignModal] = useState(false);
   const [resignSigning, setResignSigning] = useState(false);
-  const [savedAutoTopUp, setSavedAutoTopUp] = useState(true);
   const [savedPhysicalCards, setSavedPhysicalCards] = useState(physicalCardsAllowed);
-  const isDirty = autoTopUp !== savedAutoTopUp || draftPhysicalCards !== savedPhysicalCards;
+  const isDirty = draftPhysicalCards !== savedPhysicalCards;
 
   const handleSave = () => {
     onPhysicalCardsChange(draftPhysicalCards);
-    setSavedAutoTopUp(autoTopUp);
     setSavedPhysicalCards(draftPhysicalCards);
-    onToast && onToast({ message: 'Card rules saved', type: 'approve' });
+    onToast && onToast({ message: 'Payflip Card settings saved', type: 'approve' });
   };
 
   const handleResign = (close) => {
@@ -7125,20 +7023,130 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, onToas
     }, 1800);
   };
 
+  // Account overview — computed from mobilityWidgetState
+  const ws2 = mobilityWidgetState || {};
+  const isLive = !!ws2.live;
+  const setWs2 = (patch) => onMobilityWidgetStateChange && onMobilityWidgetStateChange({ ...ws2, ...patch });
+  const allEligible2 = Object.entries(EMPLOYEES).filter(([, e]) => e.budget > 0).map(([id, e]) => ({ ...e, id }));
+  const empCount2 = allEligible2.length;
+  const deposit2 = Math.max(50, Math.round(empCount2 * 37 * 3 / 50) * 50);
+  const invitedKeys2 = ws2.invitedKeys || [];
+  const justLaunched2 = !!ws2.justLaunched;
+  const fundingIssue2 = !!ws2.fundingIssue;
+  const toppingUp2 = !!ws2.toppingUp;
+  const liveBalance2 = fundingIssue2 ? Math.round(deposit2 * 0.12) : toppingUp2 ? Math.round(deposit2 * 0.15) : justLaunched2 ? deposit2 : Math.round(deposit2 * 0.725);
+  const liveSpent2 = deposit2 - liveBalance2;
+  const liveActiveCards2 = (justLaunched2 && !fundingIssue2) ? 0 : Math.max(1, Math.floor(empCount2 * 0.6));
+  const threshold2 = Math.round(deposit2 * 0.2);
+  // Y axis: 0 = full deposit (top), 100 = empty (bottom). Threshold sits at ~80% down.
+  const thresholdY2 = +((1 - threshold2 / deposit2) * 100).toFixed(1);
+  const yOf2 = (b) => +((1 - Math.max(0, b) / deposit2) * 100).toFixed(1);
+  // Scale spend events so the path ends at the actual simulated balance
+  const rawSpend2 = [[4, 15], [11, 12], [17, 10], [23, 8], [29, 10]];
+  const rawTotal2 = rawSpend2.reduce((s, [, a]) => s + a, 0);
+  const spendScale2 = (deposit2 - liveBalance2) / rawTotal2;
+  const spendEvents2 = rawSpend2.map(([day, amt]) => [day, amt * spendScale2]);
+  let _bal2 = deposit2;
+  const _pts2 = [`M 0,${yOf2(_bal2)}`];
+  for (const [day, amt] of spendEvents2) {
+    _pts2.push(`L ${day * 10},${yOf2(_bal2)}`);
+    _bal2 -= amt;
+    _pts2.push(`L ${day * 10},${yOf2(_bal2)}`);
+  }
+  _pts2.push(`L 300,${yOf2(_bal2)}`);
+  const linePath2 = _pts2.join(' ');
+  const areaPath2 = linePath2 + ' L 300,100 L 0,100 Z';
+
   return (
     <div style={{ flex: 1, overflow: 'auto', animation: `screenEnter 180ms ${EASE_OUT}` }}>
       <div style={{ maxWidth: 680, margin: '0 auto', padding: '40px 32px', display: 'flex', flexDirection: 'column', gap: 32 }}>
 
         <div>
-          <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 28, color: P.ink, margin: 0, letterSpacing: '-0.02em' }}>Card rules</h1>
-          <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, margin: '4px 0 0' }}>Configure how your employees can use and request their Payflip Card</p>
+          <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 28, color: P.ink, margin: 0, letterSpacing: '-0.02em' }}>Payflip Card</h1>
+          <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, margin: '4px 0 0' }}>Manage your employees' mobility card account</p>
         </div>
 
-        {/* Funding & mandate */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-          <div style={SL}>Funding &amp; mandate</div>
+        {/* Funding issue alert — page-level, above the account card */}
+        {isLive && fundingIssue2 && (
+          <div style={{ display: 'flex', gap: 12, padding: '16px 18px', borderRadius: 10, border: '1px solid #fecaca', background: '#fef2f2', alignItems: 'flex-start' }}>
+            <Icon name="alert-circle" size={16} color="#dc2626" strokeWidth={2} style={{ flexShrink: 0, marginTop: 1 }} />
+            <div style={{ flex: 1 }}>
+              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: '#991b1b', marginBottom: 4 }}>Top-up payment failed</div>
+              <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: '#b91c1c', lineHeight: '18px', marginBottom: 12 }}>
+                The scheduled collection couldn't be processed. Check Twikey for the reason — it may require correcting bank details or re-signing the mandate.
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                <Button variant="primary" onClick={() => window.open('https://app.twikey.com', '_blank')} style={{ fontSize: 13, padding: '6px 12px' }}>
+                  Resolve in Twikey →
+                </Button>
+                <a href="mailto:support@payflip.be?subject=Mobility%20card%20top-up%20failed" style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, textDecoration: 'underline' }}>Contact support</a>
+              </div>
+            </div>
+          </div>
+        )}
 
-          {/* Mandate */}
+        {/* Account overview — only when live */}
+        {isLive && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+            <div style={SL}>Account</div>
+            <div style={{ border: `1px solid ${P.border}`, borderRadius: 12, overflow: 'hidden', background: P.white }}>
+
+              <div style={{ padding: '18px 24px 16px' }}>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, marginBottom: 6 }}>Account balance</div>
+                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 28, color: fundingIssue2 ? '#dc2626' : P.ink, letterSpacing: '-0.5px', lineHeight: 1, marginBottom: toppingUp2 ? 6 : 10 }}>
+                  €{liveBalance2.toLocaleString('de-DE')}
+                </div>
+                {toppingUp2 && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontFamily: 'var(--font-body)', fontSize: 13, color: '#1d4ed8', fontWeight: 500, marginBottom: 8 }}>
+                    <Icon name="arrow-down-circle" size={13} color="#1d4ed8" strokeWidth={2} />
+                    <span>+ €{deposit2.toLocaleString('de-DE')} incoming</span>
+                  </div>
+                )}
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>
+                  {justLaunched2
+                    ? `Invites sent to ${invitedKeys2.length} ${invitedKeys2.length === 1 ? 'employee' : 'employees'}`
+                    : toppingUp2
+                    ? `Auto top-up threshold: €${threshold2.toLocaleString('de-DE')}`
+                    : `of €${deposit2.toLocaleString('de-DE')} funded`}
+                </div>
+              </div>
+
+              {!justLaunched2 && (
+                <svg viewBox="0 0 300 100" preserveAspectRatio="none" style={{ width: '100%', height: 110, display: 'block' }}>
+                  <defs>
+                    <linearGradient id="balGrad2" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor={fundingIssue2 ? '#dc2626' : toppingUp2 ? '#1d4ed8' : '#008556'} stopOpacity="0.1" />
+                      <stop offset="100%" stopColor={fundingIssue2 ? '#dc2626' : toppingUp2 ? '#1d4ed8' : '#008556'} stopOpacity="0.01" />
+                    </linearGradient>
+                  </defs>
+                  {/* Threshold reference line */}
+                  <line x1="0" y1={thresholdY2} x2="300" y2={thresholdY2} stroke="#e5e5e7" strokeWidth="1" strokeDasharray="3 3" vectorEffect="non-scaling-stroke" />
+                  <path d={areaPath2} fill="url(#balGrad2)" />
+                  <path d={linePath2} fill="none" stroke={fundingIssue2 ? '#dc2626' : toppingUp2 ? '#1d4ed8' : '#008556'} strokeWidth="1.5" vectorEffect="non-scaling-stroke" />
+                </svg>
+              )}
+
+              {!justLaunched2 && (
+                <div style={{ display: 'flex', borderTop: `1px solid ${P.border}` }}>
+                  {[
+                    { label: 'Active cards', value: `${liveActiveCards2} of ${invitedKeys2.length}` },
+                    { label: 'Spent this month', value: `€${liveSpent2.toLocaleString('de-DE')}` },
+                  ].map(({ label, value }, i) => (
+                    <div key={label} style={{ flex: 1, padding: '12px 20px', borderLeft: i === 1 ? `1px solid ${P.border}` : 'none' }}>
+                      <div style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkSoft, marginBottom: 3 }}>{label}</div>
+                      <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.ink }}>{value}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+            </div>
+          </div>
+        )}
+
+        {/* Mandate */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+          <div style={SL}>Mandate</div>
           <SettingsCard info="Collections are processed by Twikey. Re-sign if your company's bank account changes.">
             <SettingsRow
               icon="landmark"
@@ -7148,34 +7156,10 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, onToas
               last
             />
           </SettingsCard>
-
-          {/* Auto top-up */}
-          <SettingsCard>
-            <SettingsRow
-              icon="refresh-cw"
-              label="Auto top-up"
-              subtitle={autoTopUp ? 'Account is topped up automatically when the balance runs low' : 'You will need to top up the account manually'}
-              trailing={<Switch size="sm" checked={autoTopUp} onChange={() => setAutoTopUp(v => !v)} />}
-              last={!autoTopUp}
-            />
-            {autoTopUp && (<>
-              <SettingsRow
-                icon="trending-down"
-                label="Top-up trigger"
-                value="Below €500"
-              />
-              <SettingsRow
-                icon="arrow-down-to-line"
-                label="Top-up amount"
-                value="€700 per collection"
-                last
-              />
-            </>)}
-          </SettingsCard>
         </div>
 
         {/* Card issuance */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
           <div style={SL}>Card issuance</div>
           <SettingsCard info="Physical cards are shipped to the employee's address within 5–7 business days. A €9 shipping fee applies per card.">
             <SettingsRow
@@ -7188,23 +7172,35 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, onToas
           </SettingsCard>
         </div>
 
-        {/* Spending controls */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <div style={SL}>Spending controls</div>
-          <SettingsCard info="By default employees can spend in any merchant category. Restrict to specific categories to enforce your mobility policy.">
-            <SettingsRow
-              icon="tag"
-              label="Spending categories"
-              value="All categories"
-              last
-            />
-          </SettingsCard>
-        </div>
-
         {/* Footer */}
         <div style={{ paddingTop: 8, display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
           <Button variant="primary" onClick={handleSave} disabled={!isDirty}>Save changes</Button>
         </div>
+
+        {/* Prototype-only simulation controls — not part of product UI */}
+        {isLive && (
+          <div style={{ borderTop: `1px dashed ${P.border}`, paddingTop: 16, display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <Icon name="wrench" size={11} color={P.inkFaint} strokeWidth={1.75} />
+              <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkFaint, letterSpacing: '0.06em', textTransform: 'uppercase' }}>Prototype</span>
+            </div>
+            <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+              <a href="#" onClick={e => { e.preventDefault(); setWs2({ justLaunched: !ws2.justLaunched, fundingIssue: false, toppingUp: false }); }} style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkFaint, textDecoration: 'underline' }}>
+                {ws2.justLaunched ? 'Simulate activity' : 'Simulate just launched'}
+              </a>
+              {!ws2.justLaunched && (
+                <a href="#" onClick={e => { e.preventDefault(); setWs2({ toppingUp: !ws2.toppingUp, fundingIssue: false }); }} style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: ws2.toppingUp ? '#1d4ed8' : P.inkFaint, textDecoration: 'underline' }}>
+                  {ws2.toppingUp ? 'Clear top-up in progress' : 'Simulate top-up in progress'}
+                </a>
+              )}
+              {!ws2.justLaunched && (
+                <a href="#" onClick={e => { e.preventDefault(); setWs2({ fundingIssue: !ws2.fundingIssue, toppingUp: false }); }} style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: ws2.fundingIssue ? '#dc2626' : P.inkFaint, textDecoration: 'underline' }}>
+                  {ws2.fundingIssue ? 'Clear top-up failure' : 'Simulate top-up failure'}
+                </a>
+              )}
+            </div>
+          </div>
+        )}
 
       </div>
 
@@ -10185,7 +10181,7 @@ const SETTINGS_TITLES = {
   'settings-payroll': 'Payroll settings',
   'settings-allowances': 'Allowances',
   'settings-expenses': 'Expenses',
-  'settings-cardrules': 'Card rules',
+  'settings-cardrules': 'Payflip Card',
   'settings-integrations': 'Integrations',
   'settings-team': 'Team & access',
 };
@@ -11033,7 +11029,7 @@ function App() {
         }
         @keyframes stepDoneEnter {
           from { opacity: 0; transform: translateY(-4px); }
-          to   { opacity: 1; transform: translateY(0); }
+          to   { opacity: 0.70; transform: translateY(0); }
         }
         * { box-sizing: border-box; }
         ::placeholder { color: #9ca3af; opacity: 1; }
@@ -11063,7 +11059,7 @@ function App() {
         {screen === 'settings-documents' && <DocumentsSettings key={appEntity ?? 'all'} appEntity={appEntity} documents={settingsDocuments} onDocumentsChange={setSettingsDocuments} />}
         {screen === 'settings-payroll' && <PayrollSettings companyRegime={companyRegime} onRegimeChange={setCompanyRegime} appEntity={appEntity} onToast={setToast} />}
         {screen === 'settings-benefits' && <BenefitsSettings key={appEntity ?? 'all'} appEntity={appEntity} />}
-        {screen === 'settings-cardrules' && <CardRulesSettings physicalCardsAllowed={physicalCardsAllowed} onPhysicalCardsChange={setPhysicalCardsAllowed} onToast={setToast} />}
+        {screen === 'settings-cardrules' && <CardRulesSettings physicalCardsAllowed={physicalCardsAllowed} onPhysicalCardsChange={setPhysicalCardsAllowed} onToast={setToast} mobilityWidgetState={mobilityWidgetState} onMobilityWidgetStateChange={setMobilityWidgetState} />}
         {screen === 'changelog' && <ChangelogScreen />}
         {screen === 'components' && <ComponentLibraryScreen />}
         {screen.startsWith('settings-') && screen !== 'settings-allowances' && screen !== 'settings-expenses' && screen !== 'settings-team' && screen !== 'settings-timeoff' && screen !== 'settings-entities' && screen !== 'settings-documents' && screen !== 'settings-payroll' && screen !== 'settings-benefits' && screen !== 'settings-cardrules' && <StubScreen title={SETTINGS_TITLES[screen] || 'Settings'} description={`Configure ${(SETTINGS_TITLES[screen] || 'settings').toLowerCase()}`} />}
