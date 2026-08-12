@@ -3685,7 +3685,7 @@ function RequestRow({ req, requests, onApprove, onDecline, onDetail, onDeclineDi
 // ── Add expense modal ──────────────────────────────────────────────────────
 function AddExpenseModal({ categories, onClose, onSave }) {
   const [empId, setEmpId] = useState('');
-  const [category, setCategory] = useState(categories[0] || '');
+  const [category, setCategory] = useState(categories[0]?.name || categories[0] || '');
   const [amount, setAmount] = useState('');
   const [note, setNote] = useState('');
   const [receiptFile, setReceiptFile] = useState(null);
@@ -3763,7 +3763,7 @@ function AddExpenseModal({ categories, onClose, onSave }) {
               <label style={labelStyle}>Category <span style={{ color: '#ef4444' }}>*</span></label>
               <div style={{ position: 'relative' }}>
                 <select value={category} onChange={e => setCategory(e.target.value)} style={selectStyle(errors.category)}>
-                  {categories.map(c => <option key={c} value={c}>{c}</option>)}
+                  {categories.map(c => { const name = c?.name ?? c; return <option key={name} value={name}>{name}</option>; })}
                 </select>
                 <Icon name="chevron-down" size={14} color={P.inkFaint} style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
               </div>
