@@ -6525,14 +6525,16 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
             </div>
           )}
           <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>
-            {toppingUp ? `Auto top-up threshold: €${threshold.toLocaleString('de-DE')}` : `of €${deposit.toLocaleString('de-DE')} funded`}
+            {justLaunched
+              ? `Invites sent to ${invitedKeys.length} ${invitedKeys.length === 1 ? 'employee' : 'employees'}`
+              : toppingUp
+              ? `Auto top-up threshold: €${threshold.toLocaleString('de-DE')}`
+              : `of €${deposit.toLocaleString('de-DE')} funded`}
           </div>
         </div>
 
-        {/* Area chart — bleeds edge-to-edge, or empty state (no border — flows from balance hero with spacing only) */}
-        {justLaunched ? (
-          <EmptyState icon="line-chart" title="Invites sent" description="Waiting for employees to download the app and request their card." />
-        ) : (
+        {/* Area chart — hidden when just launched (no activity yet) */}
+        {!justLaunched && (
           <svg viewBox="0 0 300 100" preserveAspectRatio="none" style={{ width: '100%', height: 110, display: 'block' }}>
             <defs>
               <linearGradient id="balGrad" x1="0" y1="0" x2="0" y2="1">
