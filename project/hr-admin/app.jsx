@@ -6329,9 +6329,14 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
                 {stepBadgeEl(1)}
                 <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.ink }}>Sign mandate</span>
               </div>
-              <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
-                Authorises Payflip to collect <strong style={{ color: P.ink }}>€{deposit.toLocaleString('de-DE')}</strong> for your {empCount} employees, and top up automatically when the balance runs low.
-              </p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
+                  Authorises Payflip to collect <strong style={{ color: P.ink }}>€{deposit.toLocaleString('de-DE')}</strong> for your {empCount} employees, and top up automatically when the balance runs low.
+                </p>
+                <button onClick={() => setShowCalcModal(true)} style={{ alignSelf: 'flex-start', background: 'none', border: 'none', padding: 0, fontFamily: 'var(--font-body)', fontSize: 13, color: P.ink, textDecoration: 'underline', cursor: 'pointer' }}>
+                  How is this calculated?
+                </button>
+              </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', border: `1px solid ${P.border}`, borderRadius: 10, background: P.bg }}>
                 <img src={TWIKEY_LOGO_IMG} alt="Twikey" style={{ width: 80, height: 35, display: 'block', objectFit: 'contain', flexShrink: 0 }} />
                 <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, lineHeight: '17px' }}>
@@ -6412,18 +6417,20 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
                 <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.ink }}>Physical cards</span>
               </div>
               <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
-                Employees automatically get a virtual card — it works everywhere Apple Pay and Google Pay are accepted. Physical cards are optional and ordered individually from the app.
+                Virtual cards are included automatically. Physical cards are optional — employees request their own from the app if you enable it here.
               </p>
-              <div onClick={() => onPhysicalCardsChange && onPhysicalCardsChange(!physicalCardsAllowed)}
-                style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 14px', border: `1px solid ${P.border}`, borderRadius: 10, cursor: 'pointer', background: physicalCardsAllowed ? '#faf8ff' : P.bg }}>
-                <div>
-                  <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.ink }}>Allow employees to request physical cards</div>
-                  <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, marginTop: 2 }}>€10 per card</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <div onClick={() => onPhysicalCardsChange && onPhysicalCardsChange(!physicalCardsAllowed)}
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 14px', border: `1px solid ${P.border}`, borderRadius: 10, cursor: 'pointer', background: physicalCardsAllowed ? '#faf8ff' : P.bg }}>
+                  <div>
+                    <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.ink }}>Allow employees to request physical cards</div>
+                    <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, marginTop: 2 }}>€10 per card</div>
+                  </div>
+                  <Switch checked={!!physicalCardsAllowed} onChange={() => {}} />
                 </div>
-                <Switch checked={!!physicalCardsAllowed} onChange={() => {}} />
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, textAlign: 'center' }}>You can change this any time in Payflip Card settings.</div>
               </div>
               <Button variant="primary" onClick={() => setStep(4)} style={{ width: '100%', justifyContent: 'center', fontSize: 15, padding: '10px 18px' }}>Continue</Button>
-              <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, textAlign: 'center' }}>You can change this any time in Payflip Card settings.</div>
             </div>
           </div>
         </div>
@@ -7109,7 +7116,7 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, onToas
 
         <div>
           <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 28, color: P.ink, margin: 0, letterSpacing: '-0.02em' }}>Payflip Card</h1>
-          <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, margin: '4px 0 0' }}>Manage your employees' mobility card account</p>
+          <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, margin: '4px 0 0' }}>Manage card accounts and settings for your employees</p>
         </div>
 
         {/* Funding issue alert — page-level, above the account card */}
