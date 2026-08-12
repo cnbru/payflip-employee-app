@@ -3111,15 +3111,19 @@ function OverlapPopover({ req, overlapping, empDept }) {
 }
 
 // ── Expense drawer ─────────────────────────────────────────────────────────
-function ExpenseDrawer({ expense, onClose, onApprove, onReject, initialRejectMode = false }) {
+function ExpenseDrawer({ expense, onClose, onApprove, onReject, onEdit, categories = [], initialRejectMode = false }) {
   const emp = EMPLOYEES[expense.employee] || { name: expense.employee, initials: '?', color: '#e5e7eb' };
   const isPending = expense.status === 'pending';
 
   const [rejectMode, setRejectMode] = React.useState(initialRejectMode);
   const [rejectReason, setRejectReason] = React.useState('');
+  const [editMode, setEditMode] = React.useState(false);
+  const [editAmount, setEditAmount] = React.useState(String(expense.amount));
+  const [editCategory, setEditCategory] = React.useState(expense.category);
+  const [editDescription, setEditDescription] = React.useState(expense.description || '');
 
   const SLIDE_DUR = 300;
-  const secondPanel = rejectMode;
+  const secondPanel = rejectMode || editMode;
   const detailSlide = secondPanel ? 'translateX(-100%)' : 'translateX(0)';
   const editSlide   = secondPanel ? 'translateX(0)'     : 'translateX(100%)';
   const slideTransition = `transform ${SLIDE_DUR}ms ${EASE_DRAWER}`;
@@ -3204,7 +3208,7 @@ function ExpenseDrawer({ expense, onClose, onApprove, onReject, initialRejectMod
   );
 
   return (
-    <DrawerShell onClose={onClose} title={rejectMode ? 'Reject expense' : 'Expense details'} onBack={secondPanel ? () => setRejectMode(false) : undefined}>
+    <DrawerShell onClose={onClose} title={rejectMode ? 'Reject expense' : editMode ? 'Edit expense' : 'Expense details'} onBack={secondPanel ? () => { setRejectMode(false); setEditMode(false); } : undefined}>
       {close => (
         <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
           <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', transform: detailSlide, transition: slideTransition }}>
@@ -3213,6 +3217,7 @@ function ExpenseDrawer({ expense, onClose, onApprove, onReject, initialRejectMod
             </div>
             {isPending && (
               <div style={{ flexShrink: 0, padding: '12px 20px', borderTop: `1px solid ${P.border}`, display: 'flex', gap: 10 }}>
+                <Button variant="secondary" icon="pencil" onClick={() => { setEditAmount(String(expense.amount)); setEditCategory(expense.category); setEditDescription(expense.description || ''); setEditMode(true); }}>Edit</Button>
                 <button onClick={() => { setRejectReason(''); setRejectMode(true); }} style={{ flex: 1, padding: '10px 0', borderRadius: 10, border: '1px solid #fecaca', background: '#fef2f2', color: '#dc2626', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
                   <Icon name="X" size={13} color="#dc2626" strokeWidth={2.5} /> Reject
                 </button>
@@ -3224,19 +3229,50 @@ function ExpenseDrawer({ expense, onClose, onApprove, onReject, initialRejectMod
           </div>
 
           <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', transform: editSlide, transition: slideTransition }}>
-            <div style={{ flex: 1, overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column', gap: 16 }}>
-              <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, lineHeight: 1.5 }}>
-                You're rejecting <strong style={{ color: P.ink }}>{emp.name}</strong>'s {expense.category} expense ({amountStr}).
-              </p>
-              <div>
-                <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 10, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Reason <span style={{ textTransform: 'none', fontWeight: 400 }}>(optional)</span></label>
-                <textarea value={rejectReason} onChange={e => setRejectReason(e.target.value)} placeholder="Explain why this expense is being rejected…" rows={3} style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: `1px solid ${P.border}`, background: P.bg, fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink, resize: 'none', lineHeight: 1.5, boxSizing: 'border-box', outline: 'none' }} />
-              </div>
-            </div>
-            <div style={{ flexShrink: 0, padding: '12px 20px', borderTop: `1px solid ${P.border}`, display: 'flex', gap: 10 }}>
-              <button onClick={() => setRejectMode(false)} style={{ flex: 1, padding: '10px 0', borderRadius: 10, border: `1px solid ${P.border}`, background: 'transparent', color: P.inkSoft, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>Go back</button>
-              <button onClick={() => { onReject(expense.id, rejectReason); close(); }} style={{ flex: 2, padding: '10px 0', borderRadius: 10, border: 'none', background: '#dc2626', color: P.white, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>Confirm rejection</button>
-            </div>
+            {editMode ? (
+              <>
+                <div style={{ flex: 1, overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+                  <div>
+                    <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 10, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Amount</label>
+                    <div style={{ display: 'flex', alignItems: 'center', border: `1px solid ${P.border}`, borderRadius: 8, background: P.bg, overflow: 'hidden' }}>
+                      <span style={{ padding: '10px 12px', fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, borderRight: `1px solid ${P.border}` }}>€</span>
+                      <input type="number" step="0.01" value={editAmount} onChange={e => setEditAmount(e.target.value)} style={{ flex: 1, padding: '10px 12px', border: 'none', background: 'transparent', fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink, outline: 'none' }} />
+                    </div>
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 10, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Category</label>
+                    <select value={editCategory} onChange={e => setEditCategory(e.target.value)} style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: `1px solid ${P.border}`, background: P.bg, fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink, outline: 'none', cursor: 'pointer' }}>
+                      {!categories.find(c => c.name === editCategory) && <option value={editCategory}>{editCategory}</option>}
+                      {categories.map(c => <option key={c.name} value={c.name}>{c.name}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 10, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Description</label>
+                    <textarea value={editDescription} onChange={e => setEditDescription(e.target.value)} rows={3} style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: `1px solid ${P.border}`, background: P.bg, fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink, resize: 'none', lineHeight: 1.5, boxSizing: 'border-box', outline: 'none' }} />
+                  </div>
+                </div>
+                <div style={{ flexShrink: 0, padding: '12px 20px', borderTop: `1px solid ${P.border}`, display: 'flex', gap: 10 }}>
+                  <button onClick={() => setEditMode(false)} style={{ flex: 1, padding: '10px 0', borderRadius: 10, border: `1px solid ${P.border}`, background: 'transparent', color: P.inkSoft, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>Cancel</button>
+                  <button onClick={() => { const amt = parseFloat(editAmount); if (!isNaN(amt)) { onEdit && onEdit(expense.id, { amount: amt, category: editCategory, description: editDescription }); } setEditMode(false); }} style={{ flex: 2, padding: '10px 0', borderRadius: 10, border: 'none', background: P.ink, color: P.white, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>Save changes</button>
+                </div>
+              </>
+            ) : (
+              <>
+                <div style={{ flex: 1, overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+                  <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, lineHeight: 1.5 }}>
+                    You're rejecting <strong style={{ color: P.ink }}>{emp.name}</strong>'s {expense.category} expense ({amountStr}).
+                  </p>
+                  <div>
+                    <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 10, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Reason <span style={{ textTransform: 'none', fontWeight: 400 }}>(optional)</span></label>
+                    <textarea value={rejectReason} onChange={e => setRejectReason(e.target.value)} placeholder="Explain why this expense is being rejected…" rows={3} style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: `1px solid ${P.border}`, background: P.bg, fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink, resize: 'none', lineHeight: 1.5, boxSizing: 'border-box', outline: 'none' }} />
+                  </div>
+                </div>
+                <div style={{ flexShrink: 0, padding: '12px 20px', borderTop: `1px solid ${P.border}`, display: 'flex', gap: 10 }}>
+                  <button onClick={() => setRejectMode(false)} style={{ flex: 1, padding: '10px 0', borderRadius: 10, border: `1px solid ${P.border}`, background: 'transparent', color: P.inkSoft, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>Go back</button>
+                  <button onClick={() => { onReject(expense.id, rejectReason); close(); }} style={{ flex: 2, padding: '10px 0', borderRadius: 10, border: 'none', background: '#dc2626', color: P.white, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>Confirm rejection</button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}
@@ -10800,6 +10836,10 @@ function App() {
     if (exp) setToast({ message: `${(EMPLOYEES[exp.employee] || { name: exp.employee }).name.split(' ')[0]}'s expense approved`, type: 'approve' });
   };
 
+  const editExpense = (id, updates) => {
+    setExpenses(prev => prev.map(e => e.id === id ? { ...e, ...updates } : e));
+    setExpDetail(prev => prev?.id === id ? { ...prev, ...updates } : prev);
+  };
   const rejectExpense = (id, reason) => {
     setExpenses(prev => prev.map(e => e.id === id ? { ...e, status: 'rejected', rejectReason: reason } : e));
     const exp = expenses.find(e => e.id === id);
@@ -11107,6 +11147,8 @@ function App() {
           onClose={() => { setExpDetail(null); setExpDetailRejectMode(false); }}
           onApprove={(id) => { approveExpense(id); setExpDetail(null); setExpDetailRejectMode(false); }}
           onReject={(id, reason) => { rejectExpense(id, reason); setExpDetail(null); setExpDetailRejectMode(false); }}
+          onEdit={editExpense}
+          categories={expenseCategories}
         />
       )}
       {choiceDetail && (
