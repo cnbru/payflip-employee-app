@@ -10256,46 +10256,62 @@ const SETTINGS_TITLES = {
 
 // ── App switcher pill ──────────────────────────────────────────────────────
 // ── Toast ──────────────────────────────────────────────────────────────────
-function Toast({ toast, onDone }) {
+function ToastItem({ toast, onDone }) {
   const [exiting, setExiting] = useState(false);
 
   const dismiss = () => {
     setExiting(true);
-    setTimeout(onDone, 180);
+    setTimeout(onDone, 200);
   };
 
   useEffect(() => {
     const t = setTimeout(dismiss, 8000);
     return () => clearTimeout(t);
-  }, [toast.message]);
+  }, [toast.id]);
 
   const isDecline = toast.type === 'decline';
 
   return (
     <div style={{
-      position: 'fixed', top: 24, right: 24,
-      transform: exiting ? 'translateY(-8px)' : 'translateY(0)',
+      transform: exiting ? 'translateX(12px)' : 'translateX(0)',
       opacity: exiting ? 0 : 1,
-      transition: exiting ? `opacity 180ms ${EASE_OUT}, transform 180ms ${EASE_OUT}` : 'none',
-      background: P.action, color: '#fff',
-      padding: toast.onUndo ? '8px 8px 8px 16px' : '10px 20px',
+      transition: exiting ? `opacity 200ms ${EASE_OUT}, transform 200ms ${EASE_OUT}` : 'none',
+      background: P.white, color: P.ink,
+      padding: toast.onUndo || toast.onView ? '10px 10px 10px 16px' : '10px 20px',
       borderRadius: 10,
+      border: `1px solid ${P.border}`,
       fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13,
-      boxShadow: '0 4px 16px rgba(15,13,40,0.2)', zIndex: 300,
+      boxShadow: '0 4px 20px rgba(15,13,40,0.1)',
       display: 'flex', alignItems: 'center', gap: 8,
-      animation: exiting ? 'none' : 'fadeDown 0.2s ease-out',
+      animation: exiting ? 'none' : `fadeDown 200ms ${EASE_OUT} both`,
       whiteSpace: 'nowrap',
     }}>
-      <Icon name={isDecline ? 'X' : 'Check'} size={15} color={isDecline ? '#f87171' : '#4ade80'} strokeWidth={2.5} />
+      <Icon name={isDecline ? 'X' : 'Check'} size={15} color={isDecline ? '#dc2626' : '#16a34a'} strokeWidth={2.5} />
       {toast.message}
       {toast.onUndo && (
         <button onClick={() => { toast.onUndo(); dismiss(); }} style={{
           marginLeft: 4, padding: '5px 12px', borderRadius: 7,
-          border: '1px solid rgba(255,255,255,0.25)',
-          background: 'transparent', color: '#fff', cursor: 'pointer',
+          border: `1px solid ${P.border}`,
+          background: 'transparent', color: P.ink, cursor: 'pointer',
           fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11,
         }}>Undo</button>
       )}
+      {toast.onView && (
+        <button onClick={() => { toast.onView(); dismiss(); }} style={{
+          marginLeft: 4, padding: '5px 12px', borderRadius: 7,
+          border: `1px solid ${P.border}`,
+          background: 'transparent', color: P.ink, cursor: 'pointer',
+          fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11,
+        }}>View</button>
+      )}
+    </div>
+  );
+}
+
+function ToastStack({ toasts, onRemove }) {
+  return (
+    <div style={{ position: 'fixed', top: 24, right: 24, display: 'flex', flexDirection: 'column', gap: 8, zIndex: 300, alignItems: 'flex-end' }}>
+      {toasts.map(t => <ToastItem key={t.id} toast={t} onDone={() => onRemove(t.id)} />)}
     </div>
   );
 }
@@ -10777,7 +10793,9 @@ function App() {
   const [appEntity, setAppEntity] = useState(null);
   const [requests, setRequests] = useState(() => mergeRequests(generatedRequests, readLS()));
   const [companyEvents, setCompanyEvents] = useState([]);
-  const [toast, setToast] = useState(null);
+  const [toasts, setToasts] = useState([]);
+  const addToast = (t) => setToasts(prev => [{ id: `t-${prev.length}-${Date.now()}`, ...t }, ...prev]);
+  const removeToast = (id) => setToasts(prev => prev.filter(t => t.id !== id));
   const [addEmployeeOpen, setAddEmployeeOpen] = useState(false);
   const [freshEmployeeId, setFreshEmployeeId] = useState(null);
   const handleAddEmployee = (id, emp, extra, fullName, sendInvite, inviteToCard) => {
@@ -10791,7 +10809,7 @@ function App() {
     const msg = inviteToCard ? `${fullName} added — invite & card access sent`
       : sendInvite ? `${fullName} added — invite sent`
       : `${fullName} added`;
-    setToast({ message: msg, type: 'approve' });
+    addToast({ message: msg, type: 'approve' });
   };
   const [calDetail, setCalDetail] = useState(null);
   const [calendarJumpDate, setCalendarJumpDate] = useState(null);
@@ -10816,12 +10834,12 @@ function App() {
   const approveChoice = (id) => {
     setChoices(prev => prev.map(c => c.id === id ? { ...c, status: 'approved' } : c));
     const ch = choices.find(c => c.id === id);
-    if (ch) setToast({ message: `${(EMPLOYEES[ch.empId] || {}).name?.split(' ')[0]}'s choice approved`, type: 'approve' });
+    if (ch) addToast({ message: `${(EMPLOYEES[ch.empId] || {}).name?.split(' ')[0]}'s choice approved`, type: 'approve' });
   };
   const declineChoice = (id, reason) => {
     setChoices(prev => prev.map(c => c.id === id ? { ...c, status: 'declined', declineReason: reason } : c));
     const ch = choices.find(c => c.id === id);
-    if (ch) setToast({ message: `${(EMPLOYEES[ch.empId] || {}).name?.split(' ')[0]}'s choice declined`, type: 'decline' });
+    if (ch) addToast({ message: `${(EMPLOYEES[ch.empId] || {}).name?.split(' ')[0]}'s choice declined`, type: 'decline' });
   };
 
   const [physicalCardsAllowed, setPhysicalCardsAllowed] = useState(false);
@@ -10845,7 +10863,7 @@ function App() {
   const approveExpense = (id) => {
     setExpenses(prev => prev.map(e => e.id === id ? { ...e, status: 'approved' } : e));
     const exp = expenses.find(e => e.id === id);
-    if (exp) setToast({ message: `${(EMPLOYEES[exp.employee] || { name: exp.employee }).name.split(' ')[0]}'s expense approved`, type: 'approve' });
+    if (exp) addToast({ message: `${(EMPLOYEES[exp.employee] || { name: exp.employee }).name.split(' ')[0]}'s expense approved`, type: 'approve' });
   };
 
   const editExpense = (id, updates) => {
@@ -10855,13 +10873,14 @@ function App() {
   const rejectExpense = (id, reason) => {
     setExpenses(prev => prev.map(e => e.id === id ? { ...e, status: 'rejected', rejectReason: reason } : e));
     const exp = expenses.find(e => e.id === id);
-    if (exp) setToast({ message: `${(EMPLOYEES[exp.employee] || { name: exp.employee }).name.split(' ')[0]}'s expense rejected`, type: 'decline' });
+    if (exp) addToast({ message: `${(EMPLOYEES[exp.employee] || { name: exp.employee }).name.split(' ')[0]}'s expense rejected`, type: 'decline' });
   };
   const addExpense = (exp) => {
     const id = `exp-${Date.now()}`;
-    setExpenses(prev => [{ id, ...exp, status: 'pending' }, ...prev]);
+    const newExp = { id, ...exp, status: 'approved' };
+    setExpenses(prev => [newExp, ...prev]);
     const name = (EMPLOYEES[exp.employee] || { name: exp.employee }).name.split(' ')[0];
-    setToast({ message: `Expense added for ${name}`, type: 'approve' });
+    addToast({ message: `Expense added for ${name}`, type: 'approve', onView: () => { setExpDetailRejectMode(false); setExpDetail(newExp); } });
   };
 
   const [pendingAction, setPendingAction] = useState(null); // { type: 'decline'|'cancel', id, empName }
@@ -10875,7 +10894,7 @@ function App() {
       setRequests(prev => {
         const merged = mergeRequests(prev, live);
         const hasNew = merged.some(r => r.status === 'pending' && !prev.find(p => p.id === r.id));
-        if (hasNew) setToast({ message: 'New request received' });
+        if (hasNew) addToast({ message: 'New request received' });
         return merged;
       });
     };
@@ -10890,7 +10909,7 @@ function App() {
       return next;
     });
     const req = requests.find(r => r.id === id);
-    if (req) setToast({ message: `${(EMPLOYEES[req.employee] || { name: req.employee }).name.split(' ')[0]}'s request approved`, type: 'approve' });
+    if (req) addToast({ message: `${(EMPLOYEES[req.employee] || { name: req.employee }).name.split(' ')[0]}'s request approved`, type: 'approve' });
   };
 
   const undoDecline = (id) => {
@@ -10908,7 +10927,7 @@ function App() {
       return next;
     });
     const req = requests.find(r => r.id === id);
-    if (req) setToast({ message: `${(EMPLOYEES[req.employee] || { name: req.employee }).name.split(' ')[0]}'s request declined`, type: 'decline', onUndo: () => undoDecline(id) });
+    if (req) addToast({ message: `${(EMPLOYEES[req.employee] || { name: req.employee }).name.split(' ')[0]}'s request declined`, type: 'decline', onUndo: () => undoDecline(id) });
   };
 
   // Interceptors — show ReasonModal before acting
@@ -10931,7 +10950,7 @@ function App() {
         const idx = prev.findIndex(e => e.id === req.id);
         return idx >= 0 ? prev.map(e => e.id === req.id ? req : e) : [req, ...prev];
       });
-      setToast({ message: 'Company closure saved' });
+      addToast({ message: 'Company closure saved' });
       return;
     }
     const wasEdit = requests.some(r => r.id === req.id);
@@ -10939,7 +10958,7 @@ function App() {
       const idx = prev.findIndex(r => r.id === req.id);
       return idx >= 0 ? prev.map(r => r.id === req.id ? req : r) : [req, ...prev];
     });
-    setToast({ message: wasEdit ? 'Absence updated' : 'Absence added' });
+    addToast({ message: wasEdit ? 'Absence updated' : 'Absence added' });
     if (wasEdit && req._halfDay) {
       const halfEntry = Object.entries(req._halfDay)
         .find(([iso, hv]) => req._selectedDates?.includes(iso) && (hv === 'am' || hv === 'pm'));
@@ -10953,12 +10972,12 @@ function App() {
 
   const cancelRequest = (id, reason) => {
     setRequests(prev => prev.filter(r => r.id !== id));
-    setToast({ message: 'Absence cancelled' });
+    addToast({ message: 'Absence cancelled' });
   };
 
   const cancelCompanyEvent = (id) => {
     setCompanyEvents(prev => prev.filter(e => e.id !== id));
-    setToast({ message: 'Company closure cancelled' });
+    addToast({ message: 'Company closure cancelled' });
   };
 
   const [employeeBalances, setEmployeeBalances] = useState(() => {
@@ -10977,7 +10996,7 @@ function App() {
 
   const updateBalances = (empId, newBalances) => {
     setEmployeeBalances(prev => ({ ...prev, [empId]: newBalances }));
-    setToast({ message: 'Balances updated' });
+    addToast({ message: 'Balances updated' });
   };
 
   const [needsBalanceSetup, setNeedsBalanceSetup] = useState(new Set(['thomas-vandenberghe']));
@@ -11115,11 +11134,11 @@ function App() {
       <Sidebar active={screen} onNav={handleNav} pendingCount={pendingCount} sidebarMode={sidebarMode} onSetSidebarMode={setSidebarMode} appEntity={appEntity} onSetAppEntity={setAppEntity} setupInProgress={screen === 'dashboard' && !mobilityWidgetState.live && !mobilityWidgetState.hidden} />
 
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, overflow: 'hidden' }}>
-        {screen === 'dashboard' && <DashboardScreen key={appEntity ?? 'all'} requests={entityFilteredRequests} onNav={setScreen} onToast={setToast} appEntity={appEntity} physicalCardsAllowed={physicalCardsAllowed} onPhysicalCardsChange={setPhysicalCardsAllowed} mobilityWidgetState={mobilityWidgetState} onMobilityWidgetStateChange={setMobilityWidgetState} pendingRequests={pendingRequestsCount} pendingExpenses={pendingExpensesCount} pendingChoices={pendingChoicesCount} activeBudgets={allowances.filter(a => a.active).length} />}
+        {screen === 'dashboard' && <DashboardScreen key={appEntity ?? 'all'} requests={entityFilteredRequests} onNav={setScreen} onToast={addToast} appEntity={appEntity} physicalCardsAllowed={physicalCardsAllowed} onPhysicalCardsChange={setPhysicalCardsAllowed} mobilityWidgetState={mobilityWidgetState} onMobilityWidgetStateChange={setMobilityWidgetState} pendingRequests={pendingRequestsCount} pendingExpenses={pendingExpensesCount} pendingChoices={pendingChoicesCount} activeBudgets={allowances.filter(a => a.active).length} />}
         {screen === 'team-absences' && <TeamAbsencesScreen key={appEntity ?? 'all'} requests={entityFilteredRequests} pendingCount={pendingRequestsCount} onNav={setScreen} onShowDetail={setCalDetail} activeReqId={calDetail?.id} onSave={saveRequest} companyEvents={companyEvents} onCancelCompanyEvent={cancelCompanyEvent} initialDate={calendarJumpDate} initialDeptFilter={calendarDeptFilter} appEntity={appEntity} leaveTypes={leaveTypes} />}
         {screen === 'requests' && <RequestsScreen key={appEntity ?? 'all'} requests={entityFilteredRequests} onApprove={approve} onDecline={requestDecline} onSave={saveRequest} onCancel={requestCancel} onNav={setScreen} onViewInCalendar={(req) => { const d = req._selectedDates?.[0] || req.startDate; if (d) { const iso = typeof d === 'string' && d.match(/^\d{4}-/) ? d : null; setCalendarJumpDate(iso ? new Date(iso) : parseDisplayDate(d)); } setCalDetail(req); setScreen('team-absences'); }} appEntity={appEntity} />}
         {(screen === 'employees' || screen === 'employees:admin') && <EmployeesScreen key={appEntity ?? 'all'} requests={entityFilteredRequests} onNav={setScreen} initialRoleFilter={screen === 'employees:admin' ? 'Admin' : 'All'} adminAccess={adminAccess} appEntity={appEntity} onAddEmployee={() => setAddEmployeeOpen(true)} />}
-        {screen.startsWith('employee-detail:') && (() => { const [, detailEmpId, detailTab] = screen.split(':'); return <EmployeeDetailScreen employeeId={detailEmpId} requests={requests} onNav={setScreen} onSave={saveRequest} onCancel={cancelRequest} onApprove={approve} onDecline={requestDecline} onViewTeamCalendar={(dept) => { setCalendarDeptFilter(dept || null); setScreen('team-absences'); }} employeeBalance={employeeBalances[detailEmpId]} onUpdateBalance={(newBal) => updateBalances(detailEmpId, newBal)} needsSetup={needsBalanceSetup.has(detailEmpId)} confirmedDate={balanceConfirmedDates[detailEmpId]} onConfirmBalances={() => confirmBalancesFor(detailEmpId)} onToast={setToast} adminAccess={adminAccess} onAdminSave={handleAdminSave} companyRegime={companyRegime} onEmployeeUpdate={handleEmployeeUpdate} getEmpWithOverrides={getEmpWithOverrides} physicalCardsAllowed={physicalCardsAllowed} mobilityWidgetState={mobilityWidgetState} initialTab={detailTab || (freshEmployeeId === detailEmpId ? 'details' : 'choices')} />; })()}
+        {screen.startsWith('employee-detail:') && (() => { const [, detailEmpId, detailTab] = screen.split(':'); return <EmployeeDetailScreen employeeId={detailEmpId} requests={requests} onNav={setScreen} onSave={saveRequest} onCancel={cancelRequest} onApprove={approve} onDecline={requestDecline} onViewTeamCalendar={(dept) => { setCalendarDeptFilter(dept || null); setScreen('team-absences'); }} employeeBalance={employeeBalances[detailEmpId]} onUpdateBalance={(newBal) => updateBalances(detailEmpId, newBal)} needsSetup={needsBalanceSetup.has(detailEmpId)} confirmedDate={balanceConfirmedDates[detailEmpId]} onConfirmBalances={() => confirmBalancesFor(detailEmpId)} onToast={addToast} adminAccess={adminAccess} onAdminSave={handleAdminSave} companyRegime={companyRegime} onEmployeeUpdate={handleEmployeeUpdate} getEmpWithOverrides={getEmpWithOverrides} physicalCardsAllowed={physicalCardsAllowed} mobilityWidgetState={mobilityWidgetState} initialTab={detailTab || (freshEmployeeId === detailEmpId ? 'details' : 'choices')} />; })()}
         {screen === 'expenses' && <ExpensesScreen key={appEntity ?? 'all'} expenses={entityFilteredExpenses} categories={expenseCategories} onApprove={approveExpense} onDetail={(exp) => { setExpDetailRejectMode(false); setExpDetail(exp); }} onRejectDirectly={(exp) => { setExpDetailRejectMode(true); setExpDetail(exp); }} onAdd={addExpense} appEntity={appEntity} />}
         {screen === 'choices' && <ChoicesScreen key={appEntity ?? 'all'} choices={entityFilteredChoices} onApprove={approveChoice} onDecline={declineChoice} onDetail={setChoiceDetail} appEntity={appEntity} />}
         {screen === 'payroll-overview' && <StubScreen title="Payroll Overview" description="Monthly payroll run and submission" />}
@@ -11128,11 +11147,11 @@ function App() {
         {screen === 'settings-expenses' && <ExpenseCategorySettings key={appEntity ?? 'all'} categories={expenseCategories} onSave={setExpenseCategories} appEntity={appEntity} />}
         {screen === 'settings-team' && <TeamAccessSettings key={appEntity ?? 'all'} onNav={setScreen} adminAccess={adminAccess} onAdminSave={handleAdminSave} appEntity={appEntity} />}
         {screen === 'settings-entities' && <EntitiesSettings key={appEntity ?? 'all'} onNav={setScreen} appEntity={appEntity} companyRegime={companyRegime} onRegimeChange={setCompanyRegime} />}
-        {screen === 'settings-timeoff' && <TimeOffSettings key={appEntity ?? 'all'} appEntity={appEntity} companyRegime={companyRegime} onToast={setToast} onNav={(target) => { setSidebarMode('app'); handleNav(target); }} leaveTypes={leaveTypes} setLeaveTypes={setLeaveTypes} />}
+        {screen === 'settings-timeoff' && <TimeOffSettings key={appEntity ?? 'all'} appEntity={appEntity} companyRegime={companyRegime} onToast={addToast} onNav={(target) => { setSidebarMode('app'); handleNav(target); }} leaveTypes={leaveTypes} setLeaveTypes={setLeaveTypes} />}
         {screen === 'settings-documents' && <DocumentsSettings key={appEntity ?? 'all'} appEntity={appEntity} documents={settingsDocuments} onDocumentsChange={setSettingsDocuments} />}
-        {screen === 'settings-payroll' && <PayrollSettings companyRegime={companyRegime} onRegimeChange={setCompanyRegime} appEntity={appEntity} onToast={setToast} />}
+        {screen === 'settings-payroll' && <PayrollSettings companyRegime={companyRegime} onRegimeChange={setCompanyRegime} appEntity={appEntity} onToast={addToast} />}
         {screen === 'settings-benefits' && <BenefitsSettings key={appEntity ?? 'all'} appEntity={appEntity} />}
-        {screen === 'settings-cardrules' && <CardRulesSettings physicalCardsAllowed={physicalCardsAllowed} onPhysicalCardsChange={setPhysicalCardsAllowed} onToast={setToast} mobilityWidgetState={mobilityWidgetState} onMobilityWidgetStateChange={setMobilityWidgetState} />}
+        {screen === 'settings-cardrules' && <CardRulesSettings physicalCardsAllowed={physicalCardsAllowed} onPhysicalCardsChange={setPhysicalCardsAllowed} onToast={addToast} mobilityWidgetState={mobilityWidgetState} onMobilityWidgetStateChange={setMobilityWidgetState} />}
         {screen === 'changelog' && <ChangelogScreen />}
         {screen === 'components' && <ComponentLibraryScreen />}
         {screen.startsWith('settings-') && screen !== 'settings-allowances' && screen !== 'settings-expenses' && screen !== 'settings-team' && screen !== 'settings-timeoff' && screen !== 'settings-entities' && screen !== 'settings-documents' && screen !== 'settings-payroll' && screen !== 'settings-benefits' && screen !== 'settings-cardrules' && <StubScreen title={SETTINGS_TITLES[screen] || 'Settings'} description={`Configure ${(SETTINGS_TITLES[screen] || 'settings').toLowerCase()}`} />}
@@ -11197,7 +11216,7 @@ function App() {
       )}
 
       {addEmployeeOpen && <AddEmployeeWizard onClose={() => setAddEmployeeOpen(false)} onCreated={handleAddEmployee} companyRegime={companyRegime} mobilityLive={mobilityWidgetState.live} />}
-      {toast && <Toast toast={toast} onDone={() => setToast(null)} />}
+      <ToastStack toasts={toasts} onRemove={removeToast} />
       {followUpPrompt && !followUpModalOpen && (
         <FollowUpBanner
           prompt={followUpPrompt}
