@@ -1145,48 +1145,48 @@ const ALLOWANCE_TYPES = [
 
 const EXPENSES_SEED = [
   // August 2026
-  { id: 'exp-31', employee: 'emma-martens',      category: 'Restaurant',      amount:  28.50, currency: 'EUR', submittedAt: '12 Aug', description: 'Working lunch — project kick-off',                   receipt: '',                status: 'pending' },
-  { id: 'exp-32', employee: 'thomas-janssens',   category: 'Hotel',           amount: 165.00, currency: 'EUR', submittedAt:  '8 Aug', description: 'Hotel Brussels — partner offsite',                    receipt: 'hotel_aug.pdf',   status: 'approved' },
-  { id: 'exp-33', employee: 'bram-goossens',     category: 'Travel',          amount:  52.00, currency: 'EUR', submittedAt:  '5 Aug', description: 'Eurostar Brussels–London return',                     receipt: 'eurostar_aug.pdf',status: 'approved' },
-  { id: 'exp-34', employee: 'stijn-laurent',     category: 'Taxi',            amount:  19.00, currency: 'EUR', submittedAt:  '1 Aug', description: 'Taxi home — late client dinner',                      receipt: 'taxi_aug.pdf',    status: 'approved' },
+  { id: 'exp-31', employee: 'emma-martens',      category: 'Restaurant',      amount:  28.50, currency: 'EUR', expenseDate: '10 Aug', submittedAt: '12 Aug', description: 'Working lunch — project kick-off',                   receipt: '',                status: 'pending' },
+  { id: 'exp-32', employee: 'thomas-janssens',   category: 'Hotel',           amount: 165.00, currency: 'EUR', expenseDate:  '5 Aug', submittedAt:  '8 Aug', description: 'Hotel Brussels — partner offsite',                    receipt: 'hotel_aug.pdf',   status: 'approved' },
+  { id: 'exp-33', employee: 'bram-goossens',     category: 'Travel',          amount:  52.00, currency: 'EUR', expenseDate:  '1 Aug', submittedAt:  '5 Aug', description: 'Eurostar Brussels–London return',                     receipt: 'eurostar_aug.pdf',status: 'approved' },
+  { id: 'exp-34', employee: 'stijn-laurent',     category: 'Taxi',            amount:  19.00, currency: 'EUR', expenseDate: '31 Jul', submittedAt:  '1 Aug', description: 'Taxi home — late client dinner',                      receipt: 'taxi_aug.pdf',    status: 'approved' },
   // July 2026
-  { id: 'exp-1',  employee: 'thomas-janssens',   category: 'Travel',          amount: 124.50, currency: 'EUR', submittedAt: '14 Jul', description: 'Train Brussels–Ghent client visit',                   receipt: 'sncb_ticket.pdf', status: 'pending' },
-  { id: 'exp-2',  employee: 'sarah-de-smedt',    category: 'Restaurant',      amount:  87.00, currency: 'EUR', submittedAt: '10 Jul', description: 'Team lunch — 4 people',                               receipt: '',                status: 'pending' },
-  { id: 'exp-3',  employee: 'bram-goossens',     category: 'Taxi',            amount:  34.00, currency: 'EUR', submittedAt:  '7 Jul', description: 'Taxi to Brussels airport — client meeting',            receipt: 'taxi_receipt.pdf',status: 'pending' },
-  { id: 'exp-4',  employee: 'emma-martens',      category: 'Restaurant',      amount:  15.00, currency: 'EUR', submittedAt:  '1 Jul', description: 'Working lunch with design team',                       receipt: '',                status: 'approved' },
+  { id: 'exp-1',  employee: 'thomas-janssens',   category: 'Travel',          amount: 124.50, currency: 'EUR', expenseDate: '11 Jul', submittedAt: '14 Jul', description: 'Train Brussels–Ghent client visit',                   receipt: 'sncb_ticket.pdf', status: 'pending' },
+  { id: 'exp-2',  employee: 'sarah-de-smedt',    category: 'Restaurant',      amount:  87.00, currency: 'EUR', expenseDate:  '9 Jul', submittedAt: '10 Jul', description: 'Team lunch — 4 people',                               receipt: '',                status: 'pending' },
+  { id: 'exp-3',  employee: 'bram-goossens',     category: 'Taxi',            amount:  34.00, currency: 'EUR', expenseDate:  '7 Jul', submittedAt:  '7 Jul', description: 'Taxi to Brussels airport — client meeting',            receipt: 'taxi_receipt.pdf',status: 'pending' },
+  { id: 'exp-4',  employee: 'emma-martens',      category: 'Restaurant',      amount:  15.00, currency: 'EUR', expenseDate: '29 Jun', submittedAt:  '1 Jul', description: 'Working lunch with design team',                       receipt: '',                status: 'approved' },
   // June 2026
-  { id: 'exp-5',  employee: 'david',             category: 'Travel',          amount: 212.00, currency: 'EUR', submittedAt: '25 Jun', description: 'Brussels–London for product workshop',                 receipt: 'eurostar.pdf',    status: 'approved' },
-  { id: 'exp-6',  employee: 'pieter-mertens',    category: 'Restaurant',      amount:  43.50, currency: 'EUR', submittedAt: '22 Jun', description: 'Client dinner',                                        receipt: '',                status: 'rejected', rejectReason: 'No client approval on record for this dinner.' },
-  { id: 'exp-7',  employee: 'jana-goossens',     category: 'Taxi',            amount:  19.00, currency: 'EUR', submittedAt: '18 Jun', description: 'Taxi home after late client event',                    receipt: 'taxi_receipt.pdf',status: 'approved' },
-  { id: 'exp-8',  employee: 'stijn-laurent',     category: 'Travel',          amount:  31.00, currency: 'EUR', submittedAt: '15 Jun', description: 'Monthly transit pass — June',                          receipt: '',                status: 'pending' },
-  { id: 'exp-9',  employee: 'laura-mertens',     category: 'Restaurant',      amount:  27.50, currency: 'EUR', submittedAt: '10 Jun', description: 'Lunch with new hire onboarding',                       receipt: '',                status: 'approved' },
-  { id: 'exp-10', employee: 'mathias-de-smedt',  category: 'Taxi',            amount:  22.00, currency: 'EUR', submittedAt:  '3 Jun', description: 'Taxi to Ghent office — missed last train',             receipt: '',                status: 'pending' },
+  { id: 'exp-5',  employee: 'david',             category: 'Travel',          amount: 212.00, currency: 'EUR', expenseDate: '17 Jun', submittedAt: '25 Jun', description: 'Brussels–London for product workshop',                 receipt: 'eurostar.pdf',    status: 'approved' },
+  { id: 'exp-6',  employee: 'pieter-mertens',    category: 'Restaurant',      amount:  43.50, currency: 'EUR', expenseDate: '21 Jun', submittedAt: '22 Jun', description: 'Client dinner',                                        receipt: '',                status: 'rejected', rejectReason: 'No client approval on record for this dinner.' },
+  { id: 'exp-7',  employee: 'jana-goossens',     category: 'Taxi',            amount:  19.00, currency: 'EUR', expenseDate: '18 Jun', submittedAt: '18 Jun', description: 'Taxi home after late client event',                    receipt: 'taxi_receipt.pdf',status: 'approved' },
+  { id: 'exp-8',  employee: 'stijn-laurent',     category: 'Travel',          amount:  31.00, currency: 'EUR', expenseDate:  '1 Jun', submittedAt: '15 Jun', description: 'Monthly transit pass — June',                          receipt: '',                status: 'pending' },
+  { id: 'exp-9',  employee: 'laura-mertens',     category: 'Restaurant',      amount:  27.50, currency: 'EUR', expenseDate:  '8 Jun', submittedAt: '10 Jun', description: 'Lunch with new hire onboarding',                       receipt: '',                status: 'approved' },
+  { id: 'exp-10', employee: 'mathias-de-smedt',  category: 'Taxi',            amount:  22.00, currency: 'EUR', expenseDate:  '2 Jun', submittedAt:  '3 Jun', description: 'Taxi to Ghent office — missed last train',             receipt: '',                status: 'pending' },
   // May 2026
-  { id: 'exp-11', employee: 'thomas-janssens',   category: 'Hotel',           amount: 189.00, currency: 'EUR', submittedAt: '28 May', description: 'Hotel Antwerp — overnight client visit',               receipt: 'hotel_may.pdf',   status: 'approved' },
-  { id: 'exp-12', employee: 'sarah-de-smedt',    category: 'Travel',          amount:  44.00, currency: 'EUR', submittedAt: '21 May', description: 'Train Brussels–Liège–Brussels',                        receipt: 'sncb_may.pdf',    status: 'approved' },
-  { id: 'exp-13', employee: 'bram-goossens',     category: 'Restaurant',      amount:  38.50, currency: 'EUR', submittedAt: '15 May', description: 'Lunch with candidate — recruitment',                   receipt: '',                status: 'rejected', rejectReason: 'Recruitment lunches require prior manager sign-off.' },
-  { id: 'exp-14', employee: 'jana-goossens',     category: 'Taxi',            amount:  24.00, currency: 'EUR', submittedAt:  '8 May', description: 'Taxi to offsite — public transport unavailable',        receipt: 'taxi_may.pdf',    status: 'approved' },
-  { id: 'exp-15', employee: 'laura-mertens',     category: 'Online courses',  amount: 129.00, currency: 'EUR', submittedAt:  '2 May', description: 'Coursera subscription — May',                          receipt: 'coursera_may.pdf',status: 'approved' },
+  { id: 'exp-11', employee: 'thomas-janssens',   category: 'Hotel',           amount: 189.00, currency: 'EUR', expenseDate: '21 May', submittedAt: '28 May', description: 'Hotel Antwerp — overnight client visit',               receipt: 'hotel_may.pdf',   status: 'approved' },
+  { id: 'exp-12', employee: 'sarah-de-smedt',    category: 'Travel',          amount:  44.00, currency: 'EUR', expenseDate: '19 May', submittedAt: '21 May', description: 'Train Brussels–Liège–Brussels',                        receipt: 'sncb_may.pdf',    status: 'approved' },
+  { id: 'exp-13', employee: 'bram-goossens',     category: 'Restaurant',      amount:  38.50, currency: 'EUR', expenseDate: '14 May', submittedAt: '15 May', description: 'Lunch with candidate — recruitment',                   receipt: '',                status: 'rejected', rejectReason: 'Recruitment lunches require prior manager sign-off.' },
+  { id: 'exp-14', employee: 'jana-goossens',     category: 'Taxi',            amount:  24.00, currency: 'EUR', expenseDate:  '8 May', submittedAt:  '8 May', description: 'Taxi to offsite — public transport unavailable',        receipt: 'taxi_may.pdf',    status: 'approved' },
+  { id: 'exp-15', employee: 'laura-mertens',     category: 'Online courses',  amount: 129.00, currency: 'EUR', expenseDate:  '1 May', submittedAt:  '2 May', description: 'Coursera subscription — May',                          receipt: 'coursera_may.pdf',status: 'approved' },
   // April 2026
-  { id: 'exp-16', employee: 'stijn-laurent',     category: 'Travel',          amount:  56.00, currency: 'EUR', submittedAt: '29 Apr', description: 'Monthly transit pass — April',                         receipt: 'transit_apr.pdf', status: 'approved' },
-  { id: 'exp-17', employee: 'emma-martens',      category: 'Restaurant',      amount:  74.00, currency: 'EUR', submittedAt: '22 Apr', description: 'Team dinner — product launch',                         receipt: 'dinner_apr.pdf',  status: 'approved' },
-  { id: 'exp-18', employee: 'mathias-de-smedt',  category: 'Online courses',  amount: 149.00, currency: 'EUR', submittedAt: '14 Apr', description: 'Udemy annual subscription',                            receipt: 'udemy_apr.pdf',   status: 'approved' },
-  { id: 'exp-19', employee: 'pieter-mertens',    category: 'Taxi',            amount:  18.50, currency: 'EUR', submittedAt:  '7 Apr', description: 'Taxi to client site — Zaventem',                       receipt: 'taxi_apr.pdf',    status: 'approved' },
+  { id: 'exp-16', employee: 'stijn-laurent',     category: 'Travel',          amount:  56.00, currency: 'EUR', expenseDate:  '1 Apr', submittedAt: '29 Apr', description: 'Monthly transit pass — April',                         receipt: 'transit_apr.pdf', status: 'approved' },
+  { id: 'exp-17', employee: 'emma-martens',      category: 'Restaurant',      amount:  74.00, currency: 'EUR', expenseDate: '20 Apr', submittedAt: '22 Apr', description: 'Team dinner — product launch',                         receipt: 'dinner_apr.pdf',  status: 'approved' },
+  { id: 'exp-18', employee: 'mathias-de-smedt',  category: 'Online courses',  amount: 149.00, currency: 'EUR', expenseDate: '12 Apr', submittedAt: '14 Apr', description: 'Udemy annual subscription',                            receipt: 'udemy_apr.pdf',   status: 'approved' },
+  { id: 'exp-19', employee: 'pieter-mertens',    category: 'Taxi',            amount:  18.50, currency: 'EUR', expenseDate:  '7 Apr', submittedAt:  '7 Apr', description: 'Taxi to client site — Zaventem',                       receipt: 'taxi_apr.pdf',    status: 'approved' },
   // March 2026
-  { id: 'exp-20', employee: 'thomas-janssens',   category: 'Conference fees', amount: 395.00, currency: 'EUR', submittedAt: '25 Mar', description: 'HR Tech World 2026 — conference registration',          receipt: 'hrtech_conf.pdf', status: 'approved' },
-  { id: 'exp-21', employee: 'bram-goossens',     category: 'Hotel',           amount: 220.00, currency: 'EUR', submittedAt: '18 Mar', description: 'Hotel Amsterdam — 2 nights for partner summit',         receipt: 'hotel_mar.pdf',   status: 'approved' },
-  { id: 'exp-22', employee: 'sarah-de-smedt',    category: 'Restaurant',      amount:  51.00, currency: 'EUR', submittedAt: '12 Mar', description: 'Team lunch — Q1 retrospective',                        receipt: 'lunch_mar.pdf',   status: 'approved' },
-  { id: 'exp-23', employee: 'jana-goossens',     category: 'Travel',          amount:  88.00, currency: 'EUR', submittedAt:  '5 Mar', description: 'Train Brussels–Paris for client presentation',          receipt: 'thalys_mar.pdf',  status: 'approved' },
+  { id: 'exp-20', employee: 'thomas-janssens',   category: 'Conference fees', amount: 395.00, currency: 'EUR', expenseDate:  '3 Mar', submittedAt: '25 Mar', description: 'HR Tech World 2026 — conference registration',          receipt: 'hrtech_conf.pdf', status: 'approved' },
+  { id: 'exp-21', employee: 'bram-goossens',     category: 'Hotel',           amount: 220.00, currency: 'EUR', expenseDate: '14 Mar', submittedAt: '18 Mar', description: 'Hotel Amsterdam — 2 nights for partner summit',         receipt: 'hotel_mar.pdf',   status: 'approved' },
+  { id: 'exp-22', employee: 'sarah-de-smedt',    category: 'Restaurant',      amount:  51.00, currency: 'EUR', expenseDate: '10 Mar', submittedAt: '12 Mar', description: 'Team lunch — Q1 retrospective',                        receipt: 'lunch_mar.pdf',   status: 'approved' },
+  { id: 'exp-23', employee: 'jana-goossens',     category: 'Travel',          amount:  88.00, currency: 'EUR', expenseDate:  '3 Mar', submittedAt:  '5 Mar', description: 'Train Brussels–Paris for client presentation',          receipt: 'thalys_mar.pdf',  status: 'approved' },
   // February 2026
-  { id: 'exp-24', employee: 'emma-martens',      category: 'Training materials', amount: 67.00, currency: 'EUR', submittedAt: '27 Feb', description: 'Design books — UX research bundle',                  receipt: 'amazon_feb.pdf',  status: 'approved' },
-  { id: 'exp-25', employee: 'thomas-janssens',   category: 'Travel',          amount:  94.00, currency: 'EUR', submittedAt: '20 Feb', description: 'Eurostar Brussels–London — product sprint',             receipt: 'eurostar_feb.pdf',status: 'approved' },
-  { id: 'exp-26', employee: 'stijn-laurent',     category: 'Restaurant',      amount:  35.00, currency: 'EUR', submittedAt: '13 Feb', description: 'Team lunch — new team member welcome',                  receipt: 'lunch_feb.pdf',   status: 'approved' },
-  { id: 'exp-27', employee: 'mathias-de-smedt',  category: 'Taxi',            amount:  16.50, currency: 'EUR', submittedAt:  '6 Feb', description: 'Taxi to Brussels office — night shift end',             receipt: 'taxi_feb.pdf',    status: 'approved' },
+  { id: 'exp-24', employee: 'emma-martens',      category: 'Training materials', amount: 67.00, currency: 'EUR', expenseDate: '22 Feb', submittedAt: '27 Feb', description: 'Design books — UX research bundle',                  receipt: 'amazon_feb.pdf',  status: 'approved' },
+  { id: 'exp-25', employee: 'thomas-janssens',   category: 'Travel',          amount:  94.00, currency: 'EUR', expenseDate: '17 Feb', submittedAt: '20 Feb', description: 'Eurostar Brussels–London — product sprint',             receipt: 'eurostar_feb.pdf',status: 'approved' },
+  { id: 'exp-26', employee: 'stijn-laurent',     category: 'Restaurant',      amount:  35.00, currency: 'EUR', expenseDate: '12 Feb', submittedAt: '13 Feb', description: 'Team lunch — new team member welcome',                  receipt: 'lunch_feb.pdf',   status: 'approved' },
+  { id: 'exp-27', employee: 'mathias-de-smedt',  category: 'Taxi',            amount:  16.50, currency: 'EUR', expenseDate:  '5 Feb', submittedAt:  '6 Feb', description: 'Taxi to Brussels office — night shift end',             receipt: 'taxi_feb.pdf',    status: 'approved' },
   // January 2026
-  { id: 'exp-28', employee: 'laura-mertens',     category: 'Conference fees', amount: 290.00, currency: 'EUR', submittedAt: '30 Jan', description: 'People & Culture Summit 2026 — registration',          receipt: 'summit_jan.pdf',  status: 'approved' },
-  { id: 'exp-29', employee: 'pieter-mertens',    category: 'Restaurant',      amount:  82.00, currency: 'EUR', submittedAt: '23 Jan', description: 'Client lunch — new contract onboarding',               receipt: 'lunch_jan.pdf',   status: 'approved' },
-  { id: 'exp-30', employee: 'bram-goossens',     category: 'Travel',          amount:  58.00, currency: 'EUR', submittedAt: '16 Jan', description: 'Train Brussels–Ghent — kickoff meeting',               receipt: 'sncb_jan.pdf',    status: 'approved' },
-  { id: 'exp-35', employee: 'jana-goossens',     category: 'Taxi',            amount:  21.00, currency: 'EUR', submittedAt:  '9 Jan', description: 'Taxi after late team event',                           receipt: 'taxi_jan.pdf',    status: 'approved' },
+  { id: 'exp-28', employee: 'laura-mertens',     category: 'Conference fees', amount: 290.00, currency: 'EUR', expenseDate: '15 Jan', submittedAt: '30 Jan', description: 'People & Culture Summit 2026 — registration',          receipt: 'summit_jan.pdf',  status: 'approved' },
+  { id: 'exp-29', employee: 'pieter-mertens',    category: 'Restaurant',      amount:  82.00, currency: 'EUR', expenseDate: '22 Jan', submittedAt: '23 Jan', description: 'Client lunch — new contract onboarding',               receipt: 'lunch_jan.pdf',   status: 'approved' },
+  { id: 'exp-30', employee: 'bram-goossens',     category: 'Travel',          amount:  58.00, currency: 'EUR', expenseDate: '14 Jan', submittedAt: '16 Jan', description: 'Train Brussels–Ghent — kickoff meeting',               receipt: 'sncb_jan.pdf',    status: 'approved' },
+  { id: 'exp-35', employee: 'jana-goossens',     category: 'Taxi',            amount:  21.00, currency: 'EUR', expenseDate:  '8 Jan', submittedAt:  '9 Jan', description: 'Taxi after late team event',                           receipt: 'taxi_jan.pdf',    status: 'approved' },
 ];
 
 // ── localStorage bridge ────────────────────────────────────────────────────
@@ -3248,7 +3248,10 @@ function ExpenseDrawer({ expense, onClose, onApprove, onReject, onEdit, categori
         <TableRow label="Status" icon="circle-dot">
           <StatusPill status={expense.status} />
         </TableRow>
-        <TableRow label="Submitted" icon="calendar">
+        <TableRow label="Expense date" icon="calendar">
+          {expense.expenseDate}
+        </TableRow>
+        <TableRow label="Submitted" icon="clock">
           {expense.submittedAt}
         </TableRow>
         {expense.status === 'rejected' && expense.rejectReason && (
@@ -3774,10 +3777,11 @@ function RequestRow({ req, requests, onApprove, onDecline, onDetail, onDeclineDi
 }
 
 // ── Add expense modal ──────────────────────────────────────────────────────
-function AddExpenseModal({ categories, onClose, onSave }) {
+function AddExpenseModal({ categories, onClose, onSave, receiptRequired = false }) {
   const [empId, setEmpId] = useState('');
   const [category, setCategory] = useState(categories[0]?.name || categories[0] || '');
   const [amount, setAmount] = useState('');
+  const [expenseDate, setExpenseDate] = useState(() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; });
   const [note, setNote] = useState('');
   const [receiptFile, setReceiptFile] = useState(null);
   const [receiptLeaving, setReceiptLeaving] = useState(false);
@@ -3806,6 +3810,7 @@ function AddExpenseModal({ categories, onClose, onSave }) {
     if (!empId) errs.empId = true;
     if (!category) errs.category = true;
     if (!amount || isNaN(parseFloat(amount)) || parseFloat(amount) <= 0) errs.amount = true;
+    if (receiptRequired && !receiptFile) errs.receipt = true;
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -3833,7 +3838,9 @@ function AddExpenseModal({ categories, onClose, onSave }) {
           const today = new Date();
           const day = today.getDate();
           const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-          onSave({ employee: empId, category, amount: parseFloat(amount), currency: 'EUR', description: note, receipt: receiptFile ? receiptFile.name : '', submittedAt: `${day} ${months[today.getMonth()]}` });
+          const [ey, em, ed] = expenseDate.split('-').map(Number);
+          const expDateFormatted = `${ed} ${months[em - 1]}`;
+          onSave({ employee: empId, category, amount: parseFloat(amount), currency: 'EUR', description: note, receipt: receiptFile ? receiptFile.name : '', expenseDate: expDateFormatted, submittedAt: `${day} ${months[today.getMonth()]}` });
           close();
         };
         return (
@@ -3865,11 +3872,15 @@ function AddExpenseModal({ categories, onClose, onSave }) {
             </div>
           </div>
           <div>
+            <label style={labelStyle}>Expense date <span style={{ color: P.danger }}>*</span></label>
+            <input type="date" value={expenseDate} onChange={e => setExpenseDate(e.target.value)} style={inputStyle(false)} />
+          </div>
+          <div>
             <label style={labelStyle}>Note / description</label>
             <textarea value={note} onChange={e => setNote(e.target.value)} placeholder="What was this expense for?" rows={3} style={{ ...inputStyle(false), resize: 'none', lineHeight: 1.5 }} />
           </div>
           <div>
-            <label style={labelStyle}>Receipt <span style={{ fontWeight: 400, color: P.inkFaint }}>(optional)</span></label>
+            <label style={labelStyle}>Receipt {receiptRequired ? <span style={{ color: P.danger }}>*</span> : <span style={{ fontWeight: 400, color: errors.receipt ? P.danger : P.inkFaint }}>(optional)</span>}</label>
             <input ref={fileInputRef} type="file" style={{ display: 'none' }} onChange={e => { if (e.target.files[0]) acceptFile(e.target.files[0]); }} />
             {receiptFile ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', borderRadius: 8, border: `1px solid ${P.border}`, background: P.bg, opacity: receiptLeaving ? 0 : 1, transform: receiptLeaving ? 'translateX(6px)' : 'translateX(0)', transition: `opacity 150ms ${EASE_OUT}, transform 150ms ${EASE_OUT}`, animation: `fileRowIn 220ms ${EASE_OUT}` }}>
@@ -3886,7 +3897,7 @@ function AddExpenseModal({ categories, onClose, onSave }) {
                 onDragOver={e => { e.preventDefault(); setDragging(true); }}
                 onDragLeave={() => setDragging(false)}
                 onDrop={e => { e.preventDefault(); setDragging(false); const f = e.dataTransfer.files[0]; if (f) acceptFile(f); }}
-                style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '20px 16px', borderRadius: 8, border: `1.5px dashed ${dragging || dropAccepted ? P.action : P.border}`, background: dragging ? '#f5f3ff' : dropAccepted ? '#ede9fe' : P.bg, cursor: 'pointer', transform: dropAccepted ? 'scale(1.02)' : 'scale(1)', transition: `border-color 120ms, background 120ms, transform 180ms ${EASE_OUT}` }}
+                style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '20px 16px', borderRadius: 8, border: `1.5px dashed ${dragging || dropAccepted ? P.action : errors.receipt ? P.danger : P.border}`, background: dragging ? '#f5f3ff' : dropAccepted ? '#ede9fe' : P.bg, cursor: 'pointer', transform: dropAccepted ? 'scale(1.02)' : 'scale(1)', transition: `border-color 120ms, background 120ms, transform 180ms ${EASE_OUT}` }}
               >
                 <span style={{ display: 'inline-flex', alignItems: 'center', transform: dragging ? 'translateY(-3px)' : 'translateY(0)', transition: `transform ${dragging ? `200ms ${EASE_OUT}` : `150ms ${EASE_BOUNCE}`}` }}>
                   <Icon name="upload" size={18} color={dragging || dropAccepted ? P.action : P.inkFaint} />
@@ -3940,7 +3951,7 @@ function ExpenseRow({ exp, onApprove, onDetail, onRejectDirectly, showStatus, sh
       <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink }}>{exp.category}</span>
       <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{exp.description}</span>
       <span style={{ fontFamily: 'var(--font-display)', fontSize: 'var(--fs-body-sm)', fontWeight: 600, color: P.ink }}>{amountStr}</span>
-      <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkFaint }}>{exp.submittedAt}</span>
+      <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkFaint }}>{exp.expenseDate}</span>
       <div onClick={e => e.stopPropagation()} style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4 }}>
         {exp.status === 'pending' && (<>
           <button title="Reject" onClick={(e) => { e.stopPropagation(); onRejectDirectly(exp); }}
@@ -3962,11 +3973,11 @@ function ExpenseRow({ exp, onApprove, onDetail, onRejectDirectly, showStatus, sh
 }
 
 // ── Expenses screen ─────────────────────────────────────────────────────────
-function ExpensesScreen({ expenses, categories, onApprove, onDetail, onRejectDirectly, onAdd, appEntity = null }) {
+function ExpensesScreen({ expenses, categories, onApprove, onDetail, onRejectDirectly, onAdd, appEntity = null, receiptAlwaysRequired = false }) {
   const categoryOpts = [['all', 'All categories'], ...categories.map(c => { const n = c?.name ?? c; return [n, n]; })];
   const MONTH_ORDER = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const MONTH_FULL = { Jan:'January',Feb:'February',Mar:'March',Apr:'April',May:'May',Jun:'June',Jul:'July',Aug:'August',Sep:'September',Oct:'October',Nov:'November',Dec:'December' };
-  const allMonths = [...new Set(expenses.map(e => e.submittedAt.split(' ').pop()))].sort((a, b) => MONTH_ORDER.indexOf(b) - MONTH_ORDER.indexOf(a));
+  const allMonths = [...new Set(expenses.map(e => (e.expenseDate || e.submittedAt).split(' ').pop()))].sort((a, b) => MONTH_ORDER.indexOf(b) - MONTH_ORDER.indexOf(a));
   const monthOpts = [['all', 'All months'], ...allMonths.map(m => [m, MONTH_FULL[m] || m])];
   const [tab, setTab] = useState('pending');
   const [addOpen, setAddOpen] = useState(false);
@@ -3993,7 +4004,7 @@ function ExpensesScreen({ expenses, categories, onApprove, onDetail, onRejectDir
       if (searchText.trim() && !(emp?.name || e.employee).toLowerCase().includes(searchText.trim().toLowerCase())) return false;
       if (categoryFilter !== 'all' && e.category !== categoryFilter) return false;
       if (deptFilter !== 'all' && emp?.department !== deptFilter) return false;
-      if (monthFilter !== 'all' && e.submittedAt.split(' ').pop() !== monthFilter) return false;
+      if (monthFilter !== 'all' && (e.expenseDate || e.submittedAt).split(' ').pop() !== monthFilter) return false;
       return true;
     });
   const showStatus = tab === 'all';
@@ -4047,7 +4058,7 @@ function ExpensesScreen({ expenses, categories, onApprove, onDetail, onRejectDir
             <TH>Category</TH>
             <TH>Note</TH>
             <TH>Amount</TH>
-            <TH>Date</TH>
+            <TH>Expense date</TH>
             <div />
           </div>
           {filtered.length === 0 ? (
@@ -4094,7 +4105,7 @@ function ExpensesScreen({ expenses, categories, onApprove, onDetail, onRejectDir
           </div>
         </div>
       )}
-      {addOpen && <AddExpenseModal categories={categories} onClose={() => setAddOpen(false)} onSave={(exp) => { onAdd(exp); setAddOpen(false); }} />}
+      {addOpen && <AddExpenseModal categories={categories} receiptRequired={receiptAlwaysRequired} onClose={() => setAddOpen(false)} onSave={(exp) => { onAdd(exp); setAddOpen(false); }} />}
     </div>
   );
 }
@@ -7541,12 +7552,13 @@ function AllowancesListPage({ allowances, onSaveAllowance, appEntity = null }) {
   );
 }
 
-function ExpenseCategorySettings({ categories, onSave, appEntity = null }) {
+function ExpenseCategorySettings({ categories, onSave, appEntity = null, receiptAlwaysRequired = false, onReceiptPolicyChange }) {
   const [items, setItems] = useState(categories);
   const [catModal, setCatModal] = useState(null);
   const [settingModal, setSettingModal] = useState(null);
   const [reimburseCycle, setReimburseCycle] = useState('payroll');
-  const [hasReceiptThreshold, setHasReceiptThreshold] = useState(true);
+  const hasReceiptThreshold = !receiptAlwaysRequired;
+  const setHasReceiptThreshold = (v) => onReceiptPolicyChange(typeof v === 'function' ? !v(!receiptAlwaysRequired) : !v);
   const [receiptThreshold, setReceiptThreshold] = useState(25);
   const [approvalRouting, setApprovalRouting] = useState('manager');
 
@@ -7596,7 +7608,8 @@ function ExpenseCategorySettings({ categories, onSave, appEntity = null }) {
         <div>
           <div style={SL}>Reimbursement</div>
           <SettingsCard>
-            <SettingsRow onClick={() => setSettingModal('cycle')} label="Reimbursement cycle" value={cycleLabel} last />
+            <SettingsRow onClick={() => setSettingModal('cycle')} label="Reimbursement cycle" value={cycleLabel} />
+            <SettingsRow onClick={() => setSettingModal('approval')} icon="git-branch" label="Approval routing" value={approvalLabel} last />
           </SettingsCard>
         </div>
 
@@ -10955,6 +10968,7 @@ function App() {
 
   const [expenses, setExpenses] = useState(EXPENSES_SEED);
   const [expenseCategories, setExpenseCategories] = useState(EXPENSE_CATEGORIES_SEED);
+  const [receiptAlwaysRequired, setReceiptAlwaysRequired] = useState(false);
   const [allowances, setAllowances] = useState(ALLOWANCE_TYPES.map(t => ({ id: t.id, active: ['mileage', 'home-office', 'mobile-internet'].includes(t.id), rate: t.defaultRate })));
   const [expDetail, setExpDetail] = useState(null);
   const [expDetailRejectMode, setExpDetailRejectMode] = useState(false);
@@ -11238,12 +11252,12 @@ function App() {
         {screen === 'requests' && <RequestsScreen key={appEntity ?? 'all'} requests={entityFilteredRequests} onApprove={approve} onDecline={requestDecline} onSave={saveRequest} onCancel={requestCancel} onNav={setScreen} onViewInCalendar={(req) => { const d = req._selectedDates?.[0] || req.startDate; if (d) { const iso = typeof d === 'string' && d.match(/^\d{4}-/) ? d : null; setCalendarJumpDate(iso ? new Date(iso) : parseDisplayDate(d)); } setCalDetail(req); setScreen('team-absences'); }} appEntity={appEntity} />}
         {(screen === 'employees' || screen === 'employees:admin') && <EmployeesScreen key={appEntity ?? 'all'} requests={entityFilteredRequests} onNav={setScreen} initialRoleFilter={screen === 'employees:admin' ? 'Admin' : 'All'} adminAccess={adminAccess} appEntity={appEntity} onAddEmployee={() => setAddEmployeeOpen(true)} />}
         {screen.startsWith('employee-detail:') && (() => { const [, detailEmpId, detailTab] = screen.split(':'); return <EmployeeDetailScreen employeeId={detailEmpId} requests={requests} onNav={setScreen} onSave={saveRequest} onCancel={cancelRequest} onApprove={approve} onDecline={requestDecline} onViewTeamCalendar={(dept) => { setCalendarDeptFilter(dept || null); setScreen('team-absences'); }} employeeBalance={employeeBalances[detailEmpId]} onUpdateBalance={(newBal) => updateBalances(detailEmpId, newBal)} needsSetup={needsBalanceSetup.has(detailEmpId)} confirmedDate={balanceConfirmedDates[detailEmpId]} onConfirmBalances={() => confirmBalancesFor(detailEmpId)} onToast={addToast} adminAccess={adminAccess} onAdminSave={handleAdminSave} companyRegime={companyRegime} onEmployeeUpdate={handleEmployeeUpdate} getEmpWithOverrides={getEmpWithOverrides} physicalCardsAllowed={physicalCardsAllowed} mobilityWidgetState={mobilityWidgetState} initialTab={detailTab || (freshEmployeeId === detailEmpId ? 'details' : 'choices')} />; })()}
-        {screen === 'expenses' && <ExpensesScreen key={appEntity ?? 'all'} expenses={entityFilteredExpenses} categories={expenseCategories} onApprove={approveExpense} onDetail={(exp) => { setExpDetailRejectMode(false); setExpDetail(exp); }} onRejectDirectly={(exp) => { setExpDetailRejectMode(true); setExpDetail(exp); }} onAdd={addExpense} appEntity={appEntity} />}
+        {screen === 'expenses' && <ExpensesScreen key={appEntity ?? 'all'} expenses={entityFilteredExpenses} categories={expenseCategories} onApprove={approveExpense} onDetail={(exp) => { setExpDetailRejectMode(false); setExpDetail(exp); }} onRejectDirectly={(exp) => { setExpDetailRejectMode(true); setExpDetail(exp); }} onAdd={addExpense} appEntity={appEntity} receiptAlwaysRequired={receiptAlwaysRequired} />}
         {screen === 'choices' && <ChoicesScreen key={appEntity ?? 'all'} choices={entityFilteredChoices} onApprove={approveChoice} onDecline={declineChoice} onDetail={setChoiceDetail} appEntity={appEntity} />}
         {screen === 'payroll-overview' && <StubScreen title="Payroll Overview" description="Monthly payroll run and submission" />}
         {screen === 'payroll-reports' && <StubScreen title="Payroll Reports" description="Reporting and exports" />}
         {screen === 'settings-allowances' && <AllowancesListPage key={appEntity ?? 'all'} allowances={allowances} onSaveAllowance={updated => setAllowances(prev => prev.map(a => a.id === updated.id ? updated : a))} appEntity={appEntity} />}
-        {screen === 'settings-expenses' && <ExpenseCategorySettings key={appEntity ?? 'all'} categories={expenseCategories} onSave={setExpenseCategories} appEntity={appEntity} />}
+        {screen === 'settings-expenses' && <ExpenseCategorySettings key={appEntity ?? 'all'} categories={expenseCategories} onSave={setExpenseCategories} appEntity={appEntity} receiptAlwaysRequired={receiptAlwaysRequired} onReceiptPolicyChange={setReceiptAlwaysRequired} />}
         {screen === 'settings-team' && <TeamAccessSettings key={appEntity ?? 'all'} onNav={setScreen} adminAccess={adminAccess} onAdminSave={handleAdminSave} appEntity={appEntity} />}
         {screen === 'settings-entities' && <EntitiesSettings key={appEntity ?? 'all'} onNav={setScreen} appEntity={appEntity} companyRegime={companyRegime} onRegimeChange={setCompanyRegime} />}
         {screen === 'settings-timeoff' && <TimeOffSettings key={appEntity ?? 'all'} appEntity={appEntity} companyRegime={companyRegime} onToast={addToast} onNav={(target) => { setSidebarMode('app'); handleNav(target); }} leaveTypes={leaveTypes} setLeaveTypes={setLeaveTypes} />}
