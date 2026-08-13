@@ -1058,13 +1058,14 @@ const EXPENSE_BUDGET_TYPES = [
 ];
 
 const EXPENSE_CATEGORIES_SEED = [
+  { name: 'Travel',                 monthlyLimit: null, budgetType: 'mobility' },
   { name: 'Private transport',      monthlyLimit: null, budgetType: 'mobility' },
   { name: 'Public transport',       monthlyLimit: null, budgetType: 'mobility' },
   { name: 'Shared mobility',        monthlyLimit: null, budgetType: 'mobility' },
   { name: 'Mobility subscription',  monthlyLimit: null, budgetType: 'mobility' },
   { name: 'Hotel',                  monthlyLimit: null, budgetType: 'work' },
   { name: 'Restaurant',             monthlyLimit: null, budgetType: 'work' },
-  { name: 'Taxi / Uber',            monthlyLimit: null, budgetType: 'work' },
+  { name: 'Taxi',                   monthlyLimit: null, budgetType: 'work' },
   { name: 'Parking',                monthlyLimit: null, budgetType: 'work' },
   { name: 'Other',                  monthlyLimit: null, budgetType: 'work' },
   { name: 'Conference fees',        monthlyLimit: null, budgetType: 'learning' },
@@ -1125,14 +1126,14 @@ const ALLOWANCE_TYPES = [
 
 const EXPENSES_SEED = [
   { id: 'exp-1', employee: 'thomas-janssens', category: 'Travel', amount: 124.50, currency: 'EUR', submittedAt: '14 Jul', description: 'Train Brussels–Ghent client visit', receipt: 'sncb_ticket.pdf', status: 'pending' },
-  { id: 'exp-2', employee: 'sarah-de-smedt', category: 'Restaurants', amount: 87.00, currency: 'EUR', submittedAt: '10 Jul', description: 'Team lunch — 4 people', receipt: '', status: 'pending' },
+  { id: 'exp-2', employee: 'sarah-de-smedt', category: 'Restaurant', amount: 87.00, currency: 'EUR', submittedAt: '10 Jul', description: 'Team lunch — 4 people', receipt: '', status: 'pending' },
   { id: 'exp-3', employee: 'bram-goossens', category: 'Taxi', amount: 34.00, currency: 'EUR', submittedAt: '7 Jul', description: 'Taxi to Brussels airport — client meeting', receipt: 'taxi_receipt.pdf', status: 'pending' },
-  { id: 'exp-4', employee: 'emma-martens', category: 'Restaurants', amount: 15.00, currency: 'EUR', submittedAt: '1 Jul', description: 'Working lunch with design team', receipt: '', status: 'approved' },
+  { id: 'exp-4', employee: 'emma-martens', category: 'Restaurant', amount: 15.00, currency: 'EUR', submittedAt: '1 Jul', description: 'Working lunch with design team', receipt: '', status: 'approved' },
   { id: 'exp-5', employee: 'david', category: 'Travel', amount: 212.00, currency: 'EUR', submittedAt: '25 Jun', description: 'Brussels–London for product workshop', receipt: 'eurostar.pdf', status: 'approved' },
-  { id: 'exp-6', employee: 'pieter-mertens', category: 'Restaurants', amount: 43.50, currency: 'EUR', submittedAt: '22 Jun', description: 'Client dinner', receipt: '', status: 'rejected', rejectReason: 'No client approval on record for this dinner.' },
+  { id: 'exp-6', employee: 'pieter-mertens', category: 'Restaurant', amount: 43.50, currency: 'EUR', submittedAt: '22 Jun', description: 'Client dinner', receipt: '', status: 'rejected', rejectReason: 'No client approval on record for this dinner.' },
   { id: 'exp-7', employee: 'jana-goossens', category: 'Taxi', amount: 19.00, currency: 'EUR', submittedAt: '18 Jun', description: 'Taxi home after late client event', receipt: 'taxi_receipt.pdf', status: 'approved' },
   { id: 'exp-8', employee: 'stijn-laurent', category: 'Travel', amount: 31.00, currency: 'EUR', submittedAt: '15 Jun', description: 'Monthly transit pass — June', receipt: '', status: 'pending' },
-  { id: 'exp-9', employee: 'laura-mertens', category: 'Restaurants', amount: 27.50, currency: 'EUR', submittedAt: '10 Jun', description: 'Lunch with new hire onboarding', receipt: '', status: 'approved' },
+  { id: 'exp-9', employee: 'laura-mertens', category: 'Restaurant', amount: 27.50, currency: 'EUR', submittedAt: '10 Jun', description: 'Lunch with new hire onboarding', receipt: '', status: 'approved' },
   { id: 'exp-10', employee: 'mathias-de-smedt', category: 'Taxi', amount: 22.00, currency: 'EUR', submittedAt: '3 Jun', description: 'Taxi to Ghent office — missed last train', receipt: '', status: 'pending' },
 ];
 
@@ -3910,7 +3911,7 @@ function ExpenseRow({ exp, onApprove, onDetail, onRejectDirectly, showStatus, sh
 
 // ── Expenses screen ─────────────────────────────────────────────────────────
 function ExpensesScreen({ expenses, categories, onApprove, onDetail, onRejectDirectly, onAdd, appEntity = null }) {
-  const categoryOpts = [['all', 'All categories'], ...categories.map(c => [c, c])];
+  const categoryOpts = [['all', 'All categories'], ...categories.map(c => { const n = c?.name ?? c; return [n, n]; })];
   const [tab, setTab] = useState('pending');
   const [addOpen, setAddOpen] = useState(false);
   const [selected, setSelected] = useState(new Set());
