@@ -1125,16 +1125,49 @@ const ALLOWANCE_TYPES = [
 ];
 
 const EXPENSES_SEED = [
-  { id: 'exp-1', employee: 'thomas-janssens', category: 'Travel', amount: 124.50, currency: 'EUR', submittedAt: '14 Jul', description: 'Train Brussels–Ghent client visit', receipt: 'sncb_ticket.pdf', status: 'pending' },
-  { id: 'exp-2', employee: 'sarah-de-smedt', category: 'Restaurant', amount: 87.00, currency: 'EUR', submittedAt: '10 Jul', description: 'Team lunch — 4 people', receipt: '', status: 'pending' },
-  { id: 'exp-3', employee: 'bram-goossens', category: 'Taxi', amount: 34.00, currency: 'EUR', submittedAt: '7 Jul', description: 'Taxi to Brussels airport — client meeting', receipt: 'taxi_receipt.pdf', status: 'pending' },
-  { id: 'exp-4', employee: 'emma-martens', category: 'Restaurant', amount: 15.00, currency: 'EUR', submittedAt: '1 Jul', description: 'Working lunch with design team', receipt: '', status: 'approved' },
-  { id: 'exp-5', employee: 'david', category: 'Travel', amount: 212.00, currency: 'EUR', submittedAt: '25 Jun', description: 'Brussels–London for product workshop', receipt: 'eurostar.pdf', status: 'approved' },
-  { id: 'exp-6', employee: 'pieter-mertens', category: 'Restaurant', amount: 43.50, currency: 'EUR', submittedAt: '22 Jun', description: 'Client dinner', receipt: '', status: 'rejected', rejectReason: 'No client approval on record for this dinner.' },
-  { id: 'exp-7', employee: 'jana-goossens', category: 'Taxi', amount: 19.00, currency: 'EUR', submittedAt: '18 Jun', description: 'Taxi home after late client event', receipt: 'taxi_receipt.pdf', status: 'approved' },
-  { id: 'exp-8', employee: 'stijn-laurent', category: 'Travel', amount: 31.00, currency: 'EUR', submittedAt: '15 Jun', description: 'Monthly transit pass — June', receipt: '', status: 'pending' },
-  { id: 'exp-9', employee: 'laura-mertens', category: 'Restaurant', amount: 27.50, currency: 'EUR', submittedAt: '10 Jun', description: 'Lunch with new hire onboarding', receipt: '', status: 'approved' },
-  { id: 'exp-10', employee: 'mathias-de-smedt', category: 'Taxi', amount: 22.00, currency: 'EUR', submittedAt: '3 Jun', description: 'Taxi to Ghent office — missed last train', receipt: '', status: 'pending' },
+  // August 2026
+  { id: 'exp-31', employee: 'emma-martens',      category: 'Restaurant',      amount:  28.50, currency: 'EUR', submittedAt: '12 Aug', description: 'Working lunch — project kick-off',                   receipt: '',                status: 'pending' },
+  { id: 'exp-32', employee: 'thomas-janssens',   category: 'Hotel',           amount: 165.00, currency: 'EUR', submittedAt:  '8 Aug', description: 'Hotel Brussels — partner offsite',                    receipt: 'hotel_aug.pdf',   status: 'approved' },
+  { id: 'exp-33', employee: 'bram-goossens',     category: 'Travel',          amount:  52.00, currency: 'EUR', submittedAt:  '5 Aug', description: 'Eurostar Brussels–London return',                     receipt: 'eurostar_aug.pdf',status: 'approved' },
+  { id: 'exp-34', employee: 'stijn-laurent',     category: 'Taxi',            amount:  19.00, currency: 'EUR', submittedAt:  '1 Aug', description: 'Taxi home — late client dinner',                      receipt: 'taxi_aug.pdf',    status: 'approved' },
+  // July 2026
+  { id: 'exp-1',  employee: 'thomas-janssens',   category: 'Travel',          amount: 124.50, currency: 'EUR', submittedAt: '14 Jul', description: 'Train Brussels–Ghent client visit',                   receipt: 'sncb_ticket.pdf', status: 'pending' },
+  { id: 'exp-2',  employee: 'sarah-de-smedt',    category: 'Restaurant',      amount:  87.00, currency: 'EUR', submittedAt: '10 Jul', description: 'Team lunch — 4 people',                               receipt: '',                status: 'pending' },
+  { id: 'exp-3',  employee: 'bram-goossens',     category: 'Taxi',            amount:  34.00, currency: 'EUR', submittedAt:  '7 Jul', description: 'Taxi to Brussels airport — client meeting',            receipt: 'taxi_receipt.pdf',status: 'pending' },
+  { id: 'exp-4',  employee: 'emma-martens',      category: 'Restaurant',      amount:  15.00, currency: 'EUR', submittedAt:  '1 Jul', description: 'Working lunch with design team',                       receipt: '',                status: 'approved' },
+  // June 2026
+  { id: 'exp-5',  employee: 'david',             category: 'Travel',          amount: 212.00, currency: 'EUR', submittedAt: '25 Jun', description: 'Brussels–London for product workshop',                 receipt: 'eurostar.pdf',    status: 'approved' },
+  { id: 'exp-6',  employee: 'pieter-mertens',    category: 'Restaurant',      amount:  43.50, currency: 'EUR', submittedAt: '22 Jun', description: 'Client dinner',                                        receipt: '',                status: 'rejected', rejectReason: 'No client approval on record for this dinner.' },
+  { id: 'exp-7',  employee: 'jana-goossens',     category: 'Taxi',            amount:  19.00, currency: 'EUR', submittedAt: '18 Jun', description: 'Taxi home after late client event',                    receipt: 'taxi_receipt.pdf',status: 'approved' },
+  { id: 'exp-8',  employee: 'stijn-laurent',     category: 'Travel',          amount:  31.00, currency: 'EUR', submittedAt: '15 Jun', description: 'Monthly transit pass — June',                          receipt: '',                status: 'pending' },
+  { id: 'exp-9',  employee: 'laura-mertens',     category: 'Restaurant',      amount:  27.50, currency: 'EUR', submittedAt: '10 Jun', description: 'Lunch with new hire onboarding',                       receipt: '',                status: 'approved' },
+  { id: 'exp-10', employee: 'mathias-de-smedt',  category: 'Taxi',            amount:  22.00, currency: 'EUR', submittedAt:  '3 Jun', description: 'Taxi to Ghent office — missed last train',             receipt: '',                status: 'pending' },
+  // May 2026
+  { id: 'exp-11', employee: 'thomas-janssens',   category: 'Hotel',           amount: 189.00, currency: 'EUR', submittedAt: '28 May', description: 'Hotel Antwerp — overnight client visit',               receipt: 'hotel_may.pdf',   status: 'approved' },
+  { id: 'exp-12', employee: 'sarah-de-smedt',    category: 'Travel',          amount:  44.00, currency: 'EUR', submittedAt: '21 May', description: 'Train Brussels–Liège–Brussels',                        receipt: 'sncb_may.pdf',    status: 'approved' },
+  { id: 'exp-13', employee: 'bram-goossens',     category: 'Restaurant',      amount:  38.50, currency: 'EUR', submittedAt: '15 May', description: 'Lunch with candidate — recruitment',                   receipt: '',                status: 'rejected', rejectReason: 'Recruitment lunches require prior manager sign-off.' },
+  { id: 'exp-14', employee: 'jana-goossens',     category: 'Taxi',            amount:  24.00, currency: 'EUR', submittedAt:  '8 May', description: 'Taxi to offsite — public transport unavailable',        receipt: 'taxi_may.pdf',    status: 'approved' },
+  { id: 'exp-15', employee: 'laura-mertens',     category: 'Online courses',  amount: 129.00, currency: 'EUR', submittedAt:  '2 May', description: 'Coursera subscription — May',                          receipt: 'coursera_may.pdf',status: 'approved' },
+  // April 2026
+  { id: 'exp-16', employee: 'stijn-laurent',     category: 'Travel',          amount:  56.00, currency: 'EUR', submittedAt: '29 Apr', description: 'Monthly transit pass — April',                         receipt: 'transit_apr.pdf', status: 'approved' },
+  { id: 'exp-17', employee: 'emma-martens',      category: 'Restaurant',      amount:  74.00, currency: 'EUR', submittedAt: '22 Apr', description: 'Team dinner — product launch',                         receipt: 'dinner_apr.pdf',  status: 'approved' },
+  { id: 'exp-18', employee: 'mathias-de-smedt',  category: 'Online courses',  amount: 149.00, currency: 'EUR', submittedAt: '14 Apr', description: 'Udemy annual subscription',                            receipt: 'udemy_apr.pdf',   status: 'approved' },
+  { id: 'exp-19', employee: 'pieter-mertens',    category: 'Taxi',            amount:  18.50, currency: 'EUR', submittedAt:  '7 Apr', description: 'Taxi to client site — Zaventem',                       receipt: 'taxi_apr.pdf',    status: 'approved' },
+  // March 2026
+  { id: 'exp-20', employee: 'thomas-janssens',   category: 'Conference fees', amount: 395.00, currency: 'EUR', submittedAt: '25 Mar', description: 'HR Tech World 2026 — conference registration',          receipt: 'hrtech_conf.pdf', status: 'approved' },
+  { id: 'exp-21', employee: 'bram-goossens',     category: 'Hotel',           amount: 220.00, currency: 'EUR', submittedAt: '18 Mar', description: 'Hotel Amsterdam — 2 nights for partner summit',         receipt: 'hotel_mar.pdf',   status: 'approved' },
+  { id: 'exp-22', employee: 'sarah-de-smedt',    category: 'Restaurant',      amount:  51.00, currency: 'EUR', submittedAt: '12 Mar', description: 'Team lunch — Q1 retrospective',                        receipt: 'lunch_mar.pdf',   status: 'approved' },
+  { id: 'exp-23', employee: 'jana-goossens',     category: 'Travel',          amount:  88.00, currency: 'EUR', submittedAt:  '5 Mar', description: 'Train Brussels–Paris for client presentation',          receipt: 'thalys_mar.pdf',  status: 'approved' },
+  // February 2026
+  { id: 'exp-24', employee: 'emma-martens',      category: 'Training materials', amount: 67.00, currency: 'EUR', submittedAt: '27 Feb', description: 'Design books — UX research bundle',                  receipt: 'amazon_feb.pdf',  status: 'approved' },
+  { id: 'exp-25', employee: 'thomas-janssens',   category: 'Travel',          amount:  94.00, currency: 'EUR', submittedAt: '20 Feb', description: 'Eurostar Brussels–London — product sprint',             receipt: 'eurostar_feb.pdf',status: 'approved' },
+  { id: 'exp-26', employee: 'stijn-laurent',     category: 'Restaurant',      amount:  35.00, currency: 'EUR', submittedAt: '13 Feb', description: 'Team lunch — new team member welcome',                  receipt: 'lunch_feb.pdf',   status: 'approved' },
+  { id: 'exp-27', employee: 'mathias-de-smedt',  category: 'Taxi',            amount:  16.50, currency: 'EUR', submittedAt:  '6 Feb', description: 'Taxi to Brussels office — night shift end',             receipt: 'taxi_feb.pdf',    status: 'approved' },
+  // January 2026
+  { id: 'exp-28', employee: 'laura-mertens',     category: 'Conference fees', amount: 290.00, currency: 'EUR', submittedAt: '30 Jan', description: 'People & Culture Summit 2026 — registration',          receipt: 'summit_jan.pdf',  status: 'approved' },
+  { id: 'exp-29', employee: 'pieter-mertens',    category: 'Restaurant',      amount:  82.00, currency: 'EUR', submittedAt: '23 Jan', description: 'Client lunch — new contract onboarding',               receipt: 'lunch_jan.pdf',   status: 'approved' },
+  { id: 'exp-30', employee: 'bram-goossens',     category: 'Travel',          amount:  58.00, currency: 'EUR', submittedAt: '16 Jan', description: 'Train Brussels–Ghent — kickoff meeting',               receipt: 'sncb_jan.pdf',    status: 'approved' },
+  { id: 'exp-35', employee: 'jana-goossens',     category: 'Taxi',            amount:  21.00, currency: 'EUR', submittedAt:  '9 Jan', description: 'Taxi after late team event',                           receipt: 'taxi_jan.pdf',    status: 'approved' },
 ];
 
 // ── localStorage bridge ────────────────────────────────────────────────────
@@ -3913,8 +3946,9 @@ function ExpenseRow({ exp, onApprove, onDetail, onRejectDirectly, showStatus, sh
 function ExpensesScreen({ expenses, categories, onApprove, onDetail, onRejectDirectly, onAdd, appEntity = null }) {
   const categoryOpts = [['all', 'All categories'], ...categories.map(c => { const n = c?.name ?? c; return [n, n]; })];
   const MONTH_ORDER = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const MONTH_FULL = { Jan:'January',Feb:'February',Mar:'March',Apr:'April',May:'May',Jun:'June',Jul:'July',Aug:'August',Sep:'September',Oct:'October',Nov:'November',Dec:'December' };
   const allMonths = [...new Set(expenses.map(e => e.submittedAt.split(' ').pop()))].sort((a, b) => MONTH_ORDER.indexOf(b) - MONTH_ORDER.indexOf(a));
-  const monthOpts = [['all', 'All months'], ...allMonths.map(m => [m, m])];
+  const monthOpts = [['all', 'All months'], ...allMonths.map(m => [m, MONTH_FULL[m] || m])];
   const [tab, setTab] = useState('pending');
   const [addOpen, setAddOpen] = useState(false);
   const [selected, setSelected] = useState(new Set());
