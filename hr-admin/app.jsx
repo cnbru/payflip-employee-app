@@ -6976,7 +6976,7 @@ function DashboardScreen({ requests, onNav, onToast, appEntity = null, physicalC
   const attentionItems = [
     fundingIssue && { icon: 'alert-circle', label: 'Mobility top-up failed', count: '!', screen: 'settings-cardrules', iconBg: '#fef2f2', iconColor: '#dc2626', badgeBg: '#dc2626' },
     pendingRequests > 0 && { icon: 'calendar-days', label: 'Time-off requests', count: pendingRequests, screen: 'requests', iconBg: '#e8f0fe', iconColor: '#2563eb' },
-    pendingExpenses > 0 && { icon: 'receipt', label: 'Expense reports', count: pendingExpenses, screen: 'expenses', iconBg: '#fef3c7', iconColor: '#b45309' },
+    pendingExpenses > 0 && { icon: 'receipt', label: 'Expense requests', count: pendingExpenses, screen: 'expenses', iconBg: '#fef3c7', iconColor: '#b45309' },
     pendingChoices > 0 && { icon: 'list-checks', label: 'Choices to approve', count: pendingChoices, screen: 'choices', iconBg: '#ede9fe', iconColor: '#6d28d9' },
   ].filter(Boolean);
 
