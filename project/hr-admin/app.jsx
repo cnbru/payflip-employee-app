@@ -3912,6 +3912,9 @@ function ExpenseRow({ exp, onApprove, onDetail, onRejectDirectly, showStatus, sh
 // ── Expenses screen ─────────────────────────────────────────────────────────
 function ExpensesScreen({ expenses, categories, onApprove, onDetail, onRejectDirectly, onAdd, appEntity = null }) {
   const categoryOpts = [['all', 'All categories'], ...categories.map(c => { const n = c?.name ?? c; return [n, n]; })];
+  const MONTH_ORDER = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const allMonths = [...new Set(expenses.map(e => e.submittedAt.split(' ').pop()))].sort((a, b) => MONTH_ORDER.indexOf(b) - MONTH_ORDER.indexOf(a));
+  const monthOpts = [['all', 'All months'], ...allMonths.map(m => [m, m])];
   const [tab, setTab] = useState('pending');
   const [addOpen, setAddOpen] = useState(false);
   const [selected, setSelected] = useState(new Set());
@@ -3919,6 +3922,7 @@ function ExpensesScreen({ expenses, categories, onApprove, onDetail, onRejectDir
   const [searchText, setSearchText] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [deptFilter, setDeptFilter] = useState('all');
+  const [monthFilter, setMonthFilter] = useState('all');
   useEffect(() => {
     if (selected.size === 0 && !pillLeaving) return;
     if (selected.size > 0) { setPillLeaving(false); return; }
@@ -3936,6 +3940,7 @@ function ExpensesScreen({ expenses, categories, onApprove, onDetail, onRejectDir
       if (searchText.trim() && !(emp?.name || e.employee).toLowerCase().includes(searchText.trim().toLowerCase())) return false;
       if (categoryFilter !== 'all' && e.category !== categoryFilter) return false;
       if (deptFilter !== 'all' && emp?.department !== deptFilter) return false;
+      if (monthFilter !== 'all' && e.submittedAt.split(' ').pop() !== monthFilter) return false;
       return true;
     });
   const showStatus = tab === 'all';
@@ -3976,7 +3981,9 @@ function ExpensesScreen({ expenses, categories, onApprove, onDetail, onRejectDir
         searchText={searchText} onSearch={v => { setSearchText(v); setSelected(new Set()); }}
         filter={categoryFilter} onFilter={v => { setCategoryFilter(v); setSelected(new Set()); }} filterOpts={categoryOpts}
         deptFilter={deptFilter} onDeptFilter={v => { setDeptFilter(v); setSelected(new Set()); }}
-      />
+      >
+        <FilterDropdown label="All months" active={monthFilter} opts={monthOpts} onSelect={v => { setMonthFilter(v); setSelected(new Set()); }} minWidth={130} />
+      </FilterToolbar>
       <div style={{ flex: 1, overflowY: 'auto', padding: '0 20px 20px' }}>
         <div style={{ background: P.white, borderRadius: 12, border: `1px solid ${P.border}`, overflow: 'clip' }}>
           <div style={{ display: 'grid', gridTemplateColumns: gridCols, alignItems: 'center', gap: 12, padding: '0 20px', height: 38, borderBottom: `1px solid ${P.border}`, background: P.bg, position: 'sticky', top: 0, zIndex: 5 }}>
@@ -4454,7 +4461,7 @@ function PageHeader({ title, subtitle, badge, children, tabs, maxWidth: mw, noBo
   );
 }
 
-function FilterToolbar({ searchText, onSearch, filter, onFilter, filterOpts, deptFilter, onDeptFilter }) {
+function FilterToolbar({ searchText, onSearch, filter, onFilter, filterOpts, deptFilter, onDeptFilter, children }) {
   const deptOpts = [['all', 'All departments'], ...DEPARTMENTS.map(d => [d, d])];
   const resolvedOpts = filterOpts || LEAVE_FILTER_OPTS;
   return (
@@ -4469,6 +4476,7 @@ function FilterToolbar({ searchText, onSearch, filter, onFilter, filterOpts, dep
       </div>
       <FilterDropdown label={resolvedOpts[0][1]} active={filter} opts={resolvedOpts} onSelect={onFilter} minWidth={170} />
       <FilterDropdown label="All departments" active={deptFilter} opts={deptOpts} onSelect={onDeptFilter} minWidth={160} />
+      {children}
     </div>
   );
 }
