@@ -53,6 +53,7 @@
 
   /* Gray — neutrals */
   --gray-0:   #ffffff;
+  --gray-050: #fafafa;
   --gray-100: #f7f7f8;
   --gray-200: #eaeaeb;
   --gray-300: #d9dadd;
@@ -64,15 +65,16 @@
   --gray-900: #0f0d28;
 
   /* Purple — display backgrounds / hero */
-  --purple-100: #f3f1fe;
-  --purple-200: #d8ccff;
-  --purple-300: #bda9fe;
-  --purple-400: #a78cfe;
-  --purple-500: #8762fe;
-  --purple-600: #7b53fe;
-  --purple-700: #6729ea;
-  --purple-800: #5813c8;
-  --purple-900: #320f4d;
+  --purple-050: #fdfcff;
+  --purple-100: #f1e7fd;
+  --purple-200: #dcc2f9;
+  --purple-300: #be90f4;
+  --purple-400: #a35ff1;
+  --purple-500: #8b37eb;
+  --purple-600: #6d17cf;
+  --purple-700: #5412a1;
+  --purple-800: #380d68;
+  --purple-900: #22093e;
   --purple-999: #220a35;       /* logo background; deep brand ink */
 
   /* Success */

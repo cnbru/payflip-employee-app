@@ -4,15 +4,34 @@ const { useState, useEffect, useRef, useCallback, useMemo, useLayoutEffect } = R
 
 // ── Design tokens ──────────────────────────────────────────────────────────
 const P = {
-  ink:         '#0f0d28',
-  inkSoft:     '#50545e',
-  inkFaint:    '#9ca3af',
-  border:      '#eaeaeb',
-  borderStrong:'#d9dadd',
-  bg:          '#f7f7f8',
-  white:       '#ffffff',
-  accent:      '#6366f1',
-  action:      '#220A35',
+  // Neutrals
+  ink:          'var(--gray-900)',
+  inkSoft:      'var(--gray-700)',
+  inkFaint:     'var(--gray-500)',
+  border:       'var(--gray-200)',
+  borderStrong: 'var(--gray-300)',
+  borderHover:  'var(--gray-400)',
+  bg:           'var(--gray-100)',
+  bgSubtle:     'var(--gray-050)',
+  white:        'var(--gray-0)',
+  // Brand
+  accent:       'var(--blue-500)',
+  action:       'var(--bg-primary-default)',
+  // Alert / danger
+  danger:       'var(--alert-500)',
+  dangerBg:     'var(--alert-100)',
+  dangerBorder: 'var(--alert-200)',
+  dangerDark:   'var(--alert-700)',
+  // Success
+  success:      'var(--success-500)',
+  successBg:    'var(--success-100)',
+  successBorder:'var(--success-200)',
+  successDark:  'var(--success-700)',
+  // Warning
+  warning:      'var(--warning-500)',
+  warningBg:    'var(--warning-100)',
+  warningBorder:'var(--warning-200)',
+  warningDark:  'var(--warning-700)',
 };
 
 // Uppercase section-label style shared by every settings screen (was
@@ -20,11 +39,11 @@ const P = {
 const SL = { fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 11, color: P.inkSoft, letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 8 };
 
 const StatusMeta = {
-  pending:  { dot: '#f59e0b', label: 'Pending',  icon: 'Clock', color: '#92400e', bg: '#fde68a' },
-  approved: { dot: '#22c55e', label: 'Approved', icon: 'Check', color: '#14532d', bg: '#bbf7d0' },
-  rejected: { dot: '#ef4444', label: 'Declined', icon: 'X',     color: '#7f1d1d', bg: '#fecaca' },
-  declined: { dot: '#ef4444', label: 'Declined', icon: 'X',     color: '#7f1d1d', bg: '#fecaca' },
-  ended:    { dot: '#9ca3af', label: 'Ended',    icon: 'Minus', color: '#374151', bg: '#f3f4f6' },
+  pending:  { dot: P.warning,  label: 'Pending',  icon: 'Clock', color: P.warningDark,  bg: P.warningBorder },
+  approved: { dot: P.success,  label: 'Approved', icon: 'Check', color: P.successDark,  bg: P.successBorder },
+  rejected: { dot: P.danger,   label: 'Declined', icon: 'X',     color: P.dangerDark,   bg: P.dangerBorder },
+  declined: { dot: P.danger,   label: 'Declined', icon: 'X',     color: P.dangerDark,   bg: P.dangerBorder },
+  ended:    { dot: P.inkFaint, label: 'Ended',    icon: 'Minus', color: P.inkSoft,      bg: P.bg },
 };
 
 const avatarUrl = (name, gender) => {
@@ -35,14 +54,14 @@ const avatarUrl = (name, gender) => {
 
 const LEAVE_COLORS = {
   'Statutory annual leave':                    '#c5dcfd',
-  'ADV / RTT':                   '#fef3c7',
+  'ADV / RTT':                   P.warningBg,
   'Extra-legal leave':           '#ede9fe',
   'Sick leave':                  '#fbd0e4',
-  'Paternity leave':                 '#d1fae5',
+  'Paternity leave':                 P.successBorder,
   'Maternity leave':             '#fce7f3',
   'Wedding':                     '#fde9c8',
   'Funeral leave':               '#d8d3e3',
-  'Ceremony':                    '#fef3c7',
+  'Ceremony':                    P.warningBg,
   'Civic duty':                  '#c5dcfd',
   'Moving':                      '#fde9c8',
 };
@@ -187,7 +206,7 @@ function SettingsRow({ onClick, icon, iconBadgeColor, dimmed, leading, label, la
     <div onClick={onClick}
       onMouseEnter={() => onClick && setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      style={{ display: 'flex', alignItems: 'center', gap: hasLeading ? 16 : 0, padding: 16, borderBottom: last ? 'none' : `1px solid ${P.border}`, cursor: onClick ? 'pointer' : 'default', background: hovered ? '#fafafa' : 'transparent', transition: PREFERS_REDUCED_MOTION ? 'none' : `background 150ms ${EASE_OUT}` }}>
+      style={{ display: 'flex', alignItems: 'center', gap: hasLeading ? 16 : 0, padding: 16, borderBottom: last ? 'none' : `1px solid ${P.border}`, cursor: onClick ? 'pointer' : 'default', background: hovered ? P.bgSubtle : 'transparent', transition: PREFERS_REDUCED_MOTION ? 'none' : `background 150ms ${EASE_OUT}` }}>
       {leading}
       {!leading && icon && (
         <div style={{ position: 'relative', width: 36, height: 36, flexShrink: 0, opacity: dimmed ? 0.4 : 1 }}>
@@ -306,12 +325,12 @@ function IconButton({ icon, onClick, size = 30, iconSize = 14, color = P.ink, bl
       style={{
         border: 'none', cursor: 'pointer', width: size, height: size, borderRadius: '50%', flexShrink: 0,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        background: isDangerHover ? '#fee2e2' : 'rgba(60,60,67,0.1)',
+        background: isDangerHover ? P.dangerBg : 'rgba(60,60,67,0.1)',
         transition: danger ? 'background 120ms' : undefined,
         ...(blur ? { backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)' } : {}),
         ...style,
       }}>
-      <Icon name={icon} size={iconSize} color={isDangerHover ? '#dc2626' : color} strokeWidth={2.5} />
+      <Icon name={icon} size={iconSize} color={isDangerHover ? P.danger : color} strokeWidth={2.5} />
     </button>
   );
 }
@@ -321,7 +340,7 @@ function IconButton({ icon, onClick, size = 30, iconSize = 14, color = P.ink, bl
 const BUTTON_VARIANTS = {
   primary:   { background: P.action, hover: '#2d1048', color: '#fff', border: 'none' },
   secondary: { background: 'transparent', hover: P.bg, color: P.ink, border: `1px solid ${P.border}` },
-  danger:    { background: 'transparent', hover: '#fee2e2', color: '#dc2626', border: 'none' },
+  danger:    { background: 'transparent', hover: P.dangerBg, color: P.danger, border: 'none' },
   text:      { background: 'transparent', hover: P.bg, color: P.ink, border: 'none' },
 };
 function Button({ variant = 'secondary', onClick, children, icon, iconSize = 14, disabled, type = 'button', style }) {
@@ -518,7 +537,7 @@ const ENTITIES = [
 
 // ── Employee data ──────────────────────────────────────────────────────────
 const DEPARTMENTS = ['Design','Engineering','Marketing'];
-const AVATAR_COLORS = ['#bfdbfe','#ddd6fe','#fde68a','#a7f3d0','#fecdd3','#fed7aa','#c7d2fe','#fca5a5','#d9f99d','#99f6e4'];
+const AVATAR_COLORS = ['#bfdbfe','#ddd6fe',P.warningBorder,'#a7f3d0','#fecdd3','#fed7aa','#c7d2fe',P.dangerBorder,'#d9f99d','#99f6e4'];
 
 const EMPLOYEES = {
   // Admin-only (not an employee — contractor)
@@ -526,7 +545,7 @@ const EMPLOYEES = {
   // Design → Lumio Group (BE)
   'bram-goossens':     { name: 'Bram Goossens',     initials: 'BG', color: '#bfdbfe', entitlement: 23, department: 'Design',       email: 'bram.goossens@lumiogroup.be',     entity: 'Lumio Group', entityId: 'lumio-group', budget: 3750,  budgetUsed: 3605, role: 'Employee', status: 'Active', gender: 'm' },
   'emma-martens':      { name: 'Emma Martens',       initials: 'EM', color: '#ddd6fe', entitlement: 29, department: 'Design',       email: 'emma.martens@lumiogroup.be',      entity: 'Lumio Group', entityId: 'lumio-group', budget: 0,     role: 'Employee', status: 'Active', gender: 'f', photo: true },
-  'mathias-de-smedt':  { name: 'Mathias De Smedt',  initials: 'MD', color: '#fde68a', entitlement: 23, department: 'Design',       email: 'mathias.de-smedt@lumiogroup.be', entity: 'Lumio Group', entityId: 'lumio-group', budget: 6250,  budgetUsed: 6170, role: 'Employee', status: 'Active', gender: 'm' },
+  'mathias-de-smedt':  { name: 'Mathias De Smedt',  initials: 'MD', color: P.warningBorder, entitlement: 23, department: 'Design',       email: 'mathias.de-smedt@lumiogroup.be', entity: 'Lumio Group', entityId: 'lumio-group', budget: 6250,  budgetUsed: 6170, role: 'Employee', status: 'Active', gender: 'm' },
   'thomas-vandenberghe': { name: 'Thomas Vandenberghe', initials: 'TV', color: '#99f6e4', entitlement: 20, department: 'Design',    email: 'thomas.vandenberghe@lumiogroup.be', entity: 'Lumio Group', entityId: 'lumio-group', budget: 0, role: 'Employee', status: 'Active', gender: 'm' },
   'thomas-janssens':     { name: 'Thomas Janssens',    initials: 'TJ', color: '#d9f99d', entitlement: 23, department: 'Design',    email: 'thomas.janssens@lumiogroup.be', entity: 'Lumio Group', entityId: 'lumio-group', budget: 3000, budgetUsed: 3000, role: 'Employee', status: 'Active', gender: 'm' },
   'charlotte-pieters':   { name: 'Charlotte Pieters',  initials: 'CP', color: '#fecdd3', entitlement: 20, department: 'Design',    email: 'charlotte.pieters@lumiogroup.be', entity: 'Lumio Group', entityId: 'lumio-group', budget: 2500, budgetUsed: 2500, role: 'Employee', status: 'Active', gender: 'f', fte: 0.8, workSchedule: [1,2,3,4] },
@@ -534,21 +553,21 @@ const EMPLOYEES = {
   'nathalie-cox':        { name: 'Nathalie Cox',        initials: 'NC', color: '#a7f3d0', entitlement: 20, department: 'Design',    email: 'nathalie.cox@lumiogroup.be',    entity: 'Lumio Group', entityId: 'lumio-group', budget: 3200, budgetUsed: 3200, role: 'Employee', status: 'Active', gender: 'f' },
   'ruben-declercq':      { name: 'Ruben Declercq',     initials: 'RD', color: '#fed7aa', entitlement: 25, department: 'Design',    email: 'ruben.declercq@lumiogroup.be',  entity: 'Lumio Group', entityId: 'lumio-group', budget: 5500, budgetUsed: 5500, role: 'Employee', status: 'Active', gender: 'm' },
   'ines-baert':          { name: 'Inès Baert',          initials: 'IB', color: '#ddd6fe', entitlement: 20, department: 'Design',    email: 'ines.baert@lumiogroup.be',      entity: 'Lumio Group', entityId: 'lumio-group', budget: 2800, budgetUsed: 2800, role: 'Employee', status: 'Active', gender: 'f' },
-  'joachim-nijs':        { name: 'Joachim Nijs',        initials: 'JN', color: '#fde68a', entitlement: 23, department: 'Design',    email: 'joachim.nijs@lumiogroup.be',    entity: 'Lumio Group', entityId: 'lumio-group', budget: 4800, budgetUsed: 4800, role: 'Employee', status: 'Active', gender: 'm' },
+  'joachim-nijs':        { name: 'Joachim Nijs',        initials: 'JN', color: P.warningBorder, entitlement: 23, department: 'Design',    email: 'joachim.nijs@lumiogroup.be',    entity: 'Lumio Group', entityId: 'lumio-group', budget: 4800, budgetUsed: 4800, role: 'Employee', status: 'Active', gender: 'm' },
   'sara-verbeke':        { name: 'Sara Verbeke',        initials: 'SV', color: '#bfdbfe', entitlement: 20, department: 'Design',    email: 'sara.verbeke@lumiogroup.be',    entity: 'Lumio Group', entityId: 'lumio-group', budget: 3100, budgetUsed: 3100, role: 'Employee', status: 'Active', gender: 'f' },
   'wout-desmet':         { name: 'Wout Desmet',         initials: 'WD', color: '#99f6e4', entitlement: 22, department: 'Design',    email: 'wout.desmet@lumiogroup.be',     entity: 'Lumio Group', entityId: 'lumio-group', budget: 4200, budgetUsed: 4200, role: 'Employee', status: 'Active', gender: 'm' },
-  'amber-claes':         { name: 'Amber Claes',         initials: 'AC', color: '#fca5a5', entitlement: 20, department: 'Design',    email: 'amber.claes@lumiogroup.be',     entity: 'Lumio Group', entityId: 'lumio-group', budget: 2900, budgetUsed: 2900, role: 'Employee', status: 'Active', gender: 'f' },
+  'amber-claes':         { name: 'Amber Claes',         initials: 'AC', color: P.dangerBorder, entitlement: 20, department: 'Design',    email: 'amber.claes@lumiogroup.be',     entity: 'Lumio Group', entityId: 'lumio-group', budget: 2900, budgetUsed: 2900, role: 'Employee', status: 'Active', gender: 'f' },
   'pieter-verheyen':     { name: 'Pieter Verheyen',     initials: 'PV', color: '#d9f99d', entitlement: 25, department: 'Design',    email: 'pieter.verheyen@lumiogroup.be', entity: 'Lumio Group', entityId: 'lumio-group', budget: 6000, budgetUsed: 6000, role: 'Admin',  status: 'Active', gender: 'm' },
   // Engineering → Lumio France
   'david':             { name: 'David Laurent',      initials: 'DL', color: '#fecdd3', entitlement: 20, department: 'Engineering', email: 'david.laurent@lumio.fr',          entity: 'Lumio France', entityId: 'lumio-france', budget: 4500,  budgetUsed: 4500, role: 'Employee', status: 'Active', gender: 'm', photo: true },
   'stijn-laurent':     { name: 'Stijn Laurent',      initials: 'SL', color: '#a7f3d0', entitlement: 29, department: 'Engineering', email: 'stijn.laurent@lumio.fr',          entity: 'Lumio France', entityId: 'lumio-france', budget: 1500,  budgetUsed: 1500, role: 'Employee', status: 'Active', gender: 'm' },
   'jana-goossens':     { name: 'Jana Goossens',      initials: 'JG', color: '#c7d2fe', entitlement: 20, department: 'Engineering', email: 'jana.goossens@lumio.fr',          entity: 'Lumio France', entityId: 'lumio-france', budget: 2000,  budgetUsed: 2000, role: 'Employee', status: 'Active', gender: 'f' },
-  'laura-mertens':     { name: 'Laura Mertens',      initials: 'LM', color: '#fca5a5', entitlement: 20, department: 'Engineering', email: 'laura.mertens@lumio.fr',          entity: 'Lumio France', entityId: 'lumio-france', budget: 750,   budgetUsed: 750,  role: 'Employee', status: 'Active', gender: 'f' },
+  'laura-mertens':     { name: 'Laura Mertens',      initials: 'LM', color: P.dangerBorder, entitlement: 20, department: 'Engineering', email: 'laura.mertens@lumio.fr',          entity: 'Lumio France', entityId: 'lumio-france', budget: 750,   budgetUsed: 750,  role: 'Employee', status: 'Active', gender: 'f' },
   // Marketing → Lumio Netherlands
   'pieter-mertens':    { name: 'Pieter Mertens',     initials: 'PM', color: '#a7f3d0', entitlement: 29, department: 'Marketing',   email: 'pieter.mertens@lumio.nl',         entity: 'Lumio Netherlands', entityId: 'lumio-nl', budget: 8500,  budgetUsed: 8500, role: 'Admin',  status: 'Active', gender: 'm' },
   'sarah-de-smedt':    { name: 'Sarah De Smedt',     initials: 'SD', color: '#fecdd3', entitlement: 23, department: 'Marketing',   email: 'sarah.de-smedt@lumio.nl',         entity: 'Lumio Netherlands', entityId: 'lumio-nl', budget: 2750,  budgetUsed: 2750, role: 'Employee', status: 'Active', gender: 'f' },
   'julie-goossens':    { name: 'Julie Goossens',     initials: 'JG', color: '#fed7aa', entitlement: 20, department: 'Marketing',   email: 'julie.goossens@lumio.nl',         entity: 'Lumio Netherlands', entityId: 'lumio-nl', budget: 5000,  budgetUsed: 5000, role: 'Admin',  status: 'Active', gender: 'f' },
-  'noor-de-smedt':     { name: 'Noor De Smedt',      initials: 'ND', color: '#fde68a', entitlement: 20, department: 'Marketing',   email: 'noor.de-smedt@lumio.nl',          entity: 'Lumio Netherlands', entityId: 'lumio-nl', budget: 0,     role: 'Employee', status: 'Active', gender: 'f', fte: 0.8, workSchedule: [1,2,4,5] },
+  'noor-de-smedt':     { name: 'Noor De Smedt',      initials: 'ND', color: P.warningBorder, entitlement: 20, department: 'Marketing',   email: 'noor.de-smedt@lumio.nl',          entity: 'Lumio Netherlands', entityId: 'lumio-nl', budget: 0,     role: 'Employee', status: 'Active', gender: 'f', fte: 0.8, workSchedule: [1,2,4,5] },
 };
 const CURRENT_USER = EMPLOYEES['bruno-coen'];
 
@@ -855,14 +874,14 @@ function SalaryTab({ empId, emp, companyRegime, onEmployeeUpdate }) {
             <label style={labelStyle}>ADV entitlement</label>
             <div style={{ ...fieldStyle, display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: P.bg }}>
               <span>{advDays} days / year</span>
-              <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: '#059669', background: '#ecfdf5', padding: '2px 6px', borderRadius: 4 }}>Auto</span>
+              <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.success, background: P.successBg, padding: '2px 6px', borderRadius: 4 }}>Auto</span>
             </div>
           </div>
           <div style={{ flex: 1 }}>
             <label style={labelStyle}>Legal leave</label>
             <div style={{ ...fieldStyle, display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: P.bg }}>
               <span>{legalLeave} days{localFte < 1.0 ? ` (${localFte} FTE)` : ''}</span>
-              <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: '#059669', background: '#ecfdf5', padding: '2px 6px', borderRadius: 4 }}>Auto</span>
+              <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.success, background: P.successBg, padding: '2px 6px', borderRadius: 4 }}>Auto</span>
             </div>
           </div>
         </div>
@@ -893,7 +912,7 @@ function SalaryTab({ empId, emp, companyRegime, onEmployeeUpdate }) {
                 <td style={{ padding: '12px 16px', color: P.inkSoft }}>{row.start}</td>
                 <td style={{ padding: '12px 16px', color: P.inkSoft }}>{row.end}</td>
                 <td style={{ padding: '12px 16px' }}>
-                  <span style={{ display: 'inline-flex', alignItems: 'center', background: row.active ? '#f0fdf4' : P.white, color: row.active ? '#16a34a' : P.inkSoft, border: `1px solid ${row.active ? '#bbf7d0' : P.border}`, borderRadius: 6, padding: '2px 6px', fontSize: 11, fontFamily: 'var(--font-display)', fontWeight: 500 }}>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', background: row.active ? P.successBg : P.white, color: row.active ? P.success : P.inkSoft, border: `1px solid ${row.active ? P.successBorder : P.border}`, borderRadius: 6, padding: '2px 6px', fontSize: 11, fontFamily: 'var(--font-display)', fontWeight: 500 }}>
                     {row.active ? 'Active' : 'Inactive'}
                   </span>
                 </td>
@@ -1220,13 +1239,13 @@ const MONTH_NAMES = ['January','February','March','April','May','June','July','A
 
 // ── Avatar ─────────────────────────────────────────────────────────────────
 function Avatar({ employeeId, size = 28, bg, style: extraStyle }) {
-  const emp = EMPLOYEES[employeeId] || { initials: '?', color: '#e5e7eb' };
+  const emp = EMPLOYEES[employeeId] || { initials: '?', color: P.border };
   if (emp.photo) {
     return <img src={avatarUrl(emp.name, emp.gender)} alt={emp.initials} style={{ width: size, height: size, borderRadius: '50%', flexShrink: 0, objectFit: 'cover', ...extraStyle }} />;
   }
   return (
     <div style={{
-      width: size, height: size, borderRadius: '50%', background: bg || '#e5e7eb',
+      width: size, height: size, borderRadius: '50%', background: bg || P.border,
       flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
       fontFamily: 'var(--font-display)', fontWeight: 700,
       fontSize: size * 0.34, color: P.ink, letterSpacing: '0.01em',
@@ -1672,12 +1691,12 @@ function ActionMenu({ req, onApprove, onDecline, onViewDetails, onEdit, onCancel
 
   const items = [
     req?.status === 'pending' && onApprove && { icon: 'CheckCircle', label: 'Approve', fn: onApprove, color: '#166534' },
-    req?.status === 'pending' && onDecline && { icon: 'XCircle', label: 'Decline', fn: onDecline, color: '#b91c1c' },
+    req?.status === 'pending' && onDecline && { icon: 'XCircle', label: 'Decline', fn: onDecline, color: P.dangerDark },
     onViewDetails && { icon: 'Eye', label: 'View details', fn: onViewDetails, color: P.ink },
     onViewInCalendar && { icon: 'Calendar', label: 'View in calendar', fn: () => onViewInCalendar(req), color: P.ink },
     onEdit && { icon: 'Pencil', label: 'Edit', fn: onEdit, color: P.ink },
     req?.document && { icon: 'Download', label: 'Download document', fn: () => {}, color: P.ink },
-    req?.status === 'approved' && { icon: 'Trash2', label: 'Cancel absence', fn: onCancel, color: '#b91c1c' },
+    req?.status === 'approved' && { icon: 'Trash2', label: 'Cancel absence', fn: onCancel, color: P.dangerDark },
   ].filter(Boolean);
 
   return (
@@ -1706,7 +1725,7 @@ function ActionMenu({ req, onApprove, onDecline, onViewDetails, onEdit, onCancel
             onMouseEnter={e => e.currentTarget.style.background = P.bg}
             onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
               <Icon name={icon} size={14} color={color} strokeWidth={1.75} />
-              <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: label === 'Cancel absence' ? '#b91c1c' : P.ink }}>{label}</span>
+              <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: label === 'Cancel absence' ? P.dangerDark : P.ink }}>{label}</span>
             </button>
           ))}
         </div>
@@ -1716,7 +1735,7 @@ function ActionMenu({ req, onApprove, onDecline, onViewDetails, onEdit, onCancel
 }
 
 // ── Reason modal (decline / cancel) ───────────────────────────────────────
-function ReasonModal({ title, description, confirmLabel, confirmColor = '#dc2626', onConfirm, onClose }) {
+function ReasonModal({ title, description, confirmLabel, confirmColor = P.danger, onConfirm, onClose }) {
   const [reason, setReason] = useState('');
   return (
     <ModalShell title={title} onClose={onClose}
@@ -1852,9 +1871,9 @@ function CalendarDrawer({ req, requests, onClose, onApprove, onDecline, onCancel
 
   // Status pill (must be before detailItems)
   const pillData = {
-    approved: { bg: '#bbf7d0', color: '#14532d', label: 'Approved' },
-    rejected: { bg: '#fecaca', color: '#7f1d1d', label: 'Declined' },
-    pending:  { bg: '#fde68a', color: '#92400e', label: 'Pending'  },
+    approved: { bg: P.successBorder, color: P.successDark, label: 'Approved' },
+    rejected: { bg: P.dangerBorder, color: P.dangerDark, label: 'Declined' },
+    pending:  { bg: P.warningBorder, color: P.warningDark, label: 'Pending'  },
   };
   const pill = pillData[req.status] || pillData.pending;
 
@@ -1943,7 +1962,7 @@ function CalendarDrawer({ req, requests, onClose, onApprove, onDecline, onCancel
                 <AppLink>{req.document}</AppLink>
               ) : (
                 <>
-                  <DotPill dot={false} color="#92400e" bg="#fef9c3" border="#fde68a">Missing</DotPill>
+                  <DotPill dot={false} color={P.warningDark} bg={P.warningBg} border={P.warningBorder}>Missing</DotPill>
                   <span style={{ fontWeight: 400, color: P.inkSoft }}>{ATTACHMENT_RULES[req.type].label}</span>
                 </>
               )}
@@ -1977,7 +1996,7 @@ function CalendarDrawer({ req, requests, onClose, onApprove, onDecline, onCancel
               </div>
               <div style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 8 }}>
                 {hasOverlap
-                  ? <DotPill bg="#fde68a" color="#92400e">{overlapping.length} of {teamSize} away</DotPill>
+                  ? <DotPill bg={P.warningBorder} color={P.warningDark}>{overlapping.length} of {teamSize} away</DotPill>
                   : <DotPill bg="#dcfce7" color="#166534">All available</DotPill>
                 }
                 {hasOverlap && (
@@ -2064,8 +2083,8 @@ function CalendarDrawer({ req, requests, onClose, onApprove, onDecline, onCancel
             {(isPending || req.status === 'approved') && (
               <div style={{ flexShrink: 0, padding: '12px 20px', borderTop: `1px solid ${P.border}`, display: 'flex', gap: 10 }}>
                 {isPending && <>
-                  <button onClick={enterDecline} style={{ flex: 1, padding: '10px 0', borderRadius: 10, border: '1px solid #fecaca', background: '#fef2f2', color: '#dc2626', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
-                    <Icon name="X" size={13} color="#dc2626" strokeWidth={2.5} /> Decline
+                  <button onClick={enterDecline} style={{ flex: 1, padding: '10px 0', borderRadius: 10, border: '1px solid var(--alert-200)', background: P.dangerBg, color: P.danger, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                    <Icon name="X" size={13} color={P.danger} strokeWidth={2.5} /> Decline
                   </button>
                   <button onClick={() => onApprove(req.id)} style={{ flex: 1, padding: '10px 0', borderRadius: 10, border: 'none', background: P.ink, color: P.white, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
                     <Icon name="Check" size={13} color={P.white} strokeWidth={2.5} /> Approve
@@ -2073,7 +2092,7 @@ function CalendarDrawer({ req, requests, onClose, onApprove, onDecline, onCancel
                 </>}
                 {req.status === 'approved' && <>
                   <button onClick={enterEdit} style={{ flex: 1, padding: '10px 0', borderRadius: 10, border: `1px solid ${P.border}`, background: 'transparent', color: P.inkSoft, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>Edit</button>
-                  <button onClick={enterCancel} style={{ flex: 1, padding: '10px 0', borderRadius: 10, border: '1px solid #fecaca', background: '#fef2f2', color: '#dc2626', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>Cancel absence</button>
+                  <button onClick={enterCancel} style={{ flex: 1, padding: '10px 0', borderRadius: 10, border: '1px solid var(--alert-200)', background: P.dangerBg, color: P.danger, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>Cancel absence</button>
                 </>}
               </div>
             )}
@@ -2094,7 +2113,7 @@ function CalendarDrawer({ req, requests, onClose, onApprove, onDecline, onCancel
                 </div>
                 <div style={{ flexShrink: 0, padding: '12px 20px', borderTop: `1px solid ${P.border}`, display: 'flex', gap: 10 }}>
                   <button onClick={exitDecline} style={{ flex: 1, padding: '10px 0', borderRadius: 10, border: `1px solid ${P.border}`, background: 'transparent', color: P.inkSoft, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>Go back</button>
-                  <button onClick={() => { onDecline(req.id, declineReason); close(); }} style={{ flex: 2, padding: '10px 0', borderRadius: 10, border: 'none', background: '#dc2626', color: P.white, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>Confirm decline</button>
+                  <button onClick={() => { onDecline(req.id, declineReason); close(); }} style={{ flex: 2, padding: '10px 0', borderRadius: 10, border: 'none', background: P.danger, color: P.white, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>Confirm decline</button>
                 </div>
               </>
             ) : cancelMode ? (
@@ -2110,7 +2129,7 @@ function CalendarDrawer({ req, requests, onClose, onApprove, onDecline, onCancel
                 </div>
                 <div style={{ flexShrink: 0, padding: '12px 20px', borderTop: `1px solid ${P.border}`, display: 'flex', gap: 10 }}>
                   <button onClick={exitCancel} style={{ flex: 1, padding: '10px 0', borderRadius: 10, border: `1px solid ${P.border}`, background: 'transparent', color: P.inkSoft, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>Go back</button>
-                  <button onClick={() => { onCancel(req.id, cancelReason); close(); }} style={{ flex: 2, padding: '10px 0', borderRadius: 10, border: 'none', background: '#dc2626', color: P.white, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>Confirm cancellation</button>
+                  <button onClick={() => { onCancel(req.id, cancelReason); close(); }} style={{ flex: 2, padding: '10px 0', borderRadius: 10, border: 'none', background: P.danger, color: P.white, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>Confirm cancellation</button>
                 </div>
               </>
             ) : (
@@ -2142,7 +2161,7 @@ function CalendarDrawer({ req, requests, onClose, onApprove, onDecline, onCancel
                   </div>
                 )}
                 {editErrors.dates && (
-                  <div style={{ marginTop: 6, fontFamily: 'var(--font-body)', fontSize: 12, color: '#dc2626' }}>{editErrors.dates}</div>
+                  <div style={{ marginTop: 6, fontFamily: 'var(--font-body)', fontSize: 12, color: P.danger }}>{editErrors.dates}</div>
                 )}
               </div>
               {/* Note */}
@@ -2279,7 +2298,7 @@ function EmployeeCombobox({ value, onChange, employees, error, autoFocus }) {
     <div style={{ position: 'relative' }}>
       <div style={{
         display: 'flex', alignItems: 'center', gap: 7, padding: '8px 10px', borderRadius: 7,
-        border: `1px solid ${error ? '#dc2626' : open ? P.borderStrong : P.border}`,
+        border: `1px solid ${error ? P.danger : open ? P.borderStrong : P.border}`,
         background: P.white, boxSizing: 'border-box',
       }}>
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={P.inkFaint} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
@@ -2680,7 +2699,7 @@ function AddTimeOffModal({ existing, onClose, onSave, requests = [], defaultDate
             <div style={{ flexShrink: 0, padding: '16px 24px 4px' }}>
               <div style={{ padding: '14px 16px', borderRadius: 10, background: '#fdf6ec', display: 'flex', alignItems: 'center', gap: 10 }}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#d97706" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: '#92400e', lineHeight: 1.4 }}>Changes to past absences may affect payroll records.</span>
+                <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.warningDark, lineHeight: 1.4 }}>Changes to past absences may affect payroll records.</span>
               </div>
             </div>
           );
@@ -2733,7 +2752,7 @@ function AddTimeOffModal({ existing, onClose, onSave, requests = [], defaultDate
                 autoFocus={false}
               />
             )}
-            {errors.employee && <div style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: '#dc2626', marginTop: 4 }}>{errors.employee}</div>}
+            {errors.employee && <div style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.danger, marginTop: 4 }}>{errors.employee}</div>}
           </div>
 
           {/* Leave type — hidden for collective holidays */}
@@ -2823,14 +2842,14 @@ function AddTimeOffModal({ existing, onClose, onSave, requests = [], defaultDate
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
               <div>
                 <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.inkFaint, marginBottom: 3, textTransform: 'uppercase', letterSpacing: '0.04em' }}>From</div>
-                <DateInput value={rangeFrom} placeholder="Start date" borderColor={errors.dates ? '#dc2626' : P.border} onChange={e => { setRangeFrom(e.target.value); if (rangeTo && e.target.value > rangeTo) setRangeTo(e.target.value); }} />
+                <DateInput value={rangeFrom} placeholder="Start date" borderColor={errors.dates ? P.danger : P.border} onChange={e => { setRangeFrom(e.target.value); if (rangeTo && e.target.value > rangeTo) setRangeTo(e.target.value); }} />
               </div>
               <div>
                 <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.inkFaint, marginBottom: 3, textTransform: 'uppercase', letterSpacing: '0.04em' }}>To</div>
-                <DateInput value={rangeTo} placeholder="End date" min={rangeFrom || undefined} borderColor={errors.dates ? '#dc2626' : P.border} onChange={e => { setRangeTo(e.target.value); }} />
+                <DateInput value={rangeTo} placeholder="End date" min={rangeFrom || undefined} borderColor={errors.dates ? P.danger : P.border} onChange={e => { setRangeTo(e.target.value); }} />
               </div>
             </div>
-            {errors.dates && <div style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: '#dc2626', marginTop: 4 }}>{errors.dates}</div>}
+            {errors.dates && <div style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.danger, marginTop: 4 }}>{errors.dates}</div>}
           </div>
 
           {/* Duration + edit selection */}
@@ -3002,7 +3021,7 @@ function AvatarStack({ people }) {
             onMouseLeave={() => { setActiveIdx(null); setTooltipPos(null); }}
             style={{
               width: AVATAR_SIZE, height: AVATAR_SIZE, borderRadius: '50%',
-              background: '#e5e7eb',
+              background: P.border,
               border: '2px solid #fff', boxSizing: 'content-box',
               display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
               fontSize: 9, fontWeight: 700, color: P.ink, letterSpacing: '0.02em',
@@ -3118,7 +3137,7 @@ function OverlapPopover({ req, overlapping, empDept }) {
                 {empDept} also off
               </span>
               {sameDept.length >= 2 && (
-                <DotPill dot={false} size={11} color="#dc2626" bg="#fef2f2" border="#fecaca">⚠ {sameDept.length} overlaps</DotPill>
+                <DotPill dot={false} size={11} color={P.danger} bg={P.dangerBg} border={P.dangerBorder}>⚠ {sameDept.length} overlaps</DotPill>
               )}
             </div>
             {sameDept.map(r => {
@@ -3146,7 +3165,7 @@ function OverlapPopover({ req, overlapping, empDept }) {
 
 // ── Expense drawer ─────────────────────────────────────────────────────────
 function ExpenseDrawer({ expense, onClose, onApprove, onReject, onEdit, categories = [], initialRejectMode = false }) {
-  const emp = EMPLOYEES[expense.employee] || { name: expense.employee, initials: '?', color: '#e5e7eb' };
+  const emp = EMPLOYEES[expense.employee] || { name: expense.employee, initials: '?', color: P.border };
   const isPending = expense.status === 'pending';
 
   const [rejectMode, setRejectMode] = React.useState(initialRejectMode);
@@ -3234,7 +3253,7 @@ function ExpenseDrawer({ expense, onClose, onApprove, onReject, onEdit, categori
         </TableRow>
         {expense.status === 'rejected' && expense.rejectReason && (
           <TableRow label="Reject reason" icon="message-square">
-            <span style={{ textAlign: 'right', whiteSpace: 'normal', lineHeight: 1.4, color: '#dc2626' }}>{expense.rejectReason}</span>
+            <span style={{ textAlign: 'right', whiteSpace: 'normal', lineHeight: 1.4, color: P.danger }}>{expense.rejectReason}</span>
           </TableRow>
         )}
       </Group>
@@ -3253,8 +3272,8 @@ function ExpenseDrawer({ expense, onClose, onApprove, onReject, onEdit, categori
               <div style={{ flexShrink: 0, padding: '12px 20px', borderTop: `1px solid ${P.border}`, display: 'flex', gap: 10 }}>
                 <Button variant="secondary" icon="pencil" onClick={() => { setEditAmount(String(expense.amount)); setEditCategory(expense.category); setEditDescription(expense.description || ''); setEditMode(true); }}>Edit</Button>
                 <div style={{ marginLeft: 'auto', display: 'flex', gap: 10 }}>
-                  <button onClick={() => { setRejectReason(''); setRejectMode(true); }} style={{ padding: '10px 18px', borderRadius: 10, border: '1px solid #fecaca', background: '#fef2f2', color: '#dc2626', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <Icon name="X" size={13} color="#dc2626" strokeWidth={2.5} /> Reject
+                  <button onClick={() => { setRejectReason(''); setRejectMode(true); }} style={{ padding: '10px 18px', borderRadius: 10, border: '1px solid var(--alert-200)', background: P.dangerBg, color: P.danger, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <Icon name="X" size={13} color={P.danger} strokeWidth={2.5} /> Reject
                   </button>
                   <button onClick={() => { onApprove(expense.id); close(); }} style={{ padding: '10px 18px', borderRadius: 10, border: 'none', background: P.ink, color: P.white, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, display: 'flex', alignItems: 'center', gap: 6 }}>
                     <Icon name="Check" size={13} color={P.white} strokeWidth={2.5} /> Approve
@@ -3305,7 +3324,7 @@ function ExpenseDrawer({ expense, onClose, onApprove, onReject, onEdit, categori
                 </div>
                 <div style={{ flexShrink: 0, padding: '12px 20px', borderTop: `1px solid ${P.border}`, display: 'flex', gap: 10 }}>
                   <button onClick={() => setRejectMode(false)} style={{ flex: 1, padding: '10px 0', borderRadius: 10, border: `1px solid ${P.border}`, background: 'transparent', color: P.inkSoft, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>Go back</button>
-                  <button onClick={() => { onReject(expense.id, rejectReason); close(); }} style={{ flex: 2, padding: '10px 0', borderRadius: 10, border: 'none', background: '#dc2626', color: P.white, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>Confirm rejection</button>
+                  <button onClick={() => { onReject(expense.id, rejectReason); close(); }} style={{ flex: 2, padding: '10px 0', borderRadius: 10, border: 'none', background: P.danger, color: P.white, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>Confirm rejection</button>
                 </div>
               </>
             )}
@@ -3318,7 +3337,7 @@ function ExpenseDrawer({ expense, onClose, onApprove, onReject, onEdit, categori
 
 // ── Choice drawer ─────────────────────────────────────────────────────────
 function ChoiceDrawer({ choice, onClose, onApprove, onDecline }) {
-  const emp = EMPLOYEES[choice.empId] || { name: choice.empId, initials: '?', color: '#e5e7eb' };
+  const emp = EMPLOYEES[choice.empId] || { name: choice.empId, initials: '?', color: P.border };
   const isPending = choice.status === 'pending';
   const isApproved = choice.status === 'approved';
 
@@ -3501,7 +3520,7 @@ function ChoiceDrawer({ choice, onClose, onApprove, onDecline }) {
                 <SectionHeader>Decline reason</SectionHeader>
                 <Group>
                   <TableRow label="Reason" icon="message-square">
-                    <span style={{ textAlign: 'right', whiteSpace: 'normal', lineHeight: 1.4, color: '#dc2626' }}>{choice.declineReason}</span>
+                    <span style={{ textAlign: 'right', whiteSpace: 'normal', lineHeight: 1.4, color: P.danger }}>{choice.declineReason}</span>
                   </TableRow>
                 </Group>
               </>)}
@@ -3521,8 +3540,8 @@ function ChoiceDrawer({ choice, onClose, onApprove, onDecline }) {
             {/* Footer */}
             {isPending && (
               <div style={{ flexShrink: 0, padding: '12px 20px', borderTop: `1px solid ${P.border}`, display: 'flex', gap: 10 }}>
-                <button onClick={() => { setDeclineReason(''); setActivePanel('decline'); }} style={{ flex: 1, padding: '10px 0', borderRadius: 10, border: '1px solid #fecaca', background: '#fef2f2', color: '#dc2626', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
-                  <Icon name="X" size={13} color="#dc2626" strokeWidth={2.5} /> Decline
+                <button onClick={() => { setDeclineReason(''); setActivePanel('decline'); }} style={{ flex: 1, padding: '10px 0', borderRadius: 10, border: '1px solid var(--alert-200)', background: P.dangerBg, color: P.danger, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                  <Icon name="X" size={13} color={P.danger} strokeWidth={2.5} /> Decline
                 </button>
                 <button onClick={() => { onApprove(choice.id); close(); }} style={{ flex: 1, padding: '10px 0', borderRadius: 10, border: 'none', background: P.ink, color: P.white, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
                   <Icon name="Check" size={13} color={P.white} strokeWidth={2.5} /> Approve
@@ -3531,8 +3550,8 @@ function ChoiceDrawer({ choice, onClose, onApprove, onDecline }) {
             )}
             {isApproved && (
               <div style={{ flexShrink: 0, padding: '12px 20px', borderTop: `1px solid ${P.border}` }}>
-                <button onClick={() => { setDeclineReason(''); setActivePanel('decline'); }} style={{ width: '100%', padding: '10px 0', borderRadius: 10, border: '1px solid #fecaca', background: '#fef2f2', color: '#dc2626', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
-                  <Icon name="X" size={13} color="#dc2626" strokeWidth={2.5} /> Reject choice
+                <button onClick={() => { setDeclineReason(''); setActivePanel('decline'); }} style={{ width: '100%', padding: '10px 0', borderRadius: 10, border: '1px solid var(--alert-200)', background: P.dangerBg, color: P.danger, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                  <Icon name="X" size={13} color={P.danger} strokeWidth={2.5} /> Reject choice
                 </button>
               </div>
             )}
@@ -3557,7 +3576,7 @@ function ChoiceDrawer({ choice, onClose, onApprove, onDecline }) {
               </div>
               <div style={{ flexShrink: 0, padding: '12px 20px', borderTop: `1px solid ${P.border}`, display: 'flex', gap: 10 }}>
                 <button onClick={() => setActivePanel(null)} style={{ flex: 1, padding: '10px 0', borderRadius: 10, border: `1px solid ${P.border}`, background: 'transparent', color: P.inkSoft, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>Go back</button>
-                <button onClick={() => { onDecline(choice.id, declineReason); close(); }} style={{ flex: 2, padding: '10px 0', borderRadius: 10, border: 'none', background: '#dc2626', color: P.white, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>
+                <button onClick={() => { onDecline(choice.id, declineReason); close(); }} style={{ flex: 2, padding: '10px 0', borderRadius: 10, border: 'none', background: P.danger, color: P.white, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>
                   {isPending ? 'Confirm decline' : 'Confirm rejection'}
                 </button>
               </div>
@@ -3661,7 +3680,7 @@ function ChoiceDrawer({ choice, onClose, onApprove, onDecline }) {
                   style={{ width: '100%', padding: '10px 0', borderRadius: 10, border: 'none', background: (!terminateReason || !terminateAcknowledged) ? P.border : P.ink, color: (!terminateReason || !terminateAcknowledged) ? P.inkSoft : P.white, cursor: (!terminateReason || !terminateAcknowledged) ? 'not-allowed' : 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>
                   Confirm termination
                 </button>
-                <button onClick={() => setActivePanel(null)} style={{ width: '100%', padding: '10px 0', borderRadius: 10, border: '1px solid #fecaca', background: 'transparent', color: '#dc2626', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>Cancel</button>
+                <button onClick={() => setActivePanel(null)} style={{ width: '100%', padding: '10px 0', borderRadius: 10, border: '1px solid var(--alert-200)', background: 'transparent', color: P.danger, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>Cancel</button>
               </div>
             </>)}
 
@@ -3682,7 +3701,7 @@ const AppLink = ({ children, onClick, style }) => (
 );
 
 function RequestRow({ req, requests, onApprove, onDecline, onDetail, onDeclineDirectly, onEdit, onCancel, selected, onToggle, onViewInCalendar, showStatus, showEntity, removing }) {
-  const emp = EMPLOYEES[req.employee] || { name: req.employee, initials: '?', color: '#e5e7eb', entitlement: 20 };
+  const emp = EMPLOYEES[req.employee] || { name: req.employee, initials: '?', color: P.border, entitlement: 20 };
   const [hover, setHover] = useState(false);
   const usedDays = requests
     .filter(r => r.employee === req.employee && r.id !== req.id && (r.status === 'approved' || r.status === 'pending'))
@@ -3734,16 +3753,16 @@ function RequestRow({ req, requests, onApprove, onDecline, onDetail, onDeclineDi
           <div onClick={e => e.stopPropagation()} style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4 }}>
             {req.status === 'pending' && (<>
               <button title="Decline" onClick={e => { e.stopPropagation(); onDeclineDirectly ? onDeclineDirectly(req) : onDetail(req); }}
-                onMouseEnter={e => { e.currentTarget.style.background = '#fee2e2'; e.currentTarget.style.borderColor = '#fca5a5'; }}
-                onMouseLeave={e => { e.currentTarget.style.background = '#fef2f2'; e.currentTarget.style.borderColor = '#fecaca'; }}
-                style={{ width: 28, height: 28, borderRadius: 6, border: '1px solid #fecaca', background: '#fef2f2', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                <Icon name="X" size={14} color="#dc2626" strokeWidth={2.5} />
+                onMouseEnter={e => { e.currentTarget.style.background = P.dangerBg; e.currentTarget.style.borderColor = P.dangerBorder; }}
+                onMouseLeave={e => { e.currentTarget.style.background = P.dangerBg; e.currentTarget.style.borderColor = P.dangerBorder; }}
+                style={{ width: 28, height: 28, borderRadius: 6, border: '1px solid var(--alert-200)', background: P.dangerBg, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <Icon name="X" size={14} color={P.danger} strokeWidth={2.5} />
               </button>
               <button title="Approve" onClick={() => onApprove(req.id)}
-                onMouseEnter={e => { e.currentTarget.style.background = '#dcfce7'; e.currentTarget.style.borderColor = '#86efac'; }}
-                onMouseLeave={e => { e.currentTarget.style.background = '#f0fdf4'; e.currentTarget.style.borderColor = '#bbf7d0'; }}
-                style={{ width: 28, height: 28, borderRadius: 6, border: '1px solid #bbf7d0', background: '#f0fdf4', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                <Icon name="Check" size={14} color="#16a34a" strokeWidth={2.5} />
+                onMouseEnter={e => { e.currentTarget.style.background = P.successBg; e.currentTarget.style.borderColor = P.successBorder; }}
+                onMouseLeave={e => { e.currentTarget.style.background = P.successBg; e.currentTarget.style.borderColor = P.successBorder; }}
+                style={{ width: 28, height: 28, borderRadius: 6, border: '1px solid var(--success-200)', background: P.successBg, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <Icon name="Check" size={14} color={P.success} strokeWidth={2.5} />
               </button>
             </>)}
             <ActionMenu req={req} onViewDetails={() => onDetail(req)} onViewInCalendar={onViewInCalendar} onEdit={() => onEdit(req)} onCancel={() => onCancel(req.id)} />
@@ -3793,13 +3812,13 @@ function AddExpenseModal({ categories, onClose, onSave }) {
 
   const selectStyle = (hasErr) => ({
     width: '100%', padding: '9px 12px', borderRadius: 8,
-    border: `1px solid ${hasErr ? '#ef4444' : P.border}`,
+    border: `1px solid ${hasErr ? P.danger : P.border}`,
     background: P.white, fontFamily: 'var(--font-body)', fontSize: 14,
     color: P.ink, outline: 'none', appearance: 'none', cursor: 'pointer',
   });
   const inputStyle = (hasErr) => ({
     width: '100%', padding: '9px 12px', borderRadius: 8,
-    border: `1px solid ${hasErr ? '#ef4444' : P.border}`,
+    border: `1px solid ${hasErr ? P.danger : P.border}`,
     background: P.white, fontFamily: 'var(--font-body)', fontSize: 14,
     color: P.ink, outline: 'none', boxSizing: 'border-box',
   });
@@ -3821,7 +3840,7 @@ function AddExpenseModal({ categories, onClose, onSave }) {
           <>
         <div style={{ flex: 1, overflowY: 'auto', padding: '24px', display: 'flex', flexDirection: 'column', gap: 18 }}>
           <div>
-            <label style={labelStyle}>Employee <span style={{ color: '#ef4444' }}>*</span></label>
+            <label style={labelStyle}>Employee <span style={{ color: P.danger }}>*</span></label>
             <div style={{ position: 'relative' }}>
               <select value={empId} onChange={e => { setEmpId(e.target.value); setErrors(prev => ({ ...prev, empId: false })); }} style={selectStyle(errors.empId)}>
                 <option value="">Select employee…</option>
@@ -3832,7 +3851,7 @@ function AddExpenseModal({ categories, onClose, onSave }) {
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
             <div>
-              <label style={labelStyle}>Category <span style={{ color: '#ef4444' }}>*</span></label>
+              <label style={labelStyle}>Category <span style={{ color: P.danger }}>*</span></label>
               <div style={{ position: 'relative' }}>
                 <select value={category} onChange={e => setCategory(e.target.value)} style={selectStyle(errors.category)}>
                   {categories.map(c => { const name = c?.name ?? c; return <option key={name} value={name}>{name}</option>; })}
@@ -3841,7 +3860,7 @@ function AddExpenseModal({ categories, onClose, onSave }) {
               </div>
             </div>
             <div>
-              <label style={labelStyle}>Amount (EUR) <span style={{ color: '#ef4444' }}>*</span></label>
+              <label style={labelStyle}>Amount (EUR) <span style={{ color: P.danger }}>*</span></label>
               <input type="number" min="0" step="0.01" value={amount} onChange={e => { setAmount(e.target.value); setErrors(prev => ({ ...prev, amount: false })); }} placeholder="0.00" style={inputStyle(errors.amount)} />
             </div>
           </div>
@@ -3893,7 +3912,7 @@ function AddExpenseModal({ categories, onClose, onSave }) {
 
 // ── Expense row ────────────────────────────────────────────────────────────
 function ExpenseRow({ exp, onApprove, onDetail, onRejectDirectly, showStatus, showEntity, selected, onToggle }) {
-  const emp = EMPLOYEES[exp.employee] || { name: exp.employee, initials: '?', color: '#e5e7eb' };
+  const emp = EMPLOYEES[exp.employee] || { name: exp.employee, initials: '?', color: P.border };
   const [hover, setHover] = useState(false);
   const gridCols = showStatus
     ? (showEntity ? '32px 1.8fr 0.8fr 1fr 1fr 2fr 0.8fr 0.7fr 96px' : '32px 1.8fr 1fr 1fr 2fr 0.8fr 0.7fr 96px')
@@ -3925,16 +3944,16 @@ function ExpenseRow({ exp, onApprove, onDetail, onRejectDirectly, showStatus, sh
       <div onClick={e => e.stopPropagation()} style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4 }}>
         {exp.status === 'pending' && (<>
           <button title="Reject" onClick={(e) => { e.stopPropagation(); onRejectDirectly(exp); }}
-            onMouseEnter={e => { e.currentTarget.style.background = '#fee2e2'; e.currentTarget.style.borderColor = '#fca5a5'; }}
-            onMouseLeave={e => { e.currentTarget.style.background = '#fef2f2'; e.currentTarget.style.borderColor = '#fecaca'; }}
-            style={{ width: 28, height: 28, borderRadius: 6, border: '1px solid #fecaca', background: '#fef2f2', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <Icon name="X" size={14} color="#dc2626" strokeWidth={2.5} />
+            onMouseEnter={e => { e.currentTarget.style.background = P.dangerBg; e.currentTarget.style.borderColor = P.dangerBorder; }}
+            onMouseLeave={e => { e.currentTarget.style.background = P.dangerBg; e.currentTarget.style.borderColor = P.dangerBorder; }}
+            style={{ width: 28, height: 28, borderRadius: 6, border: '1px solid var(--alert-200)', background: P.dangerBg, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <Icon name="X" size={14} color={P.danger} strokeWidth={2.5} />
           </button>
           <button title="Approve" onClick={() => onApprove(exp.id)}
-            onMouseEnter={e => { e.currentTarget.style.background = '#dcfce7'; e.currentTarget.style.borderColor = '#86efac'; }}
-            onMouseLeave={e => { e.currentTarget.style.background = '#f0fdf4'; e.currentTarget.style.borderColor = '#bbf7d0'; }}
-            style={{ width: 28, height: 28, borderRadius: 6, border: '1px solid #bbf7d0', background: '#f0fdf4', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <Icon name="Check" size={14} color="#16a34a" strokeWidth={2.5} />
+            onMouseEnter={e => { e.currentTarget.style.background = P.successBg; e.currentTarget.style.borderColor = P.successBorder; }}
+            onMouseLeave={e => { e.currentTarget.style.background = P.successBg; e.currentTarget.style.borderColor = P.successBorder; }}
+            style={{ width: 28, height: 28, borderRadius: 6, border: '1px solid var(--success-200)', background: P.successBg, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <Icon name="Check" size={14} color={P.success} strokeWidth={2.5} />
           </button>
         </>)}
       </div>
@@ -4060,7 +4079,7 @@ function ExpensesScreen({ expenses, categories, onApprove, onDetail, onRejectDir
               <button onClick={() => { selectedPending.forEach(id => onApprove(id)); setSelected(new Set()); }} style={{
                 display: 'flex', alignItems: 'center', gap: 5,
                 padding: '5px 12px', borderRadius: 7, border: 'none',
-                background: '#22c55e', color: '#fff', cursor: 'pointer',
+                background: P.success, color: '#fff', cursor: 'pointer',
                 fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11,
               }}>
                 <Icon name="CheckCircle" size={12} color="#fff" strokeWidth={2} />
@@ -4241,7 +4260,7 @@ function RequestsScreen({ requests, onApprove, onDecline, onSave, onCancel, onVi
               <button onClick={() => { selectedPending.forEach(id => onApprove(id)); setSelected(new Set()); }} style={{
                 display: 'flex', alignItems: 'center', gap: 5,
                 padding: '5px 12px', borderRadius: 7, border: 'none',
-                background: '#22c55e', color: '#fff', cursor: 'pointer',
+                background: P.success, color: '#fff', cursor: 'pointer',
                 fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11,
               }}>
                 <Icon name="CheckCircle" size={12} color="#fff" strokeWidth={2} />
@@ -4802,7 +4821,7 @@ function TeamAbsencesScreen({ requests, pendingCount, onNav, onShowDetail, activ
                       onMouseLeave={() => setHoveredCol(null)}
                       style={{
                       padding: '6px 0', textAlign: 'center',
-                      background: isCollective ? '#faf6eb' : isHoliday ? '#f3f1fe' : isWknd ? '#fafafa' : hoveredCol === iso ? 'rgba(99,102,241,0.04)' : 'transparent',
+                      background: isCollective ? '#faf6eb' : isHoliday ? '#f3f1fe' : isWknd ? P.bgSubtle : hoveredCol === iso ? 'rgba(99,102,241,0.04)' : 'transparent',
                       borderLeft: isWeekStart ? `2px solid ${P.borderStrong}` : `1px solid ${P.border}`,
                       cursor: closureEv ? 'pointer' : undefined,
                     }} title={isHoliday ? BELGIAN_HOLIDAY_NAMES[iso] : closureEv ? (closureEv.name || 'Company closure') : isCollective ? 'Company closed' : ''}>
@@ -4819,7 +4838,7 @@ function TeamAbsencesScreen({ requests, pendingCount, onNav, onShowDetail, activ
                         </span>
                       </div>
                       {(isHoliday || isCollective) && (
-                        <div style={{ fontSize: 8, color: isCollective ? '#92400e' : '#7c3aed', fontFamily: 'var(--font-display)', fontWeight: 600, marginTop: 1 }}>
+                        <div style={{ fontSize: 8, color: isCollective ? P.warningDark : '#7c3aed', fontFamily: 'var(--font-display)', fontWeight: 600, marginTop: 1 }}>
                           {closureEv ? 'Closed' : isCollective ? 'Closed' : ''}
                         </div>
                       )}
@@ -4912,7 +4931,7 @@ function TeamAbsencesScreen({ requests, pendingCount, onNav, onShowDetail, activ
                               onClick={cellClickable ? () => setClosureDetail(closureEv) : cellAddable ? () => { setCellDate(iso); setCellEmpId(empId); setAddOpen(true); } : undefined}
                               style={{
                               borderLeft: isCellWeekStart ? `2px solid ${P.borderStrong}` : `1px solid ${P.border}`,
-                              background: isCollective ? '#faf6eb' : isHoliday ? '#f3f1fe' : isWknd ? '#fafafa' : isHoveredAdd ? P.bg : hoveredCol === iso ? 'rgba(99,102,241,0.04)' : 'transparent',
+                              background: isCollective ? '#faf6eb' : isHoliday ? '#f3f1fe' : isWknd ? P.bgSubtle : isHoveredAdd ? P.bg : hoveredCol === iso ? 'rgba(99,102,241,0.04)' : 'transparent',
                               display: 'flex', alignItems: 'stretch',
                               paddingTop: pt, paddingBottom: pt,
                               paddingLeft: isStart ? pad : 0,
@@ -5058,7 +5077,7 @@ function TeamAbsencesScreen({ requests, pendingCount, onNav, onShowDetail, activ
                   <>
                     <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, marginBottom: 2 }}>{tooltipRendered.closure.name || 'Company closure'}</div>
                     <div>{tooltipRendered.closure.startDate}{tooltipRendered.closure.startDate !== tooltipRendered.closure.endDate ? ` – ${tooltipRendered.closure.endDate}` : ''} · {tooltipRendered.closure.days} {tooltipRendered.closure.days === 1 ? 'day' : 'days'}</div>
-                    <div style={{ color: '#fde68a' }}>All employees</div>
+                    <div style={{ color: P.warningBorder }}>All employees</div>
                   </>
                 ) : (
                   <>
@@ -5067,7 +5086,7 @@ function TeamAbsencesScreen({ requests, pendingCount, onNav, onShowDetail, activ
                     </div>
                     <div>{tooltipRendered.req.type} · {tooltipRendered.req.days} {tooltipRendered.req.days === 1 ? 'day' : 'days'}</div>
                     <div>{tooltipRendered.req.startDate}{tooltipRendered.req.startDate !== tooltipRendered.req.endDate ? ` – ${tooltipRendered.req.endDate}` : ''}</div>
-                    <div style={{ color: tooltipRendered.req.status === 'pending' ? '#fbbf24' : '#86efac' }}>
+                    <div style={{ color: tooltipRendered.req.status === 'pending' ? '#fbbf24' : P.successBorder }}>
                       {tooltipRendered.req.status === 'pending' ? 'Pending approval' : 'Approved'}
                     </div>
                   </>
@@ -5116,8 +5135,8 @@ function TeamAbsencesScreen({ requests, pendingCount, onNav, onShowDetail, activ
                 background: P.white, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.ink,
               }}>Edit</button>
               <button onClick={() => { onCancelCompanyEvent(closureDetail.id); setClosureDetail(null); }} style={{
-                padding: '8px 20px', borderRadius: 8, border: '1px solid #fca5a5',
-                background: '#fef2f2', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: '#dc2626',
+                padding: '8px 20px', borderRadius: 8, border: '1px solid var(--alert-200)',
+                background: P.dangerBg, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.danger,
               }}>Cancel closure</button>
             </div>
           </div>
@@ -5353,7 +5372,7 @@ function EditBalancesModal({ emp, balances, onSave, onClose, isNewEmployee, onCo
                       <span style={{ width: 9, height: 9, borderRadius: '50%', background: dot, flexShrink: 0, marginRight: 10 }} />
                       <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink, flex: 1 }}>{type}</span>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        {section.calculated && <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: '#059669', background: '#ecfdf5', padding: '2px 6px', borderRadius: 4 }}>Auto</span>}
+                        {section.calculated && <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.success, background: P.successBg, padding: '2px 6px', borderRadius: 4 }}>Auto</span>}
                         <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, fontWeight: 600, color: section.calculated ? P.ink : P.inkSoft }}>{displayVal ?? '—'}</span>
                         <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>days</span>
                       </div>
@@ -5477,9 +5496,9 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, o
                 <button onClick={() => { setEmpMenuOpen(false); setDeactivateConfirm(true); }} style={{
                   display: 'flex', alignItems: 'center', gap: 9,
                   width: '100%', padding: '9px 12px', border: 'none', background: 'transparent', cursor: 'pointer', textAlign: 'left',
-                }} onMouseEnter={e => e.currentTarget.style.background = '#fef2f2'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                  <Icon name="user-x" size={14} color="#dc2626" strokeWidth={1.75} />
-                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: '#dc2626' }}>Deactivate employee</span>
+                }} onMouseEnter={e => e.currentTarget.style.background = P.dangerBg} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                  <Icon name="user-x" size={14} color={P.danger} strokeWidth={1.75} />
+                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.danger }}>Deactivate employee</span>
                 </button>
               </div>
             )}
@@ -5496,9 +5515,9 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, o
         {activeTab === 'timeoff' ? (
           <div>
             {needsSetup && (
-              <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 10, padding: '14px 18px', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 14 }}>
+              <div style={{ background: P.warningBg, border: '1px solid var(--warning-200)', borderRadius: 10, padding: '14px 18px', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 14 }}>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: '#92400e' }}>Confirm {emp.name.split(' ')[0]}'s leave balances</div>
+                  <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.warningDark }}>Confirm {emp.name.split(' ')[0]}'s leave balances</div>
                   <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: '#78350f', marginTop: 1 }}>These are company defaults — adjust any values if needed, then confirm so {emp.name.split(' ')[0]} can request time off.</div>
                 </div>
                 <button onClick={() => setEditBalancesOpen(true)} style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: P.action, color: '#fff', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, flexShrink: 0, whiteSpace: 'nowrap' }}>
@@ -5547,16 +5566,16 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, o
                           <td style={{ padding: '10px 16px' }} onClick={e => e.stopPropagation()}>
                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4 }}>
                               <button title="Decline" onClick={() => setDetailReq({ ...req, _declineMode: true })}
-                                onMouseEnter={e => { e.currentTarget.style.background = '#fee2e2'; e.currentTarget.style.borderColor = '#fca5a5'; }}
-                                onMouseLeave={e => { e.currentTarget.style.background = '#fef2f2'; e.currentTarget.style.borderColor = '#fecaca'; }}
-                                style={{ width: 28, height: 28, borderRadius: 6, border: '1px solid #fecaca', background: '#fef2f2', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                                <Icon name="X" size={14} color="#dc2626" strokeWidth={2.5} />
+                                onMouseEnter={e => { e.currentTarget.style.background = P.dangerBg; e.currentTarget.style.borderColor = P.dangerBorder; }}
+                                onMouseLeave={e => { e.currentTarget.style.background = P.dangerBg; e.currentTarget.style.borderColor = P.dangerBorder; }}
+                                style={{ width: 28, height: 28, borderRadius: 6, border: '1px solid var(--alert-200)', background: P.dangerBg, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                <Icon name="X" size={14} color={P.danger} strokeWidth={2.5} />
                               </button>
                               <button title="Approve" onClick={() => onApprove(req.id)}
-                                onMouseEnter={e => { e.currentTarget.style.background = '#dcfce7'; e.currentTarget.style.borderColor = '#86efac'; }}
-                                onMouseLeave={e => { e.currentTarget.style.background = '#f0fdf4'; e.currentTarget.style.borderColor = '#bbf7d0'; }}
-                                style={{ width: 28, height: 28, borderRadius: 6, border: '1px solid #bbf7d0', background: '#f0fdf4', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                                <Icon name="Check" size={14} color="#16a34a" strokeWidth={2.5} />
+                                onMouseEnter={e => { e.currentTarget.style.background = P.successBg; e.currentTarget.style.borderColor = P.successBorder; }}
+                                onMouseLeave={e => { e.currentTarget.style.background = P.successBg; e.currentTarget.style.borderColor = P.successBorder; }}
+                                style={{ width: 28, height: 28, borderRadius: 6, border: '1px solid var(--success-200)', background: P.successBg, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                <Icon name="Check" size={14} color={P.success} strokeWidth={2.5} />
                               </button>
                               <ActionMenu req={req}
                                 onApprove={() => onApprove(req.id)}
@@ -5606,7 +5625,7 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, o
                       </div>
                       {isLimited ? (
                         <>
-                          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 30, color: isLow ? '#ef4444' : P.ink, lineHeight: 1 }}>
+                          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 30, color: isLow ? P.danger : P.ink, lineHeight: 1 }}>
                             {b.remaining ?? 0}
                             <span style={{ fontSize: 14, fontWeight: 500, color: P.inkSoft }}> / {b.entitled} days</span>
                           </div>
@@ -5743,8 +5762,8 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, o
         <ModalShell onClose={() => setDeactivateConfirm(false)} width={400}>
           {close => (
             <div style={{ padding: '28px 28px 24px' }}>
-              <div style={{ width: 40, height: 40, borderRadius: 10, background: '#fef2f2', border: '1px solid #fecaca', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
-                <Icon name="user-x" size={18} color="#dc2626" strokeWidth={1.75} />
+              <div style={{ width: 40, height: 40, borderRadius: 10, background: P.dangerBg, border: '1px solid var(--alert-200)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
+                <Icon name="user-x" size={18} color={P.danger} strokeWidth={1.75} />
               </div>
               <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 16, color: P.ink, marginBottom: 6 }}>Deactivate {emp.name}?</div>
               <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, marginBottom: 24, lineHeight: 1.5 }}>
@@ -5752,7 +5771,7 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, o
               </div>
               <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
                 <Button variant="secondary" onClick={close} style={{ padding: '8px 16px', color: P.inkSoft }}>Cancel</Button>
-                <Button variant="primary" onClick={() => { close(); onToast && onToast({ message: `${emp.name.split(' ')[0]} deactivated`, type: 'decline' }); }} style={{ padding: '8px 16px', background: '#dc2626' }}>
+                <Button variant="primary" onClick={() => { close(); onToast && onToast({ message: `${emp.name.split(' ')[0]} deactivated`, type: 'decline' }); }} style={{ padding: '8px 16px', background: P.danger }}>
                   Deactivate
                 </Button>
               </div>
@@ -5803,9 +5822,9 @@ function CardTab({ empId, emp, mobilityLive, onToast, onNav }) {
   const hasActiveCard = status === 'active' || isFrozen;
 
   const cardStatusMeta = {
-    active:         { label: 'Active',          bg: '#dcfce7', color: '#16a34a' },
+    active:         { label: 'Active',          bg: P.successBg, color: P.success },
     frozen:         { label: 'Frozen',          bg: '#f0f9ff', color: '#0369a1' },
-    blocked:        { label: 'Blocked',         bg: '#fee2e2', color: '#dc2626' },
+    blocked:        { label: 'Blocked',         bg: P.dangerBg, color: P.danger },
     card_requested: { label: 'Card requested',  bg: '#fef9c3', color: '#ca8a04' },
     app_downloaded: { label: 'App downloaded',  bg: '#f0f9ff', color: '#0369a1' },
     invited:        { label: 'Invite sent',     bg: '#f5f3ff', color: '#7c3aed' },
@@ -5971,7 +5990,7 @@ function CardTab({ empId, emp, mobilityLive, onToast, onNav }) {
           {isBlocked && (
             <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 14 }}>
               <div style={{ width: 48, height: 48, borderRadius: '50%', background: 'rgba(255,255,255,0.85)', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(4px)' }}>
-                <Icon name="ban" size={22} color="#dc2626" strokeWidth={1.75} />
+                <Icon name="ban" size={22} color={P.danger} strokeWidth={1.75} />
               </div>
             </div>
           )}
@@ -6026,7 +6045,7 @@ function CardTab({ empId, emp, mobilityLive, onToast, onNav }) {
           footer={close => (
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, padding: '14px 22px', borderTop: `1px solid ${P.border}` }}>
               <Button variant="secondary" onClick={close}>Keep card</Button>
-              <Button variant="primary" style={{ background: '#dc2626' }} onClick={() => {
+              <Button variant="primary" style={{ background: P.danger }} onClick={() => {
                 const newPan = String(Math.floor(1000 + Math.random() * 9000));
                 setDisplayPan(newPan);
                 close();
@@ -6091,7 +6110,7 @@ function CardTab({ empId, emp, mobilityLive, onToast, onNav }) {
           footer={close => (
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, padding: '14px 22px', borderTop: `1px solid ${P.border}` }}>
               <Button variant="secondary" onClick={close}>Keep card</Button>
-              <Button variant="primary" style={{ background: '#dc2626' }} onClick={() => { close(); setStatus('blocked'); onToast && onToast({ message: `${first}'s card blocked`, type: 'decline' }); }}>Block card</Button>
+              <Button variant="primary" style={{ background: P.danger }} onClick={() => { close(); setStatus('blocked'); onToast && onToast({ message: `${first}'s card blocked`, type: 'decline' }); }}>Block card</Button>
             </div>
           )}
         >
@@ -6229,7 +6248,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
       return { value: key, name: e.name, entity: e.entity, initials: e.initials, color: e.color, remaining };
     });
   const readyToUse  = allEligible.filter(e => e.remaining >= 5)
-    .map(e => ({ ...e, hint: `€${e.remaining.toLocaleString('de-DE')}`, hintColor: '#059669' }));
+    .map(e => ({ ...e, hint: `€${e.remaining.toLocaleString('de-DE')}`, hintColor: P.success }));
   const budgetSpent = allEligible.filter(e => e.remaining < 5)
     .map(e => ({ ...e, hint: `€${e.remaining.toLocaleString('de-DE')}`, hintColor: P.inkFaint }));
 
@@ -6291,7 +6310,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
       </span>
     );
     if (active) return (
-      <span style={{ width: 24, height: 24, borderRadius: '50%', background: '#0f0d28', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, color: '#fff' }}>
+      <span style={{ width: 24, height: 24, borderRadius: '50%', background: P.ink, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, color: '#fff' }}>
         {n}
       </span>
     );
@@ -6302,7 +6321,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
     );
   };
 
-  const inactiveBg = '#fafafa';
+  const inactiveBg = P.bgSubtle;
 
   // Count-up hook for live state numbers
   const useCountUp = (target, duration = 400) => {
@@ -6405,10 +6424,10 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
             {mandateDenied ? (
               <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <span style={{ width: 24, height: 24, borderRadius: 4, background: '#dc2626', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <span style={{ width: 24, height: 24, borderRadius: 4, background: P.danger, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                     <Icon name="x" size={12} color="#fff" strokeWidth={2.5} />
                   </span>
-                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: '#dc2626' }}>Mandate declined</span>
+                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.danger }}>Mandate declined</span>
                 </div>
                 <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink, lineHeight: '20px', margin: 0 }}>
                   Your bank declined the mandate. This is usually due to account settings or an authorization limit on direct debits. Contact your bank to resolve it, then re-sign.
@@ -6561,7 +6580,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
         <div style={{ padding: '20px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
           <div>
             <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, marginBottom: 4 }}>Account balance</div>
-            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 22, color: fundingIssue ? '#dc2626' : P.ink, letterSpacing: '-0.02em', lineHeight: 1, marginBottom: 4 }}>
+            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 22, color: fundingIssue ? P.danger : P.ink, letterSpacing: '-0.02em', lineHeight: 1, marginBottom: 4 }}>
               €{liveBalance.toLocaleString('de-DE')}
             </div>
             <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>
@@ -6650,7 +6669,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
             ? { label: 'Collecting funds', bg: '#EFF6FF', color: '#1d4ed8' }
             : ws.justLaunched
             ? { label: 'Just launched', bg: P.bg, color: P.inkSoft }
-            : { label: 'Active', bg: '#F0FDF4', color: '#16a34a' };
+            : { label: 'Active', bg: '#F0FDF4', color: P.success };
           return (
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <DotPill bg={livePill.bg} color={livePill.color} dot size={11}>
@@ -6996,7 +7015,7 @@ function AttentionRow({ item, last, onNav }) {
   const [hovered, setHovered] = useState(false);
   return (
     <div onClick={() => onNav(item.screen)} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
-      style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 20px', borderBottom: last ? 'none' : `1px solid ${P.border}`, cursor: 'pointer', background: hovered ? '#fafafa' : 'transparent', transition: `background 150ms ${EASE_OUT}` }}>
+      style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 20px', borderBottom: last ? 'none' : `1px solid ${P.border}`, cursor: 'pointer', background: hovered ? P.bgSubtle : 'transparent', transition: `background 150ms ${EASE_OUT}` }}>
       <div style={{ width: 32, height: 32, borderRadius: 8, background: item.iconBg ?? P.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
         <Icon name={item.icon} size={15} color={item.iconColor ?? '#3d4047'} strokeWidth={1.5} />
       </div>
@@ -7017,9 +7036,9 @@ function DashboardScreen({ requests, onNav, onToast, appEntity = null, physicalC
   const setupInProgress = !mobilityWidgetState.live && !mobilityWidgetState.hidden;
 
   const attentionItems = [
-    fundingIssue && { icon: 'alert-circle', label: 'Mobility top-up failed', count: '!', screen: 'settings-cardrules', iconBg: '#fef2f2', iconColor: '#dc2626', badgeBg: '#dc2626' },
+    fundingIssue && { icon: 'alert-circle', label: 'Mobility top-up failed', count: '!', screen: 'settings-cardrules', iconBg: P.dangerBg, iconColor: P.danger, badgeBg: P.danger },
     pendingRequests > 0 && { icon: 'calendar-days', label: 'Time-off requests', count: pendingRequests, screen: 'requests', iconBg: '#e8f0fe', iconColor: '#2563eb' },
-    pendingExpenses > 0 && { icon: 'receipt', label: 'Expense requests', count: pendingExpenses, screen: 'expenses', iconBg: '#fef3c7', iconColor: '#b45309' },
+    pendingExpenses > 0 && { icon: 'receipt', label: 'Expense requests', count: pendingExpenses, screen: 'expenses', iconBg: P.warningBg, iconColor: '#b45309' },
     pendingChoices > 0 && { icon: 'list-checks', label: 'Choices to approve', count: pendingChoices, screen: 'choices', iconBg: '#ede9fe', iconColor: '#6d28d9' },
   ].filter(Boolean);
 
@@ -7167,11 +7186,11 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, onToas
 
         {/* Funding issue alert — page-level, above the account card */}
         {isLive && fundingIssue2 && (
-          <div style={{ display: 'flex', gap: 12, padding: '16px 18px', borderRadius: 10, border: '1px solid #fecaca', background: '#fef2f2', alignItems: 'flex-start' }}>
-            <Icon name="alert-circle" size={16} color="#dc2626" strokeWidth={2} style={{ flexShrink: 0, marginTop: 1 }} />
+          <div style={{ display: 'flex', gap: 12, padding: '16px 18px', borderRadius: 10, border: '1px solid var(--alert-200)', background: P.dangerBg, alignItems: 'flex-start' }}>
+            <Icon name="alert-circle" size={16} color={P.danger} strokeWidth={2} style={{ flexShrink: 0, marginTop: 1 }} />
             <div style={{ flex: 1 }}>
               <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: '#991b1b', marginBottom: 4 }}>Top-up payment failed</div>
-              <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: '#b91c1c', lineHeight: '18px', marginBottom: 12 }}>
+              <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.dangerDark, lineHeight: '18px', marginBottom: 12 }}>
                 The scheduled collection couldn't be processed. Check Twikey for the reason — it may require correcting bank details or re-signing the mandate.
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
@@ -7192,7 +7211,7 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, onToas
 
               <div style={{ padding: '18px 24px 16px' }}>
                 <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, marginBottom: 6 }}>Account balance</div>
-                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 28, color: fundingIssue2 ? '#dc2626' : P.ink, letterSpacing: '-0.5px', lineHeight: 1, marginBottom: toppingUp2 ? 6 : 10 }}>
+                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 28, color: fundingIssue2 ? P.danger : P.ink, letterSpacing: '-0.5px', lineHeight: 1, marginBottom: toppingUp2 ? 6 : 10 }}>
                   €{liveBalance2.toLocaleString('de-DE')}
                 </div>
                 {toppingUp2 && (
@@ -7214,14 +7233,14 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, onToas
                 <svg viewBox="0 0 300 100" preserveAspectRatio="none" style={{ width: '100%', height: 110, display: 'block' }}>
                   <defs>
                     <linearGradient id="balGrad2" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor={fundingIssue2 ? '#dc2626' : toppingUp2 ? '#1d4ed8' : '#008556'} stopOpacity="0.1" />
-                      <stop offset="100%" stopColor={fundingIssue2 ? '#dc2626' : toppingUp2 ? '#1d4ed8' : '#008556'} stopOpacity="0.01" />
+                      <stop offset="0%" stopColor={fundingIssue2 ? P.danger : toppingUp2 ? '#1d4ed8' : P.success} stopOpacity="0.1" />
+                      <stop offset="100%" stopColor={fundingIssue2 ? P.danger : toppingUp2 ? '#1d4ed8' : P.success} stopOpacity="0.01" />
                     </linearGradient>
                   </defs>
                   {/* Threshold reference line */}
                   <line x1="0" y1={thresholdY2} x2="300" y2={thresholdY2} stroke="#e5e5e7" strokeWidth="1" strokeDasharray="3 3" vectorEffect="non-scaling-stroke" />
                   <path d={areaPath2} fill="url(#balGrad2)" />
-                  <path d={linePath2} fill="none" stroke={fundingIssue2 ? '#dc2626' : toppingUp2 ? '#1d4ed8' : '#008556'} strokeWidth="1.5" vectorEffect="non-scaling-stroke" />
+                  <path d={linePath2} fill="none" stroke={fundingIssue2 ? P.danger : toppingUp2 ? '#1d4ed8' : P.success} strokeWidth="1.5" vectorEffect="non-scaling-stroke" />
                 </svg>
               )}
 
@@ -7293,7 +7312,7 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, onToas
                 </a>
               )}
               {!ws2.justLaunched && (
-                <a href="#" onClick={e => { e.preventDefault(); setWs2({ fundingIssue: !ws2.fundingIssue, toppingUp: false }); }} style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: ws2.fundingIssue ? '#dc2626' : P.inkFaint, textDecoration: 'underline' }}>
+                <a href="#" onClick={e => { e.preventDefault(); setWs2({ fundingIssue: !ws2.fundingIssue, toppingUp: false }); }} style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: ws2.fundingIssue ? P.danger : P.inkFaint, textDecoration: 'underline' }}>
                   {ws2.fundingIssue ? 'Clear top-up failure' : 'Simulate top-up failure'}
                 </a>
               )}
@@ -7707,8 +7726,8 @@ function PersonPickerModal({ title, value, candidates, sections, singleSelect, o
         {/* Note callout */}
         {note && (
           <div style={{ padding: '10px 20px', flexShrink: 0 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 8 }}>
-              <Icon name="circle-check" size={13} color="#16a34a" strokeWidth={2} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', background: P.successBg, border: '1px solid var(--success-200)', borderRadius: 8 }}>
+              <Icon name="circle-check" size={13} color={P.success} strokeWidth={2} />
               <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: '#15803d' }}>{note}</span>
             </div>
           </div>
@@ -8291,7 +8310,7 @@ function AllowanceSettingsPage({ config, typeInfo, onSave, onBack, backLabel = '
             <div style={card}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, padding: '14px 20px' }}>
                 <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.ink }}>Amount per {typeInfo.unit}</span>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, border: `1px solid ${overCeiling ? '#fca5a5' : P.border}`, borderRadius: 8, padding: '7px 10px', background: overCeiling ? '#fff5f5' : P.white }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, border: `1px solid ${overCeiling ? P.dangerBorder : P.border}`, borderRadius: 8, padding: '7px 10px', background: overCeiling ? '#fff5f5' : P.white }}>
                   <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>€</span>
                   <input type="number" step="0.01" min="0" value={rate} onChange={e => setRate(e.target.value)}
                     style={{ width: 74, border: 'none', outline: 'none', fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink, textAlign: 'right', background: 'transparent' }} />
@@ -8300,9 +8319,9 @@ function AllowanceSettingsPage({ config, typeInfo, onSave, onBack, backLabel = '
               </div>
             </div>
             {overCeiling ? (
-              <div style={{ marginTop: 8, display: 'flex', alignItems: 'flex-start', gap: 9, padding: '10px 14px', borderRadius: 10, background: '#fef2f2', border: '1px solid #fecaca' }}>
-                <Icon name="triangle-alert" size={13} color="#dc2626" strokeWidth={2} style={{ flexShrink: 0, marginTop: 1 }} />
-                <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: '#dc2626', lineHeight: 1.5 }}>Exceeds the NSSS ceiling of €{typeInfo.nsssCeiling}/{typeInfo.unit}. The excess is subject to social contributions and personal income tax.</span>
+              <div style={{ marginTop: 8, display: 'flex', alignItems: 'flex-start', gap: 9, padding: '10px 14px', borderRadius: 10, background: P.dangerBg, border: '1px solid var(--alert-200)' }}>
+                <Icon name="triangle-alert" size={13} color={P.danger} strokeWidth={2} style={{ flexShrink: 0, marginTop: 1 }} />
+                <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.danger, lineHeight: 1.5 }}>Exceeds the NSSS ceiling of €{typeInfo.nsssCeiling}/{typeInfo.unit}. The excess is subject to social contributions and personal income tax.</span>
               </div>
             ) : (() => {
               // The field above already shows the rate — restating "the official rate is €X"
@@ -8576,7 +8595,7 @@ function ConfirmDeleteModal({ name, onConfirm, onClose }) {
       footer={close => (
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, padding: '0 16px 16px' }}>
           <Button variant="secondary" onClick={close} style={{ padding: '8px 16px', background: P.white }}>Cancel</Button>
-          <Button variant="primary" onClick={onConfirm} style={{ padding: '8px 16px', background: '#dc2626' }}>Delete leave type</Button>
+          <Button variant="primary" onClick={onConfirm} style={{ padding: '8px 16px', background: P.danger }}>Delete leave type</Button>
         </div>
       )}>
       <div style={{ padding: '24px 24px 20px' }}>
@@ -9079,7 +9098,7 @@ function TimeOffSettings({ appEntity = null, companyRegime = COMPANY_REGIME_DEFA
 
 // ── Choices screen ─────────────────────────────────────────────────────────
 function ChoiceRow({ choice, onApprove, onDecline, onDetail, showStatus }) {
-  const emp = EMPLOYEES[choice.empId] || { name: choice.empId, initials: '?', color: '#e5e7eb' };
+  const emp = EMPLOYEES[choice.empId] || { name: choice.empId, initials: '?', color: P.border };
   const [hover, setHover] = useState(false);
   const isPending = choice.status === 'pending';
   const gridCols = showStatus
@@ -9108,16 +9127,16 @@ function ChoiceRow({ choice, onApprove, onDecline, onDetail, showStatus }) {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4 }}>
         {isPending && (<>
           <button title="Decline" onClick={e => { e.stopPropagation(); onDecline(choice.id); }}
-            onMouseEnter={e => { e.currentTarget.style.background = '#fee2e2'; e.currentTarget.style.borderColor = '#fca5a5'; }}
-            onMouseLeave={e => { e.currentTarget.style.background = '#fef2f2'; e.currentTarget.style.borderColor = '#fecaca'; }}
-            style={{ width: 28, height: 28, borderRadius: 6, border: '1px solid #fecaca', background: '#fef2f2', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <Icon name="X" size={14} color="#dc2626" strokeWidth={2.5} />
+            onMouseEnter={e => { e.currentTarget.style.background = P.dangerBg; e.currentTarget.style.borderColor = P.dangerBorder; }}
+            onMouseLeave={e => { e.currentTarget.style.background = P.dangerBg; e.currentTarget.style.borderColor = P.dangerBorder; }}
+            style={{ width: 28, height: 28, borderRadius: 6, border: '1px solid var(--alert-200)', background: P.dangerBg, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <Icon name="X" size={14} color={P.danger} strokeWidth={2.5} />
           </button>
           <button title="Approve" onClick={e => { e.stopPropagation(); onApprove(choice.id); }}
-            onMouseEnter={e => { e.currentTarget.style.background = '#dcfce7'; e.currentTarget.style.borderColor = '#86efac'; }}
-            onMouseLeave={e => { e.currentTarget.style.background = '#f0fdf4'; e.currentTarget.style.borderColor = '#bbf7d0'; }}
-            style={{ width: 28, height: 28, borderRadius: 6, border: '1px solid #bbf7d0', background: '#f0fdf4', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <Icon name="Check" size={14} color="#16a34a" strokeWidth={2.5} />
+            onMouseEnter={e => { e.currentTarget.style.background = P.successBg; e.currentTarget.style.borderColor = P.successBorder; }}
+            onMouseLeave={e => { e.currentTarget.style.background = P.successBg; e.currentTarget.style.borderColor = P.successBorder; }}
+            style={{ width: 28, height: 28, borderRadius: 6, border: '1px solid var(--success-200)', background: P.successBg, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <Icon name="Check" size={14} color={P.success} strokeWidth={2.5} />
           </button>
         </>)}
       </div>
@@ -9406,7 +9425,7 @@ function AddDocumentModal({ appEntity, title, saveLabel, onSave, onClose, initia
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, padding: '14px 22px', borderTop: `1px solid ${P.border}` }}>
           <div>
             {onDeactivate && (
-              <button onClick={() => { onDeactivate(); close(); }} style={{ padding: '7px 14px', border: `1px solid ${isDeactivated ? '#bbf7d0' : '#fecaca'}`, borderRadius: 8, background: isDeactivated ? '#f0fdf4' : '#fef2f2', fontFamily: 'var(--font-body)', fontSize: 13, color: isDeactivated ? '#16a34a' : '#dc2626', cursor: 'pointer' }}>
+              <button onClick={() => { onDeactivate(); close(); }} style={{ padding: '7px 14px', border: `1px solid ${isDeactivated ? P.successBorder : P.dangerBorder}`, borderRadius: 8, background: isDeactivated ? P.successBg : P.dangerBg, fontFamily: 'var(--font-body)', fontSize: 13, color: isDeactivated ? P.success : P.danger, cursor: 'pointer' }}>
                 {isDeactivated ? 'Reactivate' : 'Deactivate'}
               </button>
             )}
@@ -9460,8 +9479,8 @@ function DocumentsSettings({ appEntity = null, documents = [], onDocumentsChange
   const tdMuted = { ...td, color: P.inkFaint, opacity: 0.6 };
 
   const ActionBtn = ({ icon, label, onClick, danger }) => (
-    <button onClick={onClick} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '4px 10px', border: `1px solid ${danger ? '#fecaca' : P.border}`, borderRadius: 6, background: danger ? '#fef2f2' : P.white, fontFamily: 'var(--font-body)', fontSize: 12, color: danger ? '#dc2626' : P.ink, cursor: 'pointer', whiteSpace: 'nowrap' }}>
-      <Icon name={icon} size={12} color={danger ? '#dc2626' : P.inkSoft} strokeWidth={1.75} />
+    <button onClick={onClick} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '4px 10px', border: `1px solid ${danger ? P.dangerBorder : P.border}`, borderRadius: 6, background: danger ? P.dangerBg : P.white, fontFamily: 'var(--font-body)', fontSize: 12, color: danger ? P.danger : P.ink, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+      <Icon name={icon} size={12} color={danger ? P.danger : P.inkSoft} strokeWidth={1.75} />
       {label}
     </button>
   );
@@ -9824,11 +9843,11 @@ function BenefitTypeDrawer({ config, onSave, onDelete, onClose }) {
             confirmDelete ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginRight: 'auto' }}>
                 <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>Delete this benefit type?</span>
-                <button onClick={onDelete} style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: '#dc2626', padding: 0 }}>Confirm</button>
+                <button onClick={onDelete} style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.danger, padding: 0 }}>Confirm</button>
                 <button onClick={() => setConfirmDelete(false)} style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.inkSoft, padding: 0 }}>Cancel</button>
               </div>
             ) : (
-              <button onClick={() => setConfirmDelete(true)} style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: '#dc2626', padding: 0, marginRight: 'auto' }}>Delete</button>
+              <button onClick={() => setConfirmDelete(true)} style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.danger, padding: 0, marginRight: 'auto' }}>Delete</button>
             )
           )}
           <Button variant="secondary" onClick={close}>Cancel</Button>
@@ -10196,9 +10215,9 @@ function ComponentLibraryScreen() {
               <div>
                 <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkFaint, marginBottom: 8 }}>DotPill — unfilled and filled variants</div>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                  <DotPill bg="#fde68a" color="#92400e">Unfilled</DotPill>
+                  <DotPill bg={P.warningBorder} color={P.warningDark}>Unfilled</DotPill>
                   <DotPill dot={false} filled color={P.action}>Filled</DotPill>
-                  <DotPill dot={false} color="#dc2626" bg="#fef2f2" border="#fecaca">Bordered</DotPill>
+                  <DotPill dot={false} color={P.danger} bg={P.dangerBg} border={P.dangerBorder}>Bordered</DotPill>
                 </div>
               </div>
             </div>
@@ -10329,7 +10348,7 @@ function ToastItem({ toast, onDone }) {
       animation: exiting ? 'none' : `fadeDown 200ms ${EASE_OUT} both`,
       whiteSpace: 'nowrap',
     }}>
-      <Icon name={isDecline ? 'X' : 'Check'} size={15} color={isDecline ? '#dc2626' : '#16a34a'} strokeWidth={2.5} />
+      <Icon name={isDecline ? 'X' : 'Check'} size={15} color={isDecline ? P.danger : P.success} strokeWidth={2.5} />
       {toast.message}
       {toast.onUndo && (
         <button onClick={() => { toast.onUndo(); dismiss(); }} style={{
@@ -10418,7 +10437,7 @@ function FollowUpBanner({ prompt, onLog, onDismiss }) {
         <button onClick={onLog} style={{
           display: 'flex', alignItems: 'center', gap: 5,
           padding: '5px 12px 5px 8px', borderRadius: 7, border: 'none',
-          background: '#22c55e', color: '#fff', cursor: 'pointer',
+          background: P.success, color: '#fff', cursor: 'pointer',
           fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11,
         }}>
           <Icon name="CalendarPlus" size={12} color="#fff" strokeWidth={2} />
@@ -10534,7 +10553,7 @@ function AddEmployeeWizard({ onClose, onCreated, companyRegime, mobilityLive }) 
   const handleCreate = () => {
     const slug = firstName.toLowerCase().replace(/\s+/g, '-') + '-' + lastName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z-]/g, '');
     const id   = slug + '-' + String(Date.now()).slice(-5);
-    const palette = ['#bfdbfe','#ddd6fe','#fde68a','#a7f3d0','#fecdd3','#fed7aa','#c7d2fe'];
+    const palette = ['#bfdbfe','#ddd6fe',P.warningBorder,'#a7f3d0','#fecdd3','#fed7aa','#c7d2fe'];
     const color = palette[id.charCodeAt(0) % palette.length];
     const entity = ENTITIES.find(e => e.id === entityId);
     const fullName = `${firstName.trim()} ${lastName.trim()}`;
@@ -10693,9 +10712,9 @@ function AddEmployeeWizard({ onClose, onCreated, companyRegime, mobilityLive }) 
               </div>
               <div style={fieldIn(3)}>
                 <label style={labelStyle}>Work email</label>
-                <input autoComplete="off" value={workEmail} onChange={e => setWorkEmail(e.target.value)} placeholder={`name@${entityDomain || 'company.com'}`} type="email" style={{ ...inputStyle, animation: emailFlash ? 'wizEmailFlash 700ms ease-out forwards' : 'none', borderColor: workEmail.trim() && !emailDomainValid ? '#ef4444' : undefined }} />
+                <input autoComplete="off" value={workEmail} onChange={e => setWorkEmail(e.target.value)} placeholder={`name@${entityDomain || 'company.com'}`} type="email" style={{ ...inputStyle, animation: emailFlash ? 'wizEmailFlash 700ms ease-out forwards' : 'none', borderColor: workEmail.trim() && !emailDomainValid ? P.danger : undefined }} />
                 {workEmail.trim() && !emailDomainValid
-                  ? <div style={{ ...hint, color: '#ef4444' }}>Must use a {entityDomain} address — personal emails cause SSO issues.</div>
+                  ? <div style={{ ...hint, color: P.danger }}>Must use a {entityDomain} address — personal emails cause SSO issues.</div>
                   : <div style={hint}>Used for payslips and Payflip account login.</div>
                 }
               </div>
