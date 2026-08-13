@@ -36,7 +36,7 @@ const P = {
 
 // Uppercase section-label style shared by every settings screen (was
 // redefined locally 9 times with a silent 8px/10px marginBottom split).
-const SL = { fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 11, color: P.inkSoft, letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 8 };
+const SL = { fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-xs)', color: P.inkSoft, letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 8 };
 
 const StatusMeta = {
   pending:  { dot: P.warning,  label: 'Pending',  icon: 'Clock', color: P.warningDark,  bg: P.warningBorder },
@@ -192,7 +192,7 @@ function SettingsCard({ children, info }) {
       {info && (
         <div style={{ borderTop: `1px solid ${P.border}`, padding: '12px 16px', display: 'flex', alignItems: 'flex-start', gap: 7 }}>
           <Icon name="info" size={13} color={P.inkSoft} strokeWidth={2} style={{ flexShrink: 0, marginTop: 1 }} />
-          <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>{info}</span>
+          <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>{info}</span>
         </div>
       )}
     </div>
@@ -217,10 +217,10 @@ function SettingsRow({ onClick, icon, iconBadgeColor, dimmed, leading, label, la
         </div>
       )}
       <span style={{ flex: 1, minWidth: 0 }}>
-        <span style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: labelColor || (dimmed ? P.inkSoft : P.ink) }}>{label}</span>
-        {subtitle && <span style={{ display: 'block', fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, marginTop: 2 }}>{subtitle}</span>}
+        <span style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: labelColor || (dimmed ? P.inkSoft : P.ink) }}>{label}</span>
+        {subtitle && <span style={{ display: 'block', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, marginTop: 2 }}>{subtitle}</span>}
       </span>
-      {value != null && <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: valueColor || P.inkSoft, marginRight: 6, whiteSpace: 'nowrap' }}>{value}</span>}
+      {value != null && <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: valueColor || P.inkSoft, marginRight: 6, whiteSpace: 'nowrap' }}>{value}</span>}
       {trailing !== undefined ? trailing : <Icon name="chevron-right" size={16} color="#3d4047" strokeWidth={1.75} style={{ flexShrink: 0 }} />}
     </div>
   );
@@ -358,7 +358,7 @@ function Button({ variant = 'secondary', onClick, children, icon, iconSize = 14,
         border: v.border, background: hovered ? v.hover : v.background, color: v.color,
         cursor: disabled ? 'not-allowed' : 'pointer',
         opacity: disabled ? 0.5 : 1,
-        fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13,
+        fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)',
         transition: PREFERS_REDUCED_MOTION ? 'none' : `background 120ms ${EASE_OUT}`,
         ...style,
       }}>
@@ -386,8 +386,8 @@ function ChoiceCard({ type = 'radio', selected, onClick, label, description }) {
       transition: `background 120ms ${EASE_OUT}, border-color 120ms ${EASE_OUT}`,
     }}>
       <div>
-        <div style={{ fontFamily: 'var(--font-body)', fontSize: 14, fontWeight: 500, color: P.ink }}>{label}</div>
-        {description && <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, marginTop: 2 }}>{description}</div>}
+        <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', fontWeight: 500, color: P.ink }}>{label}</div>
+        {description && <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, marginTop: 2 }}>{description}</div>}
       </div>
       <div style={{
         width: 18, height: 18, ...indicatorShape, flexShrink: 0,
@@ -417,7 +417,7 @@ function ModalShell({ onClose, title, width = 420, maxHeight, zIndex = 300, foot
       <div onClick={e => e.stopPropagation()} style={{ background: P.white, borderRadius: 14, width, maxHeight, boxShadow: '0 8px 40px rgba(15,13,40,0.2)', display: 'flex', flexDirection: 'column', ...modalPanelStyle(visible) }}>
         {title && (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 22px', borderBottom: `1px solid ${P.border}` }}>
-            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 16, color: P.ink }}>{title}</span>
+            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-md)', color: P.ink }}>{title}</span>
             <IconButton icon="X" onClick={close} blur />
           </div>
         )}
@@ -440,7 +440,7 @@ function DrawerShell({ onClose, title, onBack, width = 480, children }) {
         <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 24px', borderBottom: `1px solid ${P.border}` }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             {onBack && <IconButton icon="arrow-left" onClick={onBack} />}
-            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18, color: P.ink }}>{title}</span>
+            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-lg)', color: P.ink }}>{title}</span>
           </div>
           <IconButton icon="X" onClick={close} blur />
         </div>
@@ -478,8 +478,8 @@ function EmptyState({ icon, title, description, action }) {
       <div style={{ width: 44, height: 44, borderRadius: 12, background: P.bg, border: `1px solid ${P.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 14 }}>
         <Icon name={icon} size={20} color={P.inkSoft} strokeWidth={1.5} />
       </div>
-      <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.ink, marginBottom: 4 }}>{title}</div>
-      {description && <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, maxWidth: 280, lineHeight: 1.5, marginBottom: action ? 18 : 0 }}>{description}</div>}
+      <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink, marginBottom: 4 }}>{title}</div>
+      {description && <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, maxWidth: 280, lineHeight: 1.5, marginBottom: action ? 18 : 0 }}>{description}</div>}
       {action}
     </div>
   );
@@ -489,10 +489,10 @@ function WeekCard({ entry, requestId, requests, isPending }) {
   const req = requests.find(function(rr) { return rr.id === requestId; });
   return (
     <React.Fragment>
-      <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 11, color: P.ink, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', lineHeight: 1.3 }}>
+      <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-xs)', color: P.ink, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', lineHeight: 1.3 }}>
         {entry.type}
       </span>
-      <span style={{ fontFamily: 'var(--font-body)', fontSize: 10, color: P.inkSoft, whiteSpace: 'nowrap', lineHeight: 1.3 }}>
+      <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, whiteSpace: 'nowrap', lineHeight: 1.3 }}>
         {isPending ? 'Pending' : req ? (req.days + ' ' + (req.days === 1 ? 'day' : 'days')) : ''}
       </span>
     </React.Fragment>
@@ -718,13 +718,13 @@ function ChoicesTab({ empId }) {
   const items = genChoices(empId);
   const [statusFilter, setStatusFilter] = useState('all');
   const filtered = statusFilter === 'all' ? items : items.filter(i => i.status?.toLowerCase() === statusFilter);
-  const th = { textAlign: 'left', padding: '9px 16px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em', whiteSpace: 'nowrap' };
+  const th = { textAlign: 'left', padding: '9px 16px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em', whiteSpace: 'nowrap' };
   const td = { padding: '14px 16px', color: P.ink, verticalAlign: 'middle' };
   return (
     <div>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-        <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18, color: P.ink }}>Choices</span>
-        <button style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '6px 14px', borderRadius: 8, border: 'none', background: P.action, color: '#fff', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12 }}>
+        <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-lg)', color: P.ink }}>Choices</span>
+        <button style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '6px 14px', borderRadius: 8, border: 'none', background: P.action, color: '#fff', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)' }}>
           <Icon name="Plus" size={12} color="#fff" />Add
         </button>
       </div>
@@ -735,7 +735,7 @@ function ChoicesTab({ empId }) {
         {filtered.length === 0 ? (
           <EmptyState icon="list" title="No choices recorded yet" />
         ) : (
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-body)', fontSize: 13 }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)' }}>
             <thead><tr style={{ borderBottom: `1px solid ${P.border}` }}>
               <th style={{ ...th, paddingLeft: 20 }}>Name</th>
               <th style={th}>Price</th>
@@ -753,7 +753,7 @@ function ChoicesTab({ empId }) {
                 <td style={{ ...td, color: P.inkSoft }}>{item.sDate}</td>
                 <td style={{ ...td, color: P.inkSoft }}>{item.eDate}</td>
                 <td style={td}><StatusPill status={item.status || 'approved'} /></td>
-                <td style={{ padding: '8px 16px', textAlign: 'right' }}><button style={{ border: `1px solid ${P.border}`, background: 'transparent', borderRadius: 6, padding: '4px 10px', fontSize: 11, fontFamily: 'var(--font-display)', fontWeight: 600, color: P.inkSoft, cursor: 'pointer' }}>Details</button></td>
+                <td style={{ padding: '8px 16px', textAlign: 'right' }}><button style={{ border: `1px solid ${P.border}`, background: 'transparent', borderRadius: 6, padding: '4px 10px', fontSize: 'var(--fs-body-xs)', fontFamily: 'var(--font-display)', fontWeight: 600, color: P.inkSoft, cursor: 'pointer' }}>Details</button></td>
               </tr>
             ))}</tbody>
           </table>
@@ -764,17 +764,17 @@ function ChoicesTab({ empId }) {
 }
 function BudgetsTab({ empId }) {
   const items = genBudgets(empId);
-  const th = { textAlign: 'left', padding: '9px 16px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em', whiteSpace: 'nowrap' };
+  const th = { textAlign: 'left', padding: '9px 16px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em', whiteSpace: 'nowrap' };
   return (
     <div>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-        <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18, color: P.ink }}>Budgets</span>
-        <button style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '6px 14px', borderRadius: 8, border: 'none', background: P.action, color: '#fff', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12 }}>
+        <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-lg)', color: P.ink }}>Budgets</span>
+        <button style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '6px 14px', borderRadius: 8, border: 'none', background: P.action, color: '#fff', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)' }}>
           <Icon name="Plus" size={12} color="#fff" />Add budget
         </button>
       </div>
       <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 12, overflow: 'hidden' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-body)', fontSize: 13 }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)' }}>
           <thead><tr style={{ borderBottom: `1px solid ${P.border}` }}>
             <th style={{ ...th, paddingLeft: 20 }}>Name budget</th>
             <th style={th}>Budget balance</th>
@@ -785,15 +785,15 @@ function BudgetsTab({ empId }) {
           </tr></thead>
           <tbody>{items.map((item, idx) => (
             <tr key={idx} style={{ borderBottom: idx < items.length - 1 ? `1px solid ${P.border}` : 'none' }}>
-              <td style={{ padding: '14px 20px', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 13, color: P.ink }}>{item.name}</td>
-              <td style={{ padding: '14px 16px', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 13, color: P.ink }}>{item.balance}</td>
-              <td style={{ padding: '14px 16px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.ink }}>{item.topUp}</td>
-              <td style={{ padding: '14px 16px', color: P.inkSoft, fontSize: 13 }}>{item.topUpDate}</td>
-              <td style={{ padding: '14px 16px', color: P.inkSoft, fontSize: 13 }}>{item.cashOut}</td>
+              <td style={{ padding: '14px 20px', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-sm)', color: P.ink }}>{item.name}</td>
+              <td style={{ padding: '14px 16px', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-sm)', color: P.ink }}>{item.balance}</td>
+              <td style={{ padding: '14px 16px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink }}>{item.topUp}</td>
+              <td style={{ padding: '14px 16px', color: P.inkSoft, fontSize: 'var(--fs-body-sm)' }}>{item.topUpDate}</td>
+              <td style={{ padding: '14px 16px', color: P.inkSoft, fontSize: 'var(--fs-body-sm)' }}>{item.cashOut}</td>
               <td style={{ padding: '8px 16px', textAlign: 'right' }}>
                 <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-                  <button style={{ border: `1px solid ${P.border}`, background: 'transparent', borderRadius: 6, padding: '5px 10px', fontSize: 11, fontFamily: 'var(--font-display)', fontWeight: 600, color: P.inkSoft, cursor: 'pointer', whiteSpace: 'nowrap' }}>See transactions</button>
-                  <button style={{ border: 'none', background: P.action, borderRadius: 6, padding: '5px 12px', fontSize: 11, fontFamily: 'var(--font-display)', fontWeight: 600, color: '#fff', cursor: 'pointer' }}>Edit</button>
+                  <button style={{ border: `1px solid ${P.border}`, background: 'transparent', borderRadius: 6, padding: '5px 10px', fontSize: 'var(--fs-body-xs)', fontFamily: 'var(--font-display)', fontWeight: 600, color: P.inkSoft, cursor: 'pointer', whiteSpace: 'nowrap' }}>See transactions</button>
+                  <button style={{ border: 'none', background: P.action, borderRadius: 6, padding: '5px 12px', fontSize: 'var(--fs-body-xs)', fontFamily: 'var(--font-display)', fontWeight: 600, color: '#fff', cursor: 'pointer' }}>Edit</button>
                 </div>
               </td>
             </tr>
@@ -822,13 +822,13 @@ function SalaryTab({ empId, emp, companyRegime, onEmployeeUpdate }) {
     setLocalSchedule(next);
     if (onEmployeeUpdate) onEmployeeUpdate(empId, { fte: localFte, workSchedule: next });
   };
-  const fieldStyle = { background: P.white, border: `1px solid ${P.border}`, borderRadius: 8, padding: '10px 14px', fontFamily: 'var(--font-body)', fontSize: 13, color: P.ink };
-  const labelStyle = { display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.ink, marginBottom: 6 };
-  const th = { textAlign: 'left', padding: '9px 16px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em', whiteSpace: 'nowrap' };
+  const fieldStyle = { background: P.white, border: `1px solid ${P.border}`, borderRadius: 8, padding: '10px 14px', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink };
+  const labelStyle = { display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink, marginBottom: 6 };
+  const th = { textAlign: 'left', padding: '9px 16px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em', whiteSpace: 'nowrap' };
   const SalSecHead = ({ title, onAdd }) => (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
       <div style={SL}>{title}</div>
-      <button onClick={onAdd} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '6px 14px', borderRadius: 8, border: 'none', background: P.action, color: '#fff', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12 }}>
+      <button onClick={onAdd} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '6px 14px', borderRadius: 8, border: 'none', background: P.action, color: '#fff', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)' }}>
         <Icon name="Plus" size={12} color="#fff" />Add
       </button>
     </div>
@@ -836,7 +836,7 @@ function SalaryTab({ empId, emp, companyRegime, onEmployeeUpdate }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 36 }}>
       <div>
-        <h3 style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18, color: P.ink, margin: '0 0 14px' }}>Contract</h3>
+        <h3 style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-lg)', color: P.ink, margin: '0 0 14px' }}>Contract</h3>
         <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 12, padding: 20 }}>
         <div style={{ display: 'flex', gap: 16, marginBottom: 16 }}>
           <div style={{ flex: 1 }}>
@@ -850,7 +850,7 @@ function SalaryTab({ empId, emp, companyRegime, onEmployeeUpdate }) {
             <label style={labelStyle}>Contracted hours</label>
             <div style={{ ...fieldStyle, display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: P.bg }}>
               <span>{regime.contractedHours}:00 / week</span>
-              <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkFaint, background: P.white, padding: '2px 6px', borderRadius: 4, border: `1px solid ${P.border}` }}>Company default</span>
+              <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkFaint, background: P.white, padding: '2px 6px', borderRadius: 4, border: `1px solid ${P.border}` }}>Company default</span>
             </div>
           </div>
         </div>
@@ -862,7 +862,7 @@ function SalaryTab({ empId, emp, companyRegime, onEmployeeUpdate }) {
               const active = localSchedule.includes(day);
               return (
                 <button key={day} onClick={() => toggleDay(day)}
-                  style={{ width: 48, height: 36, borderRadius: 8, border: `1.5px solid ${active ? P.action : P.border}`, background: active ? '#f3f0ff' : 'transparent', color: active ? P.action : P.inkSoft, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, cursor: 'pointer', transition: 'all 120ms ease' }}>
+                  style={{ width: 48, height: 36, borderRadius: 8, border: `1.5px solid ${active ? P.action : P.border}`, background: active ? '#f3f0ff' : 'transparent', color: active ? P.action : P.inkSoft, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', cursor: 'pointer', transition: 'all 120ms ease' }}>
                   {label}
                 </button>
               );
@@ -874,14 +874,14 @@ function SalaryTab({ empId, emp, companyRegime, onEmployeeUpdate }) {
             <label style={labelStyle}>ADV entitlement</label>
             <div style={{ ...fieldStyle, display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: P.bg }}>
               <span>{advDays} days / year</span>
-              <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.success, background: P.successBg, padding: '2px 6px', borderRadius: 4 }}>Auto</span>
+              <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.success, background: P.successBg, padding: '2px 6px', borderRadius: 4 }}>Auto</span>
             </div>
           </div>
           <div style={{ flex: 1 }}>
             <label style={labelStyle}>Legal leave</label>
             <div style={{ ...fieldStyle, display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: P.bg }}>
               <span>{legalLeave} days{localFte < 1.0 ? ` (${localFte} FTE)` : ''}</span>
-              <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.success, background: P.successBg, padding: '2px 6px', borderRadius: 4 }}>Auto</span>
+              <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.success, background: P.successBg, padding: '2px 6px', borderRadius: 4 }}>Auto</span>
             </div>
           </div>
         </div>
@@ -890,7 +890,7 @@ function SalaryTab({ empId, emp, companyRegime, onEmployeeUpdate }) {
       <div>
         <SalSecHead title="Salary" onAdd={() => {}} />
         <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 12, overflow: 'hidden' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-body)', fontSize: 13 }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)' }}>
             <thead><tr style={{ borderBottom: `1px solid ${P.border}` }}>
               <th style={{ ...th, paddingLeft: 20 }}>Gross amount</th>
               <th style={th}>Working regime</th>
@@ -902,21 +902,21 @@ function SalaryTab({ empId, emp, companyRegime, onEmployeeUpdate }) {
             <tbody>{history.map((row, idx) => (
               <tr key={idx} style={{ borderBottom: idx < history.length - 1 ? `1px solid ${P.border}` : 'none' }}>
                 <td style={{ padding: '12px 20px' }}>
-                  <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 14, color: P.ink }}>{row.gross}</div>
-                  <div style={{ fontSize: 11, color: P.inkFaint, marginTop: 2 }}>per month</div>
+                  <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-sm)', color: P.ink }}>{row.gross}</div>
+                  <div style={{ fontSize: 'var(--fs-body-xs)', color: P.inkFaint, marginTop: 2 }}>per month</div>
                 </td>
                 <td style={{ padding: '12px 16px' }}>
                   <div style={{ color: P.ink }}>{row.regime}</div>
-                  <div style={{ fontSize: 11, color: P.inkFaint, marginTop: 2 }}>per week</div>
+                  <div style={{ fontSize: 'var(--fs-body-xs)', color: P.inkFaint, marginTop: 2 }}>per week</div>
                 </td>
                 <td style={{ padding: '12px 16px', color: P.inkSoft }}>{row.start}</td>
                 <td style={{ padding: '12px 16px', color: P.inkSoft }}>{row.end}</td>
                 <td style={{ padding: '12px 16px' }}>
-                  <span style={{ display: 'inline-flex', alignItems: 'center', background: row.active ? P.successBg : P.white, color: row.active ? P.success : P.inkSoft, border: `1px solid ${row.active ? P.successBorder : P.border}`, borderRadius: 6, padding: '2px 6px', fontSize: 11, fontFamily: 'var(--font-display)', fontWeight: 500 }}>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', background: row.active ? P.successBg : P.white, color: row.active ? P.success : P.inkSoft, border: `1px solid ${row.active ? P.successBorder : P.border}`, borderRadius: 6, padding: '2px 6px', fontSize: 'var(--fs-body-xs)', fontFamily: 'var(--font-display)', fontWeight: 500 }}>
                     {row.active ? 'Active' : 'Inactive'}
                   </span>
                 </td>
-                <td style={{ padding: '8px 16px', textAlign: 'right' }}><button style={{ border: `1px solid ${P.border}`, background: 'transparent', borderRadius: 6, padding: '4px 10px', fontSize: 11, fontFamily: 'var(--font-display)', fontWeight: 600, color: P.inkSoft, cursor: 'pointer' }}>Details</button></td>
+                <td style={{ padding: '8px 16px', textAlign: 'right' }}><button style={{ border: `1px solid ${P.border}`, background: 'transparent', borderRadius: 6, padding: '4px 10px', fontSize: 'var(--fs-body-xs)', fontFamily: 'var(--font-display)', fontWeight: 600, color: P.inkSoft, cursor: 'pointer' }}>Details</button></td>
               </tr>
             ))}</tbody>
           </table>
@@ -924,11 +924,11 @@ function SalaryTab({ empId, emp, companyRegime, onEmployeeUpdate }) {
       </div>
       <div>
         <SalSecHead title="Salary components" onAdd={() => {}} />
-        <p style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, margin: '-8px 0 14px' }}>
+        <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, margin: '-8px 0 14px' }}>
           Components are benefits offered as part of the employee's remuneration where a benefit in kind is charged for. <AppLink onClick={e => e.preventDefault()}>Learn more</AppLink>
         </p>
         <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 12, overflow: 'hidden' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-body)', fontSize: 13 }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)' }}>
             <thead><tr style={{ borderBottom: `1px solid ${P.border}` }}>
               <th style={{ ...th, paddingLeft: 20 }}>Type</th>
               <th style={th}>Start date</th>
@@ -947,7 +947,7 @@ function SalaryTab({ empId, emp, companyRegime, onEmployeeUpdate }) {
                 </td>
                 <td style={{ padding: '12px 16px', color: P.inkSoft }}>{c.start}</td>
                 <td style={{ padding: '12px 16px', color: P.inkSoft }}>{c.end}</td>
-                <td style={{ padding: '8px 16px', textAlign: 'right' }}><button style={{ border: `1px solid ${P.border}`, background: 'transparent', borderRadius: 6, padding: '4px 10px', fontSize: 11, fontFamily: 'var(--font-display)', fontWeight: 600, color: P.inkSoft, cursor: 'pointer' }}>Details</button></td>
+                <td style={{ padding: '8px 16px', textAlign: 'right' }}><button style={{ border: `1px solid ${P.border}`, background: 'transparent', borderRadius: 6, padding: '4px 10px', fontSize: 'var(--fs-body-xs)', fontFamily: 'var(--font-display)', fontWeight: 600, color: P.inkSoft, cursor: 'pointer' }}>Details</button></td>
               </tr>
             ))}</tbody>
           </table>
@@ -961,12 +961,12 @@ function DetailsTab({ emp, empId, onNav, adminAccess, onAdminSave, companyRegime
   const ex = EMP_EXTRA[empId] || {};
   const parts = emp.name.split(' ');
   const first = parts[0], last = parts.slice(1).join(' ');
-  const fieldStyle = { background: P.white, border: `1px solid ${P.border}`, borderRadius: 8, padding: '10px 14px', fontFamily: 'var(--font-body)', fontSize: 13, color: P.ink };
-  const labelStyle = { display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.ink, marginBottom: 6 };
+  const fieldStyle = { background: P.white, border: `1px solid ${P.border}`, borderRadius: 8, padding: '10px 14px', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink };
+  const labelStyle = { display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink, marginBottom: 6 };
   return (
     <div style={{ maxWidth: 740 }}>
       <div style={{ marginBottom: 32 }}>
-        <h3 style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18, color: P.ink, margin: '0 0 20px' }}>Basic info</h3>
+        <h3 style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-lg)', color: P.ink, margin: '0 0 20px' }}>Basic info</h3>
         <div style={{ display: 'flex', gap: 16, marginBottom: 16 }}>
           <div style={{ flex: 1 }}><label style={labelStyle}>First name *</label><div style={fieldStyle}>{first}</div></div>
           <div style={{ flex: 1 }}><label style={labelStyle}>Last name *</label><div style={fieldStyle}>{last}</div></div>
@@ -977,7 +977,7 @@ function DetailsTab({ emp, empId, onNav, adminAccess, onAdminSave, companyRegime
         </div>
       </div>
       <div style={{ marginBottom: 32 }}>
-        <h3 style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18, color: P.ink, margin: '0 0 20px' }}>Employment data</h3>
+        <h3 style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-lg)', color: P.ink, margin: '0 0 20px' }}>Employment data</h3>
         <div style={{ display: 'flex', gap: 16, marginBottom: 16 }}>
           <div style={{ flex: 1 }}><label style={labelStyle}>Entity</label><div style={fieldStyle}>{emp.entity}</div></div>
           <div style={{ flex: 1 }}><label style={labelStyle}>Start date at company *</label><div style={fieldStyle}>{ex.hireDate || '—'}</div></div>
@@ -1004,19 +1004,19 @@ function DetailsTab({ emp, empId, onNav, adminAccess, onAdminSave, companyRegime
         );
         return (
           <div>
-            <h3 style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18, color: P.ink, margin: '0 0 4px' }}>Roles</h3>
+            <h3 style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-lg)', color: P.ink, margin: '0 0 4px' }}>Roles</h3>
             <div onClick={() => setIsEmployeeLocal(v => !v)}
               style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '9px 0', borderRadius: 8, cursor: 'pointer' }}>
               {cbBox(isEmployee)}
-              <div style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink, fontWeight: 500, marginTop: 1 }}>Employee</div>
+              <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, fontWeight: 500, marginTop: 1 }}>Employee</div>
             </div>
             <div onClick={() => isAdmin ? onAdminSave(empId, 'revoke') : onAdminSave(empId, null)}
               style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '9px 0', borderRadius: 8, cursor: 'pointer' }}>
               {cbBox(isAdmin, true)}
               <div>
-                <div style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink, fontWeight: 500 }}>Admin</div>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, fontWeight: 500 }}>Admin</div>
                 {isAdmin && (
-                  <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>
+                  <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft }}>
                     {accessLabel ? (
                       <span>
                         <span style={{ color: P.inkSoft }}>{accessLabel}</span>
@@ -1260,7 +1260,7 @@ function StatusDot({ status }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
       <span style={{ width: 8, height: 8, borderRadius: '50%', background: m.dot, flexShrink: 0 }} />
-      <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.ink }}>{m.label}</span>
+      <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink }}>{m.label}</span>
     </div>
   );
 }
@@ -1268,7 +1268,7 @@ function StatusDot({ status }) {
 function StatusBadge({ status }) {
   const m = StatusMeta[status] || StatusMeta.pending;
   return (
-    <span style={{ background: m.bg, color: m.color, borderRadius: 6, padding: '3px 8px', fontSize: 11, fontFamily: 'var(--font-display)', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+    <span style={{ background: m.bg, color: m.color, borderRadius: 6, padding: '3px 8px', fontSize: 'var(--fs-body-xs)', fontFamily: 'var(--font-display)', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
       <Icon name={m.icon} size={10} color={m.color} strokeWidth={2.5} />
       {m.label}
     </span>
@@ -1305,10 +1305,10 @@ function SidebarItem({ icon, label, isActive, onClick, badgeDot, chevron, chevro
       transition: `background 120ms ${EASE_OUT}`,
     }}>
       {icon && <Icon name={icon} size={14} color={disabled ? P.inkFaint : isActive ? P.ink : P.inkSoft} strokeWidth={1.75} />}
-      <span style={{ fontFamily: 'var(--font-display)', fontWeight: isActive ? 700 : 500, fontSize: 13, color: disabled ? P.inkFaint : isActive ? P.ink : P.inkSoft, flex: 1 }}>
+      <span style={{ fontFamily: 'var(--font-display)', fontWeight: isActive ? 700 : 500, fontSize: 'var(--fs-body-sm)', color: disabled ? P.inkFaint : isActive ? P.ink : P.inkSoft, flex: 1 }}>
         {label}
       </span>
-      {badgeDot && <span style={{ minWidth: 17, height: 17, borderRadius: 9, padding: '0 4px', background: P.border, color: P.inkSoft, fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 10, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{typeof badgeDot === 'number' ? badgeDot : '!'}</span>}
+      {badgeDot && <span style={{ minWidth: 17, height: 17, borderRadius: 9, padding: '0 4px', background: P.border, color: P.inkSoft, fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-xs)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{typeof badgeDot === 'number' ? badgeDot : '!'}</span>}
       {chevron && (
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={P.ink} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{
           flexShrink: 0, transform: chevronOpen ? 'scaleY(-1)' : 'scaleY(1)', transition: `transform 200ms ${EASE_OUT}`,
@@ -1346,9 +1346,9 @@ function SidebarSub({ items, active, onNav }) {
             cursor: 'pointer', width: '100%', textAlign: 'left',
           }}>
             <div style={{ position: 'absolute', left: 26, top: 0, bottom: 0, width: 1, background: isActive ? '#C42BFC' : P.border }} />
-            <span style={{ fontFamily: 'var(--font-display)', fontWeight: isActive ? 600 : 400, fontSize: 13, color: isActive ? '#C42BFC' : P.inkSoft, flex: 1 }}>{label}</span>
+            <span style={{ fontFamily: 'var(--font-display)', fontWeight: isActive ? 600 : 400, fontSize: 'var(--fs-body-sm)', color: isActive ? '#C42BFC' : P.inkSoft, flex: 1 }}>{label}</span>
             {badge > 0 && (
-              <span style={{ minWidth: 17, height: 17, borderRadius: 9, padding: '0 4px', background: P.border, color: P.inkSoft, fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 10, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{badge}</span>
+              <span style={{ minWidth: 17, height: 17, borderRadius: 9, padding: '0 4px', background: P.border, color: P.inkSoft, fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-xs)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{badge}</span>
             )}
           </button>
         );
@@ -1363,7 +1363,7 @@ function SidebarSectionHeader({ label }) {
       padding: '16px 20px 4px',
       fontFamily: 'var(--font-display)',
       fontWeight: 700,
-      fontSize: 11,
+      fontSize: 'var(--fs-body-xs)',
       color: P.inkFaint,
       textTransform: 'uppercase',
       letterSpacing: '0.05em',
@@ -1379,13 +1379,13 @@ function AdminProfileFooter() {
       <div style={{
         width: 28, height: 28, borderRadius: '50%', background: CURRENT_USER.color, flexShrink: 0,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 10, color: P.ink,
+        fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-xs)', color: P.ink,
       }}>{CURRENT_USER.initials}</div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-        <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 13, color: P.ink }}>{CURRENT_USER.name}</span>
+        <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: P.ink }}>{CURRENT_USER.name}</span>
         <button style={{
           border: 'none', background: 'transparent', padding: 0, cursor: 'pointer', textAlign: 'left',
-          fontFamily: 'var(--font-display)', fontWeight: 400, fontSize: 11, color: P.inkFaint,
+          fontFamily: 'var(--font-display)', fontWeight: 400, fontSize: 'var(--fs-body-xs)', color: P.inkFaint,
           transition: `color 120ms ${EASE_OUT}`,
         }}
         onMouseEnter={e => { e.currentTarget.style.color = P.inkSoft; }}
@@ -1428,7 +1428,7 @@ function EntitySwitcher({ value, onChange, mode }) {
       }}>
         <Icon name={defaultIcon} size={14} color={selected ? P.ink : P.inkSoft} strokeWidth={1.75} />
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, color: selected ? P.ink : P.inkSoft, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: selected ? P.ink : P.inkSoft, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {selected ? selected.name : defaultLabel}
           </div>
         </div>
@@ -1442,7 +1442,7 @@ function EntitySwitcher({ value, onChange, mode }) {
           background: P.white, border: `1px solid ${P.border}`, borderRadius: 12,
           boxShadow: '0 8px 32px rgba(15,13,40,0.12)', minWidth: 230, overflow: 'hidden',
         }}>
-          <div style={{ padding: '12px 14px 6px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+          <div style={{ padding: '12px 14px 6px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
             Entities
           </div>
           <div style={{ padding: '0 8px 8px' }}>
@@ -1451,8 +1451,8 @@ function EntitySwitcher({ value, onChange, mode }) {
               background: !value ? P.bg : 'transparent', cursor: 'pointer', textAlign: 'left', position: 'relative',
             }}>
               <div style={{ flex: 1 }}>
-                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.ink }}>{defaultLabel}</div>
-                <div style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkSoft }}>{defaultSub}</div>
+                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink }}>{defaultLabel}</div>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>{defaultSub}</div>
               </div>
               {!value && <Icon name="check" size={13} color="#C42BFC" strokeWidth={2.5} />}
             </button>
@@ -1462,8 +1462,8 @@ function EntitySwitcher({ value, onChange, mode }) {
                 background: value === ent.id ? P.bg : 'transparent', cursor: 'pointer', textAlign: 'left',
               }}>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.ink }}>{ent.name}</div>
-                  <div style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkSoft }}>{ent.employeeCount} employees</div>
+                  <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink }}>{ent.name}</div>
+                  <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>{ent.employeeCount} employees</div>
                 </div>
                 {value === ent.id && <Icon name="check" size={13} color="#C42BFC" strokeWidth={2.5} />}
               </button>
@@ -1646,7 +1646,7 @@ function Sidebar({ active, onNav, pendingCount, sidebarMode, onSetSidebarMode, a
         <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', opacity: inSettings ? 1 : 0, transition: `opacity 200ms ${EASE_OUT}`, pointerEvents: inSettings ? 'auto' : 'none' }}>
           <button onClick={() => { onSetSidebarMode('app'); onNav('dashboard'); }} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '0 20px', width: '100%', height: '100%', border: 'none', background: 'transparent', cursor: 'pointer', textAlign: 'left' }}>
             <Icon name="arrow-left" size={14} color={P.inkSoft} strokeWidth={1.75} />
-            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 13, color: P.inkSoft }}>Back to app</span>
+            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: P.inkSoft }}>Back to app</span>
           </button>
         </div>
       </div>
@@ -1725,7 +1725,7 @@ function ActionMenu({ req, onApprove, onDecline, onViewDetails, onEdit, onCancel
             onMouseEnter={e => e.currentTarget.style.background = P.bg}
             onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
               <Icon name={icon} size={14} color={color} strokeWidth={1.75} />
-              <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: label === 'Cancel absence' ? P.dangerDark : P.ink }}>{label}</span>
+              <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: label === 'Cancel absence' ? P.dangerDark : P.ink }}>{label}</span>
             </button>
           ))}
         </div>
@@ -1750,10 +1750,10 @@ function ReasonModal({ title, description, confirmLabel, confirmColor = P.danger
       )}>
       <div style={{ padding: '18px 22px', display: 'flex', flexDirection: 'column', gap: 14 }}>
         {description && (
-          <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, lineHeight: 1.5 }}>{description}</p>
+          <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: 1.5 }}>{description}</p>
         )}
         <div>
-          <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.inkSoft, marginBottom: 6 }}>
+          <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.inkSoft, marginBottom: 6 }}>
             Reason <span style={{ fontWeight: 400, color: P.inkFaint }}>(required)</span>
           </label>
           <textarea
@@ -1765,7 +1765,7 @@ function ReasonModal({ title, description, confirmLabel, confirmColor = P.danger
             style={{
               width: '100%', padding: '8px 10px', borderRadius: 7,
               border: `1px solid ${P.border}`,
-              fontFamily: 'var(--font-body)', fontSize: 13, color: P.ink,
+              fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink,
               outline: 'none', resize: 'none', lineHeight: 1.5,
             }}
           />
@@ -1881,8 +1881,8 @@ function CalendarDrawer({ req, requests, onClose, onApprove, onDecline, onCancel
   const heroDateStr = req.startDate === req.endDate ? req.startDate : `${req.startDate} – ${req.endDate}`;
   const durationStr = req.days === 0.5 ? '½ day' : req.days === 1 ? '1 day' : `${req.days} days`;
 
-  const labelStyle = { flexShrink: 0, fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.ink, whiteSpace: 'nowrap' };
-  const valueStyle = { flex: 1, minWidth: 0, fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.inkSoft, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 8 };
+  const labelStyle = { flexShrink: 0, fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: P.ink, whiteSpace: 'nowrap' };
+  const valueStyle = { flex: 1, minWidth: 0, fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: P.inkSoft, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 8 };
   const TableRow = ({ label, icon, children }) => (
     <div style={{ display: 'flex', alignItems: 'center', padding: '16px 24px', gap: 16 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 7, flexShrink: 0 }}>
@@ -1894,7 +1894,7 @@ function CalendarDrawer({ req, requests, onClose, onApprove, onDecline, onCancel
   );
 
   const SectionHeader = ({ children }) => (
-    <div style={{ padding: '24px 24px 6px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 10, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+    <div style={{ padding: '24px 24px 6px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
       {children}
     </div>
   );
@@ -1992,7 +1992,7 @@ function CalendarDrawer({ req, requests, onClose, onApprove, onDecline, onCancel
             <div onClick={hasOverlap ? () => setTeamExpanded(x => !x) : undefined} style={{ display: 'flex', alignItems: 'center', padding: '16px 24px', gap: 16, cursor: hasOverlap ? 'pointer' : 'default' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 7, flexShrink: 0 }}>
                 <Icon name="users" size={14} color={P.inkSoft} strokeWidth={1.75} style={{ flexShrink: 0 }} />
-                <div style={{ flexShrink: 0, fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.ink, whiteSpace: 'nowrap' }}>Team availability</div>
+                <div style={{ flexShrink: 0, fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: P.ink, whiteSpace: 'nowrap' }}>Team availability</div>
               </div>
               <div style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 8 }}>
                 {hasOverlap
@@ -2021,8 +2021,8 @@ function CalendarDrawer({ req, requests, onClose, onApprove, onDecline, onCancel
                       <span style={{ borderRadius: '50%', border: '2px solid #fcd34d', display: 'flex', lineHeight: 0, flexShrink: 0 }}>
                         <Avatar employeeId={empId} size={18} />
                       </span>
-                      <span style={{ flex: 1, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.ink }}>{oe?.name}</span>
-                      <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>{dateStr}</span>
+                      <span style={{ flex: 1, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink }}>{oe?.name}</span>
+                      <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>{dateStr}</span>
                     </div>
                     </React.Fragment>
                   );
@@ -2057,11 +2057,11 @@ function CalendarDrawer({ req, requests, onClose, onApprove, onDecline, onCancel
 
   const editInputStyle = {
     width: '100%', padding: '8px 10px', borderRadius: 7, border: `1px solid ${P.border}`,
-    fontFamily: 'var(--font-body)', fontSize: 13, color: P.ink, outline: 'none', background: P.white,
+    fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, outline: 'none', background: P.white,
     boxSizing: 'border-box',
   };
   const editLabelStyle = {
-    display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11,
+    display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)',
     color: P.inkSoft, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6,
   };
   const editDurStr = editDays === 0.5 ? '½ day' : editDays === 1 ? '1 day' : `${editDays} days`;
@@ -2083,16 +2083,16 @@ function CalendarDrawer({ req, requests, onClose, onApprove, onDecline, onCancel
             {(isPending || req.status === 'approved') && (
               <div style={{ flexShrink: 0, padding: '12px 20px', borderTop: `1px solid ${P.border}`, display: 'flex', gap: 10 }}>
                 {isPending && <>
-                  <button onClick={enterDecline} style={{ flex: 1, padding: '10px 0', borderRadius: 10, border: '1px solid var(--alert-200)', background: P.dangerBg, color: P.danger, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                  <button onClick={enterDecline} style={{ flex: 1, padding: '10px 0', borderRadius: 10, border: '1px solid var(--alert-200)', background: P.dangerBg, color: P.danger, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
                     <Icon name="X" size={13} color={P.danger} strokeWidth={2.5} /> Decline
                   </button>
-                  <button onClick={() => onApprove(req.id)} style={{ flex: 1, padding: '10px 0', borderRadius: 10, border: 'none', background: P.ink, color: P.white, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                  <button onClick={() => onApprove(req.id)} style={{ flex: 1, padding: '10px 0', borderRadius: 10, border: 'none', background: P.ink, color: P.white, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
                     <Icon name="Check" size={13} color={P.white} strokeWidth={2.5} /> Approve
                   </button>
                 </>}
                 {req.status === 'approved' && <>
-                  <button onClick={enterEdit} style={{ flex: 1, padding: '10px 0', borderRadius: 10, border: `1px solid ${P.border}`, background: 'transparent', color: P.inkSoft, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>Edit</button>
-                  <button onClick={enterCancel} style={{ flex: 1, padding: '10px 0', borderRadius: 10, border: '1px solid var(--alert-200)', background: P.dangerBg, color: P.danger, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>Cancel absence</button>
+                  <button onClick={enterEdit} style={{ flex: 1, padding: '10px 0', borderRadius: 10, border: `1px solid ${P.border}`, background: 'transparent', color: P.inkSoft, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)' }}>Edit</button>
+                  <button onClick={enterCancel} style={{ flex: 1, padding: '10px 0', borderRadius: 10, border: '1px solid var(--alert-200)', background: P.dangerBg, color: P.danger, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)' }}>Cancel absence</button>
                 </>}
               </div>
             )}
@@ -2103,33 +2103,33 @@ function CalendarDrawer({ req, requests, onClose, onApprove, onDecline, onCancel
             {declineMode ? (
               <>
                 <div style={{ flex: 1, overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column', gap: 16 }}>
-                  <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, lineHeight: 1.5 }}>
+                  <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: 1.5 }}>
                     You're declining <strong style={{ color: P.ink }}>{emp.name}</strong>'s {req.type} ({heroDateStr}).
                   </p>
                   <div>
-                    <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 10, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Reason <span style={{ textTransform: 'none', fontWeight: 400 }}>(optional)</span></label>
-                    <textarea value={declineReason} onChange={e => setDeclineReason(e.target.value)} placeholder="Explain why this request is being declined…" rows={3} style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: `1px solid ${P.border}`, background: P.bg, fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink, resize: 'none', lineHeight: 1.5, boxSizing: 'border-box', outline: 'none' }} />
+                    <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Reason <span style={{ textTransform: 'none', fontWeight: 400 }}>(optional)</span></label>
+                    <textarea value={declineReason} onChange={e => setDeclineReason(e.target.value)} placeholder="Explain why this request is being declined…" rows={3} style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: `1px solid ${P.border}`, background: P.bg, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, resize: 'none', lineHeight: 1.5, boxSizing: 'border-box', outline: 'none' }} />
                   </div>
                 </div>
                 <div style={{ flexShrink: 0, padding: '12px 20px', borderTop: `1px solid ${P.border}`, display: 'flex', gap: 10 }}>
-                  <button onClick={exitDecline} style={{ flex: 1, padding: '10px 0', borderRadius: 10, border: `1px solid ${P.border}`, background: 'transparent', color: P.inkSoft, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>Go back</button>
-                  <button onClick={() => { onDecline(req.id, declineReason); close(); }} style={{ flex: 2, padding: '10px 0', borderRadius: 10, border: 'none', background: P.danger, color: P.white, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>Confirm decline</button>
+                  <button onClick={exitDecline} style={{ flex: 1, padding: '10px 0', borderRadius: 10, border: `1px solid ${P.border}`, background: 'transparent', color: P.inkSoft, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)' }}>Go back</button>
+                  <button onClick={() => { onDecline(req.id, declineReason); close(); }} style={{ flex: 2, padding: '10px 0', borderRadius: 10, border: 'none', background: P.danger, color: P.white, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)' }}>Confirm decline</button>
                 </div>
               </>
             ) : cancelMode ? (
               <>
                 <div style={{ flex: 1, overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column', gap: 16 }}>
-                  <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, lineHeight: 1.5 }}>
+                  <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: 1.5 }}>
                     You're cancelling <strong style={{ color: P.ink }}>{emp.name}</strong>'s {req.type} ({heroDateStr}). This cannot be undone.
                   </p>
                   <div>
-                    <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 10, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Reason <span style={{ textTransform: 'none', fontWeight: 400 }}>(optional)</span></label>
-                    <textarea value={cancelReason} onChange={e => setCancelReason(e.target.value)} placeholder="Add a reason…" rows={3} style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: `1px solid ${P.border}`, background: P.bg, fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink, resize: 'none', lineHeight: 1.5, boxSizing: 'border-box', outline: 'none' }} />
+                    <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Reason <span style={{ textTransform: 'none', fontWeight: 400 }}>(optional)</span></label>
+                    <textarea value={cancelReason} onChange={e => setCancelReason(e.target.value)} placeholder="Add a reason…" rows={3} style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: `1px solid ${P.border}`, background: P.bg, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, resize: 'none', lineHeight: 1.5, boxSizing: 'border-box', outline: 'none' }} />
                   </div>
                 </div>
                 <div style={{ flexShrink: 0, padding: '12px 20px', borderTop: `1px solid ${P.border}`, display: 'flex', gap: 10 }}>
-                  <button onClick={exitCancel} style={{ flex: 1, padding: '10px 0', borderRadius: 10, border: `1px solid ${P.border}`, background: 'transparent', color: P.inkSoft, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>Go back</button>
-                  <button onClick={() => { onCancel(req.id, cancelReason); close(); }} style={{ flex: 2, padding: '10px 0', borderRadius: 10, border: 'none', background: P.danger, color: P.white, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>Confirm cancellation</button>
+                  <button onClick={exitCancel} style={{ flex: 1, padding: '10px 0', borderRadius: 10, border: `1px solid ${P.border}`, background: 'transparent', color: P.inkSoft, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)' }}>Go back</button>
+                  <button onClick={() => { onCancel(req.id, cancelReason); close(); }} style={{ flex: 2, padding: '10px 0', borderRadius: 10, border: 'none', background: P.danger, color: P.white, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)' }}>Confirm cancellation</button>
                 </div>
               </>
             ) : (
@@ -2147,21 +2147,21 @@ function CalendarDrawer({ req, requests, onClose, onApprove, onDecline, onCancel
                 <label style={editLabelStyle}>Dates</label>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
                   <div>
-                    <div style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkFaint, marginBottom: 4 }}>From</div>
+                    <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkFaint, marginBottom: 4 }}>From</div>
                     <input type="date" value={editRangeFrom} onChange={e => setEditRangeFrom(e.target.value)} style={editInputStyle} />
                   </div>
                   <div>
-                    <div style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkFaint, marginBottom: 4 }}>To</div>
+                    <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkFaint, marginBottom: 4 }}>To</div>
                     <input type="date" value={editRangeTo} onChange={e => setEditRangeTo(e.target.value)} style={editInputStyle} />
                   </div>
                 </div>
                 {editPickedDates.size > 0 && !editErrors.dates && (
-                  <div style={{ marginTop: 8, fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>
+                  <div style={{ marginTop: 8, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>
                     {editDurStr} — {editPickedDates.size} working {editPickedDates.size === 1 ? 'day' : 'days'}
                   </div>
                 )}
                 {editErrors.dates && (
-                  <div style={{ marginTop: 6, fontFamily: 'var(--font-body)', fontSize: 12, color: P.danger }}>{editErrors.dates}</div>
+                  <div style={{ marginTop: 6, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.danger }}>{editErrors.dates}</div>
                 )}
               </div>
               {/* Note */}
@@ -2171,8 +2171,8 @@ function CalendarDrawer({ req, requests, onClose, onApprove, onDecline, onCancel
               </div>
             </div>
             <div style={{ flexShrink: 0, padding: '12px 20px', borderTop: `1px solid ${P.border}`, display: 'flex', gap: 10 }}>
-              <button onClick={exitEdit} style={{ flex: 1, padding: '10px 0', borderRadius: 10, border: `1px solid ${P.border}`, background: 'transparent', color: P.inkSoft, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>Cancel</button>
-              <button onClick={handleSaveEdit} style={{ flex: 2, padding: '10px 0', borderRadius: 10, border: 'none', background: P.ink, color: P.white, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>Save changes</button>
+              <button onClick={exitEdit} style={{ flex: 1, padding: '10px 0', borderRadius: 10, border: `1px solid ${P.border}`, background: 'transparent', color: P.inkSoft, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)' }}>Cancel</button>
+              <button onClick={handleSaveEdit} style={{ flex: 2, padding: '10px 0', borderRadius: 10, border: 'none', background: P.ink, color: P.white, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)' }}>Save changes</button>
             </div>
             </>
             )}
@@ -2181,14 +2181,14 @@ function CalendarDrawer({ req, requests, onClose, onApprove, onDecline, onCancel
         </div>
 
         {avatarTip && ReactDOM.createPortal(
-          <div style={{ position: 'fixed', zIndex: 9999, left: avatarTip.x, top: avatarTip.y - 8, transform: 'translate(-50%, -100%)', background: P.ink, color: P.white, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, padding: '6px 10px', borderRadius: 8, pointerEvents: 'none', whiteSpace: 'nowrap', lineHeight: 1.5 }}>
+          <div style={{ position: 'fixed', zIndex: 9999, left: avatarTip.x, top: avatarTip.y - 8, transform: 'translate(-50%, -100%)', background: P.ink, color: P.white, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', padding: '6px 10px', borderRadius: 8, pointerEvents: 'none', whiteSpace: 'nowrap', lineHeight: 1.5 }}>
             <div>{avatarTip.name}</div>
             {avatarTip.offReq ? (
-              <div style={{ fontWeight: 400, color: 'rgba(255,255,255,0.65)', fontSize: 11, marginTop: 1 }}>
+              <div style={{ fontWeight: 400, color: 'rgba(255,255,255,0.65)', fontSize: 'var(--fs-body-xs)', marginTop: 1 }}>
                 {avatarTip.offReq.type} · {avatarTip.offReq.startDate === avatarTip.offReq.endDate ? avatarTip.offReq.startDate : `${avatarTip.offReq.startDate} – ${avatarTip.offReq.endDate}`}
               </div>
             ) : (
-              <div style={{ fontWeight: 400, color: 'rgba(255,255,255,0.65)', fontSize: 11, marginTop: 1 }}>Available</div>
+              <div style={{ fontWeight: 400, color: 'rgba(255,255,255,0.65)', fontSize: 'var(--fs-body-xs)', marginTop: 1 }}>Available</div>
             )}
           </div>,
           document.body
@@ -2231,7 +2231,7 @@ function SettingsSelect({ value, onChange, opts }) {
         display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8,
         width: '100%', padding: '9px 12px', borderRadius: 8,
         border: `1px solid ${open ? P.borderStrong : P.border}`, background: P.white, color: P.ink,
-        cursor: 'pointer', fontFamily: 'var(--font-body)', fontSize: 14, textAlign: 'left', boxSizing: 'border-box',
+        cursor: 'pointer', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', textAlign: 'left', boxSizing: 'border-box',
       }}>
         <span>{selected?.label ?? '—'}</span>
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={P.inkFaint} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
@@ -2250,7 +2250,7 @@ function SettingsSelect({ value, onChange, opts }) {
             <button key={o.value} onClick={() => { onChange(o.value); setOpen(false); }} style={{
               display: 'block', width: '100%', textAlign: 'left', padding: '9px 12px',
               border: 'none', cursor: 'pointer', background: value === o.value ? P.bg : 'transparent',
-              fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink,
+              fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink,
             }}>{o.label}</button>
           ))}
         </div>
@@ -2310,7 +2310,7 @@ function EmployeeCombobox({ value, onChange, employees, error, autoFocus }) {
           onChange={e => { setQuery(e.target.value); setHighlighted(0); if (!open) setOpen(true); if (!e.target.value) onChange(''); }}
           onFocus={handleFocus} onBlur={handleBlur} onKeyDown={handleKeyDown}
           placeholder="Search by name or department…"
-          style={{ flex: 1, border: 'none', outline: 'none', padding: 0, fontFamily: 'var(--font-body)', fontSize: 13, color: P.ink, background: 'transparent', minWidth: 0 }}
+          style={{ flex: 1, border: 'none', outline: 'none', padding: 0, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, background: 'transparent', minWidth: 0 }}
         />
         {value && !open ? (
           <button onMouseDown={e => { e.preventDefault(); onChange(''); inputRef.current?.focus(); }}
@@ -2335,11 +2335,11 @@ function EmployeeCombobox({ value, onChange, employees, error, autoFocus }) {
           {filtered.length > 0 ? filtered.map(([id, emp], idx) => (
             <div key={id} onMouseDown={() => handleSelect(id)} onMouseEnter={() => setHighlighted(idx)}
               style={{ padding: '8px 12px', cursor: 'pointer', background: idx === highlighted ? P.bg : 'transparent', display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.ink, flex: 1 }}>{emp.name}</span>
-              <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkFaint, flexShrink: 0 }}>{emp.department}</span>
+              <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, flex: 1 }}>{emp.name}</span>
+              <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkFaint, flexShrink: 0 }}>{emp.department}</span>
             </div>
           )) : (
-            <div style={{ padding: '14px 12px', fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkFaint, textAlign: 'center' }}>No employees found</div>
+            <div style={{ padding: '14px 12px', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkFaint, textAlign: 'center' }}>No employees found</div>
           )}
         </div>
       )}
@@ -2364,7 +2364,7 @@ function DateInput({ value, onChange, min, placeholder = 'Select date', borderCo
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={value ? P.inkSoft : P.inkFaint} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
       </svg>
-      <span style={{ flex: 1, fontFamily: 'var(--font-body)', fontSize: 13, color: P.ink, lineHeight: 1 }}>
+      <span style={{ flex: 1, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, lineHeight: 1 }}>
         {value ? fmt(value) : placeholder}
       </span>
       <input
@@ -2389,7 +2389,7 @@ function HalfDayPickerAdmin({ value, onChange }) {
             background: active ? '#fff' : 'transparent',
             boxShadow: active ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
             fontFamily: 'var(--font-display)', fontWeight: active ? 700 : 500,
-            fontSize: 11, color: active ? P.ink : P.inkSoft,
+            fontSize: 'var(--fs-body-xs)', color: active ? P.ink : P.inkSoft,
             cursor: 'pointer',
           }}>{ADMIN_HALF_LABELS[opt]}</button>
         );
@@ -2444,7 +2444,7 @@ function ModalCalendar({ startDate, endDate, focusedField, onDateTap, pickedDate
         <button onClick={prevMonth} style={{ width: 28, height: 28, border: 'none', background: 'transparent', borderRadius: 6, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={P.ink} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
         </button>
-        <span style={{ flex: 1, textAlign: 'center', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 13, color: P.ink }}>
+        <span style={{ flex: 1, textAlign: 'center', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-sm)', color: P.ink }}>
           {MONTH_NAMES[month]} {year}
         </span>
         <button onClick={nextMonth} style={{ width: 28, height: 28, border: 'none', background: 'transparent', borderRadius: 6, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -2453,7 +2453,7 @@ function ModalCalendar({ startDate, endDate, focusedField, onDateTap, pickedDate
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', marginBottom: 4 }}>
         {dayNames.map(dn => (
-          <div key={dn} style={{ textAlign: 'center', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 10, color: P.inkFaint, padding: '3px 0', textTransform: 'uppercase' }}>{dn}</div>
+          <div key={dn} style={{ textAlign: 'center', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.inkFaint, padding: '3px 0', textTransform: 'uppercase' }}>{dn}</div>
         ))}
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)' }}>
@@ -2521,7 +2521,7 @@ function ModalCalendar({ startDate, endDate, focusedField, onDateTap, pickedDate
               <button onClick={() => !disabled && onDateTap(d)} style={{
                 width: 32, height: 32, border: 'none', background: btnBg,
                 borderRadius: (sel && !isMidRange) || halfDayVal ? '50%' : 6, cursor: disabled ? 'default' : 'pointer',
-                fontFamily: 'var(--font-display)', fontWeight, fontSize: 12, color,
+                fontFamily: 'var(--font-display)', fontWeight, fontSize: 'var(--fs-body-xs)', color,
                 display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
                 position: 'relative',
                 boxShadow: isToday(d) && !sel ? `inset 0 0 0 1.5px ${P.action}` : 'none',
@@ -2673,7 +2673,7 @@ function AddTimeOffModal({ existing, onClose, onSave, requests = [], defaultDate
 
   const inputStyle = {
     width: '100%', padding: '8px 10px', borderRadius: 7, border: `1px solid ${P.border}`,
-    fontFamily: 'var(--font-body)', fontSize: 13, color: P.ink, outline: 'none', background: P.white,
+    fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, outline: 'none', background: P.white,
   };
 
   React.useEffect(() => {
@@ -2699,7 +2699,7 @@ function AddTimeOffModal({ existing, onClose, onSave, requests = [], defaultDate
             <div style={{ flexShrink: 0, padding: '16px 24px 4px' }}>
               <div style={{ padding: '14px 16px', borderRadius: 10, background: '#fdf6ec', display: 'flex', alignItems: 'center', gap: 10 }}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#d97706" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.warningDark, lineHeight: 1.4 }}>Changes to past absences may affect payroll records.</span>
+                <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.warningDark, lineHeight: 1.4 }}>Changes to past absences may affect payroll records.</span>
               </div>
             </div>
           );
@@ -2724,8 +2724,8 @@ function AddTimeOffModal({ existing, onClose, onSave, requests = [], defaultDate
                     transition: 'border-color 120ms, background 120ms',
                   }}>
                     <Icon name={icon} size={14} color={active ? P.ink : P.inkSoft} strokeWidth={2} />
-                    <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.ink }}>{label}</span>
-                    <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkSoft, lineHeight: 1.3 }}>{sublabel}</span>
+                    <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink }}>{label}</span>
+                    <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, lineHeight: 1.3 }}>{sublabel}</span>
                   </button>
                 );
               })}
@@ -2734,7 +2734,7 @@ function AddTimeOffModal({ existing, onClose, onSave, requests = [], defaultDate
 
           {/* Employee / Holiday name — same slot, same height, no jump */}
           <div>
-            <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.inkSoft, marginBottom: 6 }}>
+            <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.inkSoft, marginBottom: 6 }}>
               {scope === 'collective' ? 'Reason' : 'Employee'}
             </label>
             {scope === 'collective' ? (
@@ -2752,13 +2752,13 @@ function AddTimeOffModal({ existing, onClose, onSave, requests = [], defaultDate
                 autoFocus={false}
               />
             )}
-            {errors.employee && <div style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.danger, marginTop: 4 }}>{errors.employee}</div>}
+            {errors.employee && <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.danger, marginTop: 4 }}>{errors.employee}</div>}
           </div>
 
           {/* Leave type — hidden for collective holidays */}
           {!allEmployees && (
             <div>
-              <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.inkSoft, marginBottom: 6 }}>Leave type</label>
+              <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.inkSoft, marginBottom: 6 }}>Leave type</label>
               <SelectField value={type} onChange={e => setType(e.target.value)} style={{ ...inputStyle, cursor: 'pointer' }}>
                 {ALL_LEAVE_TYPES.map(t => (
                   <option key={t} value={t}>{t}{ADMIN_ONLY_TYPES.has(t) ? ' (Admin)' : ''}</option>
@@ -2773,7 +2773,7 @@ function AddTimeOffModal({ existing, onClose, onSave, requests = [], defaultDate
             return (
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: 7, padding: '8px 10px', borderRadius: 7, background: P.bg, border: `1px solid ${P.border}` }}>
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={P.inkSoft} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginTop: 1, flexShrink: 0 }}><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, lineHeight: 1.4 }}>
+                <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, lineHeight: 1.4 }}>
                   Entitlement: {meta.statutoryLabel} — {meta.statutoryNote}
                 </span>
               </div>
@@ -2796,7 +2796,7 @@ function AddTimeOffModal({ existing, onClose, onSave, requests = [], defaultDate
             return (
               <>
                 <div>
-                  <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.inkSoft, marginBottom: 6 }}>Reason</label>
+                  <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.inkSoft, marginBottom: 6 }}>Reason</label>
                   <SelectField value={specialReason} onChange={e => setSpecialReason(e.target.value)} style={{ ...inputStyle, cursor: 'pointer' }}>
                     <option value="">Select a reason…</option>
                     {SPECIAL_LEAVE_REASONS.map(r => (
@@ -2807,7 +2807,7 @@ function AddTimeOffModal({ existing, onClose, onSave, requests = [], defaultDate
 
                 {reasonObj?.hasWho && (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                    <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.inkSoft, marginBottom: 6 }}>
+                    <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.inkSoft, marginBottom: 6 }}>
                       {specialReason === 'wedding' ? 'Wedding type' : 'Relationship to deceased'}
                     </label>
                     <SelectField value={specialWho} onChange={e => setSpecialWho(e.target.value)} style={{ ...inputStyle, cursor: 'pointer' }}>
@@ -2819,7 +2819,7 @@ function AddTimeOffModal({ existing, onClose, onSave, requests = [], defaultDate
                     {entitlementNote && (
                       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 7, padding: '8px 10px', borderRadius: 7, background: P.bg, border: `1px solid ${P.border}` }}>
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={P.inkSoft} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginTop: 1, flexShrink: 0 }}><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                        <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, lineHeight: 1.4 }}>{entitlementNote}</span>
+                        <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, lineHeight: 1.4 }}>{entitlementNote}</span>
                       </div>
                     )}
                   </div>
@@ -2828,7 +2828,7 @@ function AddTimeOffModal({ existing, onClose, onSave, requests = [], defaultDate
                 {!reasonObj?.hasWho && entitlementNote && (
                   <div style={{ display: 'flex', alignItems: 'flex-start', gap: 7, padding: '8px 10px', borderRadius: 7, background: P.bg, border: `1px solid ${P.border}` }}>
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={P.inkSoft} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginTop: 1, flexShrink: 0 }}><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                    <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, lineHeight: 1.4 }}>{entitlementNote}</span>
+                    <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, lineHeight: 1.4 }}>{entitlementNote}</span>
                   </div>
                 )}
               </>
@@ -2838,18 +2838,18 @@ function AddTimeOffModal({ existing, onClose, onSave, requests = [], defaultDate
 
           {/* Date range inputs */}
           <div>
-            <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.inkSoft, marginBottom: 6 }}>Dates</label>
+            <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.inkSoft, marginBottom: 6 }}>Dates</label>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
               <div>
-                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.inkFaint, marginBottom: 3, textTransform: 'uppercase', letterSpacing: '0.04em' }}>From</div>
+                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.inkFaint, marginBottom: 3, textTransform: 'uppercase', letterSpacing: '0.04em' }}>From</div>
                 <DateInput value={rangeFrom} placeholder="Start date" borderColor={errors.dates ? P.danger : P.border} onChange={e => { setRangeFrom(e.target.value); if (rangeTo && e.target.value > rangeTo) setRangeTo(e.target.value); }} />
               </div>
               <div>
-                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.inkFaint, marginBottom: 3, textTransform: 'uppercase', letterSpacing: '0.04em' }}>To</div>
+                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.inkFaint, marginBottom: 3, textTransform: 'uppercase', letterSpacing: '0.04em' }}>To</div>
                 <DateInput value={rangeTo} placeholder="End date" min={rangeFrom || undefined} borderColor={errors.dates ? P.danger : P.border} onChange={e => { setRangeTo(e.target.value); }} />
               </div>
             </div>
-            {errors.dates && <div style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.danger, marginTop: 4 }}>{errors.dates}</div>}
+            {errors.dates && <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.danger, marginTop: 4 }}>{errors.dates}</div>}
           </div>
 
           {/* Duration + edit selection */}
@@ -2857,7 +2857,7 @@ function AddTimeOffModal({ existing, onClose, onSave, requests = [], defaultDate
             <div style={{ borderRadius: 8, overflow: 'hidden', background: P.bg, border: `1px solid ${P.border}` }}>
               <div style={{ padding: '8px 12px', display: 'flex', alignItems: 'center', gap: 6 }}>
                 <Icon name="CalendarDays" size={13} color={P.inkSoft} />
-                <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, flex: 1 }}>
+                <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, flex: 1 }}>
                   {days === 0.5 ? '½ working day' : days === 1 ? '1 working day' : `${days} working days`}
                   {startD && endD && startD.getTime() !== endD.getTime() && (
                     <span style={{ color: P.inkFaint }}> · {fmtDisplay(startD)} – {fmtDisplay(endD)}</span>
@@ -2865,7 +2865,7 @@ function AddTimeOffModal({ existing, onClose, onSave, requests = [], defaultDate
                 </span>
                 <button onClick={() => setShowEditSelection(v => !v)} style={{
                   border: 'none', background: 'transparent', cursor: 'pointer', padding: 0,
-                  fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, color: P.ink,
+                  fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.ink,
                   textDecoration: 'underline', textUnderlineOffset: 2,
                 }}>
                   {showEditSelection ? 'Done' : 'Edit days'}
@@ -2881,7 +2881,7 @@ function AddTimeOffModal({ existing, onClose, onSave, requests = [], defaultDate
                     const isLast = idx === sortedPicked.length - 1;
                     return (
                       <div key={iso} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 0', borderBottom: isLast ? 'none' : `1px solid ${P.border}` }}>
-                        <span style={{ flex: 1, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, color: P.ink }}>{label}</span>
+                        <span style={{ flex: 1, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.ink }}>{label}</span>
                         <HalfDayPickerAdmin value={hv} onChange={(v) => setHalfDay(hd => {
                           const c = { ...hd };
                           if (v === 'full') delete c[iso]; else c[iso] = v;
@@ -2900,7 +2900,7 @@ function AddTimeOffModal({ existing, onClose, onSave, requests = [], defaultDate
 
           {/* Note — always shown */}
           <div>
-            <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.inkSoft, marginBottom: 6 }}>Notes <span style={{ fontWeight: 400 }}>(optional)</span></label>
+            <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.inkSoft, marginBottom: 6 }}>Notes <span style={{ fontWeight: 400 }}>(optional)</span></label>
             <textarea value={note} onChange={e => setNote(e.target.value)} rows={2} placeholder={scope === 'collective' ? 'e.g. Replacement for Christmas Day which fell on a Sunday…' : 'Reason or additional context…'} style={{ ...inputStyle, resize: 'none', lineHeight: 1.5 }} />
           </div>
 
@@ -2910,14 +2910,14 @@ function AddTimeOffModal({ existing, onClose, onSave, requests = [], defaultDate
             if (!rule) return null;
             return (
               <div>
-                <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.inkSoft, marginBottom: 6 }}>{rule.label}</label>
-                <p style={{ margin: '0 0 8px', fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkFaint }}>{rule.note}</p>
+                <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.inkSoft, marginBottom: 6 }}>{rule.label}</label>
+                <p style={{ margin: '0 0 8px', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkFaint }}>{rule.note}</p>
                 {attachment ? (
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', borderRadius: 7, border: `1px solid ${P.border}`, background: P.bg }}>
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={P.inkSoft} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
                     </svg>
-                    <span style={{ flex: 1, fontFamily: 'var(--font-body)', fontSize: 12, color: P.ink }}>{attachment}</span>
+                    <span style={{ flex: 1, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.ink }}>{attachment}</span>
                     <button onClick={() => setAttachment(null)} style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: 2, display: 'flex' }}>
                       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={P.inkFaint} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
@@ -2929,7 +2929,7 @@ function AddTimeOffModal({ existing, onClose, onSave, requests = [], defaultDate
                     width: '100%', padding: '11px 16px', borderRadius: 7,
                     border: `1.5px dashed ${P.border}`, background: 'transparent', cursor: 'pointer',
                     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                    fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, color: P.inkSoft,
+                    fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.inkSoft,
                   }}>
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={P.inkSoft} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
@@ -2941,8 +2941,8 @@ function AddTimeOffModal({ existing, onClose, onSave, requests = [], defaultDate
                   <div onClick={() => setNotifyEmployee(v => !v)} style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 8, padding: '10px 12px', borderRadius: 8, border: `1px solid ${P.border}`, background: P.bg, cursor: 'pointer', userSelect: 'none' }}>
                     <Switch checked={notifyEmployee} size="sm" />
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.ink }}>Request {rule.label.toLowerCase()} from employee</div>
-                      <div style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkSoft, marginTop: 2 }}>Sends an email asking the employee to upload the document</div>
+                      <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink }}>Request {rule.label.toLowerCase()} from employee</div>
+                      <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginTop: 2 }}>Sends an email asking the employee to upload the document</div>
                     </div>
                   </div>
                 )}
@@ -2955,13 +2955,13 @@ function AddTimeOffModal({ existing, onClose, onSave, requests = [], defaultDate
         <div style={{ flexShrink: 0, padding: '14px 24px', borderTop: `1px solid ${P.border}`, display: 'flex', alignItems: 'center', gap: 10 }}>
           <button onClick={close} style={{
             padding: '8px 18px', borderRadius: 8, border: `1px solid ${P.borderStrong}`, background: 'transparent',
-            color: P.ink, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13,
+            color: P.ink, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)',
           }}>Cancel</button>
           <div style={{ flex: 1 }} />
           <button onClick={() => handleSave(close)} style={{
             padding: '8px 20px', borderRadius: 8, border: 'none',
             background: P.action, color: '#fff', cursor: 'pointer',
-            fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13,
+            fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)',
           }}>{isEdit ? (allEmployees ? 'Save closure' : 'Save changes') : (allEmployees ? 'Add closure' : 'Confirm absence')}</button>
         </div>
         </>
@@ -3044,17 +3044,17 @@ function AvatarStack({ people }) {
                 transform: 'translateX(-50%) translateY(-100%)',
                 padding: '4px 8px', borderRadius: 6,
                 background: P.action, color: '#fff',
-                fontSize: 13, fontWeight: 600, fontFamily: 'var(--font-display)',
+                fontSize: 'var(--fs-body-sm)', fontWeight: 600, fontFamily: 'var(--font-display)',
                 whiteSpace: 'nowrap', pointerEvents: 'none', zIndex: 9999,
                 display: 'flex', alignItems: 'baseline', gap: 5,
               }}>
                 {name}
                 <span style={{ opacity: 0.45, fontWeight: 400 }}>·</span>
-                <span style={{ fontSize: 12, fontWeight: 500, opacity: 0.7 }}>
+                <span style={{ fontSize: 'var(--fs-body-xs)', fontWeight: 500, opacity: 0.7 }}>
                   {p.days === 1 ? p.startDate : `${p.startDate} – ${p.endDate}`}
                 </span>
                 <span style={{ opacity: 0.45, fontWeight: 400 }}>·</span>
-                <span style={{ fontSize: 12, fontWeight: 500, opacity: 0.7 }}>
+                <span style={{ fontSize: 'var(--fs-body-xs)', fontWeight: 500, opacity: 0.7 }}>
                   {p.days} {p.days === 1 ? 'day' : 'days'}
                 </span>
               </span>,
@@ -3113,7 +3113,7 @@ function OverlapPopover({ req, overlapping, empDept }) {
   };
 
   if (sameDept.length === 0) {
-    return <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkFaint }}>—</span>;
+    return <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkFaint }}>—</span>;
   }
 
   return (
@@ -3133,7 +3133,7 @@ function OverlapPopover({ req, overlapping, empDept }) {
         }}>
           {sameDept.length > 0 && <>
             <div style={{ padding: '10px 14px 8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <span style={{ fontFamily: 'var(--font-body)', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: P.inkFaint }}>
+              <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: P.inkFaint }}>
                 {empDept} also off
               </span>
               {sameDept.length >= 2 && (
@@ -3148,10 +3148,10 @@ function OverlapPopover({ req, overlapping, empDept }) {
                 <div key={r.id} style={{ padding: '8px 14px', display: 'flex', alignItems: 'center', gap: 9, borderTop: `1px solid ${P.border}` }}>
                   <Avatar employeeId={r.employee} size={28} />
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, fontWeight: 400, color: P.ink, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{e2?.name || r.employee}</div>
-                    <div style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkSoft, marginTop: 1 }}>{period}</div>
+                    <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', fontWeight: 400, color: P.ink, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{e2?.name || r.employee}</div>
+                    <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginTop: 1 }}>{period}</div>
                   </div>
-                  {od > 0 && <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkSoft, flexShrink: 0 }}>{od}d overlap</span>}
+                  {od > 0 && <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, flexShrink: 0 }}>{od}d overlap</span>}
                 </div>
               );
             })}
@@ -3181,8 +3181,8 @@ function ExpenseDrawer({ expense, onClose, onApprove, onReject, onEdit, categori
   const editSlide   = secondPanel ? 'translateX(0)'     : 'translateX(100%)';
   const slideTransition = `transform ${SLIDE_DUR}ms ${EASE_DRAWER}`;
 
-  const labelStyle = { flexShrink: 0, fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.ink, whiteSpace: 'nowrap' };
-  const valueStyle = { flex: 1, minWidth: 0, fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.inkSoft, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 8 };
+  const labelStyle = { flexShrink: 0, fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: P.ink, whiteSpace: 'nowrap' };
+  const valueStyle = { flex: 1, minWidth: 0, fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: P.inkSoft, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 8 };
 
   const TableRow = ({ label, icon, children }) => (
     <div style={{ display: 'flex', alignItems: 'center', padding: '16px 24px', gap: 16 }}>
@@ -3194,7 +3194,7 @@ function ExpenseDrawer({ expense, onClose, onApprove, onReject, onEdit, categori
     </div>
   );
   const SectionHeader = ({ children }) => (
-    <div style={{ padding: '24px 24px 6px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 10, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+    <div style={{ padding: '24px 24px 6px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
       {children}
     </div>
   );
@@ -3223,7 +3223,7 @@ function ExpenseDrawer({ expense, onClose, onApprove, onReject, onEdit, categori
           <Avatar employeeId={expense.employee} size={22} />
         </TableRow>
         <TableRow label="Amount" icon="coins">
-          <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 14, color: P.ink }}>{amountStr}</span>
+          <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-sm)', color: P.ink }}>{amountStr}</span>
         </TableRow>
         <TableRow label="Category" icon="tag">
           {expense.category}
@@ -3272,10 +3272,10 @@ function ExpenseDrawer({ expense, onClose, onApprove, onReject, onEdit, categori
               <div style={{ flexShrink: 0, padding: '12px 20px', borderTop: `1px solid ${P.border}`, display: 'flex', gap: 10 }}>
                 <Button variant="secondary" icon="pencil" onClick={() => { setEditAmount(String(expense.amount)); setEditCategory(expense.category); setEditDescription(expense.description || ''); setEditMode(true); }}>Edit</Button>
                 <div style={{ marginLeft: 'auto', display: 'flex', gap: 10 }}>
-                  <button onClick={() => { setRejectReason(''); setRejectMode(true); }} style={{ padding: '10px 18px', borderRadius: 10, border: '1px solid var(--alert-200)', background: P.dangerBg, color: P.danger, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <button onClick={() => { setRejectReason(''); setRejectMode(true); }} style={{ padding: '10px 18px', borderRadius: 10, border: '1px solid var(--alert-200)', background: P.dangerBg, color: P.danger, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', display: 'flex', alignItems: 'center', gap: 6 }}>
                     <Icon name="X" size={13} color={P.danger} strokeWidth={2.5} /> Reject
                   </button>
-                  <button onClick={() => { onApprove(expense.id); close(); }} style={{ padding: '10px 18px', borderRadius: 10, border: 'none', background: P.ink, color: P.white, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <button onClick={() => { onApprove(expense.id); close(); }} style={{ padding: '10px 18px', borderRadius: 10, border: 'none', background: P.ink, color: P.white, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', display: 'flex', alignItems: 'center', gap: 6 }}>
                     <Icon name="Check" size={13} color={P.white} strokeWidth={2.5} /> Approve
                   </button>
                 </div>
@@ -3288,43 +3288,43 @@ function ExpenseDrawer({ expense, onClose, onApprove, onReject, onEdit, categori
               <>
                 <div style={{ flex: 1, overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column', gap: 16 }}>
                   <div>
-                    <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 10, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Amount</label>
+                    <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Amount</label>
                     <div style={{ display: 'flex', alignItems: 'center', border: `1px solid ${P.border}`, borderRadius: 8, background: P.bg, overflow: 'hidden' }}>
-                      <span style={{ padding: '10px 12px', fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, borderRight: `1px solid ${P.border}` }}>€</span>
-                      <input type="number" step="0.01" value={editAmount} onChange={e => setEditAmount(e.target.value)} style={{ flex: 1, padding: '10px 12px', border: 'none', background: 'transparent', fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink, outline: 'none' }} />
+                      <span style={{ padding: '10px 12px', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, borderRight: `1px solid ${P.border}` }}>€</span>
+                      <input type="number" step="0.01" value={editAmount} onChange={e => setEditAmount(e.target.value)} style={{ flex: 1, padding: '10px 12px', border: 'none', background: 'transparent', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, outline: 'none' }} />
                     </div>
                   </div>
                   <div>
-                    <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 10, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Category</label>
-                    <select value={editCategory} onChange={e => setEditCategory(e.target.value)} style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: `1px solid ${P.border}`, background: P.bg, fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink, outline: 'none', cursor: 'pointer' }}>
+                    <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Category</label>
+                    <select value={editCategory} onChange={e => setEditCategory(e.target.value)} style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: `1px solid ${P.border}`, background: P.bg, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, outline: 'none', cursor: 'pointer' }}>
                       {!categories.find(c => c.name === editCategory) && <option value={editCategory}>{editCategory}</option>}
                       {categories.map(c => <option key={c.name} value={c.name}>{c.name}</option>)}
                     </select>
                   </div>
                   <div>
-                    <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 10, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Description</label>
-                    <textarea value={editDescription} onChange={e => setEditDescription(e.target.value)} rows={3} style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: `1px solid ${P.border}`, background: P.bg, fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink, resize: 'none', lineHeight: 1.5, boxSizing: 'border-box', outline: 'none' }} />
+                    <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Description</label>
+                    <textarea value={editDescription} onChange={e => setEditDescription(e.target.value)} rows={3} style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: `1px solid ${P.border}`, background: P.bg, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, resize: 'none', lineHeight: 1.5, boxSizing: 'border-box', outline: 'none' }} />
                   </div>
                 </div>
                 <div style={{ flexShrink: 0, padding: '12px 20px', borderTop: `1px solid ${P.border}`, display: 'flex', gap: 10 }}>
-                  <button onClick={() => setEditMode(false)} style={{ flex: 1, padding: '10px 0', borderRadius: 10, border: `1px solid ${P.border}`, background: 'transparent', color: P.inkSoft, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>Cancel</button>
-                  <button onClick={() => { const amt = parseFloat(editAmount); if (!isNaN(amt)) { onEdit && onEdit(expense.id, { amount: amt, category: editCategory, description: editDescription }); } setEditMode(false); }} style={{ flex: 2, padding: '10px 0', borderRadius: 10, border: 'none', background: P.ink, color: P.white, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>Save changes</button>
+                  <button onClick={() => setEditMode(false)} style={{ flex: 1, padding: '10px 0', borderRadius: 10, border: `1px solid ${P.border}`, background: 'transparent', color: P.inkSoft, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)' }}>Cancel</button>
+                  <button onClick={() => { const amt = parseFloat(editAmount); if (!isNaN(amt)) { onEdit && onEdit(expense.id, { amount: amt, category: editCategory, description: editDescription }); } setEditMode(false); }} style={{ flex: 2, padding: '10px 0', borderRadius: 10, border: 'none', background: P.ink, color: P.white, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)' }}>Save changes</button>
                 </div>
               </>
             ) : (
               <>
                 <div style={{ flex: 1, overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column', gap: 16 }}>
-                  <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, lineHeight: 1.5 }}>
+                  <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: 1.5 }}>
                     You're rejecting <strong style={{ color: P.ink }}>{emp.name}</strong>'s {expense.category} expense ({amountStr}).
                   </p>
                   <div>
-                    <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 10, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Reason <span style={{ textTransform: 'none', fontWeight: 400 }}>(optional)</span></label>
-                    <textarea value={rejectReason} onChange={e => setRejectReason(e.target.value)} placeholder="Explain why this expense is being rejected…" rows={3} style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: `1px solid ${P.border}`, background: P.bg, fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink, resize: 'none', lineHeight: 1.5, boxSizing: 'border-box', outline: 'none' }} />
+                    <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Reason <span style={{ textTransform: 'none', fontWeight: 400 }}>(optional)</span></label>
+                    <textarea value={rejectReason} onChange={e => setRejectReason(e.target.value)} placeholder="Explain why this expense is being rejected…" rows={3} style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: `1px solid ${P.border}`, background: P.bg, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, resize: 'none', lineHeight: 1.5, boxSizing: 'border-box', outline: 'none' }} />
                   </div>
                 </div>
                 <div style={{ flexShrink: 0, padding: '12px 20px', borderTop: `1px solid ${P.border}`, display: 'flex', gap: 10 }}>
-                  <button onClick={() => setRejectMode(false)} style={{ flex: 1, padding: '10px 0', borderRadius: 10, border: `1px solid ${P.border}`, background: 'transparent', color: P.inkSoft, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>Go back</button>
-                  <button onClick={() => { onReject(expense.id, rejectReason); close(); }} style={{ flex: 2, padding: '10px 0', borderRadius: 10, border: 'none', background: P.danger, color: P.white, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>Confirm rejection</button>
+                  <button onClick={() => setRejectMode(false)} style={{ flex: 1, padding: '10px 0', borderRadius: 10, border: `1px solid ${P.border}`, background: 'transparent', color: P.inkSoft, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)' }}>Go back</button>
+                  <button onClick={() => { onReject(expense.id, rejectReason); close(); }} style={{ flex: 2, padding: '10px 0', borderRadius: 10, border: 'none', background: P.danger, color: P.white, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)' }}>Confirm rejection</button>
                 </div>
               </>
             )}
@@ -3388,8 +3388,8 @@ function ChoiceDrawer({ choice, onClose, onApprove, onDecline }) {
     return events.reverse();
   }, [choice]);
 
-  const labelStyle = { flexShrink: 0, fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.ink, whiteSpace: 'nowrap' };
-  const valueStyle = { flex: 1, minWidth: 0, fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.inkSoft, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 8 };
+  const labelStyle = { flexShrink: 0, fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: P.ink, whiteSpace: 'nowrap' };
+  const valueStyle = { flex: 1, minWidth: 0, fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: P.inkSoft, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 8 };
   const TableRow = ({ label, icon, children }) => (
     <div style={{ display: 'flex', alignItems: 'center', padding: '16px 24px', gap: 16 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 7, flexShrink: 0 }}>
@@ -3402,12 +3402,12 @@ function ChoiceDrawer({ choice, onClose, onApprove, onDecline }) {
   const ActionRow = ({ icon, label, onClick }) => (
     <div onClick={onClick} style={{ display: 'flex', alignItems: 'center', padding: '14px 24px', cursor: 'pointer', gap: 12 }}>
       <Icon name={icon} size={15} color={P.inkSoft} strokeWidth={1.75} style={{ flexShrink: 0 }} />
-      <span style={{ flex: 1, fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.ink }}>{label}</span>
+      <span style={{ flex: 1, fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: P.ink }}>{label}</span>
       <Icon name="chevron-right" size={14} color={P.inkFaint} strokeWidth={2} />
     </div>
   );
   const SectionHeader = ({ children }) => (
-    <div style={{ padding: '24px 24px 6px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 10, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+    <div style={{ padding: '24px 24px 6px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
       {children}
     </div>
   );
@@ -3441,17 +3441,17 @@ function ChoiceDrawer({ choice, onClose, onApprove, onDecline }) {
                       <div style={{ marginBottom: 32 }}>
                         <StatusPill status={choice.status || 'approved'} />
                       </div>
-                      <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 15, color: P.ink, lineHeight: 1.35, marginBottom: 8 }}>
+                      <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-md)', color: P.ink, lineHeight: 1.35, marginBottom: 8 }}>
                         {choice.name}
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
-                        <span style={{ fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: 12, color: P.inkSoft }}>via</span>
+                        <span style={{ fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>via</span>
                         <img src="assets/coolblue-logo.png" alt="Coolblue" style={{ height: 14, objectFit: 'contain', display: 'block' }} />
-                        <span style={{ fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: 12, color: P.inkSoft }}>Coolblue</span>
+                        <span style={{ fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>Coolblue</span>
                       </div>
                       <div style={{ display: 'flex', alignItems: 'baseline', gap: 5 }}>
                         <span style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 26, color: P.ink, letterSpacing: '-0.02em' }}>{choice.price.replace(' EUR', '')}</span>
-                        <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.inkSoft }}>EUR</span>
+                        <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.inkSoft }}>EUR</span>
                       </div>
                     </div>
                     {choice.illustration
@@ -3465,11 +3465,11 @@ function ChoiceDrawer({ choice, onClose, onApprove, onDecline }) {
                   <div style={{ display: 'flex', alignItems: 'center', padding: '16px 0 0', gap: 16 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 7, flexShrink: 0 }}>
                       <Icon name="user" size={14} color={P.inkSoft} strokeWidth={1.75} />
-                      <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.ink }}>Requested by</span>
+                      <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: P.ink }}>Requested by</span>
                     </div>
                     <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 8 }}>
                       <Avatar employeeId={choice.empId} size={20} />
-                      <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.inkSoft }}>{emp.name}</span>
+                      <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: P.inkSoft }}>{emp.name}</span>
                     </div>
                   </div>
                 </div>
@@ -3480,7 +3480,7 @@ function ChoiceDrawer({ choice, onClose, onApprove, onDecline }) {
                 <Group>
                   <TableRow label="Product" icon="package">
                     {choice.productUrl
-                      ? <a href={choice.productUrl} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: P.ink, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, textDecoration: 'underline', textAlign: 'right' }}>
+                      ? <a href={choice.productUrl} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: P.ink, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', textDecoration: 'underline', textAlign: 'right' }}>
                           <span style={{ whiteSpace: 'normal', lineHeight: 1.4 }}>{choice.productName}</span>
                           <Icon name="ExternalLink" size={12} color={P.inkSoft} strokeWidth={2} style={{ flexShrink: 0 }} />
                         </a>
@@ -3506,11 +3506,11 @@ function ChoiceDrawer({ choice, onClose, onApprove, onDecline }) {
                     <div key={i} style={{ display: 'flex', alignItems: 'center', padding: '10px 24px', gap: 16 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 7, flexShrink: 0 }}>
                         <Icon name="arrow-right-left" size={14} color={P.inkSoft} strokeWidth={1.75} style={{ flexShrink: 0 }} />
-                        <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.ink, whiteSpace: 'nowrap' }}>{t.label}</span>
+                        <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: P.ink, whiteSpace: 'nowrap' }}>{t.label}</span>
                       </div>
                       <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
-                        <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.ink }}>{t.amount}</span>
-                        <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkFaint }}>{t.date}</span>
+                        <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink }}>{t.amount}</span>
+                        <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkFaint }}>{t.date}</span>
                       </div>
                     </div>
                   ))}
@@ -3540,17 +3540,17 @@ function ChoiceDrawer({ choice, onClose, onApprove, onDecline }) {
             {/* Footer */}
             {isPending && (
               <div style={{ flexShrink: 0, padding: '12px 20px', borderTop: `1px solid ${P.border}`, display: 'flex', gap: 10 }}>
-                <button onClick={() => { setDeclineReason(''); setActivePanel('decline'); }} style={{ flex: 1, padding: '10px 0', borderRadius: 10, border: '1px solid var(--alert-200)', background: P.dangerBg, color: P.danger, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                <button onClick={() => { setDeclineReason(''); setActivePanel('decline'); }} style={{ flex: 1, padding: '10px 0', borderRadius: 10, border: '1px solid var(--alert-200)', background: P.dangerBg, color: P.danger, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
                   <Icon name="X" size={13} color={P.danger} strokeWidth={2.5} /> Decline
                 </button>
-                <button onClick={() => { onApprove(choice.id); close(); }} style={{ flex: 1, padding: '10px 0', borderRadius: 10, border: 'none', background: P.ink, color: P.white, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                <button onClick={() => { onApprove(choice.id); close(); }} style={{ flex: 1, padding: '10px 0', borderRadius: 10, border: 'none', background: P.ink, color: P.white, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
                   <Icon name="Check" size={13} color={P.white} strokeWidth={2.5} /> Approve
                 </button>
               </div>
             )}
             {isApproved && (
               <div style={{ flexShrink: 0, padding: '12px 20px', borderTop: `1px solid ${P.border}` }}>
-                <button onClick={() => { setDeclineReason(''); setActivePanel('decline'); }} style={{ width: '100%', padding: '10px 0', borderRadius: 10, border: '1px solid var(--alert-200)', background: P.dangerBg, color: P.danger, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                <button onClick={() => { setDeclineReason(''); setActivePanel('decline'); }} style={{ width: '100%', padding: '10px 0', borderRadius: 10, border: '1px solid var(--alert-200)', background: P.dangerBg, color: P.danger, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
                   <Icon name="X" size={13} color={P.danger} strokeWidth={2.5} /> Reject choice
                 </button>
               </div>
@@ -3563,20 +3563,20 @@ function ChoiceDrawer({ choice, onClose, onApprove, onDecline }) {
             {/* Decline / Reject panel */}
             {activePanel === 'decline' && (<>
               <div style={{ flex: 1, overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column', gap: 16 }}>
-                <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, lineHeight: 1.5 }}>
+                <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: 1.5 }}>
                   {isPending
                     ? <>You're declining <strong style={{ color: P.ink }}>{emp.name}</strong>'s request for {choice.name}.</>
                     : <>You're revoking the approval for <strong style={{ color: P.ink }}>{emp.name}</strong>'s {choice.name}. This cannot be undone.</>
                   }
                 </p>
                 <div>
-                  <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 10, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Reason <span style={{ textTransform: 'none', fontWeight: 400 }}>(optional)</span></label>
-                  <textarea value={declineReason} onChange={e => setDeclineReason(e.target.value)} placeholder="Explain why this choice is being declined…" rows={3} style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: `1px solid ${P.border}`, background: P.bg, fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink, resize: 'none', lineHeight: 1.5, boxSizing: 'border-box', outline: 'none' }} />
+                  <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Reason <span style={{ textTransform: 'none', fontWeight: 400 }}>(optional)</span></label>
+                  <textarea value={declineReason} onChange={e => setDeclineReason(e.target.value)} placeholder="Explain why this choice is being declined…" rows={3} style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: `1px solid ${P.border}`, background: P.bg, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, resize: 'none', lineHeight: 1.5, boxSizing: 'border-box', outline: 'none' }} />
                 </div>
               </div>
               <div style={{ flexShrink: 0, padding: '12px 20px', borderTop: `1px solid ${P.border}`, display: 'flex', gap: 10 }}>
-                <button onClick={() => setActivePanel(null)} style={{ flex: 1, padding: '10px 0', borderRadius: 10, border: `1px solid ${P.border}`, background: 'transparent', color: P.inkSoft, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>Go back</button>
-                <button onClick={() => { onDecline(choice.id, declineReason); close(); }} style={{ flex: 2, padding: '10px 0', borderRadius: 10, border: 'none', background: P.danger, color: P.white, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>
+                <button onClick={() => setActivePanel(null)} style={{ flex: 1, padding: '10px 0', borderRadius: 10, border: `1px solid ${P.border}`, background: 'transparent', color: P.inkSoft, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)' }}>Go back</button>
+                <button onClick={() => { onDecline(choice.id, declineReason); close(); }} style={{ flex: 2, padding: '10px 0', borderRadius: 10, border: 'none', background: P.danger, color: P.white, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)' }}>
                   {isPending ? 'Confirm decline' : 'Confirm rejection'}
                 </button>
               </div>
@@ -3586,18 +3586,18 @@ function ChoiceDrawer({ choice, onClose, onApprove, onDecline }) {
             {activePanel === 'payslip' && (
               <div style={{ flex: 1, overflowY: 'auto' }}>
                 <div style={{ padding: '16px 24px 12px' }}>
-                  <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, lineHeight: 1.5 }}>
+                  <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: 1.5 }}>
                     Benefits may affect your payslip by either boosting your gross salary with reimbursements or reducing it through deductions such as Benefit in Kind.
                   </p>
                 </div>
                 {payslipRows.length === 0
-                  ? <div style={{ padding: '32px 0', textAlign: 'center', color: P.inkFaint, fontFamily: 'var(--font-body)', fontSize: 13 }}>No payslip data available</div>
+                  ? <div style={{ padding: '32px 0', textAlign: 'center', color: P.inkFaint, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)' }}>No payslip data available</div>
                   : (() => {
                       const todayIdx = payslipRows.findIndex(r => !r.past);
                       return (
                         <div style={{ paddingBottom: 24 }}>
                           {/* Section header */}
-                          <div style={{ padding: '4px 24px 8px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 10, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                          <div style={{ padding: '4px 24px 8px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
                             Benefit in Kind
                           </div>
                           {payslipRows.map((row, i) => (
@@ -3606,7 +3606,7 @@ function ChoiceDrawer({ choice, onClose, onApprove, onDecline }) {
                               {i === todayIdx && todayIdx > 0 && (
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 24px' }}>
                                   <div style={{ flex: 1, height: 1, background: P.border }} />
-                                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 10, color: P.inkSoft, textTransform: 'uppercase', letterSpacing: '0.06em', flexShrink: 0 }}>Today</span>
+                                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.inkSoft, textTransform: 'uppercase', letterSpacing: '0.06em', flexShrink: 0 }}>Today</span>
                                   <div style={{ flex: 1, height: 1, background: P.border }} />
                                 </div>
                               )}
@@ -3614,8 +3614,8 @@ function ChoiceDrawer({ choice, onClose, onApprove, onDecline }) {
                                 <div style={{ height: 1, background: P.border, marginLeft: 24 }} />
                               )}
                               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '11px 24px' }}>
-                                <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: row.past ? P.inkSoft : P.ink }}>{row.period}</span>
-                                <span style={{ fontFamily: 'var(--font-display)', fontWeight: row.past ? 400 : 600, fontSize: 14, color: row.past ? P.inkSoft : P.ink, flexShrink: 0 }}>{row.amount}</span>
+                                <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: row.past ? P.inkSoft : P.ink }}>{row.period}</span>
+                                <span style={{ fontFamily: 'var(--font-display)', fontWeight: row.past ? 400 : 600, fontSize: 'var(--fs-body-sm)', color: row.past ? P.inkSoft : P.ink, flexShrink: 0 }}>{row.amount}</span>
                               </div>
                             </React.Fragment>
                           ))}
@@ -3630,7 +3630,7 @@ function ChoiceDrawer({ choice, onClose, onApprove, onDecline }) {
             {activePanel === 'activity' && (
               <div style={{ flex: 1, overflowY: 'auto' }}>
                 <div style={{ padding: '16px 24px 12px' }}>
-                  <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, lineHeight: 1.5 }}>
+                  <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: 1.5 }}>
                     Track all changes and updates to this choice.
                   </p>
                 </div>
@@ -3647,17 +3647,17 @@ function ChoiceDrawer({ choice, onClose, onApprove, onDecline }) {
             {/* Terminate early panel */}
             {activePanel === 'terminate' && (<>
               <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 20 }}>
-                <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, lineHeight: 1.5 }}>
+                <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: 1.5 }}>
                   Set the termination date and provide a reason to end this choice early.
                 </p>
                 <div>
-                  <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.ink, marginBottom: 4 }}>Termination date</label>
-                  <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, marginBottom: 10 }}>When should this choice officially end?</div>
-                  <input type="date" value={terminateDate} onChange={e => setTerminateDate(e.target.value)} style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: `1px solid ${P.border}`, fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink, boxSizing: 'border-box', outline: 'none', background: P.white }} />
+                  <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink, marginBottom: 4 }}>Termination date</label>
+                  <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, marginBottom: 10 }}>When should this choice officially end?</div>
+                  <input type="date" value={terminateDate} onChange={e => setTerminateDate(e.target.value)} style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: `1px solid ${P.border}`, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, boxSizing: 'border-box', outline: 'none', background: P.white }} />
                 </div>
                 <div>
-                  <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.ink, marginBottom: 10 }}>Reason for termination</label>
-                  <select value={terminateReason} onChange={e => setTerminateReason(e.target.value)} style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: `1px solid ${terminateReason ? P.border : P.border}`, fontFamily: 'var(--font-body)', fontSize: 14, color: terminateReason ? P.ink : P.inkSoft, boxSizing: 'border-box', outline: 'none', background: P.white, appearance: 'none', cursor: 'pointer' }}>
+                  <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink, marginBottom: 10 }}>Reason for termination</label>
+                  <select value={terminateReason} onChange={e => setTerminateReason(e.target.value)} style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: `1px solid ${terminateReason ? P.border : P.border}`, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: terminateReason ? P.ink : P.inkSoft, boxSizing: 'border-box', outline: 'none', background: P.white, appearance: 'none', cursor: 'pointer' }}>
                     <option value="" disabled>Select a reason</option>
                     {['Broken', 'Other', 'Stolen', 'Terminated by benefit partner'].map(r => (
                       <option key={r} value={r}>{r}</option>
@@ -3666,21 +3666,21 @@ function ChoiceDrawer({ choice, onClose, onApprove, onDecline }) {
                 </div>
                 <div style={{ background: '#fff7ed', border: '1px solid #fed7aa', borderRadius: 10, padding: '12px 14px', display: 'flex', gap: 10 }}>
                   <Icon name="triangle-alert" size={16} color="#ea580c" strokeWidth={1.75} style={{ flexShrink: 0, marginTop: 1 }} />
-                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: '#9a3412', lineHeight: 1.5 }}>This action cannot be undone. The choice will be permanently terminated on the date specified.</span>
+                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: '#9a3412', lineHeight: 1.5 }}>This action cannot be undone. The choice will be permanently terminated on the date specified.</span>
                 </div>
                 <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, cursor: 'pointer' }}>
                   <input type="checkbox" checked={terminateAcknowledged} onChange={e => setTerminateAcknowledged(e.target.checked)} style={{ marginTop: 2, flexShrink: 0, accentColor: P.action }} />
-                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, lineHeight: 1.5 }}>I understand that this does not automatically recalculate payment amounts and that manual changes are still needed.</span>
+                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: 1.5 }}>I understand that this does not automatically recalculate payment amounts and that manual changes are still needed.</span>
                 </label>
               </div>
               <div style={{ flexShrink: 0, padding: '12px 20px', borderTop: `1px solid ${P.border}`, display: 'flex', flexDirection: 'column', gap: 8 }}>
                 <button
                   disabled={!terminateReason || !terminateAcknowledged}
                   onClick={() => close()}
-                  style={{ width: '100%', padding: '10px 0', borderRadius: 10, border: 'none', background: (!terminateReason || !terminateAcknowledged) ? P.border : P.ink, color: (!terminateReason || !terminateAcknowledged) ? P.inkSoft : P.white, cursor: (!terminateReason || !terminateAcknowledged) ? 'not-allowed' : 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>
+                  style={{ width: '100%', padding: '10px 0', borderRadius: 10, border: 'none', background: (!terminateReason || !terminateAcknowledged) ? P.border : P.ink, color: (!terminateReason || !terminateAcknowledged) ? P.inkSoft : P.white, cursor: (!terminateReason || !terminateAcknowledged) ? 'not-allowed' : 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)' }}>
                   Confirm termination
                 </button>
-                <button onClick={() => setActivePanel(null)} style={{ width: '100%', padding: '10px 0', borderRadius: 10, border: '1px solid var(--alert-200)', background: 'transparent', color: P.danger, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>Cancel</button>
+                <button onClick={() => setActivePanel(null)} style={{ width: '100%', padding: '10px 0', borderRadius: 10, border: '1px solid var(--alert-200)', background: 'transparent', color: P.danger, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)' }}>Cancel</button>
               </div>
             </>)}
 
@@ -3693,7 +3693,7 @@ function ChoiceDrawer({ choice, onClose, onApprove, onDecline }) {
 
 // ── Table row ──────────────────────────────────────────────────────────────
 const TH = ({ children, style }) => (
-  <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.inkSoft, textTransform: 'uppercase', letterSpacing: '0.06em', ...style }}>{children}</div>
+  <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.inkSoft, textTransform: 'uppercase', letterSpacing: '0.06em', ...style }}>{children}</div>
 );
 
 const AppLink = ({ children, onClick, style }) => (
@@ -3733,18 +3733,18 @@ function RequestRow({ req, requests, onApprove, onDecline, onDetail, onDeclineDi
           <input type="checkbox" checked={selected} onClick={e => e.stopPropagation()} onChange={() => onToggle(req.id)} style={{ cursor: 'pointer', accentColor: P.action }} />
           <div style={{ display: 'flex', alignItems: 'center', gap: 9, minWidth: 0 }}>
             <Avatar employeeId={req.employee} size={24} style={{ border: '2px solid #fff', boxSizing: 'content-box' }} />
-            <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, fontWeight: 500, color: P.ink, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{emp.name}</span>
+            <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', fontWeight: 500, color: P.ink, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{emp.name}</span>
           </div>
-          {showEntity && <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{emp.entity || '—'}</span>}
+          {showEntity && <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{emp.entity || '—'}</span>}
           {showStatus && <StatusDot status={req.status} />}
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}>
             <span style={{ width: 10, height: 10, borderRadius: '50%', background: LEAVE_COLORS[req.type] || P.inkFaint, border: `1.5px solid ${LEAVE_BORDER_COLORS[req.type] || P.border}`, flexShrink: 0 }} />
-            <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink }}>{req.type}</span>
+            <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink }}>{req.type}</span>
             {req.document && <Icon name="paperclip" size={12} color={P.inkFaint} strokeWidth={1.75} style={{ flexShrink: 0 }} />}
           </span>
-          <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink }}>{req.days} {req.days === 1 ? 'day' : 'days'}</span>
-          <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink }}>{req.startDate}</span>
-          <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: req.startDate === req.endDate ? P.inkFaint : P.ink }}>
+          <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink }}>{req.days} {req.days === 1 ? 'day' : 'days'}</span>
+          <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink }}>{req.startDate}</span>
+          <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: req.startDate === req.endDate ? P.inkFaint : P.ink }}>
             {req.startDate === req.endDate ? '—' : req.endDate}
           </span>
           <span style={{ display: 'inline-flex', alignItems: 'center' }}>
@@ -3813,16 +3813,16 @@ function AddExpenseModal({ categories, onClose, onSave }) {
   const selectStyle = (hasErr) => ({
     width: '100%', padding: '9px 12px', borderRadius: 8,
     border: `1px solid ${hasErr ? P.danger : P.border}`,
-    background: P.white, fontFamily: 'var(--font-body)', fontSize: 14,
+    background: P.white, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)',
     color: P.ink, outline: 'none', appearance: 'none', cursor: 'pointer',
   });
   const inputStyle = (hasErr) => ({
     width: '100%', padding: '9px 12px', borderRadius: 8,
     border: `1px solid ${hasErr ? P.danger : P.border}`,
-    background: P.white, fontFamily: 'var(--font-body)', fontSize: 14,
+    background: P.white, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)',
     color: P.ink, outline: 'none', boxSizing: 'border-box',
   });
-  const labelStyle = { fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, color: P.inkSoft, marginBottom: 6, display: 'block' };
+  const labelStyle = { fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginBottom: 6, display: 'block' };
   const sortedEmps = Object.entries(EMPLOYEES).sort((a,b) => a[1].name.localeCompare(b[1].name));
 
   return (
@@ -3874,8 +3874,8 @@ function AddExpenseModal({ categories, onClose, onSave }) {
             {receiptFile ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', borderRadius: 8, border: `1px solid ${P.border}`, background: P.bg, opacity: receiptLeaving ? 0 : 1, transform: receiptLeaving ? 'translateX(6px)' : 'translateX(0)', transition: `opacity 150ms ${EASE_OUT}, transform 150ms ${EASE_OUT}`, animation: `fileRowIn 220ms ${EASE_OUT}` }}>
                 <Icon name="paperclip" size={14} color={P.inkFaint} />
-                <span style={{ flex: 1, fontFamily: 'var(--font-body)', fontSize: 13, color: P.ink, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{receiptFile.name}</span>
-                <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkFaint, flexShrink: 0 }}>{(receiptFile.size / 1024).toFixed(0)} KB</span>
+                <span style={{ flex: 1, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{receiptFile.name}</span>
+                <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkFaint, flexShrink: 0 }}>{(receiptFile.size / 1024).toFixed(0)} KB</span>
                 <button onClick={removeFile} style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: 2, display: 'flex', alignItems: 'center', color: P.inkFaint }}>
                   <Icon name="x" size={14} strokeWidth={2} />
                 </button>
@@ -3891,10 +3891,10 @@ function AddExpenseModal({ categories, onClose, onSave }) {
                 <span style={{ display: 'inline-flex', alignItems: 'center', transform: dragging ? 'translateY(-3px)' : 'translateY(0)', transition: `transform ${dragging ? `200ms ${EASE_OUT}` : `150ms ${EASE_BOUNCE}`}` }}>
                   <Icon name="upload" size={18} color={dragging || dropAccepted ? P.action : P.inkFaint} />
                 </span>
-                <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: dragging || dropAccepted ? P.action : P.inkSoft, transition: `color 120ms` }}>
+                <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: dragging || dropAccepted ? P.action : P.inkSoft, transition: `color 120ms` }}>
                   Drop a file or <span style={{ color: P.action, fontWeight: 600 }}>browse</span>
                 </span>
-                <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkFaint }}>PDF, PNG, JPG up to 10 MB</span>
+                <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkFaint }}>PDF, PNG, JPG up to 10 MB</span>
               </div>
             )}
           </div>
@@ -3933,14 +3933,14 @@ function ExpenseRow({ exp, onApprove, onDetail, onRejectDirectly, showStatus, sh
       <input type="checkbox" checked={!!selected} onClick={e => e.stopPropagation()} onChange={() => onToggle && onToggle(exp.id)} style={{ cursor: 'pointer', accentColor: P.action }} />
       <div style={{ display: 'flex', alignItems: 'center', gap: 9, minWidth: 0 }}>
         <Avatar employeeId={exp.employee} size={24} style={{ border: '2px solid #fff', boxSizing: 'content-box' }} />
-        <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, fontWeight: 500, color: P.ink, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{emp.name}</span>
+        <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', fontWeight: 500, color: P.ink, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{emp.name}</span>
       </div>
-      {showEntity && <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{emp.entity || '—'}</span>}
+      {showEntity && <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{emp.entity || '—'}</span>}
       {showStatus && <StatusDot status={exp.status} />}
-      <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink }}>{exp.category}</span>
-      <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{exp.description}</span>
-      <span style={{ fontFamily: 'var(--font-display)', fontSize: 14, fontWeight: 600, color: P.ink }}>{amountStr}</span>
-      <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkFaint }}>{exp.submittedAt}</span>
+      <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink }}>{exp.category}</span>
+      <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{exp.description}</span>
+      <span style={{ fontFamily: 'var(--font-display)', fontSize: 'var(--fs-body-sm)', fontWeight: 600, color: P.ink }}>{amountStr}</span>
+      <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkFaint }}>{exp.submittedAt}</span>
       <div onClick={e => e.stopPropagation()} style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4 }}>
         {exp.status === 'pending' && (<>
           <button title="Reject" onClick={(e) => { e.stopPropagation(); onRejectDirectly(exp); }}
@@ -4053,7 +4053,7 @@ function ExpensesScreen({ expenses, categories, onApprove, onDetail, onRejectDir
           {filtered.length === 0 ? (
             <div style={{ padding: '60px 24px', textAlign: 'center' }}>
               <Icon name="receipt" size={32} color={P.border} style={{ marginBottom: 12 }} />
-              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.inkFaint }}>No {tab === 'pending' ? 'pending ' : tab === 'approved' ? 'approved ' : tab === 'declined' ? 'declined ' : ''}expenses</div>
+              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.inkFaint }}>No {tab === 'pending' ? 'pending ' : tab === 'approved' ? 'approved ' : tab === 'declined' ? 'declined ' : ''}expenses</div>
             </div>
           ) : filtered.map(exp => (
             <ExpenseRow key={exp.id} exp={exp} onApprove={onApprove} onDetail={onDetail} onRejectDirectly={onRejectDirectly} showStatus={showStatus} showEntity={showEntity} selected={selected.has(exp.id)} onToggle={toggleSelect} />
@@ -4072,7 +4072,7 @@ function ExpensesScreen({ expenses, categories, onApprove, onDetail, onRejectDir
               ? `pillFadeDown 120ms ${EASE_OUT} forwards`
               : `pillFadeUp 0.15s ${EASE_OUT}`,
           }}>
-            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, color: '#fff' }}>
+            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: '#fff' }}>
               {selected.size} selected
             </span>
             {selectedPending.length > 0 && (
@@ -4080,7 +4080,7 @@ function ExpensesScreen({ expenses, categories, onApprove, onDetail, onRejectDir
                 display: 'flex', alignItems: 'center', gap: 5,
                 padding: '5px 12px', borderRadius: 7, border: 'none',
                 background: P.success, color: '#fff', cursor: 'pointer',
-                fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11,
+                fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)',
               }}>
                 <Icon name="CheckCircle" size={12} color="#fff" strokeWidth={2} />
                 Approve{selectedPending.length > 1 ? ` all ${selectedPending.length}` : ''}
@@ -4089,7 +4089,7 @@ function ExpensesScreen({ expenses, categories, onApprove, onDetail, onRejectDir
             <button onClick={() => setSelected(new Set())} style={{
               padding: '5px 10px', borderRadius: 7, border: '1px solid rgba(255,255,255,0.25)',
               background: 'transparent', color: '#fff', cursor: 'pointer',
-              fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11,
+              fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)',
             }}>Clear</button>
           </div>
         </div>
@@ -4203,15 +4203,15 @@ function RequestsScreen({ requests, onApprove, onDecline, onSave, onCancel, onVi
         {displayRows.length === 0 ? (
           <div style={{ padding: '60px 24px', textAlign: 'center' }}>
             <Icon name="Inbox" size={32} color={P.border} style={{ marginBottom: 12 }} />
-            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.inkFaint }}>No {tab === 'pending' ? 'pending ' : tab === 'approved' ? 'approved ' : tab === 'declined' ? 'declined ' : ''}requests</div>
-            <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkFaint, marginTop: 4 }}>{tab === 'pending' ? 'New requests from your team will appear here.' : ''}</div>
+            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.inkFaint }}>No {tab === 'pending' ? 'pending ' : tab === 'approved' ? 'approved ' : tab === 'declined' ? 'declined ' : ''}requests</div>
+            <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkFaint, marginTop: 4 }}>{tab === 'pending' ? 'New requests from your team will appear here.' : ''}</div>
           </div>
         ) : displayRows.map(req => (
           <RequestRow key={req.id} req={req} requests={requests} onApprove={onApprove} onDecline={onDecline} onDetail={r => { setDetailDeclineMode(false); setDetail(r); }} onDeclineDirectly={r => { setDetailDeclineMode(true); setDetail(r); }} onEdit={setEditReq} onCancel={onCancel} selected={selected.has(req.id)} onToggle={toggleSelect} onViewInCalendar={onViewInCalendar} showStatus={tab === 'all' || tab === 'declined'} showEntity={showEntity} removing={removingIds.has(req.id)} />
         ))}
         {filtered.length > 0 && (
           <div style={{ padding: '8px 16px', borderTop: `1px solid ${P.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkFaint }}>
+            <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkFaint }}>
               {(safePage - 1) * PAGE_SIZE + 1}–{Math.min(safePage * PAGE_SIZE, filtered.length)} of {filtered.length} {filtered.length === 1 ? 'record' : 'records'}
             </span>
             {pageCount > 1 && (
@@ -4219,18 +4219,18 @@ function RequestsScreen({ requests, onApprove, onDecline, onSave, onCancel, onVi
                 <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={safePage === 1} style={{
                   display: 'flex', alignItems: 'center', gap: 4, padding: '4px 10px', borderRadius: 6,
                   border: `1px solid ${P.border}`, background: P.white, cursor: safePage === 1 ? 'default' : 'pointer',
-                  fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 12,
+                  fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-xs)',
                   color: safePage === 1 ? P.inkFaint : P.ink, opacity: safePage === 1 ? 0.5 : 1,
                 }}>
                   <Icon name="ChevronLeft" size={13} color={safePage === 1 ? P.inkFaint : P.ink} strokeWidth={2} /> Prev
                 </button>
-                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 12, color: P.inkSoft, padding: '0 6px' }}>
+                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-xs)', color: P.inkSoft, padding: '0 6px' }}>
                   {safePage} / {pageCount}
                 </span>
                 <button onClick={() => setPage(p => Math.min(pageCount, p + 1))} disabled={safePage === pageCount} style={{
                   display: 'flex', alignItems: 'center', gap: 4, padding: '4px 10px', borderRadius: 6,
                   border: `1px solid ${P.border}`, background: P.white, cursor: safePage === pageCount ? 'default' : 'pointer',
-                  fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 12,
+                  fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-xs)',
                   color: safePage === pageCount ? P.inkFaint : P.ink, opacity: safePage === pageCount ? 0.5 : 1,
                 }}>
                   Next <Icon name="ChevronRight" size={13} color={safePage === pageCount ? P.inkFaint : P.ink} strokeWidth={2} />
@@ -4253,7 +4253,7 @@ function RequestsScreen({ requests, onApprove, onDecline, onSave, onCancel, onVi
               ? `pillFadeDown 120ms ${EASE_OUT} forwards`
               : `pillFadeUp 0.15s ${EASE_OUT}`,
           }}>
-            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, color: '#fff' }}>
+            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: '#fff' }}>
               {selected.size} selected
             </span>
             {selectedPending.length > 0 && (
@@ -4261,7 +4261,7 @@ function RequestsScreen({ requests, onApprove, onDecline, onSave, onCancel, onVi
                 display: 'flex', alignItems: 'center', gap: 5,
                 padding: '5px 12px', borderRadius: 7, border: 'none',
                 background: P.success, color: '#fff', cursor: 'pointer',
-                fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11,
+                fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)',
               }}>
                 <Icon name="CheckCircle" size={12} color="#fff" strokeWidth={2} />
                 Approve{selectedPending.length > 1 ? ` all ${selectedPending.length}` : ''}
@@ -4270,7 +4270,7 @@ function RequestsScreen({ requests, onApprove, onDecline, onSave, onCancel, onVi
             <button onClick={() => setSelected(new Set())} style={{
               padding: '5px 10px', borderRadius: 7, border: '1px solid rgba(255,255,255,0.25)',
               background: 'transparent', color: '#fff', cursor: 'pointer',
-              fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11,
+              fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)',
             }}>Clear</button>
           </div>
         </div>
@@ -4344,7 +4344,7 @@ function MonthPicker({ currentDate, onSelect, onClose }) {
         <button onClick={() => setYear(y => y - 1)} style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: 4, display: 'flex' }}>
           <Icon name="ChevronLeft" size={14} color={P.inkSoft} />
         </button>
-        <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 14, color: P.ink }}>{year}</span>
+        <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-sm)', color: P.ink }}>{year}</span>
         <button onClick={() => setYear(y => y + 1)} style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: 4, display: 'flex' }}>
           <Icon name="ChevronRight" size={14} color={P.inkSoft} />
         </button>
@@ -4358,7 +4358,7 @@ function MonthPicker({ currentDate, onSelect, onClose }) {
                 padding: '7px 0', borderRadius: 6, border: 'none',
                 background: isCurrent ? P.action : 'transparent',
                 color: isCurrent ? '#fff' : P.ink,
-                cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 12,
+                cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-xs)',
               }}
               onMouseEnter={e => { if (!isCurrent) e.currentTarget.style.background = P.bg; }}
               onMouseLeave={e => { if (!isCurrent) e.currentTarget.style.background = 'transparent'; }}>
@@ -4390,7 +4390,7 @@ function ViewSwitcher({ mode, onChange }) {
         display: 'flex', alignItems: 'center', gap: 5,
         padding: '5px 11px', border: `1px solid ${P.border}`, borderRadius: 7,
         background: P.action, color: '#fff', cursor: 'pointer',
-        fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12,
+        fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)',
       }}>
         {labels[mode]}
         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
@@ -4407,7 +4407,7 @@ function ViewSwitcher({ mode, onChange }) {
               padding: '8px 12px', border: 'none', cursor: 'pointer',
               background: mode === val ? '#f4f5f7' : 'transparent',
               fontFamily: 'var(--font-display)', fontWeight: mode === val ? 700 : 500,
-              fontSize: 13, color: P.ink,
+              fontSize: 'var(--fs-body-sm)', color: P.ink,
             }}>{label}</button>
           ))}
         </div>
@@ -4438,7 +4438,7 @@ function FilterDropdown({ label, active, opts, onSelect, minWidth }) {
         border: `1px solid ${isFiltered ? P.ink : P.border}`,
         background: P.white, color: P.ink,
         cursor: 'pointer', fontFamily: 'var(--font-display)',
-        fontWeight: isFiltered ? 700 : 500, fontSize: 12,
+        fontWeight: isFiltered ? 700 : 500, fontSize: 'var(--fs-body-xs)',
       }}>
         {opts.find(([v]) => v === active)?.[1] ?? label}
         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
@@ -4456,7 +4456,7 @@ function FilterDropdown({ label, active, opts, onSelect, minWidth }) {
               padding: '8px 12px', border: 'none', cursor: 'pointer',
               background: active === val ? '#f4f5f7' : 'transparent',
               fontFamily: 'var(--font-display)', fontWeight: active === val ? 700 : 500,
-              fontSize: 13, color: P.ink,
+              fontSize: 'var(--fs-body-sm)', color: P.ink,
             }}>{lbl}</button>
           ))}
         </div>
@@ -4472,7 +4472,7 @@ function TabBar({ tabs, activeTab, onTabChange, padding = '0 28px' }) {
       {tabs.map(({ id, label }) => (
         <button key={id} data-key={id} onClick={() => onTabChange(id)} style={{
           padding: '14px 0', border: 'none', background: 'transparent', cursor: 'pointer',
-          fontFamily: 'var(--font-display)', fontWeight: activeTab === id ? 700 : 500, fontSize: 13,
+          fontFamily: 'var(--font-display)', fontWeight: activeTab === id ? 700 : 500, fontSize: 'var(--fs-body-sm)',
           color: activeTab === id ? P.ink : P.inkSoft, marginBottom: -1,
         }}>{label}</button>
       ))}
@@ -4495,12 +4495,12 @@ function PageHeader({ title, subtitle, badge, children, tabs, maxWidth: mw, noBo
               display: 'inline-flex', alignItems: 'center',
               padding: '2px 8px', borderRadius: 6,
               background: P.white, border: `1px solid ${P.border}`,
-              fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: 11, color: P.inkSoft,
+              fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: 'var(--fs-body-xs)', color: P.inkSoft,
               letterSpacing: 0, marginBottom: 24,
             }}>{badge}</span>
           )}
           <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 28, color: P.ink, margin: 0, letterSpacing: '-0.02em' }}>{title}</h1>
-          {subtitle && <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, margin: '4px 0 0' }}>{subtitle}</p>}
+          {subtitle && <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, margin: '4px 0 0' }}>{subtitle}</p>}
         </div>
         {children}
       </div>
@@ -4524,7 +4524,7 @@ function FilterToolbar({ searchText, onSearch, filter, onFilter, filterOpts, dep
           <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
         </svg>
         <input value={searchText} onChange={e => onSearch(e.target.value)} placeholder="Search employee" style={{
-          border: 'none', outline: 'none', background: 'transparent', fontFamily: 'var(--font-body)', fontSize: 12, color: P.ink, width: '100%',
+          border: 'none', outline: 'none', background: 'transparent', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.ink, width: '100%',
         }} />
       </div>
       <FilterDropdown label={resolvedOpts[0][1]} active={filter} opts={resolvedOpts} onSelect={onFilter} minWidth={170} />
@@ -4730,7 +4730,7 @@ function TeamAbsencesScreen({ requests, pendingCount, onNav, onShowDetail, activ
       <PageHeader title="Team absences" subtitle="Track and plan team availability" badge={appEntity ? (ENTITIES.find(e => e.id === appEntity)?.name) : null}>
         <button onClick={() => setAddOpen(true)} style={{
           display: 'flex', alignItems: 'center', gap: 7, padding: '9px 18px', borderRadius: 8, border: 'none',
-          background: P.action, color: '#fff', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13,
+          background: P.action, color: '#fff', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)',
         }}>
           <Icon name="Plus" size={14} color="#fff" strokeWidth={2.5} /> Add time off
         </button>
@@ -4755,14 +4755,14 @@ function TeamAbsencesScreen({ requests, pendingCount, onNav, onShowDetail, activ
               <button onClick={goToday} style={{
                 padding: '6px 14px', borderRadius: 7, border: `1px solid ${P.border}`,
                 background: 'transparent', cursor: 'pointer',
-                fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.inkSoft,
+                fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.inkSoft,
               }}>Today</button>
               <button onClick={() => step(-1)} style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: 4, display: 'flex', alignItems: 'center' }}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={P.ink} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
               </button>
               <button onClick={() => setMonthPickerOpen(o => !o)} style={{
                 border: 'none', background: 'transparent', cursor: 'pointer', padding: '4px 6px', borderRadius: 6,
-                fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 15, color: P.ink,
+                fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-md)', color: P.ink,
                 minWidth: 160, textAlign: 'center',
               }}>{monthLabel}</button>
               <button onClick={() => step(1)} style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: 4, display: 'flex', alignItems: 'center' }}>
@@ -4778,7 +4778,7 @@ function TeamAbsencesScreen({ requests, pendingCount, onNav, onShowDetail, activ
                   <button key={val} data-key={val} onClick={() => setViewMode(val)} style={{
                     position: 'relative', padding: '6px 14px', border: 'none', cursor: 'pointer', background: 'transparent',
                     fontFamily: 'var(--font-display)', fontWeight: viewMode === val ? 700 : 500,
-                    fontSize: 13, color: viewMode === val ? '#fff' : P.ink,
+                    fontSize: 'var(--fs-body-sm)', color: viewMode === val ? '#fff' : P.ink,
                     transition: `color 150ms ${EASE_OUT}`,
                   }}>{label}</button>
                 ))}
@@ -4788,7 +4788,7 @@ function TeamAbsencesScreen({ requests, pendingCount, onNav, onShowDetail, activ
 
               {/* Right: Absences only toggle */}
               <label style={{ display: 'flex', alignItems: 'center', gap: 7, cursor: 'pointer' }}>
-                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 12, color: P.inkSoft }}>Absences only</span>
+                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>Absences only</span>
                 <Switch checked={absencesOnly} onChange={() => setAbsencesOnly(v => !v)} />
               </label>
 
@@ -4802,7 +4802,7 @@ function TeamAbsencesScreen({ requests, pendingCount, onNav, onShowDetail, activ
               {/* Day headers */}
               <div style={{ display: 'grid', gridTemplateColumns: gridCols, position: 'sticky', top: 0, zIndex: 10, background: P.white, borderBottom: `1px solid ${P.border}` }}>
                 <div style={{ padding: '6px 12px', display: 'flex', alignItems: 'center' }}>
-                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 10, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                     {filteredEmployees.length} people
                   </span>
                 </div>
@@ -4833,7 +4833,7 @@ function TeamAbsencesScreen({ requests, pendingCount, onNav, onShowDetail, activ
                         background: isToday ? P.action : 'transparent',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                       }}>
-                        <span style={{ fontFamily: 'var(--font-display)', fontWeight: isToday ? 700 : 500, fontSize: 11, color: isToday ? '#fff' : isWknd ? P.inkFaint : P.ink }}>
+                        <span style={{ fontFamily: 'var(--font-display)', fontWeight: isToday ? 700 : 500, fontSize: 'var(--fs-body-xs)', color: isToday ? '#fff' : isWknd ? P.inkFaint : P.ink }}>
                           {d.getDate()}
                         </span>
                       </div>
@@ -4854,7 +4854,7 @@ function TeamAbsencesScreen({ requests, pendingCount, onNav, onShowDetail, activ
                   return (
                     <div key={`entity-header-${item.entity.id}`} style={{ display: 'grid', gridTemplateColumns: gridCols, borderBottom: `1px solid ${P.border}`, background: P.bg }}>
                       <div style={{ gridColumn: '1 / -1', display: 'flex', alignItems: 'center', padding: '0 12px', height: 26 }}>
-                        <span style={{ fontFamily: 'var(--font-body)', fontSize: 10, fontWeight: 600, color: P.inkSoft, letterSpacing: '0.06em', textTransform: 'uppercase' }}>{item.entity.name} · {item.count}</span>
+                        <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', fontWeight: 600, color: P.inkSoft, letterSpacing: '0.06em', textTransform: 'uppercase' }}>{item.entity.name} · {item.count}</span>
                       </div>
                     </div>
                   );
@@ -5068,7 +5068,7 @@ function TeamAbsencesScreen({ requests, pendingCount, onNav, onShowDetail, activ
                 transform: 'translate(-50%, -100%)', zIndex: 100,
                 background: P.action, color: '#fff', padding: '8px 12px', borderRadius: 8,
                 boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
-                fontFamily: 'var(--font-body)', fontSize: 11, lineHeight: 1.5,
+                fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', lineHeight: 1.5,
                 pointerEvents: 'none', whiteSpace: 'nowrap',
                 opacity: tooltip ? 1 : 0,
                 transition: `opacity 120ms ${EASE_OUT}, left 120ms ${EASE_OUT}, top 120ms ${EASE_OUT}`,
@@ -5112,7 +5112,7 @@ function TeamAbsencesScreen({ requests, pendingCount, onNav, onShowDetail, activ
             display: 'flex', flexDirection: 'column', overflow: 'hidden',
           }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 22px', borderBottom: `1px solid ${P.border}` }}>
-              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 16, color: P.ink }}>Company closure</span>
+              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-md)', color: P.ink }}>Company closure</span>
               <button onClick={() => setClosureDetail(null)} style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: 4, display: 'flex' }}>
                 <Icon name="X" size={18} color={P.inkSoft} />
               </button>
@@ -5120,23 +5120,23 @@ function TeamAbsencesScreen({ requests, pendingCount, onNav, onShowDetail, activ
             <div style={{ padding: '6px 0' }}>
               {[
                 { label: 'Name', value: closureDetail.name || closureDetail.type },
-                { label: 'When', value: <span>{closureDetail.startDate}{closureDetail.startDate !== closureDetail.endDate ? ` – ${closureDetail.endDate}` : ''}<br /><span style={{ color: P.inkSoft, fontSize: 12 }}>{closureDetail.days} {closureDetail.days === 1 ? 'day' : 'days'}</span></span> },
+                { label: 'When', value: <span>{closureDetail.startDate}{closureDetail.startDate !== closureDetail.endDate ? ` – ${closureDetail.endDate}` : ''}<br /><span style={{ color: P.inkSoft, fontSize: 'var(--fs-body-xs)' }}>{closureDetail.days} {closureDetail.days === 1 ? 'day' : 'days'}</span></span> },
                 { label: 'Applies to', value: 'All employees' },
               ].map(({ label, value }) => (
                 <div key={label} style={{ display: 'grid', gridTemplateColumns: '130px 1fr', padding: '11px 22px', borderBottom: `1px solid ${P.border}`, alignItems: 'start', gap: 12 }}>
-                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, paddingTop: 1 }}>{label}</span>
-                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.ink }}>{value}</span>
+                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, paddingTop: 1 }}>{label}</span>
+                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink }}>{value}</span>
                 </div>
               ))}
             </div>
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, padding: '14px 22px', borderTop: `1px solid ${P.border}` }}>
               <button onClick={() => { const ev = closureDetail; setClosureDetail(null); setClosureEditOpen(ev); }} style={{
                 padding: '8px 20px', borderRadius: 8, border: `1px solid ${P.border}`,
-                background: P.white, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.ink,
+                background: P.white, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink,
               }}>Edit</button>
               <button onClick={() => { onCancelCompanyEvent(closureDetail.id); setClosureDetail(null); }} style={{
                 padding: '8px 20px', borderRadius: 8, border: '1px solid var(--alert-200)',
-                background: P.dangerBg, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.danger,
+                background: P.dangerBg, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.danger,
               }}>Cancel closure</button>
             </div>
           </div>
@@ -5168,13 +5168,13 @@ function EmployeeRow({ emp, onNav }) {
       onMouseLeave={() => setHover(false)}
       style={{ borderBottom: `1px solid ${P.border}`, cursor: 'pointer', background: hover ? '#f7f8f7' : 'transparent', transition: `background 120ms ${EASE_OUT}`, height: 52 }}>
       <td style={{ padding: '10px 16px' }}>
-        <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.ink }}>{emp.name}</span>
+        <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink }}>{emp.name}</span>
       </td>
       <td style={{ padding: '10px 16px', color: P.inkSoft }}>{emp.email}</td>
       <td style={{ padding: '10px 16px', color: P.inkSoft }}>{emp.entity}</td>
       <td style={{ padding: '10px 16px', textAlign: 'right', color: P.ink, fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>{fmtBudget(emp.budget)}</td>
       <td style={{ padding: '10px 16px', textAlign: 'right' }}>
-        <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, fontWeight: 500, color: P.inkSoft }}>
+        <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', fontWeight: 500, color: P.inkSoft }}>
           See details
         </span>
       </td>
@@ -5205,19 +5205,19 @@ function EmployeesScreen({ requests, onNav, initialRoleFilter = 'All', adminAcce
     });
   }, [empList, search, roleFilter, statusFilter]);
 
-  const selectStyle = { padding: '7px 28px 7px 10px', border: `1px solid ${P.border}`, borderRadius: 8, fontFamily: 'var(--font-body)', fontSize: 13, color: P.ink, background: P.white, cursor: 'pointer', outline: 'none', appearance: 'none', backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 8px center' };
+  const selectStyle = { padding: '7px 28px 7px 10px', border: `1px solid ${P.border}`, borderRadius: 8, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, background: P.white, cursor: 'pointer', outline: 'none', appearance: 'none', backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 8px center' };
 
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, overflow: 'hidden', animation: `screenEnter 180ms ${EASE_OUT}` }}>
       <PageHeader title="Employees" subtitle="Overview" badge={appEntity ? (ENTITIES.find(e => e.id === appEntity)?.name) : null}>
         <div style={{ display: 'flex', gap: 8, paddingTop: 4 }}>
-          <button style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', border: `1px solid ${P.border}`, borderRadius: 8, background: P.white, color: P.ink, fontFamily: 'var(--font-body)', fontSize: 13, fontWeight: 500, cursor: 'pointer' }}>
+          <button style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', border: `1px solid ${P.border}`, borderRadius: 8, background: P.white, color: P.ink, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', fontWeight: 500, cursor: 'pointer' }}>
             <Icon name="Mail" size={14} /> Invite users
           </button>
-          <button style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', border: `1px solid ${P.border}`, borderRadius: 8, background: P.white, color: P.ink, fontFamily: 'var(--font-body)', fontSize: 13, fontWeight: 500, cursor: 'pointer' }}>
+          <button style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', border: `1px solid ${P.border}`, borderRadius: 8, background: P.white, color: P.ink, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', fontWeight: 500, cursor: 'pointer' }}>
             <Icon name="Settings2" size={14} /> Bulk actions
           </button>
-          <button onClick={onAddEmployee} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', border: 'none', borderRadius: 8, background: P.action, color: P.white, fontFamily: 'var(--font-body)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+          <button onClick={onAddEmployee} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', border: 'none', borderRadius: 8, background: P.action, color: P.white, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', fontWeight: 600, cursor: 'pointer' }}>
             <Icon name="Plus" size={14} color={P.white} /> Add a user
           </button>
         </div>
@@ -5228,7 +5228,7 @@ function EmployeesScreen({ requests, onNav, initialRoleFilter = 'All', adminAcce
           <div style={{ position: 'relative', flex: 1, maxWidth: 220 }}>
             <Icon name="Search" size={14} color={P.inkFaint} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)' }} />
             <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Name"
-              style={{ width: '100%', padding: '7px 10px 7px 32px', border: `1px solid ${P.border}`, borderRadius: 8, fontFamily: 'var(--font-body)', fontSize: 13, color: P.ink, outline: 'none', background: P.white }} />
+              style={{ width: '100%', padding: '7px 10px 7px 32px', border: `1px solid ${P.border}`, borderRadius: 8, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, outline: 'none', background: P.white }} />
           </div>
           <select value={roleFilter} onChange={e => setRoleFilter(e.target.value)} style={selectStyle}>
             <option value="All">Role: All</option>
@@ -5242,14 +5242,14 @@ function EmployeesScreen({ requests, onNav, initialRoleFilter = 'All', adminAcce
           </select>
         </div>
         <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 12, overflow: 'hidden' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-body)', fontSize: 13 }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)' }}>
             <thead>
               <tr style={{ borderBottom: `1px solid ${P.border}` }}>
-                <th style={{ textAlign: 'left', padding: '10px 16px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em' }}>User name</th>
-                <th style={{ textAlign: 'left', padding: '10px 16px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Email</th>
-                <th style={{ textAlign: 'left', padding: '10px 16px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Entity</th>
-                <th style={{ textAlign: 'right', padding: '10px 16px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Budget balance</th>
-                <th style={{ textAlign: 'right', padding: '10px 16px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Actions</th>
+                <th style={{ textAlign: 'left', padding: '10px 16px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em' }}>User name</th>
+                <th style={{ textAlign: 'left', padding: '10px 16px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Email</th>
+                <th style={{ textAlign: 'left', padding: '10px 16px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Entity</th>
+                <th style={{ textAlign: 'right', padding: '10px 16px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Budget balance</th>
+                <th style={{ textAlign: 'right', padding: '10px 16px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -5323,8 +5323,8 @@ function EditBalancesModal({ emp, balances, onSave, onClose, isNewEmployee, onCo
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 22px', borderBottom: `1px solid ${P.border}` }}>
           <div>
-            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 16, color: P.ink }}>{isNewEmployee ? 'Review & confirm balances' : 'Edit balances'}</div>
-            <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, marginTop: 2 }}>{emp.name} · {year}</div>
+            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-md)', color: P.ink }}>{isNewEmployee ? 'Review & confirm balances' : 'Edit balances'}</div>
+            <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, marginTop: 2 }}>{emp.name} · {year}</div>
           </div>
           <button onClick={close} style={{
             border: 'none', cursor: 'pointer',
@@ -5341,7 +5341,7 @@ function EditBalancesModal({ emp, balances, onSave, onClose, isNewEmployee, onCo
         <div style={{ overflowY: 'auto' }}>
           {sections.map((section, si) => (
             <div key={section.label} style={{ borderBottom: si < sections.length - 1 ? `1px solid ${P.border}` : 'none' }}>
-              <div style={{ padding: '10px 22px 6px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 10, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+              <div style={{ padding: '10px 22px 6px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                 {section.label}
               </div>
               {section.types.map((type, ti) => {
@@ -5351,16 +5351,16 @@ function EditBalancesModal({ emp, balances, onSave, onClose, isNewEmployee, onCo
                   return (
                     <div key={type} style={{ display: 'flex', alignItems: 'center', padding: '10px 22px', borderTop: ti > 0 ? `1px solid ${P.border}` : 'none' }}>
                       <span style={{ width: 9, height: 9, borderRadius: '50%', background: dot, flexShrink: 0, marginRight: 10 }} />
-                      <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink, flex: 1 }}>{type}</span>
+                      <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, flex: 1 }}>{type}</span>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6, border: `1px solid ${P.border}`, borderRadius: 7, padding: '5px 8px', background: P.bg }}>
                         <input
                           type="number" min="0"
                           value={values[type]}
                           onChange={e => setValues(v => ({ ...v, [type]: e.target.value }))}
                           placeholder="0"
-                          style={{ width: 46, border: 'none', outline: 'none', fontFamily: 'var(--font-body)', fontSize: 14, fontWeight: 600, color: P.ink, textAlign: 'center', background: 'transparent' }}
+                          style={{ width: 46, border: 'none', outline: 'none', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', fontWeight: 600, color: P.ink, textAlign: 'center', background: 'transparent' }}
                         />
-                        <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>days</span>
+                        <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft }}>days</span>
                       </div>
                     </div>
                   );
@@ -5370,11 +5370,11 @@ function EditBalancesModal({ emp, balances, onSave, onClose, isNewEmployee, onCo
                   return (
                     <div key={type} style={{ display: 'flex', alignItems: 'center', padding: '10px 22px', borderTop: ti > 0 ? `1px solid ${P.border}` : 'none', opacity: section.calculated ? 1 : 0.7 }}>
                       <span style={{ width: 9, height: 9, borderRadius: '50%', background: dot, flexShrink: 0, marginRight: 10 }} />
-                      <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink, flex: 1 }}>{type}</span>
+                      <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, flex: 1 }}>{type}</span>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        {section.calculated && <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.success, background: P.successBg, padding: '2px 6px', borderRadius: 4 }}>Auto</span>}
-                        <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, fontWeight: 600, color: section.calculated ? P.ink : P.inkSoft }}>{displayVal ?? '—'}</span>
-                        <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>days</span>
+                        {section.calculated && <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.success, background: P.successBg, padding: '2px 6px', borderRadius: 4 }}>Auto</span>}
+                        <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', fontWeight: 600, color: section.calculated ? P.ink : P.inkSoft }}>{displayVal ?? '—'}</span>
+                        <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft }}>days</span>
                       </div>
                     </div>
                   );
@@ -5388,8 +5388,8 @@ function EditBalancesModal({ emp, balances, onSave, onClose, isNewEmployee, onCo
         {/* Footer */}
         <div style={{ padding: '14px 22px', borderTop: `1px solid ${P.border}`, display: 'flex', alignItems: 'center', gap: 10 }}>
           <span style={{ flex: 1 }} />
-          <button onClick={close} style={{ padding: '8px 18px', borderRadius: 8, border: `1px solid ${P.border}`, background: 'transparent', color: P.ink, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>Cancel</button>
-          <button onClick={handleSave} style={{ padding: '8px 20px', borderRadius: 8, border: 'none', background: P.action, color: '#fff', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>{isNewEmployee ? 'Confirm balances' : 'Save balances'}</button>
+          <button onClick={close} style={{ padding: '8px 18px', borderRadius: 8, border: `1px solid ${P.border}`, background: 'transparent', color: P.ink, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)' }}>Cancel</button>
+          <button onClick={handleSave} style={{ padding: '8px 20px', borderRadius: 8, border: 'none', background: P.action, color: '#fff', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)' }}>{isNewEmployee ? 'Confirm balances' : 'Save balances'}</button>
         </div>
       </div>
     </div>
@@ -5467,7 +5467,7 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, o
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 18 }}>
           <div>
             <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 28, color: P.ink, margin: 0, letterSpacing: '-0.02em' }}>{emp.name}</h1>
-            <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, margin: '2px 0 0' }}>{emp.department}</p>
+            <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, margin: '2px 0 0' }}>{emp.department}</p>
           </div>
           <div ref={empMenuRef} style={{ position: 'relative', marginTop: 4 }}>
             <button onClick={() => setEmpMenuOpen(o => !o)} style={{
@@ -5490,7 +5490,7 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, o
                   width: '100%', padding: '9px 12px', border: 'none', background: 'transparent', cursor: 'pointer', textAlign: 'left',
                 }} onMouseEnter={e => e.currentTarget.style.background = P.bg} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                   <Icon name="monitor-smartphone" size={14} color={P.ink} strokeWidth={1.75} />
-                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.ink }}>Impersonate user</span>
+                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink }}>Impersonate user</span>
                 </button>
                 <div style={{ height: 1, background: P.border, margin: '0 12px' }} />
                 <button onClick={() => { setEmpMenuOpen(false); setDeactivateConfirm(true); }} style={{
@@ -5498,7 +5498,7 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, o
                   width: '100%', padding: '9px 12px', border: 'none', background: 'transparent', cursor: 'pointer', textAlign: 'left',
                 }} onMouseEnter={e => e.currentTarget.style.background = P.dangerBg} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                   <Icon name="user-x" size={14} color={P.danger} strokeWidth={1.75} />
-                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.danger }}>Deactivate employee</span>
+                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.danger }}>Deactivate employee</span>
                 </button>
               </div>
             )}
@@ -5517,10 +5517,10 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, o
             {needsSetup && (
               <div style={{ background: P.warningBg, border: '1px solid var(--warning-200)', borderRadius: 10, padding: '14px 18px', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 14 }}>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.warningDark }}>Confirm {emp.name.split(' ')[0]}'s leave balances</div>
-                  <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: '#78350f', marginTop: 1 }}>These are company defaults — adjust any values if needed, then confirm so {emp.name.split(' ')[0]} can request time off.</div>
+                  <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.warningDark }}>Confirm {emp.name.split(' ')[0]}'s leave balances</div>
+                  <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: '#78350f', marginTop: 1 }}>These are company defaults — adjust any values if needed, then confirm so {emp.name.split(' ')[0]} can request time off.</div>
                 </div>
-                <button onClick={() => setEditBalancesOpen(true)} style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: P.action, color: '#fff', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, flexShrink: 0, whiteSpace: 'nowrap' }}>
+                <button onClick={() => setEditBalancesOpen(true)} style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: P.action, color: '#fff', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', flexShrink: 0, whiteSpace: 'nowrap' }}>
                   Review & confirm
                 </button>
               </div>
@@ -5528,38 +5528,38 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, o
             {/* Requested time off */}
             <div style={{ marginBottom: 36 }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 16, color: P.ink }}>Requested time off</span>
+                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-md)', color: P.ink }}>Requested time off</span>
                 <Button variant="primary" icon="Plus" onClick={() => setAddModal('add')}>Add time off</Button>
               </div>
               {empReqs.filter(r => r.status === 'pending').length > 0 ? (
                 <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 12, overflow: 'visible' }}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-body)', fontSize: 13 }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)' }}>
                     <thead>
                       <tr style={{ borderBottom: `1px solid ${P.border}` }}>
-                        <th style={{ width: '20%', textAlign: 'left', padding: '9px 20px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Date from</th>
-                        <th style={{ width: '20%', textAlign: 'left', padding: '9px 16px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Date to</th>
-                        <th style={{ width: '25%', textAlign: 'left', padding: '9px 16px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Type</th>
-                        <th style={{ width: '15%', textAlign: 'center', padding: '9px 16px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Days</th>
-                        <th style={{ width: '15%', textAlign: 'left', padding: '9px 16px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Status</th>
+                        <th style={{ width: '20%', textAlign: 'left', padding: '9px 20px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Date from</th>
+                        <th style={{ width: '20%', textAlign: 'left', padding: '9px 16px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Date to</th>
+                        <th style={{ width: '25%', textAlign: 'left', padding: '9px 16px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Type</th>
+                        <th style={{ width: '15%', textAlign: 'center', padding: '9px 16px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Days</th>
+                        <th style={{ width: '15%', textAlign: 'left', padding: '9px 16px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Status</th>
                         <th style={{ width: 40 }}></th>
                       </tr>
                     </thead>
                     <tbody>
                       {empReqs.filter(r => r.status === 'pending').map((req, idx, arr) => (
                         <tr key={req.id} onClick={() => setDetailReq(req)} style={{ borderBottom: idx < arr.length - 1 ? `1px solid ${P.border}` : 'none', cursor: 'pointer' }}>
-                          <td style={{ padding: '12px 20px', fontSize: 14, color: P.ink }}>{req.startDate}</td>
-                          <td style={{ padding: '12px 16px', fontSize: 14, color: req.endDate && req.endDate !== req.startDate ? P.ink : P.inkFaint }}>
+                          <td style={{ padding: '12px 20px', fontSize: 'var(--fs-body-sm)', color: P.ink }}>{req.startDate}</td>
+                          <td style={{ padding: '12px 16px', fontSize: 'var(--fs-body-sm)', color: req.endDate && req.endDate !== req.startDate ? P.ink : P.inkFaint }}>
                             {req.endDate && req.endDate !== req.startDate ? req.endDate : '—'}
                           </td>
                           <td style={{ padding: '12px 16px' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                               <span style={{ width: 10, height: 10, borderRadius: '50%', background: LEAVE_COLORS[req.type] || P.inkFaint, border: `1.5px solid ${LEAVE_BORDER_COLORS[req.type] || P.border}`, flexShrink: 0 }} />
-                              <span style={{ fontSize: 14, color: P.ink }}>{req.type}</span>
+                              <span style={{ fontSize: 'var(--fs-body-sm)', color: P.ink }}>{req.type}</span>
                             </div>
                           </td>
-                          <td style={{ padding: '12px 16px', fontSize: 14, textAlign: 'center', color: P.ink }}>
+                          <td style={{ padding: '12px 16px', fontSize: 'var(--fs-body-sm)', textAlign: 'center', color: P.ink }}>
                             {req.days === 0.5 ? (
-                              <span>{'½'}<span style={{ fontSize: 11, color: P.inkFaint, marginLeft: 3 }}>{req.halfDay || ''}</span></span>
+                              <span>{'½'}<span style={{ fontSize: 'var(--fs-body-xs)', color: P.inkFaint, marginLeft: 3 }}>{req.halfDay || ''}</span></span>
                             ) : req.days || 1}
                           </td>
                           <td style={{ padding: '12px 16px' }}><StatusPill status={req.status} /></td>
@@ -5592,7 +5592,7 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, o
                 </div>
               ) : (
                 <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 12, padding: '24px 20px', textAlign: 'center' }}>
-                  <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkFaint }}>No pending requests</div>
+                  <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkFaint }}>No pending requests</div>
                 </div>
               )}
             </div>
@@ -5601,13 +5601,13 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, o
             <div style={{ marginBottom: 36 }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
                 <div>
-                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 16, color: P.ink }}>Balances <span style={{ fontWeight: 500, color: P.inkSoft }}>· {new Date().getFullYear()}</span></span>
+                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-md)', color: P.ink }}>Balances <span style={{ fontWeight: 500, color: P.inkSoft }}>· {new Date().getFullYear()}</span></span>
                   {confirmedDate && (
-                    <div style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkFaint, marginTop: 2 }}>Confirmed on {confirmedDate}</div>
+                    <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkFaint, marginTop: 2 }}>Confirmed on {confirmedDate}</div>
                   )}
                 </div>
                 {!needsSetup && (
-                  <button onClick={() => setEditBalancesOpen(true)} style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '9px 18px', borderRadius: 8, border: `1px solid ${P.border}`, background: P.white, color: P.inkSoft, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>
+                  <button onClick={() => setEditBalancesOpen(true)} style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '9px 18px', borderRadius: 8, border: `1px solid ${P.border}`, background: P.white, color: P.inkSoft, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)' }}>
                     <Icon name="Pencil" size={14} color={P.inkSoft} />
                     Edit balances
                   </button>
@@ -5621,23 +5621,23 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, o
                     <div key={b.type} style={{ flex: '1 1 160px', background: P.white, border: `1px solid ${P.border}`, borderRadius: 10, padding: '20px 24px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
                         <span style={{ width: 10, height: 10, borderRadius: '50%', background: LEAVE_COLORS[b.type], border: `1.5px solid ${LEAVE_BORDER_COLORS[b.type] || P.border}`, flexShrink: 0 }} />
-                        <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>{b.type}</span>
+                        <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>{b.type}</span>
                       </div>
                       {isLimited ? (
                         <>
                           <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 30, color: isLow ? P.danger : P.ink, lineHeight: 1 }}>
                             {b.remaining ?? 0}
-                            <span style={{ fontSize: 14, fontWeight: 500, color: P.inkSoft }}> / {b.entitled} days</span>
+                            <span style={{ fontSize: 'var(--fs-body-sm)', fontWeight: 500, color: P.inkSoft }}> / {b.entitled} days</span>
                           </div>
-                          <div style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkFaint, marginTop: 6 }}>{b.used} used</div>
+                          <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkFaint, marginTop: 6 }}>{b.used} used</div>
                         </>
                       ) : (
                         <>
                           <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 30, color: P.ink, lineHeight: 1 }}>
                             {b.used}
-                            <span style={{ fontSize: 14, fontWeight: 500, color: P.inkSoft }}> days</span>
+                            <span style={{ fontSize: 'var(--fs-body-sm)', fontWeight: 500, color: P.inkSoft }}> days</span>
                           </div>
-                          <div style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkFaint, marginTop: 6 }}>taken · no limit</div>
+                          <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkFaint, marginTop: 6 }}>taken · no limit</div>
                         </>
                       )}
                     </div>
@@ -5649,39 +5649,39 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, o
             {/* Absence history */}
             <div>
               <div style={{ marginBottom: 12 }}>
-                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 16, color: P.ink }}>Absence history</span>
+                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-md)', color: P.ink }}>Absence history</span>
               </div>
               <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 12, overflow: 'visible' }}>
               {empReqs.filter(r => r.status !== 'pending').length === 0 ? (
                 <EmptyState icon="calendar-off" title="No absences recorded yet" />
               ) : (
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-body)', fontSize: 13 }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)' }}>
                   <thead>
                     <tr style={{ borderBottom: `1px solid ${P.border}` }}>
-                      <th style={{ width: '20%', textAlign: 'left', padding: '9px 20px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Date from</th>
-                      <th style={{ width: '20%', textAlign: 'left', padding: '9px 16px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Date to</th>
-                      <th style={{ width: '25%', textAlign: 'left', padding: '9px 16px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Type</th>
-                      <th style={{ width: '15%', textAlign: 'center', padding: '9px 16px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Days</th>
-                      <th style={{ width: '15%', textAlign: 'left', padding: '9px 16px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Status</th>
+                      <th style={{ width: '20%', textAlign: 'left', padding: '9px 20px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Date from</th>
+                      <th style={{ width: '20%', textAlign: 'left', padding: '9px 16px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Date to</th>
+                      <th style={{ width: '25%', textAlign: 'left', padding: '9px 16px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Type</th>
+                      <th style={{ width: '15%', textAlign: 'center', padding: '9px 16px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Days</th>
+                      <th style={{ width: '15%', textAlign: 'left', padding: '9px 16px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Status</th>
                       <th style={{ width: 40 }}></th>
                     </tr>
                   </thead>
                   <tbody>
                     {empReqs.filter(r => r.status !== 'pending').map((req, idx, arr) => (
                       <tr key={req.id} onClick={() => setDetailReq(req)} style={{ borderBottom: idx < arr.length - 1 ? `1px solid ${P.border}` : 'none', cursor: 'pointer' }}>
-                        <td style={{ padding: '12px 20px', fontSize: 14, color: P.ink }}>{req.startDate}</td>
-                        <td style={{ padding: '12px 16px', fontSize: 14, color: req.endDate && req.endDate !== req.startDate ? P.ink : P.inkFaint }}>
+                        <td style={{ padding: '12px 20px', fontSize: 'var(--fs-body-sm)', color: P.ink }}>{req.startDate}</td>
+                        <td style={{ padding: '12px 16px', fontSize: 'var(--fs-body-sm)', color: req.endDate && req.endDate !== req.startDate ? P.ink : P.inkFaint }}>
                           {req.endDate && req.endDate !== req.startDate ? req.endDate : '—'}
                         </td>
                         <td style={{ padding: '12px 16px' }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                             <span style={{ width: 10, height: 10, borderRadius: '50%', background: LEAVE_COLORS[req.type] || P.inkFaint, border: `1.5px solid ${LEAVE_BORDER_COLORS[req.type] || P.border}`, flexShrink: 0 }} />
-                            <span style={{ fontSize: 14, color: P.ink }}>{req.type}</span>
+                            <span style={{ fontSize: 'var(--fs-body-sm)', color: P.ink }}>{req.type}</span>
                           </div>
                         </td>
-                        <td style={{ padding: '12px 16px', fontSize: 14, textAlign: 'center', color: P.ink }}>
+                        <td style={{ padding: '12px 16px', fontSize: 'var(--fs-body-sm)', textAlign: 'center', color: P.ink }}>
                           {req.days === 0.5 ? (
-                            <span>{'½'}<span style={{ fontSize: 11, color: P.inkFaint, marginLeft: 3 }}>{req.halfDay || ''}</span></span>
+                            <span>{'½'}<span style={{ fontSize: 'var(--fs-body-xs)', color: P.inkFaint, marginLeft: 3 }}>{req.halfDay || ''}</span></span>
                           ) : req.days || 1}
                         </td>
                         <td style={{ padding: '12px 16px' }}><StatusPill status={req.status} /></td>
@@ -5710,7 +5710,7 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, o
         ) : activeTab === 'details' ? (
           <div><DetailsTab emp={emp} empId={employeeId} onNav={onNav} adminAccess={adminAccess} onAdminSave={onAdminSave} companyRegime={companyRegime || COMPANY_REGIME_DEFAULTS} onEmployeeUpdate={onEmployeeUpdate} /></div>
         ) : (
-          <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 12, padding: 24, maxWidth: 480, color: P.inkFaint, fontFamily: 'var(--font-body)', fontSize: 13 }}>
+          <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 12, padding: 24, maxWidth: 480, color: P.inkFaint, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)' }}>
             Coming soon
           </div>
         )}
@@ -5765,8 +5765,8 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, o
               <div style={{ width: 40, height: 40, borderRadius: 10, background: P.dangerBg, border: '1px solid var(--alert-200)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
                 <Icon name="user-x" size={18} color={P.danger} strokeWidth={1.75} />
               </div>
-              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 16, color: P.ink, marginBottom: 6 }}>Deactivate {emp.name}?</div>
-              <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, marginBottom: 24, lineHeight: 1.5 }}>
+              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-md)', color: P.ink, marginBottom: 6 }}>Deactivate {emp.name}?</div>
+              <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, marginBottom: 24, lineHeight: 1.5 }}>
                 {emp.name.split(' ')[0]} will lose access to Payflip immediately. Their data and history will be preserved.
               </div>
               <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
@@ -5840,8 +5840,8 @@ function CardTab({ empId, emp, mobilityLive, onToast, onNav }) {
           <div style={{ width: 48, height: 48, borderRadius: 12, background: P.bg, border: `1px solid ${P.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
             <Icon name="credit-card" size={22} color={P.inkSoft} strokeWidth={1.5} />
           </div>
-          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 16, color: P.ink, marginBottom: 6 }}>Payflip Card not set up</div>
-          <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, lineHeight: 1.55, marginBottom: 20 }}>
+          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-md)', color: P.ink, marginBottom: 6 }}>Payflip Card not set up</div>
+          <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: 1.55, marginBottom: 20 }}>
             The mobility card program hasn't been launched yet. Set it up from the dashboard to invite employees and fund the account.
           </div>
           <Button variant="secondary" icon="arrow-up-right" onClick={() => onNav && onNav('dashboard')}>Go to dashboard</Button>
@@ -5857,8 +5857,8 @@ function CardTab({ empId, emp, mobilityLive, onToast, onNav }) {
           <div style={{ width: 48, height: 48, borderRadius: 12, background: P.bg, border: `1px solid ${P.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
             <Icon name="mail" size={22} color={P.inkSoft} strokeWidth={1.5} />
           </div>
-          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 16, color: P.ink, marginBottom: 6 }}>Not enrolled</div>
-          <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, lineHeight: 1.55, marginBottom: 20 }}>
+          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-md)', color: P.ink, marginBottom: 6 }}>Not enrolled</div>
+          <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: 1.55, marginBottom: 20 }}>
             {first} hasn't been invited to the Payflip Card program. You can send them an invite from the dashboard.
           </div>
           <Button variant="primary" icon="send" onClick={() => { setStatus('invited'); onToast && onToast({ message: `Invite sent to ${first}`, type: 'approve' }); }}>
@@ -5873,7 +5873,7 @@ function CardTab({ empId, emp, mobilityLive, onToast, onNav }) {
     <button onClick={onClick} style={{
       display: 'flex', alignItems: 'center', gap: 10, padding: '11px 20px', width: '100%',
       border: 'none', borderBottom: `1px solid ${P.border}`, background: 'transparent',
-      cursor: 'pointer', fontFamily: 'var(--font-body)', fontSize: 13,
+      cursor: 'pointer', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)',
       color: opts.color || P.ink, transition: 'background 120ms', textAlign: 'left',
     }}
       onMouseEnter={e => { e.currentTarget.style.background = P.bg; }}
@@ -5884,7 +5884,7 @@ function CardTab({ empId, emp, mobilityLive, onToast, onNav }) {
       </span>
       <span style={{ flex: 1, minWidth: 0 }}>
         <span style={{ display: 'block' }}>{label}</span>
-        {opts.sublabel && <span style={{ display: 'block', fontSize: 11, color: P.inkSoft, marginTop: 1 }}>{opts.sublabel}</span>}
+        {opts.sublabel && <span style={{ display: 'block', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginTop: 1 }}>{opts.sublabel}</span>}
       </span>
       <Icon name="chevron-right" size={14} color={P.inkFaint} strokeWidth={1.5} />
     </button>
@@ -5909,7 +5909,7 @@ function CardTab({ empId, emp, mobilityLive, onToast, onNav }) {
           >
             <Icon name={icon} size={18} color={color} strokeWidth={1.75} />
           </button>
-          <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkSoft, textAlign: 'center', whiteSpace: 'nowrap' }}>{label}</span>
+          <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, textAlign: 'center', whiteSpace: 'nowrap' }}>{label}</span>
         </div>
       ))}
       {(isInvited || isDownloaded) && (
@@ -5924,18 +5924,18 @@ function CardTab({ empId, emp, mobilityLive, onToast, onNav }) {
           >
             <Icon name="send" size={18} color={P.inkSoft} strokeWidth={1.75} />
           </button>
-          <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkSoft, textAlign: 'center' }}>Resend invite</span>
+          <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, textAlign: 'center' }}>Resend invite</span>
         </div>
       )}
     </div>
   );
 
-  const txTh = { textAlign: 'left', padding: '9px 16px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em', whiteSpace: 'nowrap' };
+  const txTh = { textAlign: 'left', padding: '9px 16px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em', whiteSpace: 'nowrap' };
   const recentActivityPanel = hasActiveCard && seed?.txs?.length > 0 && (
     <div style={{ maxWidth: 620 }}>
-      <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18, color: P.ink, marginBottom: 12 }}>Recent activity</div>
+      <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-lg)', color: P.ink, marginBottom: 12 }}>Recent activity</div>
       <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 12, overflow: 'hidden' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-body)', fontSize: 13 }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)' }}>
           <thead>
             <tr style={{ borderBottom: `1px solid ${P.border}` }}>
               <th style={{ ...txTh, paddingLeft: 16 }}>Merchant</th>
@@ -5967,12 +5967,12 @@ function CardTab({ empId, emp, mobilityLive, onToast, onNav }) {
       {/* Page title */}
       <div style={{ marginBottom: 20 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 3 }}>
-          <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18, color: P.ink }}>
+          <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-lg)', color: P.ink }}>
             {seed?.cardType === 'physical' ? 'Physical' : 'Virtual'} card ···· {displayPan}
           </span>
           <DotPill bg={meta.bg} color={meta.color}>{meta.label}</DotPill>
         </div>
-        <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>
+        <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>
           {hasActiveCard && (reissued ? 'Credentials reissued · just now' : (seed?.lastTx && `Last used ${seed.lastTx}`))}
           {isInvited && `Invite sent ${seed?.invitedDate || ''}`}
           {isDownloaded && 'App downloaded · Card not yet requested'}
@@ -5999,9 +5999,9 @@ function CardTab({ empId, emp, mobilityLive, onToast, onNav }) {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxWidth: 280 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <Icon name="ban" size={14} color={P.inkSoft} strokeWidth={2} />
-              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.ink }}>Card permanently blocked</span>
+              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink }}>Card permanently blocked</span>
             </div>
-            <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, lineHeight: 1.55 }}>{first} can request a new card from the Payflip app.</div>
+            <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: 1.55 }}>{first} can request a new card from the Payflip app.</div>
           </div>
         ) : quickActionCircles}
       </div>
@@ -6026,11 +6026,11 @@ function CardTab({ empId, emp, mobilityLive, onToast, onNav }) {
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
               <img src={PAYFLIP_CARD_IMG} alt="" style={{ width: 52, height: 33, borderRadius: 5, display: 'block', flexShrink: 0 }} />
               <div>
-                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 15, color: P.ink, marginBottom: 2 }}>{emp.name}</div>
-                <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>{seed?.cardType === 'physical' ? 'Physical' : 'Virtual'} card ···· {displayPan || '—'}</div>
+                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-md)', color: P.ink, marginBottom: 2 }}>{emp.name}</div>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft }}>{seed?.cardType === 'physical' ? 'Physical' : 'Virtual'} card ···· {displayPan || '—'}</div>
               </div>
             </div>
-            <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, lineHeight: 1.55 }}>
+            <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: 1.55 }}>
               {isFrozen
                 ? `Payments will resume immediately. ${first} won't be notified.`
                 : `Payments will be paused immediately. ${first} won't be notified. You can unfreeze at any time.`}
@@ -6058,14 +6058,14 @@ function CardTab({ empId, emp, mobilityLive, onToast, onNav }) {
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
               <img src={PAYFLIP_CARD_IMG} alt="" style={{ width: 52, height: 33, borderRadius: 5, display: 'block', flexShrink: 0 }} />
               <div>
-                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 15, color: P.ink, marginBottom: 2 }}>{emp.name}</div>
-                <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>{seed?.cardType === 'physical' ? 'Physical' : 'Virtual'} card ···· {displayPan || '—'}</div>
+                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-md)', color: P.ink, marginBottom: 2 }}>{emp.name}</div>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft }}>{seed?.cardType === 'physical' ? 'Physical' : 'Virtual'} card ···· {displayPan || '—'}</div>
               </div>
             </div>
-            <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, lineHeight: 1.55 }}>
+            <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: 1.55 }}>
               The current card will be cancelled immediately and a new virtual card issued. {first} won't be notified. This cannot be undone.
             </p>
-            <p style={{ margin: '10px 0 0', fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, lineHeight: 1.55 }}>
+            <p style={{ margin: '10px 0 0', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: 1.55 }}>
               A replacement card will be issued immediately — {first} can start using it right away.
             </p>
           </div>
@@ -6090,14 +6090,14 @@ function CardTab({ empId, emp, mobilityLive, onToast, onNav }) {
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
               <img src={PAYFLIP_CARD_IMG} alt="" style={{ width: 52, height: 33, borderRadius: 5, display: 'block', flexShrink: 0 }} />
               <div>
-                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 15, color: P.ink, marginBottom: 2 }}>{emp.name}</div>
-                <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>{seed?.cardType === 'physical' ? 'Physical' : 'Virtual'} card ···· {displayPan || '—'}</div>
+                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-md)', color: P.ink, marginBottom: 2 }}>{emp.name}</div>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft }}>{seed?.cardType === 'physical' ? 'Physical' : 'Virtual'} card ···· {displayPan || '—'}</div>
               </div>
             </div>
-            <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, lineHeight: 1.55 }}>
+            <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: 1.55 }}>
               A new security code and expiry date will be issued. The card number stays the same — {first} may need to update saved payment methods where they stored the old code.
             </p>
-            <p style={{ margin: '10px 0 0', fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, lineHeight: 1.55 }}>
+            <p style={{ margin: '10px 0 0', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: 1.55 }}>
               {first} won't be notified.
             </p>
           </div>
@@ -6118,14 +6118,14 @@ function CardTab({ empId, emp, mobilityLive, onToast, onNav }) {
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
               <img src={PAYFLIP_CARD_IMG} alt="" style={{ width: 52, height: 33, borderRadius: 5, display: 'block', flexShrink: 0 }} />
               <div>
-                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 15, color: P.ink, marginBottom: 2 }}>{emp.name}</div>
-                <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>{seed?.cardType === 'physical' ? 'Physical' : 'Virtual'} card ···· {displayPan || '—'}</div>
+                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-md)', color: P.ink, marginBottom: 2 }}>{emp.name}</div>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft }}>{seed?.cardType === 'physical' ? 'Physical' : 'Virtual'} card ···· {displayPan || '—'}</div>
               </div>
             </div>
-            <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, lineHeight: 1.55 }}>
+            <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: 1.55 }}>
               {first}'s card will be permanently blocked. This cannot be undone — {first} will need to request a new card from the Payflip app.
             </p>
-            <p style={{ margin: '10px 0 0', fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, lineHeight: 1.55 }}>
+            <p style={{ margin: '10px 0 0', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: 1.55 }}>
               {first} won't be notified — their card will simply stop working.
             </p>
           </div>
@@ -6310,12 +6310,12 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
       </span>
     );
     if (active) return (
-      <span style={{ width: 24, height: 24, borderRadius: '50%', background: P.ink, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, color: '#fff' }}>
+      <span style={{ width: 24, height: 24, borderRadius: '50%', background: P.ink, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: '#fff' }}>
         {n}
       </span>
     );
     return (
-      <span style={{ width: 24, height: 24, borderRadius: '50%', background: 'transparent', border: `1.5px solid ${P.inkSoft}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 12, color: P.inkSoft }}>
+      <span style={{ width: 24, height: 24, borderRadius: '50%', background: 'transparent', border: `1.5px solid ${P.inkSoft}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>
         {n}
       </span>
     );
@@ -6389,30 +6389,30 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
             <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 20 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                 {stepBadgeEl(1)}
-                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.ink }}>Sign mandate</span>
+                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.ink }}>Sign mandate</span>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
+                <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
                   Authorises Payflip to collect <strong style={{ color: P.ink }}>€{deposit.toLocaleString('de-DE')}</strong> for your {empCount} employees, and top up automatically when the balance runs low.
                 </p>
-                <button onClick={() => setShowCalcModal(true)} style={{ alignSelf: 'flex-start', background: 'none', border: 'none', padding: 0, fontFamily: 'var(--font-body)', fontSize: 13, color: P.ink, textDecoration: 'underline', cursor: 'pointer' }}>
+                <button onClick={() => setShowCalcModal(true)} style={{ alignSelf: 'flex-start', background: 'none', border: 'none', padding: 0, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, textDecoration: 'underline', cursor: 'pointer' }}>
                   How is this calculated?
                 </button>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', border: `1px solid ${P.border}`, borderRadius: 10, background: P.bg }}>
                 <img src={TWIKEY_LOGO_IMG} alt="Twikey" style={{ width: 80, height: 35, display: 'block', objectFit: 'contain', flexShrink: 0 }} />
-                <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, lineHeight: '17px' }}>
+                <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, lineHeight: '17px' }}>
                   Secured by Twikey — funds arrive within 3 business days.
                 </span>
               </div>
-              <Button variant="primary" onClick={() => setStep(2)} style={{ width: '100%', justifyContent: 'center', fontSize: 15, padding: '10px 18px' }}>Sign with Twikey</Button>
+              <Button variant="primary" onClick={() => setStep(2)} style={{ width: '100%', justifyContent: 'center', fontSize: 'var(--fs-body-md)', padding: '10px 18px' }}>Sign with Twikey</Button>
             </div>
           </div>
         </div>
         {step > 1 && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 24, animation: PREFERS_REDUCED_MOTION ? 'none' : `stepDoneEnter 200ms ${EASE_OUT} 140ms both` }}>
             {stepBadgeEl(1)}
-            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.inkSoft }}>€{deposit.toLocaleString('de-DE')} · Mandate signed</span>
+            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.inkSoft }}>€{deposit.toLocaleString('de-DE')} · Mandate signed</span>
           </div>
         )}
       </div>
@@ -6427,26 +6427,26 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
                   <span style={{ width: 24, height: 24, borderRadius: 4, background: P.danger, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                     <Icon name="x" size={12} color="#fff" strokeWidth={2.5} />
                   </span>
-                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.danger }}>Mandate declined</span>
+                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.danger }}>Mandate declined</span>
                 </div>
-                <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink, lineHeight: '20px', margin: 0 }}>
+                <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, lineHeight: '20px', margin: 0 }}>
                   Your bank declined the mandate. This is usually due to account settings or an authorization limit on direct debits. Contact your bank to resolve it, then re-sign.
                 </p>
                 <div style={{ display: 'flex', gap: 10 }}>
-                  <Button variant="primary" onClick={() => { setMandateDenied(false); setStep(1); }} style={{ justifyContent: 'center', fontSize: 14, padding: '8px 20px' }}>Re-sign mandate</Button>
-                  <Button variant="secondary" onClick={() => { window.location.href = 'mailto:support@payflip.be?subject=Mobility%20card%20mandate%20declined'; }} style={{ justifyContent: 'center', fontSize: 14, padding: '8px 16px' }}>Contact support</Button>
+                  <Button variant="primary" onClick={() => { setMandateDenied(false); setStep(1); }} style={{ justifyContent: 'center', fontSize: 'var(--fs-body-sm)', padding: '8px 20px' }}>Re-sign mandate</Button>
+                  <Button variant="secondary" onClick={() => { window.location.href = 'mailto:support@payflip.be?subject=Mobility%20card%20mandate%20declined'; }} style={{ justifyContent: 'center', fontSize: 'var(--fs-body-sm)', padding: '8px 16px' }}>Contact support</Button>
                 </div>
               </div>
             ) : (
               <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                   {stepBadgeEl(2)}
-                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.ink }}>Awaiting deposit</span>
+                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.ink }}>Awaiting deposit</span>
                 </div>
-                <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
+                <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
                   We're collecting €{deposit.toLocaleString('de-DE')} via direct debit. Funds are usually available within 3 business days — no action needed, this card will update automatically.
                 </p>
-                <a href="#" onClick={e => { e.preventDefault(); setMandateDenied(true); }} style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, textDecoration: 'underline' }}>
+                <a href="#" onClick={e => { e.preventDefault(); setMandateDenied(true); }} style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, textDecoration: 'underline' }}>
                   Simulate denial ↗
                 </a>
               </div>
@@ -6457,14 +6457,14 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
           <div style={{ overflow: 'hidden' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 24, opacity: 0.55 }}>
               {stepBadgeEl(2)}
-              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 16, color: P.inkSoft }}>Awaiting deposit</span>
+              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-md)', color: P.inkSoft }}>Awaiting deposit</span>
             </div>
           </div>
         </div>
         {step > 2 && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 24, animation: PREFERS_REDUCED_MOTION ? 'none' : `stepDoneEnter 200ms ${EASE_OUT} 140ms both` }}>
             {stepBadgeEl(2, step === 3)}
-            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.inkSoft }}>€{deposit.toLocaleString('de-DE')} received</span>
+            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.inkSoft }}>€{deposit.toLocaleString('de-DE')} received</span>
           </div>
         )}
       </div>
@@ -6476,26 +6476,26 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
             <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                 {stepBadgeEl(3)}
-                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.ink }}>Physical cards</span>
+                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.ink }}>Physical cards</span>
               </div>
-              <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
+              <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
                 Virtual cards are included automatically. Physical cards are optional — employees request their own from the app if you enable it here.
               </p>
               <div style={{ border: `1px solid ${P.border}`, borderRadius: 10, overflow: 'hidden', background: physicalCardsAllowed ? '#faf8ff' : P.bg }}>
                 <div onClick={() => onPhysicalCardsChange && onPhysicalCardsChange(!physicalCardsAllowed)}
                   style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 14px', cursor: 'pointer' }}>
                   <div>
-                    <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.ink }}>Allow employees to request physical cards</div>
-                    <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, marginTop: 2 }}>€10 per card</div>
+                    <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink }}>Allow employees to request physical cards</div>
+                    <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginTop: 2 }}>€10 per card</div>
                   </div>
                   <Switch checked={!!physicalCardsAllowed} onChange={() => {}} />
                 </div>
                 <div style={{ borderTop: `1px solid ${P.border}`, padding: '10px 14px', display: 'flex', alignItems: 'flex-start', gap: 7 }}>
                   <Icon name="info" size={13} color={P.inkSoft} strokeWidth={2} style={{ flexShrink: 0, paddingTop: 2 }} />
-                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>You can change this any time in Payflip Card settings.</span>
+                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>You can change this any time in Payflip Card settings.</span>
                 </div>
               </div>
-              <Button variant="primary" onClick={() => setStep(4)} style={{ width: '100%', justifyContent: 'center', fontSize: 15, padding: '10px 18px' }}>Continue</Button>
+              <Button variant="primary" onClick={() => setStep(4)} style={{ width: '100%', justifyContent: 'center', fontSize: 'var(--fs-body-md)', padding: '10px 18px' }}>Continue</Button>
             </div>
           </div>
         </div>
@@ -6503,17 +6503,17 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
           <div style={{ overflow: 'hidden' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 24, opacity: 0.55 }}>
               {stepBadgeEl(3)}
-              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 16, color: P.inkSoft }}>Physical cards</span>
+              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-md)', color: P.inkSoft }}>Physical cards</span>
             </div>
           </div>
         </div>
         {step > 3 && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 24, animation: PREFERS_REDUCED_MOTION ? 'none' : `stepDoneEnter 200ms ${EASE_OUT} 140ms both` }}>
             {stepBadgeEl(3)}
-            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.inkSoft }}>
+            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.inkSoft }}>
               {physicalCardsAllowed ? 'Physical cards · €10/card' : 'Virtual only'}
             </span>
-            <a href="#" onClick={e => { e.preventDefault(); setStep(3); }} style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.ink, textDecoration: 'underline', marginLeft: 'auto' }}>Edit</a>
+            <a href="#" onClick={e => { e.preventDefault(); setStep(3); }} style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink, textDecoration: 'underline', marginLeft: 'auto' }}>Edit</a>
           </div>
         )}
       </div>
@@ -6525,18 +6525,18 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
             <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                 {stepBadgeEl(4)}
-                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.ink }}>Send invites</span>
+                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.ink }}>Send invites</span>
               </div>
-              <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
+              <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
                 {empCount} employees will receive an email to download the Payflip app and request their own card.
               </p>
               <div style={{ display: 'flex', gap: 12, padding: 14, borderRadius: 10, background: P.bg, alignItems: 'flex-start' }}>
                 <Icon name="info" size={16} color={P.inkSoft} strokeWidth={2} style={{ flexShrink: 0, marginTop: 1 }} />
-                <p style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.ink, lineHeight: '18px', margin: 0 }}>
+                <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, lineHeight: '18px', margin: 0 }}>
                   You don't issue cards yourself. Employees request their card when they're ready by downloading the app.
                 </p>
               </div>
-              <Button variant="primary" onClick={() => setShowConfirmModal(true)} style={{ width: '100%', justifyContent: 'center', fontSize: 15, padding: '10px 18px' }}>Send invites to {empCount} employees</Button>
+              <Button variant="primary" onClick={() => setShowConfirmModal(true)} style={{ width: '100%', justifyContent: 'center', fontSize: 'var(--fs-body-md)', padding: '10px 18px' }}>Send invites to {empCount} employees</Button>
             </div>
           </div>
         </div>
@@ -6544,7 +6544,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
           <div style={{ overflow: 'hidden' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 24, opacity: 0.55 }}>
               {stepBadgeEl(4)}
-              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 16, color: P.inkSoft }}>Send invites</span>
+              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-md)', color: P.inkSoft }}>Send invites</span>
             </div>
           </div>
         </div>
@@ -6567,10 +6567,10 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
         {/* Funding-issue state */}
         {fundingIssue && (
           <div style={{ padding: '16px 24px 14px', borderBottom: `1px solid ${P.border}` }}>
-            <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, lineHeight: '18px', marginBottom: 12 }}>
+            <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: '18px', marginBottom: 12 }}>
               The scheduled top-up couldn't be collected. Open Twikey to resolve it.
             </div>
-            <Button variant="primary" onClick={() => { window.open('https://app.twikey.com', '_blank'); }} style={{ width: '100%', justifyContent: 'center', fontSize: 13, padding: '9px 14px' }}>
+            <Button variant="primary" onClick={() => { window.open('https://app.twikey.com', '_blank'); }} style={{ width: '100%', justifyContent: 'center', fontSize: 'var(--fs-body-sm)', padding: '9px 14px' }}>
               Resolve in Twikey →
             </Button>
           </div>
@@ -6579,11 +6579,11 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
         {/* Compact balance row */}
         <div style={{ padding: '20px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
           <div>
-            <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, marginBottom: 4 }}>Account balance</div>
+            <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginBottom: 4 }}>Account balance</div>
             <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 22, color: fundingIssue ? P.danger : P.ink, letterSpacing: '-0.02em', lineHeight: 1, marginBottom: 4 }}>
               €{liveBalance.toLocaleString('de-DE')}
             </div>
-            <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>
+            <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>
               {justLaunched
                 ? `Invites sent to ${invitedKeys.length} ${invitedKeys.length === 1 ? 'employee' : 'employees'}`
                 : toppingUp
@@ -6591,7 +6591,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
                 : `of €${deposit.toLocaleString('de-DE')} funded`}
             </div>
           </div>
-          <a href="#" onClick={e => { e.preventDefault(); onNav && onNav('settings-cardrules'); }} style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.ink, textDecoration: 'underline', whiteSpace: 'nowrap' }}>Manage →</a>
+          <a href="#" onClick={e => { e.preventDefault(); onNav && onNav('settings-cardrules'); }} style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink, textDecoration: 'underline', whiteSpace: 'nowrap' }}>Manage →</a>
         </div>
 
       </div>
@@ -6609,7 +6609,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
               padding: '2px 8px', borderRadius: 12, border: 'none',
               background: widgetMode === m ? 'rgba(255,255,255,0.18)' : 'transparent',
               cursor: 'pointer',
-              fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12,
+              fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)',
               color: widgetMode === m ? '#fff' : 'rgba(255,255,255,0.55)',
               transition: 'background 150ms ease, color 150ms ease',
               textTransform: 'capitalize',
@@ -6623,7 +6623,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
     <div style={{ background: P.white, borderRadius: 12, overflow: 'hidden', ...(live ? { border: `1px solid ${P.border}` } : { boxShadow: `0 0 0 1px rgba(15,13,40,0.07), 0 4px 24px rgba(15,13,40,0.08)` }) }}>
       {/* Header */}
       <div onClick={hidden ? () => setHidden(false) : undefined} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 24px', borderBottom: `1px solid ${P.border}`, cursor: hidden ? 'pointer' : 'default' }}>
-        <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.ink, letterSpacing: '-0.025px' }}>
+        <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.ink, letterSpacing: '-0.025px' }}>
           {widgetMode === 'food' ? 'Launch meal vouchers' : 'Mobility account'}
         </span>
         {!live && (() => {
@@ -6656,7 +6656,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
               ) : (
                 <>
                   <DotPill bg={meta.bg} color={meta.color} dot size={11}>{stepLabel}</DotPill>
-                  <Button variant="primary" icon="chevron-right" onClick={() => setHidden(false)} style={{ padding: '5px 12px', fontSize: 12 }}>Resume setup</Button>
+                  <Button variant="primary" icon="chevron-right" onClick={() => setHidden(false)} style={{ padding: '5px 12px', fontSize: 'var(--fs-body-xs)' }}>Resume setup</Button>
                 </>
               )}
             </div>
@@ -6684,7 +6684,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
                       ...(!ws.justLaunched && !nooneToInvite ? [{ label: 'Invite more employees', action: () => { setShowInviteMoreModal(true); setLiveMenuOpen(false); } }] : []),
                       { label: 'Card settings', action: () => { onNav && onNav('settings-cardrules'); setLiveMenuOpen(false); } },
                     ].map(({ label, action }) => (
-                      <button key={label} onClick={action} style={{ display: 'flex', alignItems: 'center', width: '100%', padding: '9px 14px', border: 'none', background: 'transparent', fontFamily: 'var(--font-body)', fontSize: 12, color: P.ink, cursor: 'pointer', textAlign: 'left' }}
+                      <button key={label} onClick={action} style={{ display: 'flex', alignItems: 'center', width: '100%', padding: '9px 14px', border: 'none', background: 'transparent', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.ink, cursor: 'pointer', textAlign: 'left' }}
                         onMouseEnter={e => e.currentTarget.style.background = P.bg}
                         onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                         {label}
@@ -6726,9 +6726,9 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
               <div key="food-step1-active" style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 20, animation: PREFERS_REDUCED_MOTION ? 'none' : `stepContentEnter 250ms ${EASE_OUT} 120ms both` }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                   {stepBadgeEl(1)}
-                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.ink }}>Select employees</span>
+                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.ink }}>Select employees</span>
                 </div>
-                <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
+                <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
                   Choose who gets access to meal vouchers. All active employees are eligible.
                 </p>
                 <div style={{ display: 'flex', border: `1px solid ${P.border}`, borderRadius: 10, overflow: 'hidden' }}>
@@ -6737,24 +6737,24 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
                     <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 36, color: P.ink, lineHeight: 1, marginBottom: 16, flex: 1 }}>
                       {foodEmpCount}
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft }}>
                       <span>{isFoodDefaultSelection ? `${allFoodEmployees.length} pre-selected` : `${foodEmpCount} of ${allFoodEmployees.length}`}</span>
                       <span>·</span>
-                      <span onClick={e => { e.stopPropagation(); setShowFoodPickerModal(true); }} style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.ink, textDecoration: 'underline', cursor: 'pointer' }}>
+                      <span onClick={e => { e.stopPropagation(); setShowFoodPickerModal(true); }} style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink, textDecoration: 'underline', cursor: 'pointer' }}>
                         {isFoodDefaultSelection ? 'Review' : 'Edit'}
                       </span>
                     </div>
                   </div>
                 </div>
-                <Button variant="primary" disabled={foodEmpCount === 0} onClick={() => setStep(2)} style={{ width: '100%', justifyContent: 'center', fontSize: 15, padding: '10px 18px' }}>Continue</Button>
+                <Button variant="primary" disabled={foodEmpCount === 0} onClick={() => setStep(2)} style={{ width: '100%', justifyContent: 'center', fontSize: 'var(--fs-body-md)', padding: '10px 18px' }}>Continue</Button>
               </div>
             ) : (
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: 24, animation: `stepDoneEnter 200ms ${EASE_OUT}`, opacity: 0.70 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                   {stepBadgeEl(1)}
-                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.inkSoft }}>{foodEmpCount} employees selected</span>
+                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.inkSoft }}>{foodEmpCount} employees selected</span>
                 </div>
-                {step === 2 && <a href="#" onClick={e => { e.preventDefault(); setStep(1); }} style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.ink, textDecoration: 'underline' }}>Edit</a>}
+                {step === 2 && <a href="#" onClick={e => { e.preventDefault(); setStep(1); }} style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink, textDecoration: 'underline' }}>Edit</a>}
               </div>
             )}
           </div>
@@ -6765,28 +6765,28 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
               <div key="food-step2-active" style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 20, animation: `stepContentEnter 250ms ${EASE_OUT}` }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                   {stepBadgeEl(2)}
-                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.ink }}>Sign mandate</span>
+                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.ink }}>Sign mandate</span>
                 </div>
-                <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
+                <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
                   Authorises Payflip to collect the exact meal voucher amount each month, based on the number of days employees have worked. No buffer, no top-ups — just the right amount at the right time.
                 </p>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', border: `1px solid ${P.border}`, borderRadius: 10, background: P.bg }}>
                   <img src={TWIKEY_LOGO_IMG} alt="Twikey" style={{ width: 80, height: 35, display: 'block', objectFit: 'contain', flexShrink: 0 }} />
-                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, lineHeight: '17px' }}>
+                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, lineHeight: '17px' }}>
                     Secured by Twikey — funds arrive within 3 business days.
                   </span>
                 </div>
-                <Button variant="primary" onClick={() => setStep(3)} style={{ width: '100%', justifyContent: 'center', fontSize: 15, padding: '10px 18px' }}>Sign with Twikey</Button>
+                <Button variant="primary" onClick={() => setStep(3)} style={{ width: '100%', justifyContent: 'center', fontSize: 'var(--fs-body-md)', padding: '10px 18px' }}>Sign with Twikey</Button>
               </div>
             ) : step < 2 ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 24, opacity: 0.55 }}>
                 {stepBadgeEl(2)}
-                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 16, color: P.inkSoft }}>Sign mandate</span>
+                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-md)', color: P.inkSoft }}>Sign mandate</span>
               </div>
             ) : (
               <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 24, animation: `stepDoneEnter 200ms ${EASE_OUT}`, opacity: 0.70 }}>
                 {stepBadgeEl(2)}
-                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.inkSoft }}>Mandate signed</span>
+                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.inkSoft }}>Mandate signed</span>
               </div>
             )}
           </div>
@@ -6797,21 +6797,21 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
               <div key="food-step3-active" style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16, animation: `stepContentEnter 250ms ${EASE_OUT}` }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                   {stepBadgeEl(3)}
-                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.ink }}>Awaiting approval</span>
+                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.ink }}>Awaiting approval</span>
                 </div>
-                <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
+                <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
                   Your bank is reviewing the direct debit mandate. This usually takes a few hours — no action needed, we'll notify you once it's approved.
                 </p>
               </div>
             ) : step < 3 ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 24, opacity: 0.55 }}>
                 {stepBadgeEl(3)}
-                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 16, color: P.inkSoft }}>Awaiting approval</span>
+                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-md)', color: P.inkSoft }}>Awaiting approval</span>
               </div>
             ) : (
               <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 24, animation: `stepDoneEnter 200ms ${EASE_OUT}`, opacity: 0.70 }}>
                 {stepBadgeEl(3, step === 4)}
-                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.inkSoft }}>Mandate approved</span>
+                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.inkSoft }}>Mandate approved</span>
               </div>
             )}
           </div>
@@ -6822,13 +6822,13 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
               <div key="food-step4-active" style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16, animation: `stepContentEnter 250ms ${EASE_OUT}` }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                   {stepBadgeEl(4)}
-                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.ink }}>Select social secretariat</span>
+                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.ink }}>Select social secretariat</span>
                 </div>
-                <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
+                <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
                   We use your social secretariat to sync employee data and ensure correct meal voucher calculations.
                 </p>
                 <div style={{ position: 'relative' }}>
-                  <button ref={secTriggerRef} onClick={() => { const r = secTriggerRef.current?.getBoundingClientRect(); setSecRect(r || null); setSecOpen(v => !v); setSecSearch(''); }} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', height: 40, border: `1px solid #bec0c5`, borderRadius: 8, background: P.white, cursor: 'pointer', fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink }}>
+                  <button ref={secTriggerRef} onClick={() => { const r = secTriggerRef.current?.getBoundingClientRect(); setSecRect(r || null); setSecOpen(v => !v); setSecSearch(''); }} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', height: 40, border: `1px solid #bec0c5`, borderRadius: 8, background: P.white, cursor: 'pointer', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink }}>
                     <span>{socialSecretariat}</span>
                     <Icon name="chevrons-up-down" size={16} color={P.inkSoft} strokeWidth={2} />
                   </button>
@@ -6837,12 +6837,12 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
                       <div style={{ padding: 8, borderBottom: `1px solid ${P.border}` }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, border: `1px solid #bec0c5`, borderRadius: 8, padding: '6px 10px' }}>
                           <Icon name="search" size={14} color={P.inkSoft} strokeWidth={2} />
-                          <input autoFocus value={secSearch} onChange={e => setSecSearch(e.target.value)} placeholder="Search..." style={{ border: 'none', outline: 'none', fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink, background: 'transparent', width: '100%' }} />
+                          <input autoFocus value={secSearch} onChange={e => setSecSearch(e.target.value)} placeholder="Search..." style={{ border: 'none', outline: 'none', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, background: 'transparent', width: '100%' }} />
                         </div>
                       </div>
                       <div style={{ maxHeight: 220, overflowY: 'auto' }}>
                         {['SD Worx', 'Securex', 'Partena Professional', 'Acerta', 'Liantis', 'Xerius', 'Group S', 'UCM', 'Zenito'].filter(s => s.toLowerCase().includes(secSearch.toLowerCase())).map(s => (
-                          <button key={s} onClick={() => { setSocialSecretariat(s); setSecOpen(false); setSecSearch(''); }} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px', border: 'none', background: s === socialSecretariat ? P.bg : P.white, cursor: 'pointer', textAlign: 'left', fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink }}>
+                          <button key={s} onClick={() => { setSocialSecretariat(s); setSecOpen(false); setSecSearch(''); }} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px', border: 'none', background: s === socialSecretariat ? P.bg : P.white, cursor: 'pointer', textAlign: 'left', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink }}>
                             <span>{s}</span>
                             {s === socialSecretariat && <Icon name="check" size={16} color={P.ink} strokeWidth={2} />}
                           </button>
@@ -6851,18 +6851,18 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
                     </div>
                   )}
                 </div>
-                <Button variant="primary" onClick={() => { setSecOpen(false); setStep(5); }} style={{ width: '100%', justifyContent: 'center', fontSize: 15, padding: '10px 18px' }}>Confirm</Button>
+                <Button variant="primary" onClick={() => { setSecOpen(false); setStep(5); }} style={{ width: '100%', justifyContent: 'center', fontSize: 'var(--fs-body-md)', padding: '10px 18px' }}>Confirm</Button>
               </div>
             ) : step < 4 ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 24, opacity: 0.55 }}>
                 {stepBadgeEl(4)}
-                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 16, color: P.inkSoft }}>Select social secretariat</span>
+                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-md)', color: P.inkSoft }}>Select social secretariat</span>
               </div>
             ) : (
               <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 24, animation: `stepDoneEnter 200ms ${EASE_OUT}`, opacity: 0.70 }}>
                 {stepBadgeEl(4, step === 5)}
-                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.inkSoft }}>{socialSecretariat}</span>
-                <a href="#" onClick={e => { e.preventDefault(); setStep(4); }} style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.ink, textDecoration: 'underline', marginLeft: 'auto' }}>Edit</a>
+                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.inkSoft }}>{socialSecretariat}</span>
+                <a href="#" onClick={e => { e.preventDefault(); setStep(4); }} style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink, textDecoration: 'underline', marginLeft: 'auto' }}>Edit</a>
               </div>
             )}
           </div>
@@ -6873,23 +6873,23 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
               <div key="food-step5-active" style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16, animation: `stepContentEnter 250ms ${EASE_OUT}` }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                   {stepBadgeEl(5)}
-                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.ink }}>Notify employees</span>
+                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.ink }}>Notify employees</span>
                 </div>
-                <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
+                <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
                   {foodEmpCount} employees will receive an email to download the Payflip app. They'll instantly receive their virtual meal voucher card and can order a physical card from the app.
                 </p>
                 <div style={{ display: 'flex', gap: 12, padding: 14, borderRadius: 10, background: P.bg, alignItems: 'flex-start' }}>
                   <Icon name="info" size={16} color={P.inkSoft} strokeWidth={2} style={{ flexShrink: 0, marginTop: 1 }} />
-                  <p style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.ink, lineHeight: '18px', margin: 0 }}>
+                  <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, lineHeight: '18px', margin: 0 }}>
                     You don't issue cards yourself. Employees activate their card when they're ready by downloading the app.
                   </p>
                 </div>
-                <Button variant="primary" onClick={() => {}} style={{ width: '100%', justifyContent: 'center', fontSize: 15, padding: '10px 18px' }}>Notify {foodEmpCount} employees</Button>
+                <Button variant="primary" onClick={() => {}} style={{ width: '100%', justifyContent: 'center', fontSize: 'var(--fs-body-md)', padding: '10px 18px' }}>Notify {foodEmpCount} employees</Button>
               </div>
             ) : (
               <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 24, opacity: 0.55 }}>
                 {stepBadgeEl(5)}
-                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 16, color: P.inkSoft }}>Notify employees</span>
+                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-md)', color: P.inkSoft }}>Notify employees</span>
               </div>
             )}
           </div>
@@ -6914,10 +6914,10 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
           <div style={{ display: 'flex', flexDirection: 'column', gap: 2, padding: '8px 0' }}>
             {[...readyToUse, ...budgetSpent].map((e, i, arr) => (
               <div key={e.value} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 24px', borderBottom: i < arr.length - 1 ? `1px solid ${P.border}` : 'none' }}>
-                <span style={{ width: 32, height: 32, borderRadius: '50%', background: e.color || P.action, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, color: '#fff' }}>{e.initials}</span>
+                <span style={{ width: 32, height: 32, borderRadius: '50%', background: e.color || P.action, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: '#fff' }}>{e.initials}</span>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.ink, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{e.name}</div>
-                  {e.hint && <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: e.hintColor || P.inkSoft }}>{e.hint} remaining</div>}
+                  <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{e.name}</div>
+                  {e.hint && <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: e.hintColor || P.inkSoft }}>{e.hint} remaining</div>}
                 </div>
               </div>
             ))}
@@ -6944,32 +6944,32 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
           {/* Summary stats */}
           <div style={{ display: 'flex', gap: 12 }}>
             <div style={{ flex: 1, padding: '12px 14px', borderRadius: 8, background: P.bg, display: 'flex', flexDirection: 'column', gap: 2 }}>
-              <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>Employees with mobility budget</span>
-              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18, color: P.ink }}>{empCount}</span>
+              <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>Employees with mobility budget</span>
+              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-lg)', color: P.ink }}>{empCount}</span>
             </div>
             <div style={{ flex: 1, padding: '12px 14px', borderRadius: 8, background: P.bg, display: 'flex', flexDirection: 'column', gap: 2 }}>
-              <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>Recommended deposit</span>
-              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18, color: P.ink }}>€{deposit.toLocaleString('de-DE')}</span>
+              <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>Recommended deposit</span>
+              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-lg)', color: P.ink }}>€{deposit.toLocaleString('de-DE')}</span>
             </div>
           </div>
 
           {/* Explanations */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.ink }}>What does this cover?</span>
-              <p style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, lineHeight: '18px', margin: 0 }}>
+              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink }}>What does this cover?</span>
+              <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: '18px', margin: 0 }}>
                 This covers about 3 months of expected mobility card spending for your employees, based on their 2025 spending patterns.
               </p>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.ink }}>Can I change the amount?</span>
-              <p style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, lineHeight: '18px', margin: 0 }}>
+              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink }}>Can I change the amount?</span>
+              <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: '18px', margin: 0 }}>
                 You don't have to fund this exact amount. Employees can only spend up to their own balance, so there's no risk of overspending. If you fund less, direct debit tops it up automatically.
               </p>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.ink }}>Where does the money go?</span>
-              <p style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, lineHeight: '18px', margin: 0 }}>
+              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink }}>Where does the money go?</span>
+              <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: '18px', margin: 0 }}>
                 The funds go to your Payflip Card account. They're only used when employees make card payments. Unspent funds stay in the account.
               </p>
             </div>
@@ -6988,7 +6988,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
           </div>
         )}>
         <div style={{ padding: '20px 22px' }}>
-          <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink, lineHeight: '20px', margin: 0 }}>
+          <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, lineHeight: '20px', margin: 0 }}>
             Emails go out immediately and can't be recalled.
           </p>
         </div>
@@ -7019,8 +7019,8 @@ function AttentionRow({ item, last, onNav }) {
       <div style={{ width: 32, height: 32, borderRadius: 8, background: item.iconBg ?? P.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
         <Icon name={item.icon} size={15} color={item.iconColor ?? '#3d4047'} strokeWidth={1.5} />
       </div>
-      <span style={{ flex: 1, fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.ink }}>{item.label}</span>
-      <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, color: P.white, background: item.badgeBg ?? P.action, borderRadius: 20, padding: '2px 8px', flexShrink: 0 }}>{item.count}</span>
+      <span style={{ flex: 1, fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: P.ink }}>{item.label}</span>
+      <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.white, background: item.badgeBg ?? P.action, borderRadius: 20, padding: '2px 8px', flexShrink: 0 }}>{item.count}</span>
       <Icon name="chevron-right" size={15} color={P.inkSoft} strokeWidth={1.75} />
     </div>
   );
@@ -7074,7 +7074,7 @@ function DashboardScreen({ requests, onNav, onToast, appEntity = null, physicalC
             <div key={label} style={{ flex: 1, padding: '20px 24px', borderLeft: i === 0 ? 'none' : `1px solid ${P.border}` }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
                 <Icon name={icon} size={13} color={P.inkSoft} strokeWidth={1.75} />
-                <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>{label}</span>
+                <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>{label}</span>
               </div>
               <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 28, color: P.ink, letterSpacing: '-0.03em', lineHeight: 1 }}>{value}</div>
             </div>
@@ -7092,12 +7092,12 @@ function DashboardScreen({ requests, onNav, onToast, appEntity = null, physicalC
           {/* Needs attention */}
           <div style={{ flex: 1, border: `1px solid ${P.border}`, borderRadius: 12, background: P.white, overflow: 'hidden', minWidth: 0 }}>
             <div style={{ padding: '16px 24px', borderBottom: `1px solid ${P.border}` }}>
-              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: P.ink }}>Needs attention</span>
+              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.ink }}>Needs attention</span>
             </div>
             {totalPending === 0 ? (
               <div style={{ padding: '36px 20px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
                 <Icon name="check-circle" size={20} color="#008556" strokeWidth={1.75} />
-                <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>You're all caught up</span>
+                <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft }}>You're all caught up</span>
               </div>
             ) : attentionItems.map((item, i) => (
               <AttentionRow key={item.screen} item={item} last={i === attentionItems.length - 1} onNav={onNav} />
@@ -7181,7 +7181,7 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, onToas
 
         <div>
           <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 28, color: P.ink, margin: 0, letterSpacing: '-0.02em' }}>Payflip Card</h1>
-          <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, margin: '4px 0 0' }}>Manage card accounts and settings for your employees</p>
+          <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, margin: '4px 0 0' }}>Manage card accounts and settings for your employees</p>
         </div>
 
         {/* Funding issue alert — page-level, above the account card */}
@@ -7189,15 +7189,15 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, onToas
           <div style={{ display: 'flex', gap: 12, padding: '16px 18px', borderRadius: 10, border: '1px solid var(--alert-200)', background: P.dangerBg, alignItems: 'flex-start' }}>
             <Icon name="alert-circle" size={16} color={P.danger} strokeWidth={2} style={{ flexShrink: 0, marginTop: 1 }} />
             <div style={{ flex: 1 }}>
-              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: '#991b1b', marginBottom: 4 }}>Top-up payment failed</div>
-              <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.dangerDark, lineHeight: '18px', marginBottom: 12 }}>
+              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: '#991b1b', marginBottom: 4 }}>Top-up payment failed</div>
+              <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.dangerDark, lineHeight: '18px', marginBottom: 12 }}>
                 The scheduled collection couldn't be processed. Check Twikey for the reason — it may require correcting bank details or re-signing the mandate.
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                <Button variant="primary" onClick={() => window.open('https://app.twikey.com', '_blank')} style={{ fontSize: 13, padding: '6px 12px' }}>
+                <Button variant="primary" onClick={() => window.open('https://app.twikey.com', '_blank')} style={{ fontSize: 'var(--fs-body-sm)', padding: '6px 12px' }}>
                   Resolve in Twikey →
                 </Button>
-                <a href="mailto:support@payflip.be?subject=Mobility%20card%20top-up%20failed" style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, textDecoration: 'underline' }}>Contact support</a>
+                <a href="mailto:support@payflip.be?subject=Mobility%20card%20top-up%20failed" style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, textDecoration: 'underline' }}>Contact support</a>
               </div>
             </div>
           </div>
@@ -7210,17 +7210,17 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, onToas
             <div style={{ border: `1px solid ${P.border}`, borderRadius: 12, overflow: 'hidden', background: P.white }}>
 
               <div style={{ padding: '18px 24px 16px' }}>
-                <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, marginBottom: 6 }}>Account balance</div>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, marginBottom: 6 }}>Account balance</div>
                 <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 28, color: fundingIssue2 ? P.danger : P.ink, letterSpacing: '-0.5px', lineHeight: 1, marginBottom: toppingUp2 ? 6 : 10 }}>
                   €{liveBalance2.toLocaleString('de-DE')}
                 </div>
                 {toppingUp2 && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontFamily: 'var(--font-body)', fontSize: 13, color: '#1d4ed8', fontWeight: 500, marginBottom: 8 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: '#1d4ed8', fontWeight: 500, marginBottom: 8 }}>
                     <Icon name="arrow-down-circle" size={13} color="#1d4ed8" strokeWidth={2} />
                     <span>+ €{deposit2.toLocaleString('de-DE')} incoming</span>
                   </div>
                 )}
-                <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>
                   {justLaunched2
                     ? `Invites sent to ${invitedKeys2.length} ${invitedKeys2.length === 1 ? 'employee' : 'employees'}`
                     : toppingUp2
@@ -7251,8 +7251,8 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, onToas
                     { label: 'Spent this month', value: `€${liveSpent2.toLocaleString('de-DE')}` },
                   ].map(({ label, value }, i) => (
                     <div key={label} style={{ flex: 1, padding: '12px 20px', borderLeft: i === 1 ? `1px solid ${P.border}` : 'none' }}>
-                      <div style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkSoft, marginBottom: 3 }}>{label}</div>
-                      <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.ink }}>{value}</div>
+                      <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginBottom: 3 }}>{label}</div>
+                      <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink }}>{value}</div>
                     </div>
                   ))}
                 </div>
@@ -7270,7 +7270,7 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, onToas
               icon="landmark"
               label={<span style={{ display: 'flex', alignItems: 'center', gap: 7 }}>Direct debit mandate<DotPill bg="#e6f4ee" color="#008556" dot size={11}>Active</DotPill></span>}
               subtitle="IBAN ending in 4821 · Signed 8 Aug 2026"
-              trailing={<Button variant="secondary" onClick={() => setShowResignModal(true)} style={{ fontSize: 13, padding: '5px 12px', whiteSpace: 'nowrap' }}>Re-sign</Button>}
+              trailing={<Button variant="secondary" onClick={() => setShowResignModal(true)} style={{ fontSize: 'var(--fs-body-sm)', padding: '5px 12px', whiteSpace: 'nowrap' }}>Re-sign</Button>}
               last
             />
           </SettingsCard>
@@ -7300,19 +7300,19 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, onToas
           <div style={{ borderTop: `1px dashed ${P.border}`, paddingTop: 16, display: 'flex', flexDirection: 'column', gap: 8 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
               <Icon name="wrench" size={11} color={P.inkFaint} strokeWidth={1.75} />
-              <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkFaint, letterSpacing: '0.06em', textTransform: 'uppercase' }}>Prototype</span>
+              <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkFaint, letterSpacing: '0.06em', textTransform: 'uppercase' }}>Prototype</span>
             </div>
             <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
-              <a href="#" onClick={e => { e.preventDefault(); setWs2({ justLaunched: !ws2.justLaunched, fundingIssue: false, toppingUp: false }); }} style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkFaint, textDecoration: 'underline' }}>
+              <a href="#" onClick={e => { e.preventDefault(); setWs2({ justLaunched: !ws2.justLaunched, fundingIssue: false, toppingUp: false }); }} style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkFaint, textDecoration: 'underline' }}>
                 {ws2.justLaunched ? 'Simulate activity' : 'Simulate just launched'}
               </a>
               {!ws2.justLaunched && (
-                <a href="#" onClick={e => { e.preventDefault(); setWs2({ toppingUp: !ws2.toppingUp, fundingIssue: false }); }} style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: ws2.toppingUp ? '#1d4ed8' : P.inkFaint, textDecoration: 'underline' }}>
+                <a href="#" onClick={e => { e.preventDefault(); setWs2({ toppingUp: !ws2.toppingUp, fundingIssue: false }); }} style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: ws2.toppingUp ? '#1d4ed8' : P.inkFaint, textDecoration: 'underline' }}>
                   {ws2.toppingUp ? 'Clear top-up in progress' : 'Simulate top-up in progress'}
                 </a>
               )}
               {!ws2.justLaunched && (
-                <a href="#" onClick={e => { e.preventDefault(); setWs2({ fundingIssue: !ws2.fundingIssue, toppingUp: false }); }} style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: ws2.fundingIssue ? P.danger : P.inkFaint, textDecoration: 'underline' }}>
+                <a href="#" onClick={e => { e.preventDefault(); setWs2({ fundingIssue: !ws2.fundingIssue, toppingUp: false }); }} style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: ws2.fundingIssue ? P.danger : P.inkFaint, textDecoration: 'underline' }}>
                   {ws2.fundingIssue ? 'Clear top-up failure' : 'Simulate top-up failure'}
                 </a>
               )}
@@ -7337,7 +7337,7 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, onToas
           )}
         >
           <div style={{ padding: '18px 22px', display: 'flex', flexDirection: 'column', gap: 16 }}>
-            <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, margin: 0, lineHeight: '20px' }}>
+            <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, margin: 0, lineHeight: '20px' }}>
               Your current mandate authorises Payflip to collect funds from <strong style={{ color: P.ink, fontWeight: 500 }}>IBAN ending in 4821</strong>. Re-sign if your company's bank account has changed.
             </p>
             <div style={{ background: P.bg, border: `1px solid ${P.border}`, borderRadius: 8, padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -7348,12 +7348,12 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, onToas
                 { label: 'Status', value: 'Active' },
               ].map(({ label, value }) => (
                 <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>{label}</span>
-                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.ink, fontWeight: 500 }}>{value}</span>
+                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft }}>{label}</span>
+                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, fontWeight: 500 }}>{value}</span>
                 </div>
               ))}
             </div>
-            <p style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, margin: 0, lineHeight: '18px' }}>
+            <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, margin: 0, lineHeight: '18px' }}>
               You'll be redirected to Twikey to sign the new mandate. The old mandate will be cancelled automatically.
             </p>
           </div>
@@ -7382,22 +7382,22 @@ function CategoryModal({ title, initialVal, initialLimit, onSave, onDelete, onCl
           <>
             <div style={{ padding: '18px 22px', display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div>
-                <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.inkSoft, marginBottom: 6 }}>Name</label>
+                <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.inkSoft, marginBottom: 6 }}>Name</label>
                 <input autoFocus value={val} onChange={e => setVal(e.target.value)}
                   onKeyDown={e => { if (e.key === 'Enter') save(); if (e.key === 'Escape') close(); }}
                   placeholder="Category name"
-                  style={{ width: '100%', padding: '8px 10px', borderRadius: 7, border: `1px solid ${P.border}`, fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink, outline: 'none', boxSizing: 'border-box' }} />
+                  style={{ width: '100%', padding: '8px 10px', borderRadius: 7, border: `1px solid ${P.border}`, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, outline: 'none', boxSizing: 'border-box' }} />
               </div>
               <div>
-                <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.inkSoft, marginBottom: 6 }}>Spending limit</label>
+                <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.inkSoft, marginBottom: 6 }}>Spending limit</label>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, border: `1px solid ${P.border}`, borderRadius: 7, padding: '8px 10px' }}>
-                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft }}>€</span>
+                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft }}>€</span>
                   <input type="number" min="0" value={limitVal} onChange={e => setLimitVal(e.target.value)}
                     onKeyDown={e => { if (e.key === 'Enter') save(); if (e.key === 'Escape') close(); }}
                     placeholder="No limit"
-                    style={{ flex: 1, border: 'none', outline: 'none', fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink, background: 'transparent' }} />
+                    style={{ flex: 1, border: 'none', outline: 'none', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, background: 'transparent' }} />
                 </div>
-                <p style={{ margin: '4px 0 0', fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkFaint }}>Leave blank for no limit.</p>
+                <p style={{ margin: '4px 0 0', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkFaint }}>Leave blank for no limit.</p>
               </div>
             </div>
             <div style={{ padding: '14px 22px', borderTop: `1px solid ${P.border}`, display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -7430,11 +7430,11 @@ function PickModal({ title, options, value, onSave, onClose, extraField }) {
                   label={opt.label} description={opt.hint} />
                 {extraField && opt.value === extraField.forValue && selected === extraField.forValue && (
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '-4px 0 4px 16px' }}>
-                    <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>{extraField.label}</span>
+                    <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft }}>{extraField.label}</span>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6, border: `1px solid ${P.border}`, borderRadius: 7, padding: '5px 8px', background: P.bg }}>
                       <input type="number" min={extraField.min || 1} value={extraVal} onChange={e => setExtraVal(e.target.value)}
-                        style={{ width: 48, border: 'none', outline: 'none', fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink, background: 'transparent', textAlign: 'right' }} />
-                      <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>{extraField.suffix}</span>
+                        style={{ width: 48, border: 'none', outline: 'none', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, background: 'transparent', textAlign: 'right' }} />
+                      <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft }}>{extraField.suffix}</span>
                     </div>
                   </div>
                 )}
@@ -7461,15 +7461,15 @@ function AmountModal({ title, label, value, onSave, onClose, nullable }) {
         return (
           <>
             <div style={{ padding: '18px 22px' }}>
-              <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.inkSoft, marginBottom: 6 }}>{label}</label>
+              <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.inkSoft, marginBottom: 6 }}>{label}</label>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, border: `1px solid ${P.border}`, borderRadius: 7, padding: '8px 10px' }}>
-                <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft }}>€</span>
+                <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft }}>€</span>
                 <input autoFocus type="number" min="0" value={val} onChange={e => setVal(e.target.value)}
                   onKeyDown={e => { if (e.key === 'Enter') save(); if (e.key === 'Escape') close(); }}
                   placeholder="0"
-                  style={{ flex: 1, border: 'none', outline: 'none', fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink, background: 'transparent' }} />
+                  style={{ flex: 1, border: 'none', outline: 'none', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, background: 'transparent' }} />
               </div>
-              {nullable && <p style={{ margin: '6px 0 0', fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkFaint }}>Leave blank for no limit.</p>}
+              {nullable && <p style={{ margin: '6px 0 0', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkFaint }}>Leave blank for no limit.</p>}
             </div>
             <div style={{ padding: '14px 22px', borderTop: `1px solid ${P.border}`, display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
               <Button variant="secondary" onClick={close}>Cancel</Button>
@@ -7511,9 +7511,9 @@ function AllowancesListPage({ allowances, onSaveAllowance, appEntity = null }) {
     <div style={{ flex: 1, overflow: 'auto', animation: `screenEnter 180ms ${EASE_OUT}` }}>
       <div style={{ maxWidth: 680, margin: '0 auto', padding: '40px 32px', display: 'flex', flexDirection: 'column', gap: 32 }}>
         <div>
-          {appEntity && <span style={{ display: 'inline-flex', alignItems: 'center', padding: '2px 8px', borderRadius: 6, background: P.white, border: `1px solid ${P.border}`, fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: 11, color: P.inkSoft, marginBottom: 12 }}>{ENTITIES.find(e => e.id === appEntity)?.name}</span>}
+          {appEntity && <span style={{ display: 'inline-flex', alignItems: 'center', padding: '2px 8px', borderRadius: 6, background: P.white, border: `1px solid ${P.border}`, fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginBottom: 12 }}>{ENTITIES.find(e => e.id === appEntity)?.name}</span>}
           <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 28, color: P.ink, margin: 0, letterSpacing: '-0.02em' }}>Allowances</h1>
-          <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, margin: '4px 0 0' }}>Belgian flat-rate allowances — enable only what applies to your company</p>
+          <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, margin: '4px 0 0' }}>Belgian flat-rate allowances — enable only what applies to your company</p>
         </div>
         <div>
           <div style={SL}>Allowance types</div>
@@ -7587,10 +7587,10 @@ function ExpenseCategorySettings({ categories, onSave, appEntity = null }) {
       <div style={{ maxWidth: 680, margin: '0 auto', padding: '40px 32px', display: 'flex', flexDirection: 'column', gap: 32 }}>
         <div>
           <div>
-            {appEntity && <span style={{ display: 'inline-flex', alignItems: 'center', padding: '2px 8px', borderRadius: 6, background: P.white, border: `1px solid ${P.border}`, fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: 11, color: P.inkSoft, marginBottom: 12 }}>{ENTITIES.find(e => e.id === appEntity)?.name}</span>}
+            {appEntity && <span style={{ display: 'inline-flex', alignItems: 'center', padding: '2px 8px', borderRadius: 6, background: P.white, border: `1px solid ${P.border}`, fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginBottom: 12 }}>{ENTITIES.find(e => e.id === appEntity)?.name}</span>}
             <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 28, color: P.ink, margin: 0, letterSpacing: '-0.02em' }}>Expenses</h1>
           </div>
-          <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, margin: '4px 0 0' }}>Configure expense categories and reimbursement rules</p>
+          <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, margin: '4px 0 0' }}>Configure expense categories and reimbursement rules</p>
         </div>
 
         <div>
@@ -7612,11 +7612,11 @@ function ExpenseCategorySettings({ categories, onSave, appEntity = null }) {
             <div style={{ display: 'grid', gridTemplateRows: hasReceiptThreshold ? '1fr' : '0fr', transition: PREFERS_REDUCED_MOTION ? 'none' : `grid-template-rows 200ms ${EASE_OUT}`, overflow: 'hidden' }}>
               <div style={{ minHeight: 0 }}>
                 <div style={{ padding: '14px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
-                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>Require receipt above</span>
+                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft }}>Require receipt above</span>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6, border: `1px solid ${P.border}`, borderRadius: 8, padding: '7px 10px' }}>
-                    <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>€</span>
+                    <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft }}>€</span>
                     <input type="number" step="1" min="0" value={receiptThreshold ?? ''} onChange={e => setReceiptThreshold(e.target.value === '' ? null : parseFloat(e.target.value))} placeholder="0"
-                      style={{ width: 60, border: 'none', outline: 'none', fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink, textAlign: 'right', background: 'transparent' }} />
+                      style={{ width: 60, border: 'none', outline: 'none', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, textAlign: 'right', background: 'transparent' }} />
                   </div>
                 </div>
               </div>
@@ -7697,19 +7697,19 @@ function PersonPickerModal({ title, value, candidates, sections, singleSelect, o
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
           <Avatar employeeId={emp.value} size={22} />
           <div style={{ minWidth: 0 }}>
-            <div style={{ fontFamily: 'var(--font-body)', fontSize: 14, fontWeight: 500, color: P.ink, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{emp.name}</div>
-            {emp.dept && <div style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkSoft, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{emp.dept}</div>}
+            <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', fontWeight: 500, color: P.ink, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{emp.name}</div>
+            {emp.dept && <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{emp.dept}</div>}
           </div>
         </div>
         {/* Col 3: entity */}
         {showEntity && (
-          <div style={{ width: 100, fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flexShrink: 0 }}>
+          <div style={{ width: 100, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flexShrink: 0 }}>
             {emp.entity}
           </div>
         )}
         {/* Col 4: budget / hint */}
         {hasHints && (
-          <div style={{ width: 64, fontFamily: 'var(--font-body)', fontSize: 13, fontWeight: 500, color: emp.hintColor || P.inkSoft, textAlign: 'right', flexShrink: 0 }}>
+          <div style={{ width: 64, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', fontWeight: 500, color: emp.hintColor || P.inkSoft, textAlign: 'right', flexShrink: 0 }}>
             {emp.hint || ''}
           </div>
         )}
@@ -7728,7 +7728,7 @@ function PersonPickerModal({ title, value, candidates, sections, singleSelect, o
           <div style={{ padding: '10px 20px', flexShrink: 0 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', background: P.successBg, border: '1px solid var(--success-200)', borderRadius: 8 }}>
               <Icon name="circle-check" size={13} color={P.success} strokeWidth={2} />
-              <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: '#15803d' }}>{note}</span>
+              <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: '#15803d' }}>{note}</span>
             </div>
           </div>
         )}
@@ -7751,7 +7751,7 @@ function PersonPickerModal({ title, value, candidates, sections, singleSelect, o
             <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 5, border: `1px solid ${P.border}`, borderRadius: 7, padding: '8px 11px', background: P.white }}>
               <Icon name="search" size={12} color={P.inkFaint} strokeWidth={2} />
               <input autoFocus value={search} onChange={e => setSearch(e.target.value)} placeholder="Search employees"
-                style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', padding: 0, fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 12, color: P.ink, lineHeight: 1 }} />
+                style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', padding: 0, fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-xs)', color: P.ink, lineHeight: 1 }} />
               {search && (
                 <button onClick={() => setSearch('')} style={{ border: 'none', background: 'none', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', flexShrink: 0 }}>
                   <Icon name="x" size={10} color={P.inkFaint} strokeWidth={2.5} />
@@ -7793,20 +7793,20 @@ function PersonPickerModal({ title, value, candidates, sections, singleSelect, o
               <div key={`${activeTab}-${safePage}`} style={{ animation: PREFERS_REDUCED_MOTION ? 'tableEnterReduced 150ms ' + EASE_OUT : 'tableEnter 150ms ' + EASE_OUT }}>
                 {paginated.length > 0
                   ? paginated.map((emp, idx) => renderRow(emp, close, idx === paginated.length - 1, showEntity, hasHints))
-                  : <div style={{ padding: '20px 10px', fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, textAlign: 'center' }}>No results</div>
+                  : <div style={{ padding: '20px 10px', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, textAlign: 'center' }}>No results</div>
                 }
               </div>
               {pageCount > 1 && (
                 <div style={{ padding: '8px 20px', borderTop: `1px solid ${P.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkFaint }}>
+                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkFaint }}>
                     {(safePage - 1) * PAGE_SIZE + 1}–{Math.min(safePage * PAGE_SIZE, listItems.length)} of {listItems.length}
                   </span>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                    <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={safePage === 1} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 10px', borderRadius: 6, border: `1px solid ${P.border}`, background: P.white, cursor: safePage === 1 ? 'default' : 'pointer', fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 12, color: safePage === 1 ? P.inkFaint : P.ink, opacity: safePage === 1 ? 0.5 : 1 }}>
+                    <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={safePage === 1} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 10px', borderRadius: 6, border: `1px solid ${P.border}`, background: P.white, cursor: safePage === 1 ? 'default' : 'pointer', fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-xs)', color: safePage === 1 ? P.inkFaint : P.ink, opacity: safePage === 1 ? 0.5 : 1 }}>
                       <Icon name="ChevronLeft" size={13} color={safePage === 1 ? P.inkFaint : P.ink} strokeWidth={2} /> Prev
                     </button>
-                    <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 12, color: P.inkSoft, padding: '0 6px' }}>{safePage} / {pageCount}</span>
-                    <button onClick={() => setPage(p => Math.min(pageCount, p + 1))} disabled={safePage === pageCount} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 10px', borderRadius: 6, border: `1px solid ${P.border}`, background: P.white, cursor: safePage === pageCount ? 'default' : 'pointer', fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 12, color: safePage === pageCount ? P.inkFaint : P.ink, opacity: safePage === pageCount ? 0.5 : 1 }}>
+                    <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-xs)', color: P.inkSoft, padding: '0 6px' }}>{safePage} / {pageCount}</span>
+                    <button onClick={() => setPage(p => Math.min(pageCount, p + 1))} disabled={safePage === pageCount} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 10px', borderRadius: 6, border: `1px solid ${P.border}`, background: P.white, cursor: safePage === pageCount ? 'default' : 'pointer', fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-xs)', color: safePage === pageCount ? P.inkFaint : P.ink, opacity: safePage === pageCount ? 0.5 : 1 }}>
                       Next <Icon name="ChevronRight" size={13} color={safePage === pageCount ? P.inkFaint : P.ink} strokeWidth={2} />
                     </button>
                   </div>
@@ -7819,7 +7819,7 @@ function PersonPickerModal({ title, value, candidates, sections, singleSelect, o
         {/* Footer */}
         <div style={{ padding: '14px 20px', borderTop: `1px solid ${P.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
           {!singleSelect
-            ? <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: selected.length > 0 ? P.ink : P.inkSoft }}>
+            ? <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: selected.length > 0 ? P.ink : P.inkSoft }}>
                 {selected.length > 0 ? `${selected.length} selected` : 'None selected'}
               </span>
             : <span />
@@ -7872,8 +7872,8 @@ function AdminAccessModal({ admin, access, onSave, onClose }) {
     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
       <Avatar employeeId={admin.id} size={36} />
       <div>
-        <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 15, color: P.ink }}>{admin.name}</div>
-        <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>{admin.email}</div>
+        <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-md)', color: P.ink }}>{admin.name}</div>
+        <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>{admin.email}</div>
       </div>
     </div>
   );
@@ -7909,16 +7909,16 @@ function AdminAccessModal({ admin, access, onSave, onClose }) {
               <div onClick={() => { onSave('full'); close(); }}
                 style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '11px 10px', cursor: 'pointer', borderRadius: 8 }}>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink, fontWeight: 500 }}>Full admin</div>
-                  <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>Full access to all settings, tools, and approvals</div>
+                  <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, fontWeight: 500 }}>Full admin</div>
+                  <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft }}>Full access to all settings, tools, and approvals</div>
                 </div>
                 <Icon name="chevron-right" size={16} color={P.inkFaint} strokeWidth={1.75} style={{ flexShrink: 0 }} />
               </div>
               <div onClick={() => setStep(2)}
                 style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '11px 10px', cursor: 'pointer', borderRadius: 8 }}>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink, fontWeight: 500 }}>Custom access</div>
-                  <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>
+                  <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, fontWeight: 500 }}>Custom access</div>
+                  <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft }}>
                     {Array.isArray(access) && access.length > 0
                       ? access.map(a => AREA_LABELS[a] || a).join(' · ')
                       : 'Select which areas to manage'}
@@ -7969,7 +7969,7 @@ function EntityPickerModal({ value, onChange, onClose }) {
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Search entities…"
-              style={{ border: 'none', outline: 'none', background: 'transparent', fontFamily: 'var(--font-body)', fontSize: 13, color: P.ink, flex: 1 }}
+              style={{ border: 'none', outline: 'none', background: 'transparent', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, flex: 1 }}
             />
             {search && (
               <button onClick={() => setSearch('')} style={{ border: 'none', background: 'none', cursor: 'pointer', padding: 0, display: 'flex' }}>
@@ -7989,8 +7989,8 @@ function EntityPickerModal({ value, onChange, onClose }) {
               <Icon name="building-2" size={15} color={!value ? P.action : P.inkSoft} strokeWidth={1.75} />
             </div>
             <div style={{ flex: 1 }}>
-              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: !value ? P.action : P.ink }}>Company defaults</div>
-              <div style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkSoft }}>All entities inherit these settings</div>
+              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: !value ? P.action : P.ink }}>Company defaults</div>
+              <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>All entities inherit these settings</div>
             </div>
             {!value && <Icon name="check" size={15} color={P.action} strokeWidth={2.5} />}
           </button>
@@ -8007,15 +8007,15 @@ function EntityPickerModal({ value, onChange, onClose }) {
                 <Icon name="map-pin" size={15} color={value === ent.id ? P.action : P.inkSoft} strokeWidth={1.75} />
               </div>
               <div style={{ flex: 1 }}>
-                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: value === ent.id ? P.action : P.ink }}>{ent.name}</div>
-                <div style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkSoft }}>{ent.country} · {ent.employeeCount} employees</div>
+                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: value === ent.id ? P.action : P.ink }}>{ent.name}</div>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>{ent.country} · {ent.employeeCount} employees</div>
               </div>
               {value === ent.id && <Icon name="check" size={15} color={P.action} strokeWidth={2.5} />}
             </button>
           ))}
 
           {filtered.length === 0 && (
-            <div style={{ padding: '24px 12px', textAlign: 'center', fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>
+            <div style={{ padding: '24px 12px', textAlign: 'center', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft }}>
               No entities matching "{search}"
             </div>
           )}
@@ -8040,7 +8040,7 @@ function EntityPageSwitcher({ value, onChange }) {
         borderRadius: 8,
         background: P.white,
         cursor: 'pointer',
-        fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: 13,
+        fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: 'var(--fs-body-sm)',
         color: P.ink,
       }}>
         <Icon name={selected ? 'map-pin' : 'building-2'} size={13} color={P.inkSoft} strokeWidth={1.75} />
@@ -8082,10 +8082,10 @@ function TeamAccessSettings({ onNav, adminAccess, onAdminSave, appEntity = null 
 
         <div>
           <div>
-            {appEntity && <span style={{ display: 'inline-flex', alignItems: 'center', padding: '2px 8px', borderRadius: 6, background: P.white, border: `1px solid ${P.border}`, fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: 11, color: P.inkSoft, marginBottom: 24 }}>{ENTITIES.find(e => e.id === appEntity)?.name}</span>}
+            {appEntity && <span style={{ display: 'inline-flex', alignItems: 'center', padding: '2px 8px', borderRadius: 6, background: P.white, border: `1px solid ${P.border}`, fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginBottom: 24 }}>{ENTITIES.find(e => e.id === appEntity)?.name}</span>}
             <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 22, color: P.ink, margin: 0, letterSpacing: '-0.02em' }}>Team & access</h1>
           </div>
-          <p style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, margin: '4px 0 0' }}>Configure access levels for your admin team</p>
+          <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, margin: '4px 0 0' }}>Configure access levels for your admin team</p>
         </div>
 
         <div>
@@ -8108,7 +8108,7 @@ function TeamAccessSettings({ onNav, adminAccess, onAdminSave, appEntity = null 
                   trailing={<>
                     {badge
                       ? <DotPill dot={false} filled={badge.filled} color={badge.filled ? P.action : P.inkSoft} bg={P.bg} border={badge.filled ? null : P.border} padding="3px 10px" whiteSpace="nowrap">{badge.label}</DotPill>
-                      : <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 12, color: P.inkFaint, whiteSpace: 'nowrap', flexShrink: 0 }}>No access</span>
+                      : <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-xs)', color: P.inkFaint, whiteSpace: 'nowrap', flexShrink: 0 }}>No access</span>
                     }
                     <Icon name="chevron-right" size={16} color={P.inkFaint} strokeWidth={1.75} style={{ flexShrink: 0, marginLeft: 16 }} />
                   </>}
@@ -8117,7 +8117,7 @@ function TeamAccessSettings({ onNav, adminAccess, onAdminSave, appEntity = null 
             })}
           </SettingsCard>
           <div style={{ marginTop: 10 }}>
-            <span onClick={() => onNav('employees:admin')} style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.ink, textDecoration: 'underline', cursor: 'pointer' }}>Manage admin roles in People</span>
+            <span onClick={() => onNav('employees:admin')} style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, textDecoration: 'underline', cursor: 'pointer' }}>Manage admin roles in People</span>
           </div>
         </div>
 
@@ -8273,7 +8273,7 @@ function AllowanceSettingsPage({ config, typeInfo, onSave, onBack, backLabel = '
     <div style={{ flex: 1, overflow: 'auto', animation: `screenEnter 180ms ${EASE_OUT}` }}>
       <div style={{ maxWidth: 680, margin: '0 auto', padding: '32px 32px 80px', display: 'flex', flexDirection: 'column', gap: 32 }}>
 
-        <button onClick={onBack} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, border: 'none', background: 'transparent', cursor: 'pointer', padding: 0, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.inkSoft, alignSelf: 'flex-start' }}>
+        <button onClick={onBack} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, border: 'none', background: 'transparent', cursor: 'pointer', padding: 0, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.inkSoft, alignSelf: 'flex-start' }}>
           <Icon name="chevron-left" size={14} color={P.inkSoft} strokeWidth={2.5} />
           {backLabel}
         </button>
@@ -8285,7 +8285,7 @@ function AllowanceSettingsPage({ config, typeInfo, onSave, onBack, backLabel = '
               <Icon name="info" size={16} color={P.inkFaint} strokeWidth={1.75} />
             </button>
           </div>
-          <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, margin: 0 }}>{typeInfo.description}</p>
+          <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, margin: 0 }}>{typeInfo.description}</p>
         </div>
 
         {/* Status */}
@@ -8294,8 +8294,8 @@ function AllowanceSettingsPage({ config, typeInfo, onSave, onBack, backLabel = '
           <div style={card}>
             <div style={settingsRowStyle(true)}>
               <div>
-                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.ink }}>Enable {typeInfo.name.toLowerCase()} allowance</div>
-                <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, marginTop: 3 }}>Make this allowance available to eligible employees</div>
+                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: P.ink }}>Enable {typeInfo.name.toLowerCase()} allowance</div>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, marginTop: 3 }}>Make this allowance available to eligible employees</div>
               </div>
               <Switch size="sm" checked={active} onChange={() => setActive(v => !v)} />
             </div>
@@ -8309,19 +8309,19 @@ function AllowanceSettingsPage({ config, typeInfo, onSave, onBack, backLabel = '
             <div style={SL}>{typeInfo.rateLabel}</div>
             <div style={card}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, padding: '14px 20px' }}>
-                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.ink }}>Amount per {typeInfo.unit}</span>
+                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: P.ink }}>Amount per {typeInfo.unit}</span>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6, border: `1px solid ${overCeiling ? P.dangerBorder : P.border}`, borderRadius: 8, padding: '7px 10px', background: overCeiling ? '#fff5f5' : P.white }}>
-                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>€</span>
+                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft }}>€</span>
                   <input type="number" step="0.01" min="0" value={rate} onChange={e => setRate(e.target.value)}
-                    style={{ width: 74, border: 'none', outline: 'none', fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink, textAlign: 'right', background: 'transparent' }} />
-                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>/ {typeInfo.unit}</span>
+                    style={{ width: 74, border: 'none', outline: 'none', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, textAlign: 'right', background: 'transparent' }} />
+                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft }}>/ {typeInfo.unit}</span>
                 </div>
               </div>
             </div>
             {overCeiling ? (
               <div style={{ marginTop: 8, display: 'flex', alignItems: 'flex-start', gap: 9, padding: '10px 14px', borderRadius: 10, background: P.dangerBg, border: '1px solid var(--alert-200)' }}>
                 <Icon name="triangle-alert" size={13} color={P.danger} strokeWidth={2} style={{ flexShrink: 0, marginTop: 1 }} />
-                <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.danger, lineHeight: 1.5 }}>Exceeds the NSSS ceiling of €{typeInfo.nsssCeiling}/{typeInfo.unit}. The excess is subject to social contributions and personal income tax.</span>
+                <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.danger, lineHeight: 1.5 }}>Exceeds the NSSS ceiling of €{typeInfo.nsssCeiling}/{typeInfo.unit}. The excess is subject to social contributions and personal income tax.</span>
               </div>
             ) : (() => {
               // The field above already shows the rate — restating "the official rate is €X"
@@ -8336,12 +8336,12 @@ function AllowanceSettingsPage({ config, typeInfo, onSave, onBack, backLabel = '
                   {noteText && (
                     <div style={{ display: 'flex', alignItems: 'flex-start', gap: 7 }}>
                       <Icon name="info" size={13} color={P.inkSoft} strokeWidth={2} style={{ flexShrink: 0, marginTop: 1 }} />
-                      <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, lineHeight: 1.5 }}>{noteText}</span>
+                      <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, lineHeight: 1.5 }}>{noteText}</span>
                     </div>
                   )}
                   {rateDiffersFromDefault && typeInfo.defaultRate && (
                     <button onClick={() => setRate(String(typeInfo.defaultRate))}
-                      style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontFamily: 'var(--font-body)', fontSize: 12, color: P.action, whiteSpace: 'nowrap', padding: 0, flexShrink: 0 }}>
+                      style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.action, whiteSpace: 'nowrap', padding: 0, flexShrink: 0 }}>
                       Reset to €{typeInfo.defaultRate}
                     </button>
                   )}
@@ -8357,19 +8357,19 @@ function AllowanceSettingsPage({ config, typeInfo, onSave, onBack, backLabel = '
               <div style={card}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, padding: '16px 20px', borderBottom: hasMinKm ? `1px solid ${P.border}` : 'none' }}>
                   <div>
-                    <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.ink }}>Minimum trip distance</div>
-                    <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, marginTop: 3 }}>Reject trips shorter than a set distance</div>
+                    <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: P.ink }}>Minimum trip distance</div>
+                    <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, marginTop: 3 }}>Reject trips shorter than a set distance</div>
                   </div>
                   <Switch size="sm" checked={hasMinKm} onChange={() => setHasMinKm(v => !v)} />
                 </div>
                 <div style={{ display: 'grid', gridTemplateRows: hasMinKm ? '1fr' : '0fr', transition: PREFERS_REDUCED_MOTION ? 'none' : `grid-template-rows 200ms ${EASE_OUT}`, overflow: 'hidden' }}>
                   <div style={{ minHeight: 0 }}>
                     <div style={{ padding: '14px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
-                      <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>Minimum km per trip</span>
+                      <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft }}>Minimum km per trip</span>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6, border: `1px solid ${P.border}`, borderRadius: 8, padding: '7px 10px' }}>
                         <input type="number" step="1" min="0" value={minKm} onChange={e => setMinKm(e.target.value)} placeholder="0"
-                          style={{ width: 60, border: 'none', outline: 'none', fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink, textAlign: 'right', background: 'transparent' }} />
-                        <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>km</span>
+                          style={{ width: 60, border: 'none', outline: 'none', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, textAlign: 'right', background: 'transparent' }} />
+                        <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft }}>km</span>
                       </div>
                     </div>
                   </div>
@@ -8378,7 +8378,7 @@ function AllowanceSettingsPage({ config, typeInfo, onSave, onBack, backLabel = '
               {hasMinKm && (
                 <div style={{ marginTop: 8, display: 'flex', alignItems: 'flex-start', gap: 7 }}>
                   <Icon name="info" size={13} color={P.inkSoft} strokeWidth={2} style={{ flexShrink: 0, marginTop: 1 }} />
-                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>Trips shorter than this are rejected automatically.</span>
+                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>Trips shorter than this are rejected automatically.</span>
                 </div>
               )}
             </div>
@@ -8391,13 +8391,13 @@ function AllowanceSettingsPage({ config, typeInfo, onSave, onBack, backLabel = '
               <div style={card}>
                 <div style={settingsRowStyle(true)}>
                   <div>
-                    <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.ink }}>Minimum hours away from office</div>
-                    <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, marginTop: 3 }}>Only reimburse if employee is away for at least this many hours</div>
+                    <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: P.ink }}>Minimum hours away from office</div>
+                    <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, marginTop: 3 }}>Only reimburse if employee is away for at least this many hours</div>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6, border: `1px solid ${P.border}`, borderRadius: 8, padding: '7px 10px' }}>
                     <input type="number" step="0.5" min="0" value={minHours} onChange={e => setMinHours(e.target.value)} placeholder="—"
-                      style={{ width: 60, border: 'none', outline: 'none', fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink, textAlign: 'right', background: 'transparent' }} />
-                    <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>hrs</span>
+                      style={{ width: 60, border: 'none', outline: 'none', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, textAlign: 'right', background: 'transparent' }} />
+                    <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft }}>hrs</span>
                   </div>
                 </div>
               </div>
@@ -8409,7 +8409,7 @@ function AllowanceSettingsPage({ config, typeInfo, onSave, onBack, backLabel = '
             <div style={SL}>Eligibility</div>
             <div style={card}>
               <div style={{ padding: '14px 20px', borderBottom: `1px solid ${P.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
-                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.ink }}>Eligible employees</span>
+                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: P.ink }}>Eligible employees</span>
                 <div className="t-tabs" ref={tabsRef}>
                   <span className="t-tabs-pill" aria-hidden="true" />
                   {[{ value: false, label: 'All' }, { value: true, label: 'Specific' }].map(opt => (
@@ -8445,7 +8445,7 @@ function AllowanceSettingsPage({ config, typeInfo, onSave, onBack, backLabel = '
                   ) : (
                     /* List header: count */
                     <div style={{ padding: '14px 20px', borderBottom: `1px solid ${P.border}` }}>
-                      <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, fontWeight: 500, color: P.inkSoft }}>
+                      <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', fontWeight: 500, color: P.inkSoft }}>
                         {visibleAssigned.length === 0 ? 'No employees in this entity' : `${visibleAssigned.length} employee${visibleAssigned.length === 1 ? '' : 's'}`}
                       </span>
                     </div>
@@ -8459,10 +8459,10 @@ function AllowanceSettingsPage({ config, typeInfo, onSave, onBack, backLabel = '
                           <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 9, color: P.ink }}>{emp.initials}</span>
                         </div>
                         <div style={{ flex: 1, display: 'flex', alignItems: 'baseline', gap: 5 }}>
-                          <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, fontWeight: 500, color: P.ink }}>{emp.name}</span>
+                          <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', fontWeight: 500, color: P.ink }}>{emp.name}</span>
                           {subtitle && <>
-                            <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkFaint }}>·</span>
-                            <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkSoft }}>{subtitle}</span>
+                            <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkFaint }}>·</span>
+                            <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>{subtitle}</span>
                           </>}
                         </div>
                         <IconButton icon="x" size={26} iconSize={13} color={P.inkSoft} danger onClick={() => setAssignedEmployees(prev => prev.filter(e => e !== id))} />
@@ -8471,7 +8471,7 @@ function AllowanceSettingsPage({ config, typeInfo, onSave, onBack, backLabel = '
                   })}
                   {assignedEmployees.length > 0 && (
                     <div style={{ padding: '14px 20px', borderTop: `1px solid ${P.border}` }}>
-                      <AppLink onClick={() => setPickerOpen(true)} style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12 }}>Edit selection</AppLink>
+                      <AppLink onClick={() => setPickerOpen(true)} style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)' }}>Edit selection</AppLink>
                     </div>
                   )}
                   </>;
@@ -8504,7 +8504,7 @@ function AllowanceSettingsPage({ config, typeInfo, onSave, onBack, backLabel = '
       <div onClick={() => setInfoOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 300, background: 'rgba(15,13,40,0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div onClick={e => e.stopPropagation()} style={{ background: P.white, borderRadius: 16, width: 420, boxShadow: '0 8px 40px rgba(15,13,40,0.18)', overflow: 'hidden' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 22px', borderBottom: `1px solid ${P.border}` }}>
-            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 15, color: P.ink }}>How it works</span>
+            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-md)', color: P.ink }}>How it works</span>
             <button onClick={() => setInfoOpen(false)} style={{ border: 'none', cursor: 'pointer', width: 28, height: 28, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(60,60,67,0.1)' }}>
               <Icon name="X" size={13} color={P.ink} strokeWidth={2.5} />
             </button>
@@ -8513,7 +8513,7 @@ function AllowanceSettingsPage({ config, typeInfo, onSave, onBack, backLabel = '
             {(submissionLines || []).map((line, i) => (
               <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
                 <div style={{ width: 5, height: 5, borderRadius: '50%', background: P.inkFaint, flexShrink: 0, marginTop: 7 }} />
-                <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, lineHeight: 1.6 }}>{line}</span>
+                <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: 1.6 }}>{line}</span>
               </div>
             ))}
           </div>
@@ -8599,8 +8599,8 @@ function ConfirmDeleteModal({ name, onConfirm, onClose }) {
         </div>
       )}>
       <div style={{ padding: '24px 24px 20px' }}>
-        <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 16, color: P.ink, marginBottom: 8 }}>Delete {name}?</div>
-        <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, lineHeight: 1.5 }}>
+        <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-md)', color: P.ink, marginBottom: 8 }}>Delete {name}?</div>
+        <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: 1.5 }}>
           This will permanently remove the leave type. Existing leave records won't be affected, but employees can no longer request it.
         </div>
       </div>
@@ -8656,8 +8656,8 @@ function LeaveTypeSettingsPage({ config, allLeaveTypes = [], onSave, onDelete, o
   const settingsRow = (label, hint, checked, onChange, last) => (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, padding: '16px 20px', borderBottom: last ? 'none' : `1px solid ${P.border}` }}>
       <div>
-        <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.ink }}>{label}</div>
-        {hint && <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, marginTop: 3 }}>{hint}</div>}
+        <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: P.ink }}>{label}</div>
+        {hint && <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, marginTop: 3 }}>{hint}</div>}
       </div>
       <Switch size="sm" checked={checked} onChange={onChange} />
     </div>
@@ -8666,24 +8666,24 @@ function LeaveTypeSettingsPage({ config, allLeaveTypes = [], onSave, onDelete, o
   const stepper = (
     <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
       <div style={{ display: 'inline-flex', alignItems: 'center', border: `1px solid ${P.border}`, borderRadius: 8, overflow: 'hidden' }}>
-        <button onClick={() => setMaxDays(v => Math.max(1, (parseInt(v) || 1) - 1))} style={{ width: 32, height: 36, border: 'none', background: P.bg, color: P.inkSoft, cursor: 'pointer', fontSize: 16, fontFamily: 'var(--font-body)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>−</button>
+        <button onClick={() => setMaxDays(v => Math.max(1, (parseInt(v) || 1) - 1))} style={{ width: 32, height: 36, border: 'none', background: P.bg, color: P.inkSoft, cursor: 'pointer', fontSize: 'var(--fs-body-md)', fontFamily: 'var(--font-body)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>−</button>
         <input type="text" inputMode="numeric" value={maxDays} onChange={e => setMaxDays(parseInt(e.target.value) || '')}
-          style={{ width: 48, height: 36, border: 'none', borderLeft: `1px solid ${P.border}`, borderRight: `1px solid ${P.border}`, padding: '0 4px', fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink, outline: 'none', textAlign: 'center', background: P.white }} />
-        <button onClick={() => setMaxDays(v => (parseInt(v) || 0) + 1)} style={{ width: 32, height: 36, border: 'none', background: P.bg, color: P.inkSoft, cursor: 'pointer', fontSize: 16, fontFamily: 'var(--font-body)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>+</button>
+          style={{ width: 48, height: 36, border: 'none', borderLeft: `1px solid ${P.border}`, borderRight: `1px solid ${P.border}`, padding: '0 4px', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, outline: 'none', textAlign: 'center', background: P.white }} />
+        <button onClick={() => setMaxDays(v => (parseInt(v) || 0) + 1)} style={{ width: 32, height: 36, border: 'none', background: P.bg, color: P.inkSoft, cursor: 'pointer', fontSize: 'var(--fs-body-md)', fontFamily: 'var(--font-body)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>+</button>
       </div>
-      <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft }}>days per year</span>
+      <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft }}>days per year</span>
     </div>
   );
 
   return (
     <div style={{ flex: 1, overflow: 'auto', animation: `screenEnter 180ms ${EASE_OUT}` }}>
       {tooltip && (
-        <div style={{ position: 'fixed', left: tooltip.x, top: tooltip.y - 6, transform: 'translateX(-50%) translateY(-100%)', padding: '4px 8px', borderRadius: 6, background: P.ink, color: '#fff', fontSize: 12, fontWeight: 500, fontFamily: 'var(--font-body)', whiteSpace: 'nowrap', pointerEvents: 'none', zIndex: 9999 }}>{tooltip.text}</div>
+        <div style={{ position: 'fixed', left: tooltip.x, top: tooltip.y - 6, transform: 'translateX(-50%) translateY(-100%)', padding: '4px 8px', borderRadius: 6, background: P.ink, color: '#fff', fontSize: 'var(--fs-body-xs)', fontWeight: 500, fontFamily: 'var(--font-body)', whiteSpace: 'nowrap', pointerEvents: 'none', zIndex: 9999 }}>{tooltip.text}</div>
       )}
       <div style={{ maxWidth: 680, margin: '0 auto', padding: '32px 32px 80px', display: 'flex', flexDirection: 'column', gap: 32 }}>
 
         {/* Back */}
-        <button onClick={onBack} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, border: 'none', background: 'transparent', cursor: 'pointer', padding: 0, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.inkSoft, alignSelf: 'flex-start' }}>
+        <button onClick={onBack} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, border: 'none', background: 'transparent', cursor: 'pointer', padding: 0, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.inkSoft, alignSelf: 'flex-start' }}>
           <Icon name="chevron-left" size={14} color={P.inkSoft} strokeWidth={2.5} />
           Time off
         </button>
@@ -8697,18 +8697,18 @@ function LeaveTypeSettingsPage({ config, allLeaveTypes = [], onSave, onDelete, o
                   {name || 'New leave type'}
                 </h1>
               </div>
-              {audit && <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, marginTop: 6 }}>Last updated by {audit.by} · {audit.at}</div>}
+              {audit && <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginTop: 6 }}>Last updated by {audit.by} · {audit.at}</div>}
             </div>
             {!isNew && !defaults.declaration && !defaults.adminOnly && (
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, paddingTop: 6, flexShrink: 0 }}>
-                <span key={active ? 'active' : 'inactive'} style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, animation: PREFERS_REDUCED_MOTION ? 'none' : `labelFadeIn 120ms ${EASE_OUT}` }}>{active ? 'Active' : 'Inactive'}</span>
+                <span key={active ? 'active' : 'inactive'} style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, animation: PREFERS_REDUCED_MOTION ? 'none' : `labelFadeIn 120ms ${EASE_OUT}` }}>{active ? 'Active' : 'Inactive'}</span>
                 <Switch size="sm" checked={active} onChange={() => setActive(v => !v)} />
               </div>
             )}
           </div>
           <div style={{ display: 'grid', gridTemplateRows: (!active && !defaults.declaration && !defaults.adminOnly) ? '1fr' : '0fr', transition: PREFERS_REDUCED_MOTION ? 'none' : `grid-template-rows 200ms ${EASE_OUT}`, overflow: 'hidden' }}>
             <div style={{ minHeight: 0 }}>
-              <div style={{ marginTop: 14, padding: '12px 16px', borderRadius: 10, background: '#eff6ff', border: '1px solid #bfdbfe', fontFamily: 'var(--font-body)', fontSize: 13, color: '#1d4ed8', display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+              <div style={{ marginTop: 14, padding: '12px 16px', borderRadius: 10, background: '#eff6ff', border: '1px solid #bfdbfe', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: '#1d4ed8', display: 'flex', alignItems: 'flex-start', gap: 8 }}>
                 <Icon name="info" size={14} color="#3b82f6" strokeWidth={2} style={{ flexShrink: 0, marginTop: 1 }} />
                 Approved leave already on record is not affected. Pending requests will need to be handled manually.
               </div>
@@ -8718,7 +8718,7 @@ function LeaveTypeSettingsPage({ config, allLeaveTypes = [], onSave, onDelete, o
 
         {/* Admin-only callout — above all sections */}
         {defaults.adminOnly && (
-          <div style={{ padding: '12px 16px', borderRadius: 10, background: '#eff6ff', border: '1px solid #bfdbfe', fontFamily: 'var(--font-body)', fontSize: 13, color: '#1d4ed8', display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+          <div style={{ padding: '12px 16px', borderRadius: 10, background: '#eff6ff', border: '1px solid #bfdbfe', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: '#1d4ed8', display: 'flex', alignItems: 'flex-start', gap: 8 }}>
             <Icon name="info" size={14} color="#3b82f6" strokeWidth={2} style={{ flexShrink: 0, marginTop: 1 }} />
             This leave type is recorded by HR on behalf of the employee — it cannot be self-requested from the employee app.
           </div>
@@ -8732,19 +8732,19 @@ function LeaveTypeSettingsPage({ config, allLeaveTypes = [], onSave, onDelete, o
           <div style={SL}>Appearance</div>
           <div style={card}>
             <div style={{ padding: '16px 20px', borderBottom: `1px solid ${P.border}` }}>
-              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.ink, marginBottom: 6 }}>Name</div>
+              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: P.ink, marginBottom: 6 }}>Name</div>
               {!isNew && defaults.name === 'Statutory annual leave' ? (
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: P.bg, border: `1px solid ${P.border}`, borderRadius: 8, padding: '9px 12px' }}>
-                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft }}>{name}</span>
+                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft }}>{name}</span>
                   <Icon name="lock" size={13} color={P.inkFaint} strokeWidth={2} />
                 </div>
               ) : (
                 <input autoFocus={isNew} value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Parental leave"
-                  style={{ width: '100%', border: `1px solid ${P.border}`, borderRadius: 8, padding: '9px 12px', fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink, outline: 'none', boxSizing: 'border-box' }} />
+                  style={{ width: '100%', border: `1px solid ${P.border}`, borderRadius: 8, padding: '9px 12px', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, outline: 'none', boxSizing: 'border-box' }} />
               )}
             </div>
             <div style={{ padding: '16px 20px' }}>
-              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.ink, marginBottom: 10 }}>Color</div>
+              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: P.ink, marginBottom: 10 }}>Color</div>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                 {uniqueColors.map((c) => {
                   const entry = LEAVE_COLOR_ENTRIES.find(([, v]) => v === c);
@@ -8760,7 +8760,7 @@ function LeaveTypeSettingsPage({ config, allLeaveTypes = [], onSave, onDelete, o
                   );
                 })}
               </div>
-              <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, marginTop: 8 }}>Shown in calendar and leave overview</div>
+              <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginTop: 8 }}>Shown in calendar and leave overview</div>
             </div>
           </div>
         </div>
@@ -8802,8 +8802,8 @@ function LeaveTypeSettingsPage({ config, allLeaveTypes = [], onSave, onDelete, o
               <div style={card}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, padding: '16px 20px', borderBottom: showBelow ? `1px solid ${P.border}` : 'none' }}>
                   <div>
-                    <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.ink }}>Limit days per year</div>
-                    <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, marginTop: 3 }}>Cap the number of days per year — can be overridden per employee</div>
+                    <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: P.ink }}>Limit days per year</div>
+                    <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, marginTop: 3 }}>Cap the number of days per year — can be overridden per employee</div>
                   </div>
                   <div style={{ flexShrink: 0 }}
                     onMouseEnter={e => { if (isLocked && tooltipText) { const r = e.currentTarget.getBoundingClientRect(); setTooltip({ text: tooltipText, x: r.left + r.width / 2, y: r.top }); } }}
@@ -8814,7 +8814,7 @@ function LeaveTypeSettingsPage({ config, allLeaveTypes = [], onSave, onDelete, o
                 {isLocked ? (
                   <div style={{ padding: '14px 20px' }}>
                     {(infoCallout || (defaults.adminOnly && defaults.statutoryLabel)) && (
-                      <div style={{ padding: '8px 12px', borderRadius: 8, background: P.bg, border: `1px solid ${P.border}`, fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+                      <div style={{ padding: '8px 12px', borderRadius: 8, background: P.bg, border: `1px solid ${P.border}`, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, display: 'flex', gap: 8, alignItems: 'flex-start' }}>
                         <Icon name="info" size={14} color={P.inkSoft} strokeWidth={2} style={{ flexShrink: 0, marginTop: 1 }} />
                         <span>
                           {defaults.adminOnly
@@ -8846,12 +8846,12 @@ function LeaveTypeSettingsPage({ config, allLeaveTypes = [], onSave, onDelete, o
           {defaults.name === 'ADV / RTT' && (
             <div style={{ ...card, overflow: 'visible' }}>
               <div style={{ padding: '16px 20px' }}>
-                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.ink, marginBottom: 8 }}>Accrual method</div>
+                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: P.ink, marginBottom: 8 }}>Accrual method</div>
                 <SettingsSelect value={advAwardMethod} onChange={setAdvAwardMethod} opts={[
                   { value: 'lump-sum', label: 'Lump-sum upfront' },
                   { value: 'accrued', label: 'Monthly accrual' },
                 ]} />
-                <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, marginTop: 6 }}>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, marginTop: 6 }}>
                   {advAwardMethod === 'lump-sum'
                     ? 'All days granted upfront — employees can book days not yet earned, requiring year-end corrections'
                     : 'Days unlock month by month — employees can only book what they\'ve earned so far'}
@@ -8864,24 +8864,24 @@ function LeaveTypeSettingsPage({ config, allLeaveTypes = [], onSave, onDelete, o
           {showsAnnualBalance && (
             <div style={{ ...card, overflow: 'visible' }}>
               <div style={{ padding: '16px 20px', borderBottom: carryover === 'cap' ? `1px solid ${P.border}` : 'none' }}>
-                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.ink, marginBottom: 8 }}>Roll over unused days</div>
+                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: P.ink, marginBottom: 8 }}>Roll over unused days</div>
                 <SettingsSelect value={carryover} onChange={setCarryover} opts={CARRYOVER_OPTS} />
                 {CARRYOVER_OPTS.find(o => o.value === carryover)?.hint && (
-                  <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, marginTop: 6 }}>{CARRYOVER_OPTS.find(o => o.value === carryover)?.hint}</div>
+                  <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, marginTop: 6 }}>{CARRYOVER_OPTS.find(o => o.value === carryover)?.hint}</div>
                 )}
               </div>
               <div style={{ display: 'grid', gridTemplateRows: carryover === 'cap' ? '1fr' : '0fr', transition: PREFERS_REDUCED_MOTION ? 'none' : `grid-template-rows 200ms ${EASE_OUT}`, overflow: 'hidden' }}>
                 <div style={{ minHeight: 0 }}>
                   <div style={{ padding: '14px 20px' }}>
-                    <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, marginBottom: 8 }}>Maximum days that roll over</div>
+                    <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, marginBottom: 8 }}>Maximum days that roll over</div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                       <div style={{ display: 'inline-flex', alignItems: 'center', border: `1px solid ${P.border}`, borderRadius: 8, overflow: 'hidden' }}>
-                        <button onClick={() => setCarryoverCap(v => Math.max(1, (parseInt(v) || 1) - 1))} style={{ width: 32, height: 36, border: 'none', background: P.bg, color: P.inkSoft, cursor: 'pointer', fontSize: 16, fontFamily: 'var(--font-body)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>−</button>
+                        <button onClick={() => setCarryoverCap(v => Math.max(1, (parseInt(v) || 1) - 1))} style={{ width: 32, height: 36, border: 'none', background: P.bg, color: P.inkSoft, cursor: 'pointer', fontSize: 'var(--fs-body-md)', fontFamily: 'var(--font-body)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>−</button>
                         <input type="text" inputMode="numeric" value={carryoverCap} onChange={e => setCarryoverCap(parseInt(e.target.value) || '')}
-                          style={{ width: 48, height: 36, border: 'none', borderLeft: `1px solid ${P.border}`, borderRight: `1px solid ${P.border}`, padding: '0 4px', fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink, outline: 'none', textAlign: 'center', background: P.white }} />
-                        <button onClick={() => setCarryoverCap(v => (parseInt(v) || 0) + 1)} style={{ width: 32, height: 36, border: 'none', background: P.bg, color: P.inkSoft, cursor: 'pointer', fontSize: 16, fontFamily: 'var(--font-body)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>+</button>
+                          style={{ width: 48, height: 36, border: 'none', borderLeft: `1px solid ${P.border}`, borderRight: `1px solid ${P.border}`, padding: '0 4px', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, outline: 'none', textAlign: 'center', background: P.white }} />
+                        <button onClick={() => setCarryoverCap(v => (parseInt(v) || 0) + 1)} style={{ width: 32, height: 36, border: 'none', background: P.bg, color: P.inkSoft, cursor: 'pointer', fontSize: 'var(--fs-body-md)', fontFamily: 'var(--font-body)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>+</button>
                       </div>
-                      <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft }}>days</span>
+                      <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft }}>days</span>
                     </div>
                   </div>
                 </div>
@@ -8942,7 +8942,7 @@ function LeaveTypeSettingsPage({ config, allLeaveTypes = [], onSave, onDelete, o
                   return (
                     <SettingsRow key={exc.empId}
                       onClick={() => onNav?.('employee-detail:' + exc.empId + ':timeoff')}
-                      leading={<div style={{ width: 32, height: 32, borderRadius: '50%', background: emp.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 11, color: P.ink, flexShrink: 0 }}>{emp.initials}</div>}
+                      leading={<div style={{ width: 32, height: 32, borderRadius: '50%', background: emp.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-xs)', color: P.ink, flexShrink: 0 }}>{emp.initials}</div>}
                       label={emp.name}
                       subtitle={appEntity ? emp.department : [emp.department, emp.entity].filter(Boolean).join(' · ')}
                       value={exc.value}
@@ -8951,7 +8951,7 @@ function LeaveTypeSettingsPage({ config, allLeaveTypes = [], onSave, onDelete, o
                   );
                 })}
               </SettingsCard>
-              <div style={{ marginTop: 8, fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>Exceptions are set per employee and override these defaults.</div>
+              <div style={{ marginTop: 8, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>Exceptions are set per employee and override these defaults.</div>
             </div>
           );
         })()}
@@ -9024,9 +9024,9 @@ function TimeOffSettings({ appEntity = null, companyRegime = COMPANY_REGIME_DEFA
 
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
           <div>
-            {appEntity && <span style={{ display: 'inline-flex', alignItems: 'center', padding: '2px 8px', borderRadius: 6, background: P.white, border: `1px solid ${P.border}`, fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: 11, color: P.inkSoft, marginBottom: 12 }}>{ENTITIES.find(e => e.id === appEntity)?.name}</span>}
+            {appEntity && <span style={{ display: 'inline-flex', alignItems: 'center', padding: '2px 8px', borderRadius: 6, background: P.white, border: `1px solid ${P.border}`, fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginBottom: 12 }}>{ENTITIES.find(e => e.id === appEntity)?.name}</span>}
             <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 28, color: P.ink, margin: 0, letterSpacing: '-0.02em' }}>Time off</h1>
-            <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, margin: '4px 0 0' }}>Configure the leave types available to your employees</p>
+            <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, margin: '4px 0 0' }}>Configure the leave types available to your employees</p>
           </div>
           <Button variant="primary" icon="plus" onClick={() => setLeaveModal('new')} style={{ flexShrink: 0 }}>Add leave type</Button>
         </div>
@@ -9054,7 +9054,7 @@ function TimeOffSettings({ appEntity = null, companyRegime = COMPANY_REGIME_DEFA
             if (sectionTypes.length === 0) return null;
             return (
               <div key={section.id}>
-                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 11, color: P.inkSoft, letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 8 }}>{section.label}</div>
+                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-xs)', color: P.inkSoft, letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 8 }}>{section.label}</div>
                 <SettingsCard>
                   {sectionTypes.map((lt, i) => {
                     const globalIdx = leaveTypes.indexOf(lt);
@@ -9117,12 +9117,12 @@ function ChoiceRow({ choice, onApprove, onDecline, onDetail, showStatus }) {
       }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 9, minWidth: 0 }}>
         <Avatar employeeId={choice.empId} size={24} style={{ border: '2px solid #fff', boxSizing: 'content-box' }} />
-        <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, fontWeight: 500, color: P.ink, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{emp.name}</span>
+        <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', fontWeight: 500, color: P.ink, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{emp.name}</span>
       </div>
-      <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{choice.name}</span>
-      <span style={{ fontFamily: 'var(--font-display)', fontSize: 14, fontWeight: 600, color: P.ink, whiteSpace: 'nowrap' }}>{choice.price}</span>
-      <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft }}>{choice.sDate}</span>
-      <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft }}>{choice.eDate}</span>
+      <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{choice.name}</span>
+      <span style={{ fontFamily: 'var(--font-display)', fontSize: 'var(--fs-body-sm)', fontWeight: 600, color: P.ink, whiteSpace: 'nowrap' }}>{choice.price}</span>
+      <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft }}>{choice.sDate}</span>
+      <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft }}>{choice.eDate}</span>
       {showStatus && <div style={{ display: 'flex' }}><StatusPill status={choice.status || 'approved'} /></div>}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4 }}>
         {isPending && (<>
@@ -9185,7 +9185,7 @@ function ChoicesScreen({ choices, onApprove, onDecline, onDetail, appEntity = nu
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '24px 20px 14px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 7, border: `1px solid ${P.border}`, borderRadius: 7, padding: '8px 12px', width: 240, background: P.white }}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={P.inkFaint} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          <input value={searchText} onChange={e => setSearchText(e.target.value)} placeholder="Search employee" style={{ border: 'none', outline: 'none', background: 'transparent', fontFamily: 'var(--font-body)', fontSize: 12, color: P.ink, width: '100%' }} />
+          <input value={searchText} onChange={e => setSearchText(e.target.value)} placeholder="Search employee" style={{ border: 'none', outline: 'none', background: 'transparent', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.ink, width: '100%' }} />
         </div>
         <FilterDropdown label="All departments" active={deptFilter} opts={[['all', 'All departments'], ...DEPARTMENTS.map(d => [d, d])]} onSelect={setDeptFilter} minWidth={160} />
       </div>
@@ -9203,7 +9203,7 @@ function ChoicesScreen({ choices, onApprove, onDecline, onDetail, appEntity = nu
           {filtered.length === 0 ? (
             <div style={{ padding: '60px 24px', textAlign: 'center' }}>
               <Icon name="ListChecks" size={32} color={P.border} />
-              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.inkFaint, marginTop: 12 }}>
+              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.inkFaint, marginTop: 12 }}>
                 No {tab === 'pending' ? 'pending ' : tab === 'approved' ? 'approved ' : tab === 'declined' ? 'declined ' : ''}choices
               </div>
             </div>
@@ -9239,15 +9239,15 @@ function EntitiesSettings({ onNav, appEntity = null, companyRegime = COMPANY_REG
       <div style={{ maxWidth: 680, margin: '0 auto', padding: '40px 32px', display: 'flex', flexDirection: 'column', gap: 32 }}>
         <div>
           <div>
-            {appEntity && <span style={{ display: 'inline-flex', alignItems: 'center', padding: '2px 8px', borderRadius: 6, background: P.white, border: `1px solid ${P.border}`, fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: 11, color: P.inkSoft, marginBottom: 24 }}>{ENTITIES.find(e => e.id === appEntity)?.name}</span>}
+            {appEntity && <span style={{ display: 'inline-flex', alignItems: 'center', padding: '2px 8px', borderRadius: 6, background: P.white, border: `1px solid ${P.border}`, fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginBottom: 24 }}>{ENTITIES.find(e => e.id === appEntity)?.name}</span>}
             <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 22, color: P.ink, margin: 0, letterSpacing: '-0.02em' }}>Entities</h1>
           </div>
-          <p style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, margin: '4px 0 0' }}>Manage your company's legal entities</p>
+          <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, margin: '4px 0 0' }}>Manage your company's legal entities</p>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '12px 16px', borderRadius: 10, background: '#f0f4ff', border: '1px solid #dbe4ff' }}>
           <Icon name="info" size={15} color="#4c6ef5" strokeWidth={1.75} style={{ flexShrink: 0, marginTop: 1 }} />
-          <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: '#364fc7', lineHeight: 1.5 }}>
+          <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: '#364fc7', lineHeight: 1.5 }}>
             Settings are configured at the company level by default. Entity-specific overrides can be added per setting where needed.
           </div>
         </div>
@@ -9257,7 +9257,7 @@ function EntitiesSettings({ onNav, appEntity = null, companyRegime = COMPANY_REG
           <div style={{ ...card, marginBottom: 8 }}>
             <div style={{ padding: '12px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkSoft, marginBottom: 4 }}>Email domain</div>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginBottom: 4 }}>Email domain</div>
                 {editingDomain ? (
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <input
@@ -9266,19 +9266,19 @@ function EntitiesSettings({ onNav, appEntity = null, companyRegime = COMPANY_REG
                       onChange={e => setDomainInput(e.target.value.toLowerCase().replace(/^@/, ''))}
                       onKeyDown={e => { if (e.key === 'Enter') saveDomain(); if (e.key === 'Escape') setEditingDomain(false); }}
                       placeholder="company.com"
-                      style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 13, color: P.ink, border: `1px solid ${P.action}`, borderRadius: 6, padding: '4px 8px', outline: 'none', width: 180 }}
+                      style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: P.ink, border: `1px solid ${P.action}`, borderRadius: 6, padding: '4px 8px', outline: 'none', width: 180 }}
                     />
-                    <button onClick={saveDomain} style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, color: P.white, background: P.action, border: 'none', borderRadius: 6, padding: '5px 12px', cursor: 'pointer' }}>Save</button>
-                    <button onClick={() => setEditingDomain(false)} style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, color: P.ink, background: 'transparent', border: `1px solid ${P.border}`, borderRadius: 6, padding: '4px 10px', cursor: 'pointer' }}>Cancel</button>
+                    <button onClick={saveDomain} style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.white, background: P.action, border: 'none', borderRadius: 6, padding: '5px 12px', cursor: 'pointer' }}>Save</button>
+                    <button onClick={() => setEditingDomain(false)} style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.ink, background: 'transparent', border: `1px solid ${P.border}`, borderRadius: 6, padding: '4px 10px', cursor: 'pointer' }}>Cancel</button>
                   </div>
                 ) : (
-                  <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 13, color: P.ink }}>{companyRegime.emailDomain}</div>
+                  <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: P.ink }}>{companyRegime.emailDomain}</div>
                 )}
-                {!editingDomain && <div style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkSoft, marginTop: 3 }}>Used to validate work emails during employee onboarding. Entities can override this with their own domain.</div>}
+                {!editingDomain && <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginTop: 3 }}>Used to validate work emails during employee onboarding. Entities can override this with their own domain.</div>}
               </div>
               {editingDomain ? null : (
                 <button onClick={() => { setDomainInput(companyRegime.emailDomain || ''); setEditingDomain(true); }}
-                  style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, color: P.ink, background: 'transparent', border: `1px solid ${P.border}`, borderRadius: 6, padding: '4px 10px', cursor: 'pointer', flexShrink: 0 }}>
+                  style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.ink, background: 'transparent', border: `1px solid ${P.border}`, borderRadius: 6, padding: '4px 10px', cursor: 'pointer', flexShrink: 0 }}>
                   Edit
                 </button>
               )}
@@ -9294,14 +9294,14 @@ function EntitiesSettings({ onNav, appEntity = null, companyRegime = COMPANY_REG
                     style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '14px 20px', borderBottom: (idx < ENTITIES.length - 1 || isExpanded) ? `1px solid ${P.border}` : 'none', cursor: 'pointer' }}>
                     <Icon name="map-pin" size={16} color={P.inkFaint} strokeWidth={1.75} style={{ flexShrink: 0 }} />
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.ink }}>{ent.name}</div>
-                      <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, marginTop: 1 }}>
+                      <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink }}>{ent.name}</div>
+                      <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginTop: 1 }}>
                         {[ent.jc, ent.country].filter(Boolean).join(' · ') || ent.country}
                       </div>
                     </div>
-                    <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkFaint, whiteSpace: 'nowrap' }}>{ent.employeeCount} employees</span>
+                    <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkFaint, whiteSpace: 'nowrap' }}>{ent.employeeCount} employees</span>
                     {overrides.length > 0 && (
-                      <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.action, background: '#f3f0ff', padding: '2px 8px', borderRadius: 10, whiteSpace: 'nowrap' }}>
+                      <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.action, background: '#f3f0ff', padding: '2px 8px', borderRadius: 10, whiteSpace: 'nowrap' }}>
                         {overrides.length} override{overrides.length > 1 ? 's' : ''}
                       </span>
                     )}
@@ -9320,8 +9320,8 @@ function EntitiesSettings({ onNav, appEntity = null, companyRegime = COMPANY_REG
                           ['Overrides', overrides.length > 0 ? overrides.join(', ') : 'None — fully inherited'],
                         ].map(([label, value]) => (
                           <div key={label}>
-                            <div style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkSoft, marginBottom: 2 }}>{label}</div>
-                            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 13, color: P.ink }}>{value}</div>
+                            <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginBottom: 2 }}>{label}</div>
+                            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: P.ink }}>{value}</div>
                           </div>
                         ))}
                       </div>
@@ -9337,7 +9337,7 @@ function EntitiesSettings({ onNav, appEntity = null, companyRegime = COMPANY_REG
           <button onClick={() => {}} style={{
             display: 'flex', alignItems: 'center', gap: 6,
             padding: '8px 16px', borderRadius: 8, border: `1px solid ${P.border}`, background: P.white,
-            cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.ink,
+            cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink,
           }}>
             <Icon name="plus" size={14} color={P.ink} strokeWidth={2} />
             Add entity
@@ -9374,23 +9374,23 @@ function AddDocumentModal({ appEntity, title, saveLabel, onSave, onClose, initia
           <>
         <div style={{ padding: '20px 22px', display: 'flex', flexDirection: 'column', gap: 14 }}>
           <div>
-            <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 12, color: P.inkSoft, marginBottom: 6 }}>Name</label>
+            <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginBottom: 6 }}>Name</label>
             <input autoFocus={!readOnly} value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Work authorization" disabled={readOnly}
-              style={{ width: '100%', border: `1px solid ${P.border}`, borderRadius: 8, padding: '8px 12px', fontFamily: 'var(--font-body)', fontSize: 13, color: P.ink, outline: 'none', background: readOnly ? P.bg : P.white, boxSizing: 'border-box' }} />
+              style={{ width: '100%', border: `1px solid ${P.border}`, borderRadius: 8, padding: '8px 12px', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, outline: 'none', background: readOnly ? P.bg : P.white, boxSizing: 'border-box' }} />
           </div>
           <div>
-            <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 12, color: P.inkSoft, marginBottom: 6 }}>Scope</label>
+            <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginBottom: 6 }}>Scope</label>
             <select value={scope} onChange={e => setScope(e.target.value)} disabled={readOnly}
-              style={{ width: '100%', border: `1px solid ${P.border}`, borderRadius: 8, padding: '8px 12px', fontFamily: 'var(--font-body)', fontSize: 13, color: P.ink, outline: 'none', background: readOnly ? P.bg : P.white }}>
+              style={{ width: '100%', border: `1px solid ${P.border}`, borderRadius: 8, padding: '8px 12px', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, outline: 'none', background: readOnly ? P.bg : P.white }}>
               <option value="">Company-wide</option>
               {ENTITIES.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
             </select>
           </div>
           <div style={{ display: 'flex', gap: 12 }}>
             <div style={{ flex: 1 }}>
-              <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 12, color: P.inkSoft, marginBottom: 6 }}>Language</label>
+              <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginBottom: 6 }}>Language</label>
               <select value={language} onChange={e => setLanguage(e.target.value)} disabled={readOnly}
-                style={{ width: '100%', border: `1px solid ${P.border}`, borderRadius: 8, padding: '8px 12px', fontFamily: 'var(--font-body)', fontSize: 13, color: P.ink, outline: 'none', background: readOnly ? P.bg : P.white }}>
+                style={{ width: '100%', border: `1px solid ${P.border}`, borderRadius: 8, padding: '8px 12px', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, outline: 'none', background: readOnly ? P.bg : P.white }}>
                 <option value="">—</option>
                 <option value="NL">NL</option>
                 <option value="FR">FR</option>
@@ -9398,9 +9398,9 @@ function AddDocumentModal({ appEntity, title, saveLabel, onSave, onClose, initia
               </select>
             </div>
             <div style={{ flex: 1 }}>
-              <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 12, color: P.inkSoft, marginBottom: 6 }}>Type</label>
+              <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginBottom: 6 }}>Type</label>
               <select value={type} onChange={e => setType(e.target.value)} disabled={readOnly}
-                style={{ width: '100%', border: `1px solid ${P.border}`, borderRadius: 8, padding: '8px 12px', fontFamily: 'var(--font-body)', fontSize: 13, color: P.ink, outline: 'none', background: readOnly ? P.bg : P.white }}>
+                style={{ width: '100%', border: `1px solid ${P.border}`, borderRadius: 8, padding: '8px 12px', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, outline: 'none', background: readOnly ? P.bg : P.white }}>
                 <option value="File">File</option>
                 <option value="Url">URL</option>
               </select>
@@ -9410,14 +9410,14 @@ function AddDocumentModal({ appEntity, title, saveLabel, onSave, onClose, initia
             {file ? (
               <>
                 <Icon name="file-check" size={18} color={P.action} strokeWidth={1.5} />
-                <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.ink, marginTop: 6, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{file.name}</div>
-                <div style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkFaint, marginTop: 2 }}>{(file.size / 1024 / 1024).toFixed(1)} MB · Click to change</div>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.ink, marginTop: 6, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{file.name}</div>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkFaint, marginTop: 2 }}>{(file.size / 1024 / 1024).toFixed(1)} MB · Click to change</div>
               </>
             ) : (
               <>
                 <Icon name="upload" size={18} color={P.inkFaint} strokeWidth={1.5} />
-                <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, marginTop: 6 }}>Upload file <span style={{ color: P.inkFaint }}>(optional)</span></div>
-                <div style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkFaint, marginTop: 2 }}>PDF, DOCX up to 10 MB</div>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginTop: 6 }}>Upload file <span style={{ color: P.inkFaint }}>(optional)</span></div>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkFaint, marginTop: 2 }}>PDF, DOCX up to 10 MB</div>
               </>
             )}
           </div>}
@@ -9425,7 +9425,7 @@ function AddDocumentModal({ appEntity, title, saveLabel, onSave, onClose, initia
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, padding: '14px 22px', borderTop: `1px solid ${P.border}` }}>
           <div>
             {onDeactivate && (
-              <button onClick={() => { onDeactivate(); close(); }} style={{ padding: '7px 14px', border: `1px solid ${isDeactivated ? P.successBorder : P.dangerBorder}`, borderRadius: 8, background: isDeactivated ? P.successBg : P.dangerBg, fontFamily: 'var(--font-body)', fontSize: 13, color: isDeactivated ? P.success : P.danger, cursor: 'pointer' }}>
+              <button onClick={() => { onDeactivate(); close(); }} style={{ padding: '7px 14px', border: `1px solid ${isDeactivated ? P.successBorder : P.dangerBorder}`, borderRadius: 8, background: isDeactivated ? P.successBg : P.dangerBg, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: isDeactivated ? P.success : P.danger, cursor: 'pointer' }}>
                 {isDeactivated ? 'Reactivate' : 'Deactivate'}
               </button>
             )}
@@ -9474,23 +9474,23 @@ function DocumentsSettings({ appEntity = null, documents = [], onDocumentsChange
 
   const entityName = appEntity ? (ENTITIES.find(e => e.id === appEntity) || {}).name : null;
 
-  const th = { textAlign: 'left', padding: '9px 16px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em', whiteSpace: 'nowrap' };
-  const td = { padding: '14px 16px', color: P.ink, verticalAlign: 'middle', fontFamily: 'var(--font-body)', fontSize: 13 };
+  const th = { textAlign: 'left', padding: '9px 16px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em', whiteSpace: 'nowrap' };
+  const td = { padding: '14px 16px', color: P.ink, verticalAlign: 'middle', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)' };
   const tdMuted = { ...td, color: P.inkFaint, opacity: 0.6 };
 
   const ActionBtn = ({ icon, label, onClick, danger }) => (
-    <button onClick={onClick} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '4px 10px', border: `1px solid ${danger ? P.dangerBorder : P.border}`, borderRadius: 6, background: danger ? P.dangerBg : P.white, fontFamily: 'var(--font-body)', fontSize: 12, color: danger ? P.danger : P.ink, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+    <button onClick={onClick} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '4px 10px', border: `1px solid ${danger ? P.dangerBorder : P.border}`, borderRadius: 6, background: danger ? P.dangerBg : P.white, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: danger ? P.danger : P.ink, cursor: 'pointer', whiteSpace: 'nowrap' }}>
       <Icon name={icon} size={12} color={danger ? P.danger : P.inkSoft} strokeWidth={1.75} />
       {label}
     </button>
   );
 
-  const badge = { display: 'inline-flex', alignItems: 'center', padding: '2px 6px', borderRadius: 6, background: P.white, border: `1px solid ${P.border}`, fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 11, color: P.inkSoft, marginLeft: 6 };
+  const badge = { display: 'inline-flex', alignItems: 'center', padding: '2px 6px', borderRadius: 6, background: P.white, border: `1px solid ${P.border}`, fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginLeft: 6 };
 
   const iconBtn = { border: 'none', background: 'transparent', cursor: 'pointer', padding: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 4 };
 
   const DocTable = ({ rows, onEdit, showScope }) => (
-    <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-body)', fontSize: 13 }}>
+    <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)' }}>
       <thead>
         <tr style={{ borderBottom: `1px solid ${P.border}` }}>
           <th style={th}>Name</th>
@@ -9517,7 +9517,7 @@ function DocumentsSettings({ appEntity = null, documents = [], onDocumentsChange
                 <td style={td}>
                   {scopeEntity
                     ? <span style={badge}>{scopeEntity.name}</span>
-                    : <span style={{ color: P.inkFaint, fontSize: 12 }}>—</span>}
+                    : <span style={{ color: P.inkFaint, fontSize: 'var(--fs-body-xs)' }}>—</span>}
                 </td>
               )}
               <td style={td}>{doc.language || '—'}</td>
@@ -9548,7 +9548,7 @@ function DocumentsSettings({ appEntity = null, documents = [], onDocumentsChange
           ? 'Add contract templates and policy documents your team can download.'
           : 'Add documents employees are required to provide, like ID copies or signed contracts.'}
         action={
-          <button onClick={() => setAddOpen(true)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, border: `1px solid ${P.border}`, borderRadius: 8, padding: '7px 14px', background: P.white, fontFamily: 'var(--font-body)', fontSize: 13, color: P.ink, cursor: 'pointer' }}>
+          <button onClick={() => setAddOpen(true)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, border: `1px solid ${P.border}`, borderRadius: 8, padding: '7px 14px', background: P.white, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, cursor: 'pointer' }}>
             <Icon name="plus" size={14} color={P.inkSoft} strokeWidth={2} />
             Add {tabId === 'templates' ? 'template' : 'document'}{appEntity ? ` for ${entityName}` : ''}
           </button>
@@ -9609,12 +9609,12 @@ function DocumentsSettings({ appEntity = null, documents = [], onDocumentsChange
 
         <div>
           {appEntity && (
-            <span style={{ display: 'inline-flex', alignItems: 'center', padding: '2px 8px', borderRadius: 6, background: P.white, border: `1px solid ${P.border}`, fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: 11, color: P.inkSoft, marginBottom: 24 }}>
+            <span style={{ display: 'inline-flex', alignItems: 'center', padding: '2px 8px', borderRadius: 6, background: P.white, border: `1px solid ${P.border}`, fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginBottom: 24 }}>
               {entityName}
             </span>
           )}
           <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 22, color: P.ink, margin: 0, letterSpacing: '-0.02em' }}>Documents</h1>
-          <p style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, margin: '4px 0 0' }}>Manage document templates and employee requirements</p>
+          <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, margin: '4px 0 0' }}>Manage document templates and employee requirements</p>
         </div>
 
         {/* Tabs */}
@@ -9646,7 +9646,7 @@ function DocumentsSettings({ appEntity = null, documents = [], onDocumentsChange
               </TableFadeIn>
               {docFilter === 'active' && (
                 <div>
-                  <button onClick={() => setAddOpen(true)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, border: `1px solid ${P.border}`, borderRadius: 8, padding: '7px 14px', background: P.white, fontFamily: 'var(--font-body)', fontSize: 13, color: P.ink, cursor: 'pointer' }}>
+                  <button onClick={() => setAddOpen(true)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, border: `1px solid ${P.border}`, borderRadius: 8, padding: '7px 14px', background: P.white, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, cursor: 'pointer' }}>
                     <Icon name="plus" size={14} color={P.inkSoft} strokeWidth={2} />
                     Add template
                   </button>
@@ -9667,7 +9667,7 @@ function DocumentsSettings({ appEntity = null, documents = [], onDocumentsChange
               </TableFadeIn>
               {docFilter === 'active' && (
                 <div>
-                  <button onClick={() => setAddOpen(true)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, border: `1px solid ${P.border}`, borderRadius: 8, padding: '7px 14px', background: P.white, fontFamily: 'var(--font-body)', fontSize: 13, color: P.ink, cursor: 'pointer' }}>
+                  <button onClick={() => setAddOpen(true)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, border: `1px solid ${P.border}`, borderRadius: 8, padding: '7px 14px', background: P.white, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, cursor: 'pointer' }}>
                     <Icon name="plus" size={14} color={P.inkSoft} strokeWidth={2} />
                     Add document
                   </button>
@@ -9694,25 +9694,25 @@ function PayrollSettings({ companyRegime, onRegimeChange, appEntity = null, onTo
     <div style={{ flex: 1, overflow: 'auto', animation: `screenEnter 180ms ${EASE_OUT}` }}>
       <div style={{ maxWidth: 680, margin: '0 auto', padding: '40px 32px', display: 'flex', flexDirection: 'column', gap: 32 }}>
         <div>
-          {appEntity && <span style={{ display: 'inline-flex', alignItems: 'center', padding: '2px 8px', borderRadius: 6, background: P.white, border: `1px solid ${P.border}`, fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: 11, color: P.inkSoft, marginBottom: 24 }}>{ENTITIES.find(e => e.id === appEntity)?.name}</span>}
+          {appEntity && <span style={{ display: 'inline-flex', alignItems: 'center', padding: '2px 8px', borderRadius: 6, background: P.white, border: `1px solid ${P.border}`, fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginBottom: 24 }}>{ENTITIES.find(e => e.id === appEntity)?.name}</span>}
           <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 22, color: P.ink, margin: 0, letterSpacing: '-0.02em' }}>Payroll</h1>
-          <p style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, margin: '4px 0 0' }}>Configure work regime and payroll integration</p>
+          <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, margin: '4px 0 0' }}>Configure work regime and payroll integration</p>
         </div>
 
         <div>
           <div style={SL}>Work regime</div>
           <div style={card}>
             <div style={{ padding: 20 }}>
-              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.ink, marginBottom: 4 }}>Contracted hours</div>
-              <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, marginBottom: 16 }}>The weekly hours in your employment contracts. Hours above the 38h legal standard generate ADV days.</div>
+              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink, marginBottom: 4 }}>Contracted hours</div>
+              <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, marginBottom: 16 }}>The weekly hours in your employment contracts. Hours above the 38h legal standard generate ADV days.</div>
               <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
                 {HOUR_OPTIONS.map(opt => {
                   const active = companyRegime.contractedHours === opt.value;
                   return (
                     <button key={opt.value} onClick={() => { onRegimeChange({ ...companyRegime, contractedHours: opt.value }); onToast?.({ message: 'Work regime saved', type: 'approve' }); }}
                       style={{ flex: 1, padding: '12px 14px', borderRadius: 10, border: `1.5px solid ${active ? P.action : P.border}`, background: active ? '#f3f0ff' : 'transparent', cursor: 'pointer', textAlign: 'left' }}>
-                      <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: active ? P.action : P.ink }}>{opt.label}</div>
-                      <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: active ? P.action : P.inkSoft, marginTop: 2, opacity: active ? 0.85 : 1 }}>{opt.sub}</div>
+                      <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: active ? P.action : P.ink }}>{opt.label}</div>
+                      <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: active ? P.action : P.inkSoft, marginTop: 2, opacity: active ? 0.85 : 1 }}>{opt.sub}</div>
                     </button>
                   );
                 })}
@@ -9720,7 +9720,7 @@ function PayrollSettings({ companyRegime, onRegimeChange, appEntity = null, onTo
             </div>
             <div style={{ borderTop: `1px solid ${P.border}`, padding: '12px 20px', display: 'flex', alignItems: 'flex-start', gap: 10 }}>
               <Icon name="info" size={14} color={P.inkSoft} strokeWidth={1.75} style={{ flexShrink: 0, marginTop: 1 }} />
-              <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, lineHeight: 1.5 }}>
+              <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, lineHeight: 1.5 }}>
                 Under PC 200, employees working more than 38h/week are entitled to ADV days. The balance is calculated automatically per employee based on FTE and the contracted hours above.
               </div>
             </div>
@@ -9749,13 +9749,13 @@ function BenefitTypeDrawer({ config, onSave, onDelete, onClose }) {
     return () => document.removeEventListener('keydown', handler);
   }, [onClose]);
 
-  const labelStyle = { display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.inkSoft, marginBottom: 6 };
-  const inputStyle = { width: '100%', border: `1px solid ${P.border}`, borderRadius: 8, padding: '9px 12px', fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink, outline: 'none', boxSizing: 'border-box' };
+  const labelStyle = { display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.inkSoft, marginBottom: 6 };
+  const inputStyle = { width: '100%', border: `1px solid ${P.border}`, borderRadius: 8, padding: '9px 12px', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, outline: 'none', boxSizing: 'border-box' };
   const toggleRow = (rowLabel, rowHint, checked, onChange, last) => (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, padding: '14px 0', borderBottom: last ? 'none' : `1px solid ${P.border}` }}>
       <div style={{ flex: 1 }}>
-        <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.ink }}>{rowLabel}</div>
-        {rowHint && <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, marginTop: 2 }}>{rowHint}</div>}
+        <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: P.ink }}>{rowLabel}</div>
+        {rowHint && <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, marginTop: 2 }}>{rowHint}</div>}
       </div>
       <Switch size="sm" checked={checked} onChange={onChange} />
     </div>
@@ -9766,7 +9766,7 @@ function BenefitTypeDrawer({ config, onSave, onDelete, onClose }) {
       title={
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <Icon name={defaults.icon} size={18} color={P.inkSoft} strokeWidth={1.75} />
-          <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18, color: P.ink }}>
+          <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-lg)', color: P.ink }}>
             {isNew ? 'New benefit type' : (label || defaults.label)}
           </span>
         </div>
@@ -9784,15 +9784,15 @@ function BenefitTypeDrawer({ config, onSave, onDelete, onClose }) {
           <div style={{ paddingBottom: 20, marginBottom: 20, borderBottom: `1px solid ${P.border}` }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div>
-                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.ink }}>Enabled</div>
-                <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, marginTop: 2 }}>
+                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: P.ink }}>Enabled</div>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, marginTop: 2 }}>
                   {active ? 'Employees can request this benefit' : 'Employees cannot submit new requests for this benefit'}
                 </div>
               </div>
               <Switch size="sm" checked={active} onChange={() => setActive(v => !v)} />
             </div>
             {!active && (
-              <div style={{ marginTop: 12, padding: '10px 12px', borderRadius: 8, background: '#eff6ff', border: '1px solid #bfdbfe', fontFamily: 'var(--font-body)', fontSize: 13, color: '#1d4ed8', display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+              <div style={{ marginTop: 12, padding: '10px 12px', borderRadius: 8, background: '#eff6ff', border: '1px solid #bfdbfe', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: '#1d4ed8', display: 'flex', alignItems: 'flex-start', gap: 8 }}>
                 <Icon name="info" size={14} color="#3b82f6" strokeWidth={2} style={{ flexShrink: 0, marginTop: 1 }} />
                 Existing approved benefits are not affected.
               </div>
@@ -9818,14 +9818,14 @@ function BenefitTypeDrawer({ config, onSave, onDelete, onClose }) {
             {toggleRow('Annual budget cap', 'Limit how much each employee can request per year', hasBudget, () => setHasBudget(v => !v), !hasBudget)}
             {hasBudget && (
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '0 0 14px' }}>
-                <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft }}>€</span>
+                <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft }}>€</span>
                 <div style={{ display: 'inline-flex', alignItems: 'center', border: `1px solid ${P.border}`, borderRadius: 8, overflow: 'hidden' }}>
-                  <button onClick={() => setBudgetCap(v => Math.max(1, (parseInt(v) || 1) - 50))} style={{ width: 32, height: 36, border: 'none', background: P.bg, color: P.inkSoft, cursor: 'pointer', fontSize: 16, fontFamily: 'var(--font-body)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>−</button>
+                  <button onClick={() => setBudgetCap(v => Math.max(1, (parseInt(v) || 1) - 50))} style={{ width: 32, height: 36, border: 'none', background: P.bg, color: P.inkSoft, cursor: 'pointer', fontSize: 'var(--fs-body-md)', fontFamily: 'var(--font-body)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>−</button>
                   <input type="number" min={1} value={budgetCap} onChange={e => setBudgetCap(parseInt(e.target.value) || '')}
-                    style={{ width: 64, height: 36, border: 'none', borderLeft: `1px solid ${P.border}`, borderRight: `1px solid ${P.border}`, padding: '0 4px', fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink, outline: 'none', textAlign: 'center', background: P.white }} />
-                  <button onClick={() => setBudgetCap(v => (parseInt(v) || 0) + 50)} style={{ width: 32, height: 36, border: 'none', background: P.bg, color: P.inkSoft, cursor: 'pointer', fontSize: 16, fontFamily: 'var(--font-body)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>+</button>
+                    style={{ width: 64, height: 36, border: 'none', borderLeft: `1px solid ${P.border}`, borderRight: `1px solid ${P.border}`, padding: '0 4px', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, outline: 'none', textAlign: 'center', background: P.white }} />
+                  <button onClick={() => setBudgetCap(v => (parseInt(v) || 0) + 50)} style={{ width: 32, height: 36, border: 'none', background: P.bg, color: P.inkSoft, cursor: 'pointer', fontSize: 'var(--fs-body-md)', fontFamily: 'var(--font-body)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>+</button>
                 </div>
-                <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft }}>per employee / year</span>
+                <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft }}>per employee / year</span>
               </div>
             )}
           </div>
@@ -9842,12 +9842,12 @@ function BenefitTypeDrawer({ config, onSave, onDelete, onClose }) {
           {!isNew && onDelete && (
             confirmDelete ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginRight: 'auto' }}>
-                <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>Delete this benefit type?</span>
-                <button onClick={onDelete} style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.danger, padding: 0 }}>Confirm</button>
-                <button onClick={() => setConfirmDelete(false)} style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.inkSoft, padding: 0 }}>Cancel</button>
+                <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft }}>Delete this benefit type?</span>
+                <button onClick={onDelete} style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.danger, padding: 0 }}>Confirm</button>
+                <button onClick={() => setConfirmDelete(false)} style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.inkSoft, padding: 0 }}>Cancel</button>
               </div>
             ) : (
-              <button onClick={() => setConfirmDelete(true)} style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.danger, padding: 0, marginRight: 'auto' }}>Delete</button>
+              <button onClick={() => setConfirmDelete(true)} style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.danger, padding: 0, marginRight: 'auto' }}>Delete</button>
             )
           )}
           <Button variant="secondary" onClick={close}>Cancel</Button>
@@ -9899,9 +9899,9 @@ function BenefitsSettings({ appEntity = null }) {
 
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
           <div>
-            {appEntity && <span style={{ display: 'inline-flex', alignItems: 'center', padding: '2px 8px', borderRadius: 6, background: P.white, border: `1px solid ${P.border}`, fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: 11, color: P.inkSoft, marginBottom: 12 }}>{ENTITIES.find(e => e.id === appEntity)?.name}</span>}
+            {appEntity && <span style={{ display: 'inline-flex', alignItems: 'center', padding: '2px 8px', borderRadius: 6, background: P.white, border: `1px solid ${P.border}`, fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginBottom: 12 }}>{ENTITIES.find(e => e.id === appEntity)?.name}</span>}
             <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 28, color: P.ink, margin: 0, letterSpacing: '-0.02em' }}>Benefits</h1>
-            <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, margin: '4px 0 0' }}>Configure the benefit types employees can request</p>
+            <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, margin: '4px 0 0' }}>Configure the benefit types employees can request</p>
           </div>
           <Button variant="primary" icon="plus" onClick={() => setModal('new')} style={{ flexShrink: 0 }}>Add benefit type</Button>
         </div>
@@ -10109,15 +10109,15 @@ function ChangelogScreen() {
           {CHANGELOG_ENTRIES.map((entry, i) => (
             <div key={i} style={{ display: 'flex', gap: 24 }}>
               <div style={{ width: 108, flexShrink: 0, paddingTop: 2 }}>
-                <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkFaint, fontWeight: 500 }}>{entry.date}</span>
+                <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkFaint, fontWeight: 500 }}>{entry.date}</span>
               </div>
               <div style={{ flex: 1, minWidth: 0, borderLeft: `1px solid ${P.border}`, paddingLeft: 20 }}>
-                <h3 style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 15, color: P.ink, margin: '0 0 12px' }}>{entry.title}</h3>
+                <h3 style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-md)', color: P.ink, margin: '0 0 12px' }}>{entry.title}</h3>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                   {entry.items.map((item, j) => (
                     <div key={j} style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
                       <div style={{ width: 4, height: 4, borderRadius: '50%', background: P.inkFaint, flexShrink: 0, marginTop: 7 }} />
-                      <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, lineHeight: 1.6 }}>
+                      <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: 1.6 }}>
                         <span style={{ color: P.ink, fontWeight: 500 }}>{item.summary}</span>
                         {item.detail && ' ' + item.detail}
                         {item.why && <span style={{ display: 'block', marginTop: 2, color: P.inkSoft }}>Why: {item.why}</span>}
@@ -10139,8 +10139,8 @@ function ChangelogScreen() {
 function LibrarySection({ title, usage, children }) {
   return (
     <div style={{ marginBottom: 40 }}>
-      <h3 style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 16, color: P.ink, margin: '0 0 4px' }}>{title}</h3>
-      {usage && <p style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, margin: '0 0 16px' }}>{usage}</p>}
+      <h3 style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-md)', color: P.ink, margin: '0 0 4px' }}>{title}</h3>
+      {usage && <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, margin: '0 0 16px' }}>{usage}</p>}
       <div style={{ border: `1px solid ${P.border}`, borderRadius: 12, padding: 24, background: P.white }}>
         {children}
       </div>
@@ -10154,7 +10154,7 @@ function ComponentLibraryScreen() {
   const [exampleModalOpen, setExampleModalOpen] = useState(false);
   const [exampleDrawerOpen, setExampleDrawerOpen] = useState(false);
   const [rowValue, setRowValue] = useState('');
-  const inputStyle = { width: '100%', padding: '9px 12px', borderRadius: 8, border: `1px solid ${P.border}`, fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink, outline: 'none', boxSizing: 'border-box', background: P.white };
+  const inputStyle = { width: '100%', padding: '9px 12px', borderRadius: 8, border: `1px solid ${P.border}`, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, outline: 'none', boxSizing: 'border-box', background: P.white };
 
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, overflow: 'hidden', animation: `screenEnter 180ms ${EASE_OUT}` }}>
@@ -10185,15 +10185,15 @@ function ComponentLibraryScreen() {
             <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <Switch size="md" checked={switchOn} onChange={() => setSwitchOn(v => !v)} />
-                <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>md</span>
+                <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft }}>md</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <Switch size="sm" checked={switchOnSm} onChange={() => setSwitchOnSm(v => !v)} />
-                <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>sm</span>
+                <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft }}>sm</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <Switch size="sm" checked={true} onChange={() => {}} disabled />
-                <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>disabled</span>
+                <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft }}>disabled</span>
               </div>
             </div>
           </LibrarySection>
@@ -10201,19 +10201,19 @@ function ComponentLibraryScreen() {
           <LibrarySection title="Badges & pills" usage="Three sanctioned status treatments, all driven by the same StatusMeta table — don't add a fourth.">
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div>
-                <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkFaint, marginBottom: 8 }}>StatusDot</div>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkFaint, marginBottom: 8 }}>StatusDot</div>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16 }}>
                   {Object.keys(StatusMeta).map(s => <StatusDot key={s} status={s} />)}
                 </div>
               </div>
               <div>
-                <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkFaint, marginBottom: 8 }}>StatusPill</div>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkFaint, marginBottom: 8 }}>StatusPill</div>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                   {Object.keys(StatusMeta).map(s => <StatusPill key={s} status={s} />)}
                 </div>
               </div>
               <div>
-                <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkFaint, marginBottom: 8 }}>DotPill — unfilled and filled variants</div>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkFaint, marginBottom: 8 }}>DotPill — unfilled and filled variants</div>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                   <DotPill bg={P.warningBorder} color={P.warningDark}>Unfilled</DotPill>
                   <DotPill dot={false} filled color={P.action}>Filled</DotPill>
@@ -10246,7 +10246,7 @@ function ComponentLibraryScreen() {
 
           <LibrarySection title="Form inputs" usage="Canonical text input styling used across settings screens.">
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxWidth: 280 }}>
-              <label style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, color: P.inkSoft }}>Label</label>
+              <label style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>Label</label>
               <input value={rowValue} onChange={e => setRowValue(e.target.value)} placeholder="Placeholder text" style={inputStyle} />
             </div>
           </LibrarySection>
@@ -10269,7 +10269,7 @@ function ComponentLibraryScreen() {
               <Button variant="primary" onClick={close}>Save</Button>
             </div>
           )}>
-          <div style={{ padding: '18px 22px', fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, lineHeight: 1.5 }}>
+          <div style={{ padding: '18px 22px', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: 1.5 }}>
             This is a live ModalShell instance — the same backdrop, panel, and header chrome used by every centered dialog in the app.
           </div>
         </ModalShell>
@@ -10277,7 +10277,7 @@ function ComponentLibraryScreen() {
 
       {exampleDrawerOpen && (
         <DrawerShell title="Example drawer" onClose={() => setExampleDrawerOpen(false)}>
-          <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px', fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, lineHeight: 1.5 }}>
+          <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: 1.5 }}>
             This is a live DrawerShell instance — the same right-side panel chrome used by every drawer in the app (request details, add expense, benefit types, etc).
           </div>
         </DrawerShell>
@@ -10291,7 +10291,7 @@ function StubScreen({ title, description }) {
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, overflow: 'hidden', animation: `screenEnter 180ms ${EASE_OUT}` }}>
       <PageHeader title={title} subtitle={description} />
       <div style={{ flex: 1, overflow: 'auto', padding: 20 }}>
-        <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 12, padding: 24, maxWidth: 480, color: P.inkFaint, fontFamily: 'var(--font-body)', fontSize: 13 }}>
+        <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 12, padding: 24, maxWidth: 480, color: P.inkFaint, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)' }}>
           Coming soon
         </div>
       </div>
@@ -10342,7 +10342,7 @@ function ToastItem({ toast, onDone }) {
       padding: toast.onUndo || toast.onView ? '10px 10px 10px 16px' : '10px 20px',
       borderRadius: 10,
       border: `1px solid ${P.border}`,
-      fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13,
+      fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)',
       boxShadow: '0 4px 20px rgba(15,13,40,0.1)',
       display: 'flex', alignItems: 'center', gap: 8,
       animation: exiting ? 'none' : `fadeDown 200ms ${EASE_OUT} both`,
@@ -10355,7 +10355,7 @@ function ToastItem({ toast, onDone }) {
           marginLeft: 4, padding: '5px 12px', borderRadius: 7,
           border: `1px solid ${P.border}`,
           background: 'transparent', color: P.ink, cursor: 'pointer',
-          fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11,
+          fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)',
         }}>Undo</button>
       )}
       {toast.onView && (
@@ -10363,7 +10363,7 @@ function ToastItem({ toast, onDone }) {
           marginLeft: 4, padding: '5px 12px', borderRadius: 7,
           border: `1px solid ${P.border}`,
           background: 'transparent', color: P.ink, cursor: 'pointer',
-          fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11,
+          fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)',
         }}>View</button>
       )}
     </div>
@@ -10431,14 +10431,14 @@ function FollowUpBanner({ prompt, onLog, onDismiss }) {
         animation: `pillFadeUp 150ms ${EASE_OUT}`,
         whiteSpace: 'nowrap',
       }}>
-        <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, color: '#fff' }}>
+        <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: '#fff' }}>
           {firstName}'s {dateLabel} {halfLabel} is unlogged
         </span>
         <button onClick={onLog} style={{
           display: 'flex', alignItems: 'center', gap: 5,
           padding: '5px 12px 5px 8px', borderRadius: 7, border: 'none',
           background: P.success, color: '#fff', cursor: 'pointer',
-          fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11,
+          fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)',
         }}>
           <Icon name="CalendarPlus" size={12} color="#fff" strokeWidth={2} />
           Log {halfLabel}
@@ -10446,7 +10446,7 @@ function FollowUpBanner({ prompt, onLog, onDismiss }) {
         <button onClick={onDismiss} style={{
           padding: '5px 10px', borderRadius: 7, border: '1px solid rgba(255,255,255,0.25)',
           background: 'transparent', color: '#fff', cursor: 'pointer',
-          fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11,
+          fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)',
         }}>Dismiss</button>
       </div>
     </div>
@@ -10589,18 +10589,18 @@ function AddEmployeeWizard({ onClose, onCreated, companyRegime, mobilityLive }) 
     close();
   };
 
-  const inputStyle = { width: '100%', border: `1px solid ${P.border}`, borderRadius: 8, padding: '9px 12px', fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink, outline: 'none', boxSizing: 'border-box', background: P.white };
-  const labelStyle = { display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, color: P.inkSoft, marginBottom: 6, letterSpacing: '0.01em' };
-  const SL2        = { fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 11, color: P.inkSoft, letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 20 };
+  const inputStyle = { width: '100%', border: `1px solid ${P.border}`, borderRadius: 8, padding: '9px 12px', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, outline: 'none', boxSizing: 'border-box', background: P.white };
+  const labelStyle = { display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginBottom: 6, letterSpacing: '0.01em' };
+  const SL2        = { fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-xs)', color: P.inkSoft, letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 20 };
   const StepHeading = ({ title, sub }) => (
     <div style={{ marginBottom: 28 }}>
       <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 22, color: P.ink, marginBottom: 4 }}>{title}</div>
-      {sub && <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>{sub}</div>}
+      {sub && <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft }}>{sub}</div>}
     </div>
   );
-  const hint       = { fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, marginTop: 5 };
+  const hint       = { fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginTop: 5 };
   const fieldIn    = (i) => ({ animation: 'wizFadeUp 220ms ease-out both', animationDelay: `${i * 50}ms` });
-  const segBtn     = (active) => ({ flex: 1, padding: '9px 14px', borderRadius: 8, border: `1.5px solid ${active ? P.action : P.border}`, background: active ? '#f3f0ff' : 'transparent', color: active ? P.action : P.ink, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, cursor: 'pointer', transition: 'all 120ms ease' });
+  const segBtn     = (active) => ({ flex: 1, padding: '9px 14px', borderRadius: 8, border: `1.5px solid ${active ? P.action : P.border}`, background: active ? '#f3f0ff' : 'transparent', color: active ? P.action : P.ink, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', cursor: 'pointer', transition: 'all 120ms ease' });
   const chevron    = { ...inputStyle, appearance: 'none', backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b6b80' stroke-width='2.5'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 12px center', paddingRight: 32, cursor: 'pointer' };
 
   const StepDots = () => (
@@ -10623,10 +10623,10 @@ function AddEmployeeWizard({ onClose, onCreated, companyRegime, mobilityLive }) 
 
       {/* Header */}
       <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 32px', height: 60, borderBottom: `1px solid ${P.border}` }}>
-        <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18, color: P.ink, minWidth: 140 }}>Add employee</div>
+        <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-lg)', color: P.ink, minWidth: 140 }}>Add employee</div>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5 }}>
           <StepDots />
-          <div style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkSoft }}>Step {step} of {totalSteps}</div>
+          <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>Step {step} of {totalSteps}</div>
         </div>
         <div style={{ minWidth: 140, display: 'flex', justifyContent: 'flex-end' }}>
           <button onClick={close} style={{ border: 'none', cursor: 'pointer', width: 30, height: 30, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(60,60,67,0.1)' }}>
@@ -10758,7 +10758,7 @@ function AddEmployeeWizard({ onClose, onCreated, companyRegime, mobilityLive }) 
                     <button key={opt.v} onClick={() => { setFte(opt.v); setWorkSchedule(opt.v === 1.0 ? [1,2,3,4,5] : opt.v === 0.8 ? [1,2,3,4] : opt.v === 0.6 ? [1,2,3] : [1,2,3]); }}
                       style={{ ...segBtn(fte === opt.v), flexDirection: 'column', display: 'flex', alignItems: 'center', gap: 2 }}>
                       <span>{opt.l}</span>
-                      <span style={{ fontSize: 11, fontWeight: 400, opacity: 0.7 }}>{opt.sub}</span>
+                      <span style={{ fontSize: 'var(--fs-body-xs)', fontWeight: 400, opacity: 0.7 }}>{opt.sub}</span>
                     </button>
                   ))}
                 </div>
@@ -10766,8 +10766,8 @@ function AddEmployeeWizard({ onClose, onCreated, companyRegime, mobilityLive }) 
               <div style={fieldIn(1)}>
                 <label style={labelStyle}>Contracted hours</label>
                 <div style={{ border: `1px solid ${P.border}`, borderRadius: 8, padding: '9px 12px', background: P.bg, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.ink }}>{regime.contractedHours}h / week</span>
-                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkSoft, background: P.white, padding: '2px 8px', borderRadius: 4, border: `1px solid ${P.border}` }}>Company default</span>
+                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink }}>{regime.contractedHours}h / week</span>
+                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, background: P.white, padding: '2px 8px', borderRadius: 4, border: `1px solid ${P.border}` }}>Company default</span>
                 </div>
               </div>
             </div>
@@ -10782,8 +10782,8 @@ function AddEmployeeWizard({ onClose, onCreated, companyRegime, mobilityLive }) 
                     <Icon name="credit-card" size={16} color={P.inkSoft} strokeWidth={1.5} />
                   </div>
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.ink }}>Also invite to the Payflip Card</div>
-                    <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>Mobility card · virtual</div>
+                    <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink }}>Also invite to the Payflip Card</div>
+                    <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft }}>Mobility card · virtual</div>
                   </div>
                   <Switch checked={inviteToCard} onChange={() => setInviteToCard(v => !v)} />
                 </div>
@@ -10798,7 +10798,7 @@ function AddEmployeeWizard({ onClose, onCreated, companyRegime, mobilityLive }) 
                 <div style={fieldIn(0)}>
                   <label style={labelStyle}>Monthly gross salary</label>
                   <div style={{ position: 'relative' }}>
-                    <span style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft }}>€</span>
+                    <span style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft }}>€</span>
                     <input autoComplete="off" value={grossSalary} onChange={e => setGrossSalary(e.target.value)} placeholder="0,00" type="number" min="0" step="0.01" style={{ ...inputStyle, paddingLeft: 28 }} />
                   </div>
                   <div style={hint}>Gross amount before social contributions, paid on the last working day of the month.</div>
@@ -10811,16 +10811,16 @@ function AddEmployeeWizard({ onClose, onCreated, companyRegime, mobilityLive }) 
                       {label:'Employee NSSO', value: employeeNsso, set: setEmployeeNsso},
                     ].map((row, i) => (
                       <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 14px', borderTop: i > 0 ? `1px solid ${P.border}` : 'none', background: P.bg, gap: 12 }}>
-                        <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.ink, whiteSpace: 'nowrap' }}>{row.label}</span>
+                        <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, whiteSpace: 'nowrap' }}>{row.label}</span>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 4, border: `1px solid ${P.border}`, borderRadius: 6, padding: '4px 8px', background: P.white }}>
                           <input
                             autoComplete="off"
                             value={row.value}
                             onChange={e => row.set(e.target.value)}
                             type="number" min="0" max="100" step="0.01"
-                            style={{ width: 64, border: 'none', outline: 'none', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.ink, background: 'transparent', textAlign: 'right' }}
+                            style={{ width: 64, border: 'none', outline: 'none', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink, background: 'transparent', textAlign: 'right' }}
                           />
-                          <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>%</span>
+                          <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft }}>%</span>
                         </div>
                       </div>
                     ))}
@@ -10838,7 +10838,7 @@ function AddEmployeeWizard({ onClose, onCreated, companyRegime, mobilityLive }) 
       {/* Footer */}
       <div style={{ flexShrink: 0, padding: '14px 32px', borderTop: `1px solid ${P.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: P.white }}>
         {step > 1
-          ? <button onClick={goBack} style={{ padding: '8px 18px', borderRadius: 8, border: `1px solid ${P.border}`, background: 'transparent', color: P.ink, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>Back</button>
+          ? <button onClick={goBack} style={{ padding: '8px 18px', borderRadius: 8, border: `1px solid ${P.border}`, background: 'transparent', color: P.ink, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)' }}>Back</button>
           : <div />
         }
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
@@ -10848,12 +10848,12 @@ function AddEmployeeWizard({ onClose, onCreated, companyRegime, mobilityLive }) 
                 style={{ width: 18, height: 18, borderRadius: 4, border: `1.5px solid ${sendInvite ? P.action : P.border}`, background: sendInvite ? P.action : P.white, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 120ms ease' }}>
                 {sendInvite && <Icon name="Check" size={11} color={P.white} strokeWidth={3} />}
               </div>
-              <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.ink }}>Send invite email</span>
+              <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink }}>Send invite email</span>
             </label>
           )}
           {step < totalSteps
-            ? <button onClick={goForward} style={{ padding: '8px 18px', borderRadius: 8, border: 'none', background: P.action, color: P.white, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, transition: 'background 150ms ease' }}>Next</button>
-            : <button onClick={handleCreate} style={{ padding: '8px 18px', borderRadius: 8, border: 'none', background: P.action, color: P.white, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>
+            ? <button onClick={goForward} style={{ padding: '8px 18px', borderRadius: 8, border: 'none', background: P.action, color: P.white, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', transition: 'background 150ms ease' }}>Next</button>
+            : <button onClick={handleCreate} style={{ padding: '8px 18px', borderRadius: 8, border: 'none', background: P.action, color: P.white, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)' }}>
                 {inviteToCard ? 'Create & invite to card' : sendInvite ? 'Create & send invite' : 'Create employee'}
               </button>
           }
