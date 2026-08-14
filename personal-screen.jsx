@@ -4671,20 +4671,9 @@ function TimeOffDetailScreen({ item, onClose }) {
                     ))}
                   </div>
                 )}
-                <button
-                  onClick={_startDocForm}
-                  style={{
-                    width: '100%', padding: '12px',
-                    border: `1.5px dashed ${P.border}`, borderRadius: 12,
-                    background: '#fff', cursor: 'pointer',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                  }}
-                >
-                  <LucideIcon name="Upload" size={16} color={P.inkSoft} strokeWidth={1.75} />
-                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.inkSoft }}>
-                    {docs.length === 0 ? 'Upload document' : 'Add another'}
-                  </span>
-                </button>
+                <Button variant="outline" leftIcon="Upload" fullWidth onClick={_startDocForm}>
+                  {docs.length === 0 ? 'Upload document' : 'Add another'}
+                </Button>
               </div>
             )}
 
@@ -4975,20 +4964,9 @@ function TimeOffDetailScreen({ item, onClose }) {
                         ))}
                       </div>
                     )}
-                    <button
-                      onClick={_startDocForm}
-                      style={{
-                        width: '100%', padding: '12px',
-                        border: `1.5px dashed ${P.border}`, borderRadius: 12,
-                        background: '#fff', cursor: 'pointer',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                      }}
-                    >
-                      <LucideIcon name="Upload" size={16} color={P.inkSoft} strokeWidth={1.75} />
-                      <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.inkSoft }}>
-                        {docs.length === 0 ? 'Upload document' : 'Add another'}
-                      </span>
-                    </button>
+                    <Button variant="secondary" icon="Upload" fullWidth onClick={_startDocForm}>
+                      {docs.length === 0 ? 'Upload document' : 'Add another'}
+                    </Button>
                   </div>
                 )}
                 <div style={rowStyle}>
