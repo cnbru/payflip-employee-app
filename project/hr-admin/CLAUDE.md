@@ -32,6 +32,16 @@ Before writing a new button, icon button, badge, settings row, card, drawer, or 
 </DrawerShell>
 ```
 
+**`Card` + `CardHeader` / `CardContent` / `CardFooter`** — the canonical content-panel pattern. Use whenever a white bordered panel is needed (`border-radius: 10px`, `1px P.border` ring, white bg). `size` prop controls padding: `sm` (12px), `md` (16px, default), `lg` (24px). `CardHeader` accepts `title`, `description`, and optional `divider` prop for a bottom border. `CardFooter` accepts optional `divider` prop for a top border:
+
+```jsx
+<Card size="md">
+  <CardHeader title="Section title" description="Optional subtext." divider />
+  <CardContent>…body…</CardContent>
+  <CardFooter divider><Button variant="primary">Save</Button></CardFooter>
+</Card>
+```
+
 **`SettingsCard` + `SettingsRow`** — the canonical building blocks for any settings screen that lists clickable items (a leave type, an allowance, an expense category, an admin, a benefit type):
 
 ```jsx
