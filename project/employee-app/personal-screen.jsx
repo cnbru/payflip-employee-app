@@ -315,6 +315,7 @@ if (!window.__timeOffItems || window.__protoStateApplied !== _protoState) {
     // Returning user: past history + upcoming + pending
     window.__timeOffItems = [
       // Past (before today June 8 2026)
+      { id: 'pf', label: 'Funeral leave',  date: 'Jan 22–23',    month: 'January',   days: 2, status: 'approved', _leaveReason: 'special-funeral-parent', _attachments: [] },
       { id: 'p0', label: 'Sick leave',     date: 'Feb 3–7',      month: 'February',  days: 5, status: 'approved' },
       { id: 'p1', label: 'Legal holiday', date: 'Mar 30–Apr 3', month: 'March',     days: 5, status: 'approved' },
       { id: 'p2', label: 'ADV day',       date: 'Apr 24',       month: 'April',     days: 1, status: 'approved' },
@@ -4696,6 +4697,7 @@ function TimeOffDetailScreen({ item, onClose }) {
           {item._sickConverted == null && (() => {
             if (item.status !== 'approved') return false;
             if (item._leaveReason === 'sick' || (item.label || '').toLowerCase().includes('sick')) return false;
+            if (item._leaveReason?.startsWith('special-')) return false;
             const mMap = { January:0, February:1, March:2, April:3, May:4, June:5, July:6, August:7, September:8, October:9, November:10, December:11 };
             const mo = mMap[item.month];
             if (mo == null) return false;
@@ -4956,6 +4958,7 @@ function TimeOffDetailScreen({ item, onClose }) {
           {item._sickConverted == null && (() => {
             if (item.status !== 'approved') return false;
             if (item._leaveReason === 'sick' || (item.label || '').toLowerCase().includes('sick')) return false;
+            if (item._leaveReason?.startsWith('special-')) return false;
             const mMap = { January:0, February:1, March:2, April:3, May:4, June:5, July:6, August:7, September:8, October:9, November:10, December:11 };
             const mo = mMap[item.month];
             if (mo == null) return false;
