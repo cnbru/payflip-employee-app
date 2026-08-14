@@ -3244,7 +3244,7 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
                       </div>
                       {overBalance > 0 && leaveReason === 'timeoff' && <><div style={{ height: 1, background: P.border }} /><div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '16px 22px', background: '#FFF3E5' }}><LucideIcon name="AlertTriangle" size={14} color="#92400e" strokeWidth={2} style={{ flexShrink: 0 }} /><span style={{ fontFamily: 'var(--font-body)', fontSize: 13, fontWeight: 500, color: '#92400e', lineHeight: '18px' }}>Exceeds your balance by {overBalance === 0.5 ? '½' : overBalance} day{overBalance > 1 ? 's' : ''} — {plannableTotal} days available</span></div></>}
                       {overEntitlement > 0 && <><div style={{ height: 1, background: P.border }} /><div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '16px 22px', background: '#fef2f2' }}><LucideIcon name="AlertCircle" size={14} color="#b91c1c" strokeWidth={2} style={{ flexShrink: 0 }} /><span style={{ fontFamily: 'var(--font-body)', fontSize: 13, fontWeight: 500, color: '#b91c1c', lineHeight: '18px' }}>Maximum {entitledDaysLimit} day{entitledDaysLimit > 1 ? 's' : ''} for this leave type — reduce by {overEntitlement} day{overEntitlement > 1 ? 's' : ''} — <button onClick={() => { setSelectedDates(new Set()); setHalfDay(null); }} style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: 0, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: '#b91c1c', textDecoration: 'underline', textUnderlineOffset: 2 }}>Clear</button></span></div></>}
-                      {(() => { const n = _computeRanges(selectedDates).length; return n > 1 && <><div style={{ height: 1, background: 'rgba(15,13,40,0.1)' }} /><div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '14px 22px' }}><LucideIcon name="Split" size={14} color={P.inkSoft} strokeWidth={2} style={{ flexShrink: 0 }} /><span style={{ fontFamily: 'var(--font-body)', fontSize: 13, fontWeight: 500, color: P.inkSoft, lineHeight: '18px' }}>You've picked {n} periods · each becomes its own request</span></div></>; })()}
+                      {(() => { const n = _computeRanges(selectedDates).length; return n > 1 && <><div style={{ height: 1, background: 'rgba(15,13,40,0.1)' }} /><div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '14px 22px' }}><LucideIcon name="Info" size={14} color={P.inkSoft} strokeWidth={2} style={{ flexShrink: 0 }} /><span style={{ fontFamily: 'var(--font-body)', fontSize: 13, fontWeight: 500, color: P.inkSoft, lineHeight: '18px' }}>You've picked {n} periods · each becomes its own request</span></div></>; })()}
                     </div>
                   </div>
                   </RevealPanel>
@@ -3295,7 +3295,7 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
                       {overBalance > 0 && leaveReason === 'timeoff' && <><div style={{ height: 1, background: P.border }} /><div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 16px', background: '#FFF3E5' }}><LucideIcon name="AlertTriangle" size={14} color="#92400e" strokeWidth={2} style={{ flexShrink: 0 }} /><span style={{ fontFamily: 'var(--font-body)', fontSize: 12, fontWeight: 500, color: '#92400e', lineHeight: '16px' }}>Exceeds your balance by {overBalance === 0.5 ? '½' : overBalance} day{overBalance > 1 ? 's' : ''} — {plannableTotal} days available</span></div></>}
                       {overEntitlement > 0 && <><div style={{ height: 1, background: P.border }} /><div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 16px', background: '#fef2f2' }}><LucideIcon name="AlertCircle" size={14} color="#b91c1c" strokeWidth={2} style={{ flexShrink: 0 }} /><span style={{ fontFamily: 'var(--font-body)', fontSize: 12, fontWeight: 500, color: '#b91c1c', lineHeight: '16px' }}>Maximum {entitledDaysLimit} day{entitledDaysLimit > 1 ? 's' : ''} for this leave type — reduce by {overEntitlement} day{overEntitlement > 1 ? 's' : ''} — <button onClick={() => { setSelectedDates(new Set()); setHalfDay(null); }} style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: 0, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, color: '#b91c1c', textDecoration: 'underline', textUnderlineOffset: 2 }}>Clear</button></span></div></>}
                       {leaveReason === 'timeoff' && totalDays > 0 && overBalance === 0 && <><div style={{ height: 1, background: 'rgba(15,13,40,0.1)' }} /><div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 16px' }}><LucideIcon name="Info" size={14} color={P.inkSoft} strokeWidth={2} style={{ flexShrink: 0 }} /><span style={{ fontFamily: 'var(--font-body)', fontSize: 12, fontWeight: 500, color: P.inkSoft, lineHeight: '16px' }}>{`${Math.max(0, plannableTotal - totalDays)} days remaining after this`}</span></div></>}
-                      {(() => { const n = _computeRanges(selectedDates).length; return n > 1 && <><div style={{ height: 1, background: 'rgba(15,13,40,0.1)' }} /><div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 16px' }}><LucideIcon name="Split" size={14} color={P.inkSoft} strokeWidth={2} style={{ flexShrink: 0 }} /><span style={{ fontFamily: 'var(--font-body)', fontSize: 12, fontWeight: 500, color: P.inkSoft, lineHeight: '16px' }}>You've picked {n} periods · each becomes its own request</span></div></>; })()}
+                      {(() => { const n = _computeRanges(selectedDates).length; return n > 1 && <><div style={{ height: 1, background: 'rgba(15,13,40,0.1)' }} /><div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 16px' }}><LucideIcon name="Info" size={14} color={P.inkSoft} strokeWidth={2} style={{ flexShrink: 0 }} /><span style={{ fontFamily: 'var(--font-body)', fontSize: 12, fontWeight: 500, color: P.inkSoft, lineHeight: '16px' }}>You've picked {n} periods · each becomes its own request</span></div></>; })()}
                     </div>
                   </div>
                   </RevealPanel>
@@ -4152,6 +4152,33 @@ function TimeOffDetailScreen({ item, onClose }) {
   const [illnessSubmitting, setIllnessSubmitting] = React.useState(false);
   const [showIllnessSheet, setShowIllnessSheet] = React.useState(false);
   const [illnessSheetAnim, setIllnessSheetAnim] = React.useState('');
+
+  // Documents — can be added/removed after submission (e.g. funeral certificate
+  // that arrives later than the leave request itself).
+  const [docs, setDocs] = React.useState(item._attachments || []);
+  const supportsDocs = item._leaveReason?.startsWith('special-') || (!item._leaveReason && item.label && !['Time off', 'Sick leave', 'Sick leave (with medical certificate)'].includes(item.label));
+  const _persistDocs = (next) => {
+    setDocs(next);
+    if (window.__timeOffItems) {
+      window.__timeOffItems = window.__timeOffItems.map(i => i.id === item.id ? { ...i, _attachments: next } : i);
+    }
+    if (window.__refreshTimeOff) window.__refreshTimeOff();
+  };
+  const _addDoc = () => {
+    const pool = [
+      { name: 'certificate.pdf',       size: '245 KB' },
+      { name: 'invitation.pdf',        size: '1.2 MB' },
+      { name: 'proof_of_attendance.pdf', size: '128 KB' },
+      { name: 'official_notice.pdf',   size: '210 KB' },
+    ];
+    _persistDocs([...docs, pool[docs.length % pool.length]]);
+    setDetailToast('Document added');
+    setTimeout(() => setDetailToast(null), 2000);
+  };
+  const _removeDoc = (idx) => {
+    _persistDocs(docs.filter((_, i) => i !== idx));
+  };
+
   const doClose = () => {
     if (isDesktop) {
       setDesktopAnim('t-modal-leave');
@@ -4525,6 +4552,56 @@ function TimeOffDetailScreen({ item, onClose }) {
               <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 15, color: P.ink }}>16 Nov 2025</span>
             </div>
 
+            {/* Documents — attachable after submission for any non-timeoff leave */}
+            {supportsDocs && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, padding: '18px 0', borderTop: `1px solid ${P.border}` }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft }}>Documents</span>
+                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>
+                    {docs.length === 0 ? 'None yet' : docs.length + ' file' + (docs.length > 1 ? 's' : '')}
+                  </span>
+                </div>
+                {docs.length > 0 && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    {docs.map((file, i) => (
+                      <div key={i} style={{
+                        display: 'flex', alignItems: 'center', gap: 8,
+                        padding: '10px 12px', borderRadius: 10,
+                        background: P.surface, border: `1px solid ${P.border}`,
+                      }}>
+                        <LucideIcon name="FileText" size={18} color={P.inkSoft} strokeWidth={1.75} />
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.ink, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{file.name}</div>
+                          <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>{file.size}</div>
+                        </div>
+                        <button
+                          onClick={() => _removeDoc(i)}
+                          aria-label="Remove document"
+                          style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: 4, display: 'inline-flex' }}
+                        >
+                          <LucideIcon name="X" size={16} color={P.inkSoft} strokeWidth={2} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <button
+                  onClick={_addDoc}
+                  style={{
+                    width: '100%', padding: '12px',
+                    border: `1.5px dashed ${P.border}`, borderRadius: 12,
+                    background: '#fff', cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                  }}
+                >
+                  <LucideIcon name="Upload" size={16} color={P.inkSoft} strokeWidth={1.75} />
+                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.inkSoft }}>
+                    {docs.length === 0 ? 'Upload document' : 'Add another'}
+                  </span>
+                </button>
+              </div>
+            )}
+
             {/* Timeline — only shown when illness was reported */}
             {item._sickConverted != null && (() => {
               const steps = [
@@ -4779,10 +4856,52 @@ function TimeOffDetailScreen({ item, onClose }) {
                     </div>
                   </div>
                 )}
-                {hasAttachments && (
-                  <div style={rowStyle}>
-                    <span style={labelStyle}>Attachments</span>
-                    <span style={valueStyle}>{item._attachments.length + ' file' + (item._attachments.length > 1 ? 's' : '')}</span>
+                {supportsDocs && (
+                  <div style={{ ...rowStyle, flexDirection: 'column', alignItems: 'stretch', gap: 10 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <span style={labelStyle}>Documents</span>
+                      <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>
+                        {docs.length === 0 ? 'None yet' : docs.length + ' file' + (docs.length > 1 ? 's' : '')}
+                      </span>
+                    </div>
+                    {docs.length > 0 && (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                        {docs.map((file, i) => (
+                          <div key={i} style={{
+                            display: 'flex', alignItems: 'center', gap: 8,
+                            padding: '10px 12px', borderRadius: 10,
+                            background: P.surface, border: `1px solid ${P.border}`,
+                          }}>
+                            <LucideIcon name="FileText" size={18} color={P.inkSoft} strokeWidth={1.75} />
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.ink, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{file.name}</div>
+                              <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>{file.size}</div>
+                            </div>
+                            <button
+                              onClick={() => _removeDoc(i)}
+                              aria-label="Remove document"
+                              style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: 4, display: 'inline-flex' }}
+                            >
+                              <LucideIcon name="X" size={16} color={P.inkSoft} strokeWidth={2} />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    <button
+                      onClick={_addDoc}
+                      style={{
+                        width: '100%', padding: '12px',
+                        border: `1.5px dashed ${P.border}`, borderRadius: 12,
+                        background: '#fff', cursor: 'pointer',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                      }}
+                    >
+                      <LucideIcon name="Upload" size={16} color={P.inkSoft} strokeWidth={1.75} />
+                      <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.inkSoft }}>
+                        {docs.length === 0 ? 'Upload document' : 'Add another'}
+                      </span>
+                    </button>
                   </div>
                 )}
                 <div style={rowStyle}>
