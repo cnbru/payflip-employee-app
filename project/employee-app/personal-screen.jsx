@@ -4153,6 +4153,11 @@ function TimeOffDetailScreen({ item, onClose }) {
   const [illnessSubmitting, setIllnessSubmitting] = React.useState(false);
   const [showIllnessSheet, setShowIllnessSheet] = React.useState(false);
   const [illnessSheetAnim, setIllnessSheetAnim] = React.useState('');
+  const [docStep, setDocStep] = React.useState(null); // null | 'form' | 'success'
+  const [docFile, setDocFile] = React.useState(null);
+  const [docSubmitting, setDocSubmitting] = React.useState(false);
+  const [showDocSheet, setShowDocSheet] = React.useState(false);
+  const [docSheetAnim, setDocSheetAnim] = React.useState('');
 
   // Documents — can be added/removed after submission (e.g. funeral certificate
   // that arrives later than the leave request itself).
@@ -4166,16 +4171,35 @@ function TimeOffDetailScreen({ item, onClose }) {
     }
     if (window.__refreshTimeOff) window.__refreshTimeOff();
   };
-  const _addDoc = () => {
-    const pool = [
-      { name: 'certificate.pdf',       size: '245 KB' },
-      { name: 'invitation.pdf',        size: '1.2 MB' },
-      { name: 'proof_of_attendance.pdf', size: '128 KB' },
-      { name: 'official_notice.pdf',   size: '210 KB' },
-    ];
-    _persistDocs([...docs, pool[docs.length % pool.length]]);
-    setDetailToast('Document added');
-    setTimeout(() => setDetailToast(null), 2000);
+  const _docFilePool = [
+    { name: 'certificate.pdf',          size: '245 KB' },
+    { name: 'invitation.pdf',           size: '1.2 MB' },
+    { name: 'proof_of_attendance.pdf',  size: '128 KB' },
+    { name: 'official_notice.pdf',      size: '210 KB' },
+  ];
+  const _startDocForm = () => {
+    setDocFile(null);
+    setDocSubmitting(false);
+    if (isDesktop) {
+      setDocStep('form');
+    } else {
+      setShowDocSheet(true);
+      requestAnimationFrame(() => requestAnimationFrame(() => setDocSheetAnim('is-open')));
+    }
+  };
+  const _closeDocSheet = () => {
+    setDocSheetAnim('is-closing');
+    setTimeout(() => { setShowDocSheet(false); setDocSheetAnim(''); setDocStep(null); setDocFile(null); }, 200);
+  };
+  const _submitDoc = (fileOverride) => {
+    const file = fileOverride || docFile;
+    if (!file) return;
+    setDocSubmitting(true);
+    setTimeout(() => {
+      _persistDocs([...docs, file]);
+      setDocSubmitting(false);
+      setDocStep('success');
+    }, 1000);
   };
   const _removeDoc = (idx) => {
     _persistDocs(docs.filter((_, i) => i !== idx));
@@ -4431,6 +4455,66 @@ function TimeOffDetailScreen({ item, onClose }) {
               </Button>
             </div>
           </>
+        ) : docStep === 'success' ? (
+        /* ── Doc upload success ── */
+        <>
+          <div style={{ padding: '16px 24px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', borderBottom: `1px solid ${P.border}` }}>
+            <button onClick={() => doClose()} style={{ width: 32, height: 32, borderRadius: 8, background: P.surface, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <LucideIcon name="X" size={18} color={P.ink} strokeWidth={2} />
+            </button>
+          </div>
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '32px 24px', textAlign: 'center' }}>
+            <SuccessCheck iconName="CircleCheck" iconColor={PFC.successText} iconBg={PFC.successBg} />
+            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 20, color: P.ink, marginBottom: 8, animation: 'fadeSlideIn 0.5s ease-out 0.15s both' }}>Document submitted</div>
+            <div style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, lineHeight: '20px', maxWidth: 280, animation: 'fadeSlideIn 0.5s ease-out 0.25s both' }}>
+              Your document has been sent to HR and attached to this leave request.
+            </div>
+          </div>
+          <div style={{ padding: '16px 24px 24px', borderTop: `1px solid ${P.border}` }}>
+            <Button variant="primary" size="large" fullWidth onClick={() => { setDocStep(null); doClose(); }}>Back to time off</Button>
+          </div>
+        </>
+        ) : docStep === 'form' ? (
+        /* ── Doc upload form ── */
+        <>
+          <div style={{ padding: '14px 20px', display: 'flex', alignItems: 'center', gap: 10, borderBottom: `1px solid ${P.border}`, flexShrink: 0 }}>
+            <button onClick={() => setDocStep(null)} style={{ width: 32, height: 32, borderRadius: 8, background: P.surface, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <LucideIcon name="ArrowLeft" size={18} color={P.ink} strokeWidth={2} />
+            </button>
+            <div style={{ flex: 1, fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18, color: P.ink }}>Add document</div>
+            <button onClick={() => doClose()} style={{ width: 32, height: 32, borderRadius: 8, background: P.surface, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <LucideIcon name="X" size={18} color={P.ink} strokeWidth={2} />
+            </button>
+          </div>
+          <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px' }}>
+            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.inkSoft, marginBottom: 8 }}>
+              Document <span style={{ color: PFC.errorText }}>*</span>
+            </div>
+            {docFile ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 14px', background: P.surface, border: `1px solid ${P.border}`, borderRadius: 12, marginBottom: 8 }}>
+                <LucideIcon name="FileText" size={18} color={P.inkSoft} strokeWidth={1.75} />
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.ink, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{docFile.name}</div>
+                  <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>{docFile.size}</div>
+                </div>
+                <button onClick={() => setDocFile(null)} style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: 4, display: 'inline-flex' }}>
+                  <LucideIcon name="X" size={16} color={P.inkSoft} strokeWidth={2} />
+                </button>
+              </div>
+            ) : (
+              <button onClick={() => setDocFile(_docFilePool[docs.length % _docFilePool.length])} style={{ width: '100%', padding: '20px 14px', border: `1.5px dashed ${P.border}`, borderRadius: 12, background: '#fafafa', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                <LucideIcon name="Upload" size={22} color={P.inkSoft} strokeWidth={1.75} />
+                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.inkSoft }}>Choose file</span>
+                <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkFaint }}>PDF, JPG, PNG up to 10 MB</span>
+              </button>
+            )}
+          </div>
+          <div style={{ padding: '14px 24px 24px', borderTop: `1px solid ${P.border}`, flexShrink: 0 }}>
+            <Button variant="primary" size="large" fullWidth disabled={!docFile || docSubmitting} onClick={() => _submitDoc()}>
+              {docSubmitting ? 'Submitting…' : 'Submit document'}
+            </Button>
+          </div>
+        </>
         ) : (
         /* ── Desktop detail view ── */
         <>
@@ -4588,7 +4672,7 @@ function TimeOffDetailScreen({ item, onClose }) {
                   </div>
                 )}
                 <button
-                  onClick={_addDoc}
+                  onClick={_startDocForm}
                   style={{
                     width: '100%', padding: '12px',
                     border: `1.5px dashed ${P.border}`, borderRadius: 12,
@@ -4892,7 +4976,7 @@ function TimeOffDetailScreen({ item, onClose }) {
                       </div>
                     )}
                     <button
-                      onClick={_addDoc}
+                      onClick={_startDocForm}
                       style={{
                         width: '100%', padding: '12px',
                         border: `1.5px dashed ${P.border}`, borderRadius: 12,
@@ -5247,6 +5331,80 @@ function TimeOffDetailScreen({ item, onClose }) {
                 onClick={() => closeSheet()}>
                 Cancel
               </Button>
+            </div>
+          </div>,
+          appShell
+        );
+      })()}
+
+      {/* Document upload bottom sheet */}
+      {showDocSheet && (() => {
+        const appShell = document.querySelector('[data-app-shell]');
+        if (!appShell) return null;
+        return ReactDOM.createPortal(
+          <div
+            style={{ position: 'absolute', inset: 0, zIndex: 400, background: 'rgba(15,13,40,0.45)', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}
+            onClick={(e) => { if (e.target === e.currentTarget) _closeDocSheet(); }}
+          >
+            <div
+              role="dialog"
+              aria-modal="true"
+              aria-label="Add document"
+              className={`t-sheet ${docSheetAnim}`}
+              style={{ background: 'white', borderRadius: '20px 20px 0 0', display: 'flex', flexDirection: 'column', maxHeight: '90%' }}
+            >
+              <div aria-hidden="true" style={{ width: 36, height: 4, borderRadius: 2, background: P.border, margin: '12px auto 0' }} />
+              {docStep === 'success' ? (
+                <div style={{ padding: '32px 24px 40px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0 }}>
+                  <div style={{ width: 64, height: 64, borderRadius: '50%', background: PFC.successBg, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
+                    <LucideIcon name="Check" size={28} color={PFC.successText} strokeWidth={2.5} />
+                  </div>
+                  <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 20, color: P.ink, marginBottom: 8, textAlign: 'center' }}>Document submitted</div>
+                  <div style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, lineHeight: '20px', textAlign: 'center', marginBottom: 32 }}>
+                    Your document has been sent to HR and attached to this leave request.
+                  </div>
+                  <Button variant="primary" size="large" fullWidth onClick={() => { _closeDocSheet(); }}>
+                    Back to leave
+                  </Button>
+                </div>
+              ) : (
+                <>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 20px', borderBottom: `1px solid ${P.border}`, flexShrink: 0 }}>
+                    <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18, color: P.ink }}>Add document</div>
+                    <button onClick={_closeDocSheet} style={{ width: 32, height: 32, borderRadius: 8, background: P.surface, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <LucideIcon name="X" size={18} color={P.ink} strokeWidth={2} />
+                    </button>
+                  </div>
+                  <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px' }}>
+                    <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.inkSoft, marginBottom: 8 }}>
+                      Document <span style={{ color: PFC.errorText }}>*</span>
+                    </div>
+                    {docFile ? (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 14px', background: P.surface, border: `1px solid ${P.border}`, borderRadius: 12, marginBottom: 8 }}>
+                        <LucideIcon name="FileText" size={18} color={P.inkSoft} strokeWidth={1.75} />
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.ink, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{docFile.name}</div>
+                          <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>{docFile.size}</div>
+                        </div>
+                        <button onClick={() => setDocFile(null)} style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: 4, display: 'inline-flex' }}>
+                          <LucideIcon name="X" size={16} color={P.inkSoft} strokeWidth={2} />
+                        </button>
+                      </div>
+                    ) : (
+                      <button onClick={() => setDocFile(_docFilePool[docs.length % _docFilePool.length])} style={{ width: '100%', padding: '20px 14px', border: `1.5px dashed ${P.border}`, borderRadius: 12, background: '#fafafa', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+                        <LucideIcon name="Upload" size={22} color={P.inkSoft} strokeWidth={1.75} />
+                        <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.inkSoft }}>Choose file</span>
+                        <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkFaint }}>PDF, JPG, PNG up to 10 MB</span>
+                      </button>
+                    )}
+                  </div>
+                  <div style={{ padding: '14px 24px 40px', borderTop: `1px solid ${P.border}`, flexShrink: 0 }}>
+                    <Button variant="primary" size="large" fullWidth disabled={!docFile || docSubmitting} onClick={() => _submitDoc()}>
+                      {docSubmitting ? 'Submitting…' : 'Submit document'}
+                    </Button>
+                  </div>
+                </>
+              )}
             </div>
           </div>,
           appShell
