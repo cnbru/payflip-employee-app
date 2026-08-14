@@ -4156,7 +4156,8 @@ function TimeOffDetailScreen({ item, onClose }) {
   // Documents — can be added/removed after submission (e.g. funeral certificate
   // that arrives later than the leave request itself).
   const [docs, setDocs] = React.useState(item._attachments || []);
-  const supportsDocs = item._leaveReason?.startsWith('special-') || (!item._leaveReason && item.label && !['Time off', 'Sick leave', 'Sick leave (with medical certificate)'].includes(item.label));
+  const _specialLabels = ['Funeral leave', 'Wedding', 'Moving', 'Ceremony', 'Civic duty'];
+  const supportsDocs = item._leaveReason?.startsWith('special-') || (!item._leaveReason && _specialLabels.includes(item.label));
   const _persistDocs = (next) => {
     setDocs(next);
     if (window.__timeOffItems) {
