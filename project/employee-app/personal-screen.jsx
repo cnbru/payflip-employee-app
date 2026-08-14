@@ -2655,54 +2655,71 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
     setError('');
     setSubmitting(true);
     setTimeout(() => {
-      // Build the item
-      const sortedPicked = [...selectedDates].sort();
-      const effectiveStart = (() => { const p = sortedPicked[0].split('-'); return new Date(+p[0], +p[1]-1, +p[2]); })();
-      const effectiveEnd = (() => { const p = sortedPicked[sortedPicked.length - 1].split('-'); return new Date(+p[0], +p[1]-1, +p[2]); })();
+      // Split into one item per contiguous working-day range.
+      // A "request" in this app is always a single contiguous range —
+      // discontiguous picks become N sibling requests.
+      const ranges = _computeRanges(selectedDates);
+      const labelText = (LEAVE_REASONS.find(r => r.id === leaveReason) || SPECIAL_LEAVE_OPTIONS.find(r => r.id === leaveReason) || BEREAVEMENT_OPTIONS.find(r => r.id === leaveReason) || WEDDING_OPTIONS.find(r => r.id === leaveReason) || {}).label || primaryLabel;
+      const baseId = editItem ? editItem.id : ('req-' + Date.now());
+      const _fmt = d => d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
 
-      const startStr = effectiveStart.toLocaleDateString('en-GB', { month: 'short', day: 'numeric' });
-      const endStr = _sameDay(effectiveStart, effectiveEnd) ? '' : '–' + effectiveEnd.toLocaleDateString('en-GB', { day: 'numeric' });
-      const monthStr = effectiveStart.toLocaleDateString('en-GB', { month: 'long' });
+      const newItems = ranges.map((days, idx) => {
+        const start = days[0];
+        const end = days[days.length - 1];
+        const isoList = days.map(_toISO);
+        const rangeHalf = halfDay
+          ? Object.fromEntries(Object.entries(halfDay).filter(([iso]) => isoList.includes(iso)))
+          : null;
+        const rangeHalfDed = rangeHalf ? getHalfDayDeduction(rangeHalf) : 0;
+        const rangeDays = Math.max(0, days.length - rangeHalfDed);
 
-      const dateDisplay = sortedPicked.length > 1
-        ? sortedPicked.map(iso => { const p = iso.split('-'); return new Date(+p[0], +p[1]-1, +p[2]).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }); }).join(', ')
-        : startStr + endStr;
+        const sameMonth = start.getMonth() === end.getMonth() && start.getFullYear() === end.getFullYear();
+        const single = days.length === 1;
+        const dateDisplay = single
+          ? start.toLocaleDateString('en-GB', { month: 'short', day: 'numeric' })
+          : sameMonth
+            ? start.getDate() + '–' + end.toLocaleDateString('en-GB', { month: 'short', day: 'numeric' })
+            : start.toLocaleDateString('en-GB', { month: 'short', day: 'numeric' }) + '–' + end.toLocaleDateString('en-GB', { month: 'short', day: 'numeric' });
+        const monthStr = start.toLocaleDateString('en-GB', { month: 'long' });
 
-      const newItem = {
-        id: editItem ? editItem.id : 'req-' + Date.now(),
-        label: (LEAVE_REASONS.find(r => r.id === leaveReason) || SPECIAL_LEAVE_OPTIONS.find(r => r.id === leaveReason) || BEREAVEMENT_OPTIONS.find(r => r.id === leaveReason) || WEDDING_OPTIONS.find(r => r.id === leaveReason) || {}).label || primaryLabel,
-        date: dateDisplay,
-        month: monthStr,
-        days: totalDays,
-        status: 'pending',
-        _startISO: _toISO(effectiveStart),
-        _endISO: _toISO(effectiveEnd),
-        _leaveReason: leaveReason,
-        _notes: notes,
-        _attachments: attachments,
-        _halfDay: halfDay,
-        _selectedDates: sortedPicked,
-      };
+        return {
+          id: ranges.length > 1 ? baseId + '-' + (idx + 1) : baseId,
+          label: labelText,
+          date: dateDisplay,
+          month: monthStr,
+          days: rangeDays,
+          status: 'pending',
+          _startISO: _toISO(start),
+          _endISO: _toISO(end),
+          _leaveReason: leaveReason,
+          _notes: notes,
+          _attachments: attachments,
+          _halfDay: rangeHalf && Object.keys(rangeHalf).length ? rangeHalf : null,
+          _selectedDates: isoList,
+        };
+      });
 
       if (editItem) {
-        // Update existing item
-        window.__timeOffItems = (window.__timeOffItems || []).map(i => i.id === editItem.id ? newItem : i);
+        // Replace the edited item with the resulting set (may be 1 or more)
+        window.__timeOffItems = (window.__timeOffItems || []).filter(i => i.id !== editItem.id).concat(newItems);
       } else {
-        // Remove the denied item we're replacing (if any) only on successful submit
         let items = window.__timeOffItems || [];
-        if (replaceDeniedItem) {
-          items = items.filter(i => i.id !== replaceDeniedItem.id);
-        }
-        window.__timeOffItems = [...items, newItem];
+        if (replaceDeniedItem) items = items.filter(i => i.id !== replaceDeniedItem.id);
+        window.__timeOffItems = [...items, ...newItems];
       }
-      // Sync to HR Admin via localStorage
-      const _fmt = d => d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
-      _pushToHR({
-        id: newItem.id, employee: 'david', type: _hrType(leaveReason),
-        startDate: _fmt(effectiveStart), endDate: _fmt(effectiveEnd),
-        days: totalDays, status: 'pending', submittedAt: 'Just now', note: notes || '',
-        _selectedDates: sortedPicked,
+
+      // Sync each range to HR Admin via localStorage
+      newItems.forEach(it => {
+        const s = (() => { const p = it._startISO.split('-'); return new Date(+p[0], +p[1]-1, +p[2]); })();
+        const e = (() => { const p = it._endISO.split('-'); return new Date(+p[0], +p[1]-1, +p[2]); })();
+        _pushToHR({
+          id: it.id, employee: 'david', type: _hrType(leaveReason),
+          startDate: _fmt(s), endDate: _fmt(e),
+          days: it.days, status: 'pending', submittedAt: 'Just now', note: notes || '',
+          _selectedDates: it._selectedDates,
+        });
       });
+
       setSubmitting(false);
       setStep(1);
     }, 1200);
@@ -3227,6 +3244,7 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
                       </div>
                       {overBalance > 0 && leaveReason === 'timeoff' && <><div style={{ height: 1, background: P.border }} /><div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '16px 22px', background: '#FFF3E5' }}><LucideIcon name="AlertTriangle" size={14} color="#92400e" strokeWidth={2} style={{ flexShrink: 0 }} /><span style={{ fontFamily: 'var(--font-body)', fontSize: 13, fontWeight: 500, color: '#92400e', lineHeight: '18px' }}>Exceeds your balance by {overBalance === 0.5 ? '½' : overBalance} day{overBalance > 1 ? 's' : ''} — {plannableTotal} days available</span></div></>}
                       {overEntitlement > 0 && <><div style={{ height: 1, background: P.border }} /><div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '16px 22px', background: '#fef2f2' }}><LucideIcon name="AlertCircle" size={14} color="#b91c1c" strokeWidth={2} style={{ flexShrink: 0 }} /><span style={{ fontFamily: 'var(--font-body)', fontSize: 13, fontWeight: 500, color: '#b91c1c', lineHeight: '18px' }}>Maximum {entitledDaysLimit} day{entitledDaysLimit > 1 ? 's' : ''} for this leave type — reduce by {overEntitlement} day{overEntitlement > 1 ? 's' : ''} — <button onClick={() => { setSelectedDates(new Set()); setHalfDay(null); }} style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: 0, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: '#b91c1c', textDecoration: 'underline', textUnderlineOffset: 2 }}>Clear</button></span></div></>}
+                      {(() => { const n = _computeRanges(selectedDates).length; return n > 1 && <><div style={{ height: 1, background: 'rgba(15,13,40,0.1)' }} /><div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '14px 22px' }}><LucideIcon name="Split" size={14} color={P.inkSoft} strokeWidth={2} style={{ flexShrink: 0 }} /><span style={{ fontFamily: 'var(--font-body)', fontSize: 13, fontWeight: 500, color: P.inkSoft, lineHeight: '18px' }}>Your selection has a gap — this will be submitted as {n} separate requests</span></div></>; })()}
                     </div>
                   </div>
                   </RevealPanel>
@@ -3277,6 +3295,7 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
                       {overBalance > 0 && leaveReason === 'timeoff' && <><div style={{ height: 1, background: P.border }} /><div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 16px', background: '#FFF3E5' }}><LucideIcon name="AlertTriangle" size={14} color="#92400e" strokeWidth={2} style={{ flexShrink: 0 }} /><span style={{ fontFamily: 'var(--font-body)', fontSize: 12, fontWeight: 500, color: '#92400e', lineHeight: '16px' }}>Exceeds your balance by {overBalance === 0.5 ? '½' : overBalance} day{overBalance > 1 ? 's' : ''} — {plannableTotal} days available</span></div></>}
                       {overEntitlement > 0 && <><div style={{ height: 1, background: P.border }} /><div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 16px', background: '#fef2f2' }}><LucideIcon name="AlertCircle" size={14} color="#b91c1c" strokeWidth={2} style={{ flexShrink: 0 }} /><span style={{ fontFamily: 'var(--font-body)', fontSize: 12, fontWeight: 500, color: '#b91c1c', lineHeight: '16px' }}>Maximum {entitledDaysLimit} day{entitledDaysLimit > 1 ? 's' : ''} for this leave type — reduce by {overEntitlement} day{overEntitlement > 1 ? 's' : ''} — <button onClick={() => { setSelectedDates(new Set()); setHalfDay(null); }} style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: 0, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, color: '#b91c1c', textDecoration: 'underline', textUnderlineOffset: 2 }}>Clear</button></span></div></>}
                       {leaveReason === 'timeoff' && totalDays > 0 && overBalance === 0 && <><div style={{ height: 1, background: 'rgba(15,13,40,0.1)' }} /><div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 16px' }}><LucideIcon name="Info" size={14} color={P.inkSoft} strokeWidth={2} style={{ flexShrink: 0 }} /><span style={{ fontFamily: 'var(--font-body)', fontSize: 12, fontWeight: 500, color: P.inkSoft, lineHeight: '16px' }}>{`${Math.max(0, plannableTotal - totalDays)} days remaining after this`}</span></div></>}
+                      {(() => { const n = _computeRanges(selectedDates).length; return n > 1 && <><div style={{ height: 1, background: 'rgba(15,13,40,0.1)' }} /><div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 16px' }}><LucideIcon name="Split" size={14} color={P.inkSoft} strokeWidth={2} style={{ flexShrink: 0 }} /><span style={{ fontFamily: 'var(--font-body)', fontSize: 12, fontWeight: 500, color: P.inkSoft, lineHeight: '16px' }}>Your selection has a gap — will be submitted as {n} separate requests</span></div></>; })()}
                     </div>
                   </div>
                   </RevealPanel>

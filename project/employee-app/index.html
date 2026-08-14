@@ -3,7 +3,16 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <base href="./" />
+  <script>
+    (function () {
+      var path = location.pathname;
+      var idx = path.indexOf('/employee-app');
+      path = idx !== -1 ? path.slice(0, idx) + '/employee-app/' : path.slice(0, path.lastIndexOf('/') + 1);
+      var base = document.createElement('base');
+      base.href = path;
+      document.head.appendChild(base);
+    })();
+  </script>
   <title>Payflip — Employee App</title>
   <link rel="stylesheet" href="colors_and_type.css" />
   <style>
@@ -68,17 +77,17 @@
 <body>
   <div id="root"></div>
 
-  <script src="image-slot.js"></script>
-  <script type="text/babel" src="ios-frame.jsx"></script>
-  <script type="text/babel" src="nav.jsx"></script>
+  <script src="image-slot.js?v=1"></script>
+  <script type="text/babel" src="ios-frame.jsx?v=1"></script>
+  <script type="text/babel" src="nav.jsx?v=1"></script>
   <script type="text/babel" src="shared-ui.jsx?v=4"></script>
-  <script type="text/babel" src="home-screen.jsx"></script>
-  <script type="text/babel" src="benefits-screen.jsx"></script>
-  <script type="text/babel" src="budgets-screen.jsx"></script>
-  <script type="text/babel" src="personal-screen.jsx?v=247"></script>
-  <script type="text/babel" src="expenses-screen.jsx"></script>
+  <script type="text/babel" src="home-screen.jsx?v=1"></script>
+  <script type="text/babel" src="benefits-screen.jsx?v=1"></script>
+  <script type="text/babel" src="budgets-screen.jsx?v=1"></script>
+  <script type="text/babel" src="personal-screen.jsx?v=248"></script>
+  <script type="text/babel" src="expenses-screen.jsx?v=1"></script>
   <script type="text/babel" src="expenses-screen-v2.jsx?v=2"></script>
-  <script type="text/babel" src="bike-lease-o2o.jsx"></script>
+  <script type="text/babel" src="bike-lease-o2o.jsx?v=1"></script>
   <script type="text/babel" src="app.jsx?v=3"></script>
 </body>
 </html>
