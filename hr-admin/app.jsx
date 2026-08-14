@@ -185,6 +185,44 @@ const SHEET_CLOSE_DUR = 220;
 // settings screens don't each hand-roll their own version with slightly
 // different padding, icon size, or hover behavior. Reach for these before
 // writing a new row — see CLAUDE.md "Shared components" for the full rule.
+const CardContext = React.createContext('var(--space-200)');
+
+function Card({ children, size = 'md', style }) {
+  const spacing = { sm: 'var(--space-150)', md: 'var(--space-200)', lg: 'var(--space-300)' }[size] || 'var(--space-200)';
+  return (
+    <CardContext.Provider value={spacing}>
+      <div style={{ border: `1px solid ${P.border}`, borderRadius: 'var(--radius-125)', background: P.white, overflow: 'hidden', ...style }}>
+        {children}
+      </div>
+    </CardContext.Provider>
+  );
+}
+
+function CardHeader({ title, description, divider, children }) {
+  const sp = React.useContext(CardContext);
+  return (
+    <div style={{ padding: sp, borderBottom: divider ? `1px solid ${P.border}` : 'none', display: 'flex', flexDirection: 'column', gap: description ? 'var(--space-050)' : 0 }}>
+      {title && <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink }}>{title}</div>}
+      {description && <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>{description}</div>}
+      {children}
+    </div>
+  );
+}
+
+function CardContent({ children, style }) {
+  const sp = React.useContext(CardContext);
+  return <div style={{ padding: sp, ...style }}>{children}</div>;
+}
+
+function CardFooter({ children, divider }) {
+  const sp = React.useContext(CardContext);
+  return (
+    <div style={{ padding: sp, borderTop: divider ? `1px solid ${P.border}` : 'none' }}>
+      {children}
+    </div>
+  );
+}
+
 function SettingsCard({ children, info }) {
   return (
     <div style={{ border: `1px solid ${P.border}`, borderRadius: 16, overflow: 'clip', background: P.white }}>
@@ -1428,7 +1466,7 @@ function EntitySwitcher({ value, onChange, mode }) {
       }}>
         <Icon name={defaultIcon} size={14} color={selected ? P.ink : P.inkSoft} strokeWidth={1.75} />
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: selected ? P.ink : P.inkSoft, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: selected ? P.ink : P.inkSoft, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {selected ? selected.name : defaultLabel}
           </div>
         </div>
@@ -3164,7 +3202,7 @@ function OverlapPopover({ req, overlapping, empDept }) {
 }
 
 // ── Expense drawer ─────────────────────────────────────────────────────────
-function ExpenseDrawer({ expense, onClose, onApprove, onReject, onEdit, categories = [], initialRejectMode = false }) {
+function ExpenseDrawer({ expense, onClose, onApprove, onReject, onEdit, categories = [], initialRejectMode = false, requireApproval = true }) {
   const emp = EMPLOYEES[expense.employee] || { name: expense.employee, initials: '?', color: P.border };
   const isPending = expense.status === 'pending';
 
@@ -3271,7 +3309,7 @@ function ExpenseDrawer({ expense, onClose, onApprove, onReject, onEdit, categori
             <div style={{ flex: 1, overflowY: 'auto' }}>
               {detailContent}
             </div>
-            {isPending && (
+            {isPending && requireApproval && (
               <div style={{ flexShrink: 0, padding: 'var(--space-150) var(--space-250)', borderTop: `1px solid ${P.border}`, display: 'flex', gap: 'var(--space-125)' }}>
                 <Button variant="secondary" icon="pencil" onClick={() => { setEditAmount(String(expense.amount)); setEditCategory(expense.category); setEditDescription(expense.description || ''); setEditMode(true); }}>Edit</Button>
                 <div style={{ marginLeft: 'auto', display: 'flex', gap: 'var(--space-125)' }}>
@@ -3922,12 +3960,13 @@ function AddExpenseModal({ categories, onClose, onSave, receiptRequired = false 
 }
 
 // ── Expense row ────────────────────────────────────────────────────────────
-function ExpenseRow({ exp, onApprove, onDetail, onRejectDirectly, showStatus, showEntity, selected, onToggle }) {
+function ExpenseRow({ exp, onApprove, onDetail, onRejectDirectly, showStatus, showEntity, selected, onToggle, showApproveActions = true }) {
   const emp = EMPLOYEES[exp.employee] || { name: exp.employee, initials: '?', color: P.border };
   const [hover, setHover] = useState(false);
+  const cb = showApproveActions ? '32px ' : '';
   const gridCols = showStatus
-    ? (showEntity ? '32px 1.8fr 0.8fr 1fr 1fr 2fr 0.8fr 0.7fr 96px' : '32px 1.8fr 1fr 1fr 2fr 0.8fr 0.7fr 96px')
-    : (showEntity ? '32px 1.8fr 0.8fr 1fr 2fr 0.8fr 0.7fr 96px' : '32px 1.8fr 1fr 2fr 0.8fr 0.7fr 96px');
+    ? (showEntity ? `${cb}1.8fr 0.8fr 1fr 1fr 2fr 0.8fr 0.7fr 96px` : `${cb}1.8fr 1fr 1fr 2fr 0.8fr 0.7fr 96px`)
+    : (showEntity ? `${cb}1.8fr 0.8fr 1fr 2fr 0.8fr 0.7fr 96px` : `${cb}1.8fr 1fr 2fr 0.8fr 0.7fr 96px`);
 
   const amountStr = `€ ${exp.amount.toFixed(2).replace('.', ',')}`;
 
@@ -3941,7 +3980,7 @@ function ExpenseRow({ exp, onApprove, onDetail, onRejectDirectly, showStatus, sh
         cursor: 'pointer',
         transition: `background 0.1s`,
       }}>
-      <input type="checkbox" checked={!!selected} onClick={e => e.stopPropagation()} onChange={() => onToggle && onToggle(exp.id)} style={{ cursor: 'pointer', accentColor: P.action }} />
+      {showApproveActions && <input type="checkbox" checked={!!selected} onClick={e => e.stopPropagation()} onChange={() => onToggle && onToggle(exp.id)} style={{ cursor: 'pointer', accentColor: P.action }} />}
       <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-100)', minWidth: 0 }}>
         <Avatar employeeId={exp.employee} size={24} style={{ border: '2px solid #fff', boxSizing: 'content-box' }} />
         <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', fontWeight: 500, color: P.ink, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{emp.name}</span>
@@ -3953,7 +3992,7 @@ function ExpenseRow({ exp, onApprove, onDetail, onRejectDirectly, showStatus, sh
       <span style={{ fontFamily: 'var(--font-display)', fontSize: 'var(--fs-body-sm)', fontWeight: 600, color: P.ink }}>{amountStr}</span>
       <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkFaint }}>{exp.expenseDate}</span>
       <div onClick={e => e.stopPropagation()} style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 'var(--space-050)' }}>
-        {exp.status === 'pending' && (<>
+        {showApproveActions && exp.status === 'pending' && (<>
           <button title="Reject" onClick={(e) => { e.stopPropagation(); onRejectDirectly(exp); }}
             onMouseEnter={e => { e.currentTarget.style.background = P.dangerBg; e.currentTarget.style.borderColor = P.dangerBorder; }}
             onMouseLeave={e => { e.currentTarget.style.background = P.dangerBg; e.currentTarget.style.borderColor = P.dangerBorder; }}
@@ -3973,13 +4012,15 @@ function ExpenseRow({ exp, onApprove, onDetail, onRejectDirectly, showStatus, sh
 }
 
 // ── Expenses screen ─────────────────────────────────────────────────────────
-function ExpensesScreen({ expenses, categories, onApprove, onDetail, onRejectDirectly, onAdd, appEntity = null, receiptAlwaysRequired = false }) {
+function ExpensesScreen({ expenses, categories, onApprove, onDetail, onRejectDirectly, onAdd, appEntity = null, receiptAlwaysRequired = false, requireApproval = true, onGoToSettings }) {
+  const EXP_PAGE_SIZE = 20;
   const categoryOpts = [['all', 'All categories'], ...categories.map(c => { const n = c?.name ?? c; return [n, n]; })];
   const MONTH_ORDER = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const MONTH_FULL = { Jan:'January',Feb:'February',Mar:'March',Apr:'April',May:'May',Jun:'June',Jul:'July',Aug:'August',Sep:'September',Oct:'October',Nov:'November',Dec:'December' };
   const allMonths = [...new Set(expenses.map(e => (e.expenseDate || e.submittedAt).split(' ').pop()))].sort((a, b) => MONTH_ORDER.indexOf(b) - MONTH_ORDER.indexOf(a));
   const monthOpts = [['all', 'All months'], ...allMonths.map(m => [m, MONTH_FULL[m] || m])];
-  const [tab, setTab] = useState('pending');
+  const [tab, setTab] = useState(requireApproval ? 'pending' : 'all');
+  const [page, setPage] = useState(1);
   const [addOpen, setAddOpen] = useState(false);
   const [selected, setSelected] = useState(new Set());
   const [pillLeaving, setPillLeaving] = useState(false);
@@ -4007,26 +4048,31 @@ function ExpensesScreen({ expenses, categories, onApprove, onDetail, onRejectDir
       if (monthFilter !== 'all' && (e.expenseDate || e.submittedAt).split(' ').pop() !== monthFilter) return false;
       return true;
     });
-  const showStatus = tab === 'all';
+  const totalPages = Math.max(1, Math.ceil(filtered.length / EXP_PAGE_SIZE));
+  const safePage = Math.min(page, totalPages);
+  const paginated = filtered.slice((safePage - 1) * EXP_PAGE_SIZE, safePage * EXP_PAGE_SIZE);
+  const showStatus = requireApproval && tab === 'all';
   const showEntity = !appEntity;
+  const cb = requireApproval ? '32px ' : '';
   const gridCols = showStatus
-    ? (showEntity ? '32px 1.8fr 0.8fr 1fr 1fr 2fr 0.8fr 0.7fr 96px' : '32px 1.8fr 1fr 1fr 2fr 0.8fr 0.7fr 96px')
-    : (showEntity ? '32px 1.8fr 0.8fr 1fr 2fr 0.8fr 0.7fr 96px' : '32px 1.8fr 1fr 2fr 0.8fr 0.7fr 96px');
+    ? (showEntity ? `${cb}1.8fr 0.8fr 1fr 1fr 2fr 0.8fr 0.7fr 96px` : `${cb}1.8fr 1fr 1fr 2fr 0.8fr 0.7fr 96px`)
+    : (showEntity ? `${cb}1.8fr 0.8fr 1fr 2fr 0.8fr 0.7fr 96px` : `${cb}1.8fr 1fr 2fr 0.8fr 0.7fr 96px`);
   const toggleSelect = (id) => setSelected(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
-  const allSelected = filtered.length > 0 && filtered.every(e => selected.has(e.id));
+  const allSelected = paginated.length > 0 && paginated.every(e => selected.has(e.id));
   const toggleAll = () => {
-    if (allSelected) setSelected(prev => { const n = new Set(prev); filtered.forEach(e => n.delete(e.id)); return n; });
-    else setSelected(prev => new Set([...prev, ...filtered.map(e => e.id)]));
+    if (allSelected) setSelected(prev => { const n = new Set(prev); paginated.forEach(e => n.delete(e.id)); return n; });
+    else setSelected(prev => new Set([...prev, ...paginated.map(e => e.id)]));
   };
+  const resetFilters = (fn) => { fn(); setPage(1); setSelected(new Set()); };
   const selectedPending = [...selected].filter(id => expenses.find(e => e.id === id)?.status === 'pending');
 
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, position: 'relative', animation: `screenEnter 180ms ${EASE_OUT}` }}>
       <PageHeader
         title="Expenses"
-        subtitle="Review and approve team expense claims"
+        subtitle={requireApproval ? "Review and approve team expense claims" : "Auto-approved · receipts required"}
         badge={appEntity ? (ENTITIES.find(e => e.id === appEntity)?.name) : null}
-        tabs={
+        tabs={requireApproval && (
           <TabBar
             tabs={[
               { id: 'pending', label: `Pending${pendingCount > 0 ? ` (${pendingCount})` : ''}` },
@@ -4035,23 +4081,26 @@ function ExpensesScreen({ expenses, categories, onApprove, onDetail, onRejectDir
               { id: 'all', label: 'All expenses' },
             ]}
             activeTab={tab}
-            onTabChange={(v) => { setTab(v); setSelected(new Set()); }}
+            onTabChange={(v) => { setTab(v); setPage(1); setSelected(new Set()); }}
           />
-        }
+        )}
       >
-        <Button variant="primary" icon="Plus" onClick={() => setAddOpen(true)}>Add expense</Button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-100)' }}>
+          {onGoToSettings && <Button variant="secondary" icon="Settings" onClick={onGoToSettings} />}
+          <Button variant="primary" icon="Plus" onClick={() => setAddOpen(true)}>Add expense</Button>
+        </div>
       </PageHeader>
       <FilterToolbar
-        searchText={searchText} onSearch={v => { setSearchText(v); setSelected(new Set()); }}
-        filter={categoryFilter} onFilter={v => { setCategoryFilter(v); setSelected(new Set()); }} filterOpts={categoryOpts}
-        deptFilter={deptFilter} onDeptFilter={v => { setDeptFilter(v); setSelected(new Set()); }}
+        searchText={searchText} onSearch={v => resetFilters(() => setSearchText(v))}
+        filter={categoryFilter} onFilter={v => resetFilters(() => setCategoryFilter(v))} filterOpts={categoryOpts}
+        deptFilter={deptFilter} onDeptFilter={v => resetFilters(() => setDeptFilter(v))}
       >
-        <FilterDropdown label="All months" active={monthFilter} opts={monthOpts} onSelect={v => { setMonthFilter(v); setSelected(new Set()); }} minWidth={130} />
+        <FilterDropdown label="All months" active={monthFilter} opts={monthOpts} onSelect={v => resetFilters(() => setMonthFilter(v))} minWidth={130} />
       </FilterToolbar>
       <div style={{ flex: 1, overflowY: 'auto', padding: '0 var(--space-250) var(--space-250)' }}>
         <div style={{ background: P.white, borderRadius: 12, border: `1px solid ${P.border}`, overflow: 'clip' }}>
           <div style={{ display: 'grid', gridTemplateColumns: gridCols, alignItems: 'center', gap: 'var(--space-150)', padding: '0 var(--space-250)', height: 38, borderBottom: `1px solid ${P.border}`, background: P.bg, position: 'sticky', top: 0, zIndex: 5 }}>
-            <input type="checkbox" checked={allSelected} onChange={toggleAll} style={{ cursor: 'pointer', accentColor: P.action }} />
+            {requireApproval && <input type="checkbox" checked={allSelected} onChange={toggleAll} style={{ cursor: 'pointer', accentColor: P.action }} />}
             <TH>Submitted by</TH>
             {showEntity && <TH>Entity</TH>}
             {showStatus && <TH>Status</TH>}
@@ -4066,10 +4115,27 @@ function ExpensesScreen({ expenses, categories, onApprove, onDetail, onRejectDir
               <Icon name="receipt" size={32} color={P.border} style={{ marginBottom: 'var(--space-150)' }} />
               <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.inkFaint }}>No {tab === 'pending' ? 'pending ' : tab === 'approved' ? 'approved ' : tab === 'declined' ? 'declined ' : ''}expenses</div>
             </div>
-          ) : filtered.map(exp => (
-            <ExpenseRow key={exp.id} exp={exp} onApprove={onApprove} onDetail={onDetail} onRejectDirectly={onRejectDirectly} showStatus={showStatus} showEntity={showEntity} selected={selected.has(exp.id)} onToggle={toggleSelect} />
+          ) : paginated.map(exp => (
+            <ExpenseRow key={exp.id} exp={exp} onApprove={onApprove} onDetail={onDetail} onRejectDirectly={onRejectDirectly} showStatus={showStatus} showEntity={showEntity} selected={selected.has(exp.id)} onToggle={toggleSelect} showApproveActions={requireApproval} />
           ))}
         </div>
+        {totalPages > 1 && (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: 'var(--space-150) var(--space-050)', marginTop: 'var(--space-100)' }}>
+            <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>
+              {(safePage - 1) * EXP_PAGE_SIZE + 1}–{Math.min(safePage * EXP_PAGE_SIZE, filtered.length)} of {filtered.length}
+            </span>
+            <div style={{ display: 'flex', gap: 'var(--space-075)' }}>
+              <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={safePage === 1}
+                style={{ padding: 'var(--space-075) var(--space-125)', borderRadius: 7, border: `1px solid ${P.border}`, background: P.white, cursor: safePage === 1 ? 'default' : 'pointer', opacity: safePage === 1 ? 0.4 : 1, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.ink }}>
+                ← Prev
+              </button>
+              <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={safePage === totalPages}
+                style={{ padding: 'var(--space-075) var(--space-125)', borderRadius: 7, border: `1px solid ${P.border}`, background: P.white, cursor: safePage === totalPages ? 'default' : 'pointer', opacity: safePage === totalPages ? 0.4 : 1, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.ink }}>
+                Next →
+              </button>
+            </div>
+          </div>
+        )}
       </div>
       {/* Bulk action bar */}
       {(selected.size > 0 || pillLeaving) && (
@@ -4086,7 +4152,7 @@ function ExpensesScreen({ expenses, categories, onApprove, onDetail, onRejectDir
             <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: '#fff' }}>
               {selected.size} selected
             </span>
-            {selectedPending.length > 0 && (
+            {requireApproval && selectedPending.length > 0 && (
               <button onClick={() => { selectedPending.forEach(id => onApprove(id)); setSelected(new Set()); }} style={{
                 display: 'flex', alignItems: 'center', gap: 'var(--space-075)',
                 padding: 'var(--space-075) var(--space-150)', borderRadius: 7, border: 'none',
@@ -7094,7 +7160,7 @@ function DashboardScreen({ requests, onNav, onToast, appEntity = null, physicalC
 
         {/* Widget row — grid layout once setup is live or hidden */}
         <div style={{ display: 'flex', gap: 'var(--space-250)', alignItems: 'flex-start', opacity: setupInProgress ? 0.35 : 1, transition: `opacity 250ms ${EASE_OUT}`, pointerEvents: setupInProgress ? 'none' : 'auto' }}>
-          {mobilityWidgetState.live && (
+          {mobilityWidgetState.live && mobilityWidgetState.fundingIssue && (
             <div style={{ width: 420, flexShrink: 0 }}>
               <MobilityLaunchWidget onToast={onToast} onNav={onNav} physicalCardsAllowed={physicalCardsAllowed} onPhysicalCardsChange={onPhysicalCardsChange} mobilityWidgetState={mobilityWidgetState} onMobilityWidgetStateChange={onMobilityWidgetStateChange} />
             </div>
@@ -7506,7 +7572,6 @@ const REIMBURSE_OPTS = [
 const APPROVAL_OPTS = [
   { value: 'manager', label: 'Direct manager',   hint: 'Employee\'s line manager receives the request' },
   { value: 'finance', label: 'Finance approver', hint: 'Person assigned in Team & access' },
-  { value: 'auto',    label: 'Auto-approve under threshold', hint: 'Expenses below the receipt threshold auto-approve' },
 ];
 
 function AllowancesListPage({ allowances, onSaveAllowance, appEntity = null }) {
@@ -7552,7 +7617,7 @@ function AllowancesListPage({ allowances, onSaveAllowance, appEntity = null }) {
   );
 }
 
-function ExpenseCategorySettings({ categories, onSave, appEntity = null, receiptAlwaysRequired = false, onReceiptPolicyChange }) {
+function ExpenseCategorySettings({ categories, onSave, appEntity = null, receiptAlwaysRequired = false, onReceiptPolicyChange, requireApproval = true, onRequireApprovalChange }) {
   const [items, setItems] = useState(categories);
   const [catModal, setCatModal] = useState(null);
   const [settingModal, setSettingModal] = useState(null);
@@ -7592,8 +7657,8 @@ function ExpenseCategorySettings({ categories, onSave, appEntity = null, receipt
     {settingModal === 'cycle' && (
       <PickModal title="Reimbursement cycle" options={REIMBURSE_OPTS} value={reimburseCycle} onSave={setReimburseCycle} onClose={() => setSettingModal(null)} />
     )}
-    {settingModal === 'approval' && (
-      <PickModal title="Approval routing" options={APPROVAL_OPTS} value={approvalRouting} onSave={setApprovalRouting} onClose={() => setSettingModal(null)} />
+    {settingModal === 'approval-routing' && (
+      <PickModal title="Route approvals to" options={APPROVAL_OPTS} value={approvalRouting} onSave={setApprovalRouting} onClose={() => setSettingModal(null)} />
     )}
     <div style={{ flex: 1, overflow: 'auto', animation: `screenEnter 180ms ${EASE_OUT}` }}>
       <div style={{ maxWidth: 680, margin: '0 auto', padding: 'var(--space-500) var(--space-400)', display: 'flex', flexDirection: 'column', gap: 'var(--space-400)' }}>
@@ -7608,32 +7673,12 @@ function ExpenseCategorySettings({ categories, onSave, appEntity = null, receipt
         <div>
           <div style={SL}>Reimbursement</div>
           <SettingsCard>
-            <SettingsRow onClick={() => setSettingModal('cycle')} label="Reimbursement cycle" value={cycleLabel} />
-            <SettingsRow onClick={() => setSettingModal('approval')} icon="git-branch" label="Approval routing" value={approvalLabel} last />
-          </SettingsCard>
-        </div>
-
-        <div>
-          <div style={SL}>Receipt policy</div>
-          <SettingsCard info={!hasReceiptThreshold ? 'A receipt is required for every expense, regardless of amount.' : undefined}>
             <SettingsRow
-              label="Set a receipt threshold"
-              subtitle="Skip the receipt requirement for expenses below a set amount"
-              trailing={<Switch size="sm" checked={hasReceiptThreshold} onChange={() => setHasReceiptThreshold(v => !v)} />}
-              last={!hasReceiptThreshold}
+              label="Require approval"
+              subtitle="Expenses must be reviewed before reimbursement"
+              trailing={<Switch size="sm" checked={requireApproval} onChange={() => onRequireApprovalChange(v => !v)} />}
+              last
             />
-            <div style={{ display: 'grid', gridTemplateRows: hasReceiptThreshold ? '1fr' : '0fr', transition: PREFERS_REDUCED_MOTION ? 'none' : `grid-template-rows 200ms ${EASE_OUT}`, overflow: 'hidden' }}>
-              <div style={{ minHeight: 0 }}>
-                <div style={{ padding: 'var(--space-200) var(--space-250)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 'var(--space-200)' }}>
-                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft }}>Require receipt above</span>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-075)', border: `1px solid ${P.border}`, borderRadius: 8, padding: 'var(--space-100) var(--space-125)' }}>
-                    <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft }}>€</span>
-                    <input type="number" step="1" min="0" value={receiptThreshold ?? ''} onChange={e => setReceiptThreshold(e.target.value === '' ? null : parseFloat(e.target.value))} placeholder="0"
-                      style={{ width: 60, border: 'none', outline: 'none', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, textAlign: 'right', background: 'transparent' }} />
-                  </div>
-                </div>
-              </div>
-            </div>
           </SettingsCard>
         </div>
 
@@ -10271,6 +10316,52 @@ function ComponentLibraryScreen() {
             </div>
           </LibrarySection>
 
+          <LibrarySection title="Card" usage="Card + CardHeader / CardContent / CardFooter — the canonical content-panel pattern. Use whenever a white bordered panel is needed; never hand-roll inline styles for it.">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-200)' }}>
+              <div>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkFaint, marginBottom: 'var(--space-100)' }}>Default (md) — header + content + footer with dividers</div>
+                <Card>
+                  <CardHeader title="Card title" description="An optional description line below the title." divider />
+                  <CardContent>
+                    <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft }}>Card body content goes here.</span>
+                  </CardContent>
+                  <CardFooter divider>
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-125)' }}>
+                      <Button variant="secondary">Cancel</Button>
+                      <Button variant="primary">Save</Button>
+                    </div>
+                  </CardFooter>
+                </Card>
+              </div>
+              <div>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkFaint, marginBottom: 'var(--space-100)' }}>Small (sm) — compact padding</div>
+                <Card size="sm">
+                  <CardHeader title="Compact card" divider />
+                  <CardContent>
+                    <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft }}>Less padding, same structure.</span>
+                  </CardContent>
+                </Card>
+              </div>
+              <div>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkFaint, marginBottom: 'var(--space-100)' }}>Large (lg) — more breathing room</div>
+                <Card size="lg">
+                  <CardHeader title="Spacious card" description="More padding for standalone feature panels." />
+                  <CardContent>
+                    <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft }}>Used for prominent content areas like dashboards.</span>
+                  </CardContent>
+                </Card>
+              </div>
+              <div>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkFaint, marginBottom: 'var(--space-100)' }}>Content-only — no header or footer</div>
+                <Card>
+                  <CardContent>
+                    <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft }}>Just wrap content in CardContent when no header/footer is needed.</span>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          </LibrarySection>
+
         </div>
       </div>
 
@@ -10969,6 +11060,7 @@ function App() {
   const [expenses, setExpenses] = useState(EXPENSES_SEED);
   const [expenseCategories, setExpenseCategories] = useState(EXPENSE_CATEGORIES_SEED);
   const [receiptAlwaysRequired, setReceiptAlwaysRequired] = useState(false);
+  const [requireApproval, setRequireApproval] = useState(true);
   const [allowances, setAllowances] = useState(ALLOWANCE_TYPES.map(t => ({ id: t.id, active: ['mileage', 'home-office', 'mobile-internet'].includes(t.id), rate: t.defaultRate })));
   const [expDetail, setExpDetail] = useState(null);
   const [expDetailRejectMode, setExpDetailRejectMode] = useState(false);
@@ -11125,7 +11217,7 @@ function App() {
   const entityFilteredChoices = appEntity ? choices.filter(c => EMPLOYEES[c.empId]?.entityId === appEntity) : choices;
 
   const pendingRequestsCount = entityFilteredRequests.filter(r => r.status === 'pending').length;
-  const pendingExpensesCount = entityFilteredExpenses.filter(e => e.status === 'pending').length;
+  const pendingExpensesCount = requireApproval ? entityFilteredExpenses.filter(e => e.status === 'pending').length : 0;
   const pendingChoicesCount = entityFilteredChoices.filter(c => c.status === 'pending').length;
   const pendingCount = { requests: pendingRequestsCount, expenses: pendingExpensesCount, choices: pendingChoicesCount };
 
@@ -11252,12 +11344,12 @@ function App() {
         {screen === 'requests' && <RequestsScreen key={appEntity ?? 'all'} requests={entityFilteredRequests} onApprove={approve} onDecline={requestDecline} onSave={saveRequest} onCancel={requestCancel} onNav={setScreen} onViewInCalendar={(req) => { const d = req._selectedDates?.[0] || req.startDate; if (d) { const iso = typeof d === 'string' && d.match(/^\d{4}-/) ? d : null; setCalendarJumpDate(iso ? new Date(iso) : parseDisplayDate(d)); } setCalDetail(req); setScreen('team-absences'); }} appEntity={appEntity} />}
         {(screen === 'employees' || screen === 'employees:admin') && <EmployeesScreen key={appEntity ?? 'all'} requests={entityFilteredRequests} onNav={setScreen} initialRoleFilter={screen === 'employees:admin' ? 'Admin' : 'All'} adminAccess={adminAccess} appEntity={appEntity} onAddEmployee={() => setAddEmployeeOpen(true)} />}
         {screen.startsWith('employee-detail:') && (() => { const [, detailEmpId, detailTab] = screen.split(':'); return <EmployeeDetailScreen employeeId={detailEmpId} requests={requests} onNav={setScreen} onSave={saveRequest} onCancel={cancelRequest} onApprove={approve} onDecline={requestDecline} onViewTeamCalendar={(dept) => { setCalendarDeptFilter(dept || null); setScreen('team-absences'); }} employeeBalance={employeeBalances[detailEmpId]} onUpdateBalance={(newBal) => updateBalances(detailEmpId, newBal)} needsSetup={needsBalanceSetup.has(detailEmpId)} confirmedDate={balanceConfirmedDates[detailEmpId]} onConfirmBalances={() => confirmBalancesFor(detailEmpId)} onToast={addToast} adminAccess={adminAccess} onAdminSave={handleAdminSave} companyRegime={companyRegime} onEmployeeUpdate={handleEmployeeUpdate} getEmpWithOverrides={getEmpWithOverrides} physicalCardsAllowed={physicalCardsAllowed} mobilityWidgetState={mobilityWidgetState} initialTab={detailTab || (freshEmployeeId === detailEmpId ? 'details' : 'choices')} />; })()}
-        {screen === 'expenses' && <ExpensesScreen key={appEntity ?? 'all'} expenses={entityFilteredExpenses} categories={expenseCategories} onApprove={approveExpense} onDetail={(exp) => { setExpDetailRejectMode(false); setExpDetail(exp); }} onRejectDirectly={(exp) => { setExpDetailRejectMode(true); setExpDetail(exp); }} onAdd={addExpense} appEntity={appEntity} receiptAlwaysRequired={receiptAlwaysRequired} />}
+        {screen === 'expenses' && <ExpensesScreen key={appEntity ?? 'all'} expenses={entityFilteredExpenses} categories={expenseCategories} onApprove={approveExpense} onDetail={(exp) => { setExpDetailRejectMode(false); setExpDetail(exp); }} onRejectDirectly={(exp) => { setExpDetailRejectMode(true); setExpDetail(exp); }} onAdd={addExpense} appEntity={appEntity} receiptAlwaysRequired={receiptAlwaysRequired} requireApproval={requireApproval} onGoToSettings={() => setScreen('settings-expenses')} />}
         {screen === 'choices' && <ChoicesScreen key={appEntity ?? 'all'} choices={entityFilteredChoices} onApprove={approveChoice} onDecline={declineChoice} onDetail={setChoiceDetail} appEntity={appEntity} />}
         {screen === 'payroll-overview' && <StubScreen title="Payroll Overview" description="Monthly payroll run and submission" />}
         {screen === 'payroll-reports' && <StubScreen title="Payroll Reports" description="Reporting and exports" />}
         {screen === 'settings-allowances' && <AllowancesListPage key={appEntity ?? 'all'} allowances={allowances} onSaveAllowance={updated => setAllowances(prev => prev.map(a => a.id === updated.id ? updated : a))} appEntity={appEntity} />}
-        {screen === 'settings-expenses' && <ExpenseCategorySettings key={appEntity ?? 'all'} categories={expenseCategories} onSave={setExpenseCategories} appEntity={appEntity} receiptAlwaysRequired={receiptAlwaysRequired} onReceiptPolicyChange={setReceiptAlwaysRequired} />}
+        {screen === 'settings-expenses' && <ExpenseCategorySettings key={appEntity ?? 'all'} categories={expenseCategories} onSave={setExpenseCategories} appEntity={appEntity} receiptAlwaysRequired={receiptAlwaysRequired} onReceiptPolicyChange={setReceiptAlwaysRequired} requireApproval={requireApproval} onRequireApprovalChange={setRequireApproval} />}
         {screen === 'settings-team' && <TeamAccessSettings key={appEntity ?? 'all'} onNav={setScreen} adminAccess={adminAccess} onAdminSave={handleAdminSave} appEntity={appEntity} />}
         {screen === 'settings-entities' && <EntitiesSettings key={appEntity ?? 'all'} onNav={setScreen} appEntity={appEntity} companyRegime={companyRegime} onRegimeChange={setCompanyRegime} />}
         {screen === 'settings-timeoff' && <TimeOffSettings key={appEntity ?? 'all'} appEntity={appEntity} companyRegime={companyRegime} onToast={addToast} onNav={(target) => { setSidebarMode('app'); handleNav(target); }} leaveTypes={leaveTypes} setLeaveTypes={setLeaveTypes} />}
@@ -11293,6 +11385,7 @@ function App() {
           onReject={(id, reason) => { rejectExpense(id, reason); setExpDetail(null); setExpDetailRejectMode(false); }}
           onEdit={editExpense}
           categories={expenseCategories}
+          requireApproval={requireApproval}
         />
       )}
       {choiceDetail && (
