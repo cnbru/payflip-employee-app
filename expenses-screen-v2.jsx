@@ -1,7 +1,7 @@
 // Expense flow V2 — merged single-submission flow
-// Screens: expense-type-v2 (type → category → form, all in one logical flow)
+// Screens: expense-type-v2 (type → category → form → confirm)
 // ─────────────────────────────────────────────────────────────
-// Flow: Type → Category → Form+Submit
+// Flow: Type → Category → Form+Submit → Confirmation
 // Both mobility and work expenses share the same 3-step structure.
 // Category choice drives budget source + tax display.
 // ─────────────────────────────────────────────────────────────
@@ -37,7 +37,7 @@ function ExpenseTypeScreenV2() {
   ];
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: '#fff' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: '#F2F2F2' }}>
       {/* Top bar */}
       <div style={{ padding: '8px 16px 0', display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
         <button onClick={pop} style={{
@@ -116,7 +116,7 @@ function ExpenseCategoryScreenV2({ type }) {
   const title = type === 'mobility' ? 'Mobility expense category' : 'Work expense category';
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: '#fff' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: '#F2F2F2' }}>
       <div style={{ padding: '8px 16px 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <button onClick={pop} style={{
           width: 36, height: 36, borderRadius: 999,
@@ -125,13 +125,7 @@ function ExpenseCategoryScreenV2({ type }) {
         }}>
           <LucideIcon name="ChevronLeft" size={20} color={PFC.ink} strokeWidth={2} />
         </button>
-        <button onClick={() => { pop(); pop(); }} style={{
-          width: 36, height: 36, borderRadius: 999,
-          border: `1px solid ${PFC.border}`, background: 'transparent',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
-        }}>
-          <LucideIcon name="X" size={18} color={PFC.ink} strokeWidth={2} />
-        </button>
+        <div style={{ width: 36 }} />
       </div>
 
       <div style={{ flex: 1, overflowY: 'auto', padding: '24px 16px 32px', display: 'flex', flexDirection: 'column', gap: 20 }}>
@@ -163,17 +157,23 @@ function ExpenseCategoryScreenV2({ type }) {
 // ─────────────────────────────────────────────────────────────
 // Screen 3 of 3 — Details form + submit
 // ─────────────────────────────────────────────────────────────
-const PAYFLIP_ADV_ICON_V2 = 'https://www.figma.com/api/mcp/asset/6fa2e40e-e8fd-48f9-9d84-a6f9e4656c0a';
 
-function ExpenseFormScreenV2({ type, category }) {
-  const { pop } = useNav();
+function ExpenseFormScreenV2({ type, category, prefill }) {
+  const { pop, push } = useNav();
   const isMobility = type === 'mobility';
 
-  const [amount, setAmount]                 = React.useState('');
-  const [date, setDate]                     = React.useState('2026-07-24');
+  const todayISO = new Date().toISOString().slice(0, 10);
+  const prefillDate = React.useMemo(() => {
+    if (!prefill || !prefill.date) return todayISO;
+    const parts = prefill.date.split('/');
+    return parts.length === 3 ? `${parts[2]}-${parts[1]}-${parts[0]}` : todayISO;
+  }, []);
+
+  const [amount, setAmount]                 = React.useState(prefill ? String(prefill.amount) : '');
+  const [date, setDate]                     = React.useState(prefillDate);
   const [uploading, setUploading]           = React.useState(false);
   const [uploaded, setUploaded]             = React.useState(false);
-  const [showAdvantageModal, setShowAdvantageModal] = React.useState(false);
+
 
   const amtNum = parseFloat((amount || '0').replace(/[^0-9.,]/g, '').replace(',', '.')) || 0;
   const hasAmount = amtNum > 0;
@@ -193,16 +193,14 @@ function ExpenseFormScreenV2({ type, category }) {
       status: 'pending',
     };
     window.__submittedExpenses = [newExpense, ...(window.__submittedExpenses || [])];
-    window.__pendingToast = { title: 'Expense submitted' };
     window.__lastSubmittedExpense = newExpense;
-    // pop 3 levels: form → category → type → home
-    pop(); pop(); pop();
+    push('expense-confirm-v2', { type, category, amount: amtNum, advantageAmt, date: newExpense.date });
   };
 
   const canSubmit = hasAmount && uploaded;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: '#fff' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: '#F2F2F2' }}>
       {/* Top bar */}
       <div style={{ padding: '8px 16px 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <button onClick={pop} style={{
@@ -215,13 +213,7 @@ function ExpenseFormScreenV2({ type, category }) {
         <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 13, color: PFC.inkSoft }}>
           {category}
         </span>
-        <button onClick={() => { pop(); pop(); pop(); }} style={{
-          width: 36, height: 36, borderRadius: 999,
-          border: `1px solid ${PFC.border}`, background: 'transparent',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
-        }}>
-          <LucideIcon name="X" size={18} color={PFC.ink} strokeWidth={2} />
-        </button>
+        <div style={{ width: 36 }} />
       </div>
 
       {/* Scrollable content */}
@@ -240,20 +232,25 @@ function ExpenseFormScreenV2({ type, category }) {
         />
 
         {/* Date */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           <Body14 color={PFC.ink} weight={600}>Date</Body14>
-          <input
-            type="date"
-            value={date}
-            onChange={e => setDate(e.target.value)}
-            style={{
-              width: '100%', boxSizing: 'border-box',
-              border: `1.5px solid ${PFC.borderHard}`, borderRadius: 12,
-              padding: '14px 16px', fontFamily: 'var(--font-display)',
-              fontSize: 16, color: PFC.ink, background: '#fff',
-              outline: 'none', appearance: 'none',
-            }}
-          />
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: 8,
+            border: `1px solid ${PFC.borderHard}`, borderRadius: 12,
+            padding: '12px 16px', background: '#fff', cursor: 'text',
+          }}>
+            <LucideIcon name="CalendarDays" size={16} color={PFC.inkSoft} strokeWidth={1.75} style={{ flexShrink: 0 }} />
+            <input
+              type="date"
+              value={date}
+              onChange={e => setDate(e.target.value)}
+              style={{
+                flex: 1, border: 'none', outline: 'none', background: 'transparent',
+                fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 16,
+                color: PFC.ink, minWidth: 0, padding: 0, appearance: 'none',
+              }}
+            />
+          </div>
         </div>
 
         {/* Attachment */}
@@ -262,9 +259,9 @@ function ExpenseFormScreenV2({ type, category }) {
           {!uploaded ? (
             uploading ? (
               <div style={{
-                background: '#F7F7F8', border: `1.5px dashed ${PFC.border}`,
-                borderRadius: 14, padding: '24px 20px',
-                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12,
+                background: '#fafafa', border: `1.5px dashed ${PFC.border}`,
+                borderRadius: 12, padding: '16px 14px',
+                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10,
               }}>
                 <LucideIcon name="UploadCloud" size={26} color={PFC.purple} strokeWidth={1.75} />
                 <Body14 color={PFC.inkSoft} weight={500}>Uploading receipt.jpg…</Body14>
@@ -277,19 +274,18 @@ function ExpenseFormScreenV2({ type, category }) {
                 onClick={handleUpload}
                 style={{
                   width: '100%', appearance: 'none', cursor: 'pointer',
-                  background: '#F7F7F8', border: `1.5px dashed ${PFC.border}`,
-                  borderRadius: 14, padding: '28px 16px',
-                  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10,
+                  background: '#fafafa', border: `1.5px dashed ${PFC.border}`,
+                  borderRadius: 12, padding: '16px 14px',
+                  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
                 }}
               >
-                <LucideIcon name="UploadCloud" size={28} color={PFC.inkSoft} strokeWidth={1.75} />
-                <Body14 color={PFC.ink} weight={400}>
-                  Take a photo or <strong style={{ fontWeight: 700 }}>choose file</strong>
-                </Body14>
+                <LucideIcon name="Upload" size={28} color={PFC.ink} strokeWidth={1.75} />
+                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: PFC.ink }}>Choose file to upload</span>
+                <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: PFC.inkSoft }}>Up to 5MB</span>
               </button>
             )
           ) : (
-            <div style={{ border: `1px solid ${PFC.border}`, borderRadius: 14, overflow: 'hidden', animation: 'expUploadSlideIn 0.3s ease-out both' }}>
+            <div style={{ border: `1px solid ${PFC.border}`, borderRadius: 14, overflow: 'hidden', background: '#fff', animation: 'expUploadSlideIn 0.3s ease-out both' }}>
               <div style={{ padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 12 }}>
                 <LucideIcon name="FileCheck" size={22} color="rgb(34,139,34)" strokeWidth={1.75} />
                 <Body14 color={PFC.ink} weight={600} style={{ flex: 1 }}>receipt.jpg</Body14>
@@ -313,7 +309,7 @@ function ExpenseFormScreenV2({ type, category }) {
         {isMobility && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             <Body14 color={PFC.ink} weight={600}>Fund with</Body14>
-            <div style={{ border: `2px solid #e879f9`, borderRadius: 14, padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 14 }}>
+            <div style={{ border: `2px solid #e879f9`, borderRadius: 14, padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 14, background: '#fff' }}>
               <div style={{ flex: 1 }}>
                 <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 15, color: PFC.ink }}>Mobility budget</div>
                 <div style={{ fontFamily: 'var(--font-display)', fontWeight: 400, fontSize: 13, color: PFC.inkSoft, marginTop: 2 }}>
@@ -340,7 +336,7 @@ function ExpenseFormScreenV2({ type, category }) {
 
       {/* Footer */}
       {isMobility && hasAmount ? (
-        <div style={{ background: '#fff', borderTop: `1px solid ${PFC.border}`, padding: '14px 16px 24px' }}>
+        <div style={{ borderTop: `1px solid ${PFC.border}`, padding: '14px 16px 24px' }}>
           {/* Stats row */}
           <div style={{ display: 'flex', marginBottom: 16 }}>
             <div style={{ flex: 1, paddingRight: 16 }}>
@@ -353,15 +349,8 @@ function ExpenseFormScreenV2({ type, category }) {
             <div style={{ flex: 1, paddingLeft: 16 }}>
               <div style={{ display: 'flex', gap: 4, alignItems: 'center', marginBottom: 4 }}>
                 <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 13, color: PFC.ink }}>Payflip advantage</span>
-                <button
-                  onClick={() => setShowAdvantageModal(true)}
-                  style={{ appearance: 'none', border: 'none', background: 'none', padding: 0, cursor: 'pointer', display: 'flex', alignItems: 'center' }}
-                >
-                  <LucideIcon name="Info" size={12} color={PFC.inkSoft} strokeWidth={2} />
-                </button>
               </div>
               <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                <img src={PAYFLIP_ADV_ICON_V2} alt="" style={{ width: 11, height: 18, display: 'block', flexShrink: 0 }} />
                 <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 22, color: '#c42bfc' }}>€{advantageAmt}</span>
               </div>
             </div>
@@ -369,7 +358,7 @@ function ExpenseFormScreenV2({ type, category }) {
           <Button variant="primary" size="large" fullWidth disabled={!canSubmit} onClick={handleSubmit}>Submit</Button>
         </div>
       ) : (
-        <div style={{ padding: '12px 16px 24px', borderTop: `1px solid ${PFC.border}`, background: '#fff' }}>
+        <div style={{ padding: '12px 16px 24px', borderTop: `1px solid ${PFC.border}` }}>
           <Button variant="primary" size="large" fullWidth disabled={!canSubmit} onClick={handleSubmit}>Submit</Button>
         </div>
       )}
@@ -379,7 +368,95 @@ function ExpenseFormScreenV2({ type, category }) {
         @keyframes expUploadSlideIn  { from { opacity: 0; transform: translateY(8px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
       `}</style>
 
-      {showAdvantageModal && <PayflipAdvantageModal amtNum={amtNum} onClose={() => setShowAdvantageModal(false)} />}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// Screen 4 of 4 — Confirmation
+// ─────────────────────────────────────────────────────────────
+function ExpenseConfirmScreenV2({ type, category, amount, advantageAmt, date }) {
+  const { switchTab, push } = useNav();
+  const isMobility = type === 'mobility';
+
+  const done = () => {
+    switchTab('home');
+  };
+
+  const goToExpenses = () => {
+    push('my-expenses');
+  };
+
+  const formattedAmount = (amount || 0).toFixed(2);
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: '#F2F2F2' }}>
+      <div style={{ flex: 1, overflowY: 'auto', padding: '32px 20px 24px', display: 'flex', flexDirection: 'column', gap: 20 }}>
+        {/* Success icon + heading */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
+          <div style={{
+            width: 64, height: 64, borderRadius: 999,
+            background: '#f0fdf4', display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <LucideIcon name="CheckCircle2" size={34} color="#16a34a" strokeWidth={1.75} />
+          </div>
+          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 22, color: PFC.ink, textAlign: 'center' }}>
+            Expense submitted
+          </div>
+          <div style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: PFC.inkSoft, textAlign: 'center' }}>
+            {category} · {date}
+          </div>
+        </div>
+
+        {/* Summary card */}
+        <div style={{ border: `1px solid ${PFC.border}`, borderRadius: 16, overflow: 'hidden', background: '#fff' }}>
+          <div style={{ padding: '14px 18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: `1px solid ${PFC.border}` }}>
+            <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: PFC.inkSoft }}>Amount</span>
+            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 17, color: PFC.ink }}>€{formattedAmount}</span>
+          </div>
+          {isMobility && advantageAmt != null && (
+            <div style={{ padding: '14px 18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: `1px solid ${PFC.border}` }}>
+              <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: PFC.inkSoft }}>Payflip advantage</span>
+              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 17, color: '#c42bfc' }}>€{advantageAmt}</span>
+            </div>
+          )}
+          <div style={{ padding: '14px 18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: PFC.inkSoft }}>Status</span>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: '#fef9c3', color: '#854d0e', padding: '3px 10px', borderRadius: 20, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12 }}>
+              <span style={{ fontSize: 7, lineHeight: 1 }}>●</span>Pending approval
+            </div>
+          </div>
+        </div>
+
+        {/* What happens next */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: PFC.ink }}>What happens next</span>
+          <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+            <div style={{ width: 22, height: 22, borderRadius: 999, background: '#e8e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 }}>
+              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 11, color: PFC.ink }}>1</span>
+            </div>
+            <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: PFC.inkSoft, lineHeight: '18px' }}>
+              Your manager reviews and approves your expense.
+            </span>
+          </div>
+          <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+            <div style={{ width: 22, height: 22, borderRadius: 999, background: '#e8e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 }}>
+              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 11, color: PFC.ink }}>2</span>
+            </div>
+            <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: PFC.inkSoft, lineHeight: '18px' }}>
+              {isMobility
+                ? 'The amount is deducted from your mobility budget immediately.'
+                : 'The reimbursement is included in your next payroll file.'}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Footer */}
+      <div style={{ padding: '12px 16px 24px', borderTop: `1px solid ${PFC.border}`, display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <Button variant="primary" size="large" fullWidth onClick={done}>Close</Button>
+        <Button variant="ghost" size="large" fullWidth onClick={goToExpenses}>View my expenses</Button>
+      </div>
     </div>
   );
 }
@@ -387,3 +464,4 @@ function ExpenseFormScreenV2({ type, category }) {
 registerScreen('expense-type-v2',    ExpenseTypeScreenV2);
 registerScreen('expense-category-v2', ExpenseCategoryScreenV2);
 registerScreen('expense-form-v2',    ExpenseFormScreenV2);
+registerScreen('expense-confirm-v2', ExpenseConfirmScreenV2);

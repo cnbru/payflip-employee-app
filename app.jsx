@@ -248,7 +248,7 @@ function DesktopAppShell() {
 // ─────────────────────────────────────────────────────────────
 // App shell
 // ─────────────────────────────────────────────────────────────
-const FULLSCREEN_SCREENS = ['withdraw-cash', 'simulate-cash-out', 'pension-detail', 'edit-active-benefit', 'sign-addendum', 'bike-lease', 'pension-savings-detail', 'pension-savings-choice', 'time-off-hub', 'time-off-detail', 'time-off-history', 'request-time-off', 'report-illness', 'expense-type', 'expense-wizard', 'mobility-expense', 'my-expenses', 'expense-detail', 'absence-type', 'expense-type-v2', 'expense-category-v2', 'expense-form-v2', 'bike-lease-o2o'];
+const FULLSCREEN_SCREENS = ['withdraw-cash', 'simulate-cash-out', 'pension-detail', 'edit-active-benefit', 'sign-addendum', 'bike-lease', 'pension-savings-detail', 'pension-savings-choice', 'time-off-hub', 'time-off-detail', 'time-off-history', 'request-time-off', 'report-illness', 'expense-type', 'expense-wizard', 'mobility-expense', 'my-expenses', 'expense-detail', 'absence-type', 'expense-type-v2', 'expense-category-v2', 'expense-form-v2', 'expense-confirm-v2', 'bike-lease-o2o'];
 
 function AppShell() {
   const { activeTab, current } = useNav();
