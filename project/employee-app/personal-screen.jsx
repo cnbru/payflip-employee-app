@@ -1150,16 +1150,18 @@ function DesktopTimeOffHub() {
                             <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>{att.size}</div>
                           </div>
                           {item.status === 'pending' && (
-                            <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, fontWeight: 500, color: '#2d7a4f', background: '#e8f5ee', borderRadius: 6, padding: '3px 8px', flexShrink: 0 }}>Sent to HR</span>
+                            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: '#dbeafe', color: '#1d4ed8', padding: '3px 8px', borderRadius: 20, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, flexShrink: 0 }}><span style={{ fontSize: 7, lineHeight: 1 }}>●</span>Sent to HR</div>
                           )}
+                          {item.status !== 'pending' && (
                           <button onClick={() => { item._attachments = item._attachments.filter((_, idx) => idx !== i); setTick(t => t + 1); }} style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: 4, display: 'inline-flex', flexShrink: 0 }}>
                             <LucideIcon name="X" size={16} color={P.inkSoft} strokeWidth={2} />
                           </button>
+                          )}
                         </div>
                       </div>
                     ))}
-                    {/* New file being picked — hidden when request is under review and has existing docs */}
-                    {item.status === 'pending' && (item._attachments || []).length > 0 && !hubDocFile ? null : hubDocFile ? (
+                    {/* New file being picked */}
+                    {hubDocFile ? (
                       <div className={hubDocFileExiting ? 'doc-file-card-out' : 'doc-file-card-in'} style={{ background: P.surface, border: `1px solid ${P.border}`, borderRadius: 12, marginBottom: 8, overflow: 'hidden' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px' }}>
                           <div style={{ width: 40, height: 40, borderRadius: 8, background: '#f0f0f2', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -1201,7 +1203,6 @@ function DesktopTimeOffHub() {
                       </button>
                     )}
                   </div>
-                  {(item.status !== 'pending' || (item._attachments || []).length === 0 || hubDocFile) && (
                   <div style={{ padding: '14px 24px 24px', borderTop: `1px solid ${P.border}`, flexShrink: 0 }}>
                     <Button variant="primary" size="large" fullWidth disabled={!hubDocFile || hubDocSubmitting || hubDocFinalizing} onClick={() => {
                       setHubDocFinalizing(true);
@@ -1214,7 +1215,6 @@ function DesktopTimeOffHub() {
                       }, 1200);
                     }}>{hubDocSubmitting ? 'Uploading…' : hubDocFinalizing ? 'Submitting…' : 'Submit document'}</Button>
                   </div>
-                  )}
                 </div>
               ) : (
                 <div style={{ flex: 1, overflowY: 'auto', padding: '12px 24px 12px' }}>
@@ -1677,13 +1677,13 @@ function TimeOffHubScreen() {
                             <span style={{ fontWeight: 400, color: P.inkSoft }}>{' · '}{item.days === 1 ? '1 day' : `${item.days} days`}</span>
                           </div>
                           <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 13, color: P.inkSoft, lineHeight: '18px', marginTop: 1 }}>{_label}</div>
+                          {_missingDoc && (
+                            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#fff7ed', color: '#b45309', padding: '3px 10px', borderRadius: 20, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, marginTop: 6, whiteSpace: 'nowrap' }}>
+                              <span style={{ fontSize: 7, lineHeight: 1 }}>●</span>
+                              Document missing
+                            </div>
+                          )}
                         </div>
-                        {_missingDoc && (
-                          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#fff7ed', color: '#b45309', padding: '5px 12px', borderRadius: 20, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, flexShrink: 0, whiteSpace: 'nowrap' }}>
-                            <span style={{ fontSize: 8, lineHeight: 1 }}>●</span>
-                            Document missing
-                          </div>
-                        )}
                         <LucideIcon name="ChevronRight" size={18} color={P.inkSoft} strokeWidth={2} />
                       </div>
                       </div>
@@ -2973,7 +2973,7 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
     return wrapDesktop(
       <div style={{ display: 'flex', flexDirection: 'column', minHeight: isDesktop ? 400 : '100%', background: isDesktop ? 'transparent' : '#F2F2F2', borderRadius: isDesktop ? 20 : 0 }}>
         {/* Centred content */}
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: isDesktop ? '48px 32px 0' : '32px 20px 0', textAlign: 'center', maxWidth: isDesktop ? 480 : undefined, alignSelf: 'center', width: '100%' }}>
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: isDesktop ? '48px 32px 0' : '32px 20px 0', textAlign: 'center', maxWidth: isDesktop ? 480 : undefined, alignSelf: 'center', width: '100%', boxSizing: 'border-box' }}>
           <SuccessCheck iconName={iconName} iconColor={iconColor} iconBg={iconBg} />
           <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 22, color: P.ink, marginBottom: 8, animation: 'fadeSlideIn 0.5s ease-out 0.15s both' }}>
             {heading}
@@ -3003,7 +3003,7 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
           </div>
         </div>
         {/* Buttons pinned to bottom */}
-        <div style={{ padding: isDesktop ? '24px 32px 40px' : '16px 20px 40px', display: 'flex', justifyContent: 'center', animation: 'fadeSlideIn 0.5s ease-out 0.45s both', maxWidth: isDesktop ? 480 : undefined, alignSelf: 'center', width: '100%' }}>
+        <div style={{ padding: isDesktop ? '24px 32px 40px' : '16px 20px 40px', display: 'flex', justifyContent: 'center', animation: 'fadeSlideIn 0.5s ease-out 0.45s both', maxWidth: isDesktop ? 480 : undefined, alignSelf: 'center', width: '100%', boxSizing: 'border-box' }}>
           <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 10 }}>
             <Button variant="primary" size="large" fullWidth onClick={handleDone}>
               Back to time off
@@ -3413,7 +3413,7 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
                       </div>
                       {overBalance > 0 && leaveReason === 'timeoff' && <><div style={{ height: 1, background: P.border }} /><div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '16px 22px', background: '#FFF3E5' }}><LucideIcon name="AlertTriangle" size={14} color="#92400e" strokeWidth={2} style={{ flexShrink: 0 }} /><span style={{ fontFamily: 'var(--font-body)', fontSize: 13, fontWeight: 500, color: '#92400e', lineHeight: '18px' }}>Exceeds your balance by {overBalance === 0.5 ? '½' : overBalance} day{overBalance > 1 ? 's' : ''} — {plannableTotal} days available</span></div></>}
                       {overEntitlement > 0 && <><div style={{ height: 1, background: P.border }} /><div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '16px 22px', background: '#fef2f2' }}><LucideIcon name="AlertCircle" size={14} color="#b91c1c" strokeWidth={2} style={{ flexShrink: 0 }} /><span style={{ fontFamily: 'var(--font-body)', fontSize: 13, fontWeight: 500, color: '#b91c1c', lineHeight: '18px' }}>Maximum {entitledDaysLimit} day{entitledDaysLimit > 1 ? 's' : ''} for this leave type — reduce by {overEntitlement} day{overEntitlement > 1 ? 's' : ''} — <button onClick={() => { setSelectedDates(new Set()); setHalfDay(null); }} style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: 0, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: '#b91c1c', textDecoration: 'underline', textUnderlineOffset: 2 }}>Clear</button></span></div></>}
-                      {(() => { const n = _computeRanges(selectedDates).length; return n > 1 && <><div style={{ height: 1, background: 'rgba(15,13,40,0.1)' }} /><div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '14px 22px' }}><LucideIcon name="Info" size={14} color={P.inkSoft} strokeWidth={2} style={{ flexShrink: 0 }} /><span style={{ fontFamily: 'var(--font-body)', fontSize: 13, fontWeight: 500, color: P.inkSoft, lineHeight: '18px' }}>You've picked {n} periods · each becomes its own request</span></div></>; })()}
+                      {(() => { const n = _computeRanges(selectedDates).length; return n > 1 && <><div style={{ height: 1, background: 'rgba(15,13,40,0.1)' }} /><div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '14px 22px' }}><LucideIcon name="GitBranch" size={14} color={P.inkSoft} strokeWidth={2} style={{ flexShrink: 0 }} /><span style={{ fontFamily: 'var(--font-body)', fontSize: 13, fontWeight: 500, color: P.inkSoft, lineHeight: '18px' }}>You've picked {n} periods · each becomes its own request</span></div></>; })()}
                     </div>
                   </div>
                   </RevealPanel>
@@ -3463,8 +3463,8 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
                       </div>
                       {overBalance > 0 && leaveReason === 'timeoff' && <><div style={{ height: 1, background: P.border }} /><div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 16px', background: '#FFF3E5' }}><LucideIcon name="AlertTriangle" size={14} color="#92400e" strokeWidth={2} style={{ flexShrink: 0 }} /><span style={{ fontFamily: 'var(--font-body)', fontSize: 12, fontWeight: 500, color: '#92400e', lineHeight: '16px' }}>Exceeds your balance by {overBalance === 0.5 ? '½' : overBalance} day{overBalance > 1 ? 's' : ''} — {plannableTotal} days available</span></div></>}
                       {overEntitlement > 0 && <><div style={{ height: 1, background: P.border }} /><div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 16px', background: '#fef2f2' }}><LucideIcon name="AlertCircle" size={14} color="#b91c1c" strokeWidth={2} style={{ flexShrink: 0 }} /><span style={{ fontFamily: 'var(--font-body)', fontSize: 12, fontWeight: 500, color: '#b91c1c', lineHeight: '16px' }}>Maximum {entitledDaysLimit} day{entitledDaysLimit > 1 ? 's' : ''} for this leave type — reduce by {overEntitlement} day{overEntitlement > 1 ? 's' : ''} — <button onClick={() => { setSelectedDates(new Set()); setHalfDay(null); }} style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: 0, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, color: '#b91c1c', textDecoration: 'underline', textUnderlineOffset: 2 }}>Clear</button></span></div></>}
-                      {leaveReason === 'timeoff' && totalDays > 0 && overBalance === 0 && <><div style={{ height: 1, background: 'rgba(15,13,40,0.1)' }} /><div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 16px' }}><LucideIcon name="Info" size={14} color={P.inkSoft} strokeWidth={2} style={{ flexShrink: 0 }} /><span style={{ fontFamily: 'var(--font-body)', fontSize: 12, fontWeight: 500, color: P.inkSoft, lineHeight: '16px' }}>{`${Math.max(0, plannableTotal - totalDays)} days remaining after this`}</span></div></>}
-                      {(() => { const n = _computeRanges(selectedDates).length; return n > 1 && <><div style={{ height: 1, background: 'rgba(15,13,40,0.1)' }} /><div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 16px' }}><LucideIcon name="Info" size={14} color={P.inkSoft} strokeWidth={2} style={{ flexShrink: 0 }} /><span style={{ fontFamily: 'var(--font-body)', fontSize: 12, fontWeight: 500, color: P.inkSoft, lineHeight: '16px' }}>You've picked {n} periods · each becomes its own request</span></div></>; })()}
+                      {leaveReason === 'timeoff' && totalDays > 0 && overBalance === 0 && <><div style={{ height: 1, background: 'rgba(15,13,40,0.1)' }} /><div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 16px' }}><span style={{ fontFamily: 'var(--font-body)', fontSize: 12, fontWeight: 500, color: P.inkSoft, lineHeight: '16px' }}>{`${Math.max(0, plannableTotal - totalDays)} days remaining after this`}</span></div></>}
+                      {(() => { const n = _computeRanges(selectedDates).length; return n > 1 && <><div style={{ height: 1, background: 'rgba(15,13,40,0.1)' }} /><div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 16px' }}><LucideIcon name="GitBranch" size={14} color={P.inkSoft} strokeWidth={2} style={{ flexShrink: 0 }} /><span style={{ fontFamily: 'var(--font-body)', fontSize: 12, fontWeight: 500, color: P.inkSoft, lineHeight: '16px' }}>You've picked {n} periods · each becomes its own request</span></div></>; })()}
                     </div>
                   </div>
                   </RevealPanel>
@@ -4683,9 +4683,11 @@ function TimeOffDetailScreen({ item, onClose }) {
                     <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.ink, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{doc.name}</div>
                     <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>{doc.size}</div>
                   </div>
+                  {item.status !== 'pending' && (
                   <button onClick={() => _removeDoc(i)} style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: 4, display: 'inline-flex', flexShrink: 0 }}>
                     <LucideIcon name="X" size={16} color={P.inkSoft} strokeWidth={2} />
                   </button>
+                  )}
                 </div>
               </div>
             ))}
@@ -4859,44 +4861,13 @@ function TimeOffDetailScreen({ item, onClose }) {
                   style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }}
                 >
                   <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft }}>Document</span>
-                  {docs.length === 0 ? (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                      <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.ink, textDecoration: 'underline', textUnderlineOffset: 3 }}>Not uploaded</span>
-                      <LucideIcon name="ChevronRight" size={14} color={P.inkSoft} strokeWidth={2} />
-                    </div>
-                  ) : (
-                    <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 15, color: P.ink }}>
-                      {docs.length === 1 ? docs[0].name : `${docs.length} files`}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <span style={{ fontFamily: 'var(--font-display)', fontWeight: docs.length > 0 ? 600 : 500, fontSize: 15, color: P.ink, textDecoration: docs.length === 0 ? 'underline' : 'none', textUnderlineOffset: 3 }}>
+                      {docs.length === 0 ? 'Not uploaded' : docs.length === 1 ? docs[0].name : `${docs.length} files`}
                     </span>
-                  )}
-                </div>
-                {docs.length > 0 && (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                    {docs.map((file, i) => (
-                      <div key={i} style={{
-                        display: 'flex', alignItems: 'center', gap: 8,
-                        padding: '10px 12px', borderRadius: 10,
-                        background: P.surface, border: `1px solid ${P.border}`,
-                      }}>
-                        <LucideIcon name="FileText" size={18} color={P.inkSoft} strokeWidth={1.75} />
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.ink, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{file.name}</div>
-                          <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>{file.size}</div>
-                        </div>
-                        <button
-                          onClick={() => _removeDoc(i)}
-                          aria-label="Remove document"
-                          style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: 4, display: 'inline-flex' }}
-                        >
-                          <LucideIcon name="X" size={16} color={P.inkSoft} strokeWidth={2} />
-                        </button>
-                      </div>
-                    ))}
-                    <Button variant="outline" leftIcon="Upload" fullWidth onClick={_startDocForm}>
-                      Add another
-                    </Button>
+                    <LucideIcon name="ChevronRight" size={14} color={P.inkSoft} strokeWidth={2} />
                   </div>
-                )}
+                </div>
               </div>
             )}
 
@@ -5035,7 +5006,7 @@ function TimeOffDetailScreen({ item, onClose }) {
 
           {/* Status pill + hero — matching desktop */}
           {(() => {
-            const pills = { approved: { bg: '#dcfce7', color: '#15803d' }, pending: { bg: '#f3f4f6', color: '#50545e' }, denied: { bg: '#fee2e2', color: '#b91c1c' } };
+            const pills = { approved: { bg: '#dcfce7', color: '#15803d' }, pending: { bg: '#dbeafe', color: '#1d4ed8' }, denied: { bg: '#fee2e2', color: '#b91c1c' } };
             const useIllnessPill = item._sickConverted != null;
             const pill = useIllnessPill ? { bg: '#fce7f3', color: '#be185d' } : (pills[item.status] || { bg: P.surface, color: P.inkSoft });
             const pillLabel = useIllnessPill ? 'Illness reported' : (item._adminRecorded ? 'Recorded' : ({ approved: 'Approved', pending: 'Pending', denied: 'Denied' }[item.status] || item.status));

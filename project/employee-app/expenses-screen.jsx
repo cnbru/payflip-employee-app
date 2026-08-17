@@ -517,9 +517,6 @@ function ExpenseGroup({ exps, onPress }) {
 function MyExpensesScreen() {
   const { pop, push } = useNav();
 
-  const now = new Date();
-  const currentMonthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-
   const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
   const formatMonthKey = (key) => {
     const [y, m] = key.split('-');
@@ -537,14 +534,6 @@ function MyExpensesScreen() {
     allExpenses.forEach(e => { const k = toMonthKey(e.date); if (!g[k]) g[k] = []; g[k].push(e); });
     return Object.keys(g).sort().reverse().map(key => ({ key, items: g[key] }));
   }, [allExpenses.length]);
-
-  const [expanded, setExpanded] = React.useState(() => new Set([currentMonthKey]));
-
-  const toggle = (key) => setExpanded(prev => {
-    const next = new Set(prev);
-    if (next.has(key)) next.delete(key); else next.add(key);
-    return next;
-  });
 
   const goToDetail = (exp) => push('expense-detail', { expense: exp });
 
@@ -565,34 +554,17 @@ function MyExpensesScreen() {
           </div>
         )}
 
-        {monthGroups.map(({ key, items }) => {
-          const isOpen = expanded.has(key);
-          const isCurrent = key === currentMonthKey;
-          return (
-            <div key={key} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              <button
-                onClick={() => toggle(key)}
-                style={{
-                  appearance: 'none', border: 'none', background: 'none', cursor: 'pointer',
-                  padding: '2px 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                  textAlign: 'left',
-                }}
-              >
-                <span style={{
-                  fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11,
-                  color: PFC.inkSoft, letterSpacing: '0.06em',
-                }}>
-                  {formatMonthKey(key)}
-                </span>
-                <LucideIcon
-                  name={isOpen ? 'ChevronUp' : 'ChevronDown'}
-                  size={16} color={PFC.inkSoft} strokeWidth={2}
-                />
-              </button>
-              {isOpen && <ExpenseGroup exps={items} onPress={goToDetail} />}
-            </div>
-          );
-        })}
+        {monthGroups.map(({ key, items }) => (
+          <div key={key} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <span style={{
+              fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11,
+              color: PFC.inkSoft, letterSpacing: '0.06em',
+            }}>
+              {formatMonthKey(key)}
+            </span>
+            <ExpenseGroup exps={items} onPress={goToDetail} />
+          </div>
+        ))}
       </div>
 
       {/* Sticky footer */}
@@ -628,6 +600,7 @@ function ExpenseDetailScreen({ expense }) {
     { label: 'Date',     value: expense.date },
     { label: 'Category', value: expense.category },
     { label: 'Status',   value: <StatusBadge kind={STATUS_KIND[expense.status]}>{STATUS_LABEL[expense.status]}</StatusBadge> },
+    ...(expense.status === 'rejected' && expense.adminNote ? [{ label: 'Reason', value: expense.adminNote }] : []),
     ...(expense.status === 'approved'   ? [{ label: 'Reimbursement', value: 'Next payroll file' }] : []),
     ...(expense.status === 'reimbursed' ? [{ label: 'Reimbursed in', value: expense.reimbursementMonth }] : []),
   ];
@@ -638,11 +611,11 @@ function ExpenseDetailScreen({ expense }) {
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: '#fff' }}>
       <NavBar onBack={pop} />
 
-      <div style={{ flex: 1, overflowY: 'auto', padding: '0 16px 24px', display: 'flex', flexDirection: 'column', gap: 20 }}>
+      <div style={{ flex: 1, overflowY: 'auto', padding: `0 16px ${canEdit ? 0 : 24}px`, display: 'flex', flexDirection: 'column', gap: 20 }}>
 
-        {/* Hero — left aligned */}
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 10, padding: '4px 0' }}>
-          <div style={{ position: 'relative' }}>
+        {/* Hero */}
+        <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 14, padding: '4px 0' }}>
+          <div style={{ position: 'relative', flexShrink: 0 }}>
             <div style={{ width: 64, height: 64, borderRadius: 16, background: '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <LucideIcon name="Receipt" size={32} color={PFC.inkSoft} strokeWidth={1.5} />
             </div>
@@ -661,20 +634,6 @@ function ExpenseDetailScreen({ expense }) {
             </div>
           </div>
         </div>
-
-        {/* Rejection note — before details */}
-        {expense.status === 'rejected' && expense.adminNote && (
-          <div style={{ background: '#fff5f5', border: '1px solid #fecaca', borderRadius: 12, padding: '14px 16px', display: 'flex', gap: 10 }}>
-            <LucideIcon name="TriangleAlert" size={18} color="#dc2626" strokeWidth={2} style={{ flexShrink: 0, marginTop: 1 }} />
-            <div>
-              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 13, color: '#dc2626', marginBottom: 2 }}>Expense rejected</div>
-              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 13, color: '#b91c1c', lineHeight: '18px' }}>{expense.adminNote}</div>
-              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 400, fontSize: 12, color: '#b91c1c', lineHeight: '18px', marginTop: 6, opacity: 0.75 }}>
-                Tip: Try uploading a clearer photo in good lighting.
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* Pending note — before details */}
         {expense.status === 'pending' && (
@@ -696,23 +655,24 @@ function ExpenseDetailScreen({ expense }) {
           ))}
         </div>
 
-        {/* Actions for pending and rejected */}
-        {canEdit && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <Button
-              variant={expense.status === 'rejected' ? 'primary' : 'outline'}
-              size="large"
-              fullWidth
-              onClick={() => push('expense-wizard')}
-            >
-              {expense.status === 'rejected' ? 'Edit & resubmit' : 'Edit expense'}
-            </Button>
-            <button onClick={pop} style={{ appearance: 'none', border: 'none', background: 'none', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: '#dc2626', padding: '8px 0', textAlign: 'center', opacity: 0.7 }}>
-              Delete expense
-            </button>
-          </div>
-        )}
       </div>
+
+      {/* Actions — sticky bottom */}
+      {canEdit && (
+        <div style={{ padding: '12px 16px 24px', borderTop: '1px solid #EAEAEB', display: 'flex', flexDirection: 'column', gap: 10, background: '#fff' }}>
+          <Button
+            variant={expense.status === 'rejected' ? 'primary' : 'outline'}
+            size="large"
+            fullWidth
+            onClick={() => push('expense-form-v2', { type: 'work', category: expense.category, prefill: expense })}
+          >
+            Edit
+          </Button>
+          <button onClick={pop} style={{ appearance: 'none', border: 'none', background: 'none', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: '#dc2626', padding: '8px 0', textAlign: 'center', opacity: 0.7 }}>
+            Delete expense
+          </button>
+        </div>
+      )}
     </div>
   );
 }
