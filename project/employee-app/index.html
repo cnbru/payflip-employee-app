@@ -62,9 +62,16 @@
     }
     .t-sheet.is-open    { transform: translateY(0); }
     .t-sheet.is-closing { transform: translateY(100%); transition: transform 200ms var(--modal-ease); }
+    @keyframes _fileCardIn  { from { opacity: 0; transform: scale(0.95) translateY(-4px); } to { opacity: 1; transform: none; } }
+    @keyframes _fileCardOut { from { opacity: 1; transform: none; } to { opacity: 0; transform: scale(0.95) translateY(-4px); } }
+    .doc-file-card-in  { animation: _fileCardIn  200ms var(--modal-ease) both; }
+    .doc-file-card-out { animation: _fileCardOut 150ms var(--modal-ease) both; }
+    .doc-form-in  { animation: _modalEnter var(--modal-open-dur)  var(--modal-ease) both; }
+    .doc-form-out { animation: _modalLeave var(--modal-close-dur) var(--modal-ease) both; }
     @media (prefers-reduced-motion: reduce) {
       .t-modal, .t-sheet { transition: none !important; }
       .t-modal-enter, .t-modal-leave { animation: none !important; }
+      .doc-file-card-in, .doc-file-card-out, .doc-form-in, .doc-form-out { animation: none !important; }
     }
   </style>
 
@@ -84,7 +91,7 @@
   <script type="text/babel" src="home-screen.jsx?v=1"></script>
   <script type="text/babel" src="benefits-screen.jsx?v=1"></script>
   <script type="text/babel" src="budgets-screen.jsx?v=1"></script>
-  <script type="text/babel" src="personal-screen.jsx?v=261"></script>
+  <script type="text/babel" src="personal-screen.jsx?v=295"></script>
   <script type="text/babel" src="expenses-screen.jsx?v=1"></script>
   <script type="text/babel" src="expenses-screen-v2.jsx?v=2"></script>
   <script type="text/babel" src="bike-lease-o2o.jsx?v=1"></script>
