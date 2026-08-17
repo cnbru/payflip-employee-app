@@ -323,6 +323,7 @@ if (!window.__timeOffItems || window.__protoStateApplied !== _protoState) {
       { id: 'p4', label: 'Extra-legal leave', date: 'Jun 2',    month: 'June',      days: 1, status: 'approved' },
       // Pending
       { id: 'q1', label: 'Legal holiday', date: 'Jul 14',       month: 'July',      days: 1, status: 'pending'  },
+      { id: 'q2', label: 'Partner or spouse', date: 'Sep 28–29', month: 'September', days: 2, status: 'pending', _leaveReason: 'special-funeral-partner', _attachments: [] },
       // Upcoming
       { id: 'u1', label: 'Legal holiday', date: 'Aug 3–7',      month: 'August',    days: 5, status: 'approved' },
       { id: 'u4', label: 'ADV day',       date: 'Aug 21',       month: 'August',    days: 1, status: 'approved' },
@@ -601,6 +602,30 @@ const _getLeaveChip = (label) => LEAVE_TYPE_CHIP[label] || { icon: 'Calendar', b
 const TIME_OFF_LABELS = new Set(['Legal holiday', 'ADV day', 'Extra-legal leave', 'Short leave', 'Statutory annual leave', 'ADV / RTT days', 'Time off']);
 const _displayLabel = (label) => TIME_OFF_LABELS.has(label) ? 'Time off' : label;
 const _displayIcon = (label) => TIME_OFF_LABELS.has(label) ? 'Palmtree' : (_getLeaveChip(label).icon);
+const _SPECIAL_LABELS = ['Funeral leave', 'Wedding', 'Moving', 'Ceremony', 'Civic duty'];
+const _itemSupportsDocs = (item) =>
+  item._leaveReason?.startsWith('special-') || (!item._leaveReason && _SPECIAL_LABELS.includes(item.label));
+const _itemFullLabel = (item) => {
+  const base = _displayLabel(item.label);
+  if (item._leaveReason?.startsWith('special-funeral-')) return `Funeral leave · ${base}`;
+  if (item._leaveReason?.startsWith('special-wedding-')) return `Wedding · ${base}`;
+  return base;
+};
+const _itemIcon = (item) => {
+  if (item._leaveReason?.startsWith('special-funeral')) return 'Flower2';
+  if (item._leaveReason?.startsWith('special-wedding')) return 'Heart';
+  if (item._leaveReason === 'special-moving') return 'Truck';
+  if (item._leaveReason === 'special-communion') return 'BookOpen';
+  if (item._leaveReason === 'special-civic') return 'Shield';
+  return _displayIcon(item.label);
+};
+
+const _HUB_DOC_POOL = [
+  { name: 'certificate.pdf',         size: '245 KB' },
+  { name: 'invitation.pdf',          size: '1.2 MB' },
+  { name: 'proof_of_attendance.pdf', size: '128 KB' },
+  { name: 'official_notice.pdf',     size: '210 KB' },
+];
 
 // ─────────────────────────────────────────────────────────────
 // Shared page-level back button (desktop screens)
@@ -631,6 +656,13 @@ function DesktopTimeOffHub() {
   const [showConfirmId, setShowConfirmId] = React.useState(null);
   const [detailItem, setDetailItem] = React.useState(null);
   const [modalAnim, setModalAnim] = React.useState('');
+  const [hubDocStep, setHubDocStep] = React.useState(null);
+  const [hubDocFile, setHubDocFile] = React.useState(null);
+  const [hubDocFileExiting, setHubDocFileExiting] = React.useState(false);
+  const [hubFormExiting, setHubFormExiting] = React.useState(false);
+  const [hubDocSubmitting, setHubDocSubmitting] = React.useState(false);
+  const [hubDocProgress, setHubDocProgress] = React.useState(0);
+  const [hubDocFinalizing, setHubDocFinalizing] = React.useState(false);
   const [breakdownOpen, setBreakdownOpen] = React.useState(false);
   const today = new Date(); today.setHours(0,0,0,0);
   const [calMonth, setCalMonth] = React.useState(today.getMonth());
@@ -783,7 +815,7 @@ function DesktopTimeOffHub() {
   };
   const closeDetailModal = React.useCallback((afterClose) => {
     setModalAnim('is-closing');
-    setTimeout(() => { setDetailItem(null); setSelectedItemId(null); setModalAnim(''); if (afterClose) afterClose(); }, 150);
+    setTimeout(() => { setDetailItem(null); setSelectedItemId(null); setModalAnim(''); setHubDocStep(null); setHubDocFile(null); setHubDocFileExiting(false); setHubFormExiting(false); setHubDocSubmitting(false); setHubDocProgress(0); setHubDocFinalizing(false); if (afterClose) afterClose(); }, 150);
   }, []);
 
   const handleCancel = (item) => {
@@ -797,8 +829,9 @@ function DesktopTimeOffHub() {
   };
 
   const ItemRow = ({ item }) => {
-    const _icon = _displayIcon(item.label);
-    const _label = _displayLabel(item.label);
+    const _icon = _itemIcon(item);
+    const _label = _itemFullLabel(item);
+    const _missingDoc = _itemSupportsDocs(item) && item.status !== 'approved' && (!item._attachments || item._attachments.length === 0);
     const isSelected = selectedItemId === item.id;
     return (
       <div
@@ -833,10 +866,10 @@ function DesktopTimeOffHub() {
             <div style={{
               position: 'absolute', top: -6, right: -6,
               width: 18, height: 18, borderRadius: '50%',
-              background: '#fef3c7', border: '2px solid #f7f7f8',
+              background: '#dbeafe', border: '2px solid #f7f7f8',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}>
-              <LucideIcon name="Clock" size={10} color="#d97706" strokeWidth={2.5} />
+              <LucideIcon name="Clock" size={10} color="#2563eb" strokeWidth={2.5} />
             </div>
           )}
         </div>
@@ -847,6 +880,12 @@ function DesktopTimeOffHub() {
           </div>
           <div style={{ fontFamily: 'var(--font-display)', fontWeight: 400, fontSize: 13, color: P.inkSoft, marginTop: 2 }}>{_label}</div>
         </div>
+        {_missingDoc && (
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#fff7ed', color: '#b45309', padding: '5px 12px', borderRadius: 20, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, flexShrink: 0, whiteSpace: 'nowrap' }}>
+            <span style={{ fontSize: 8, lineHeight: 1 }}>●</span>
+            Document missing
+          </div>
+        )}
         <LucideIcon name="ChevronRight" size={18} color="#9ca3af" strokeWidth={2} />
       </div>
     );
@@ -1042,12 +1081,12 @@ function DesktopTimeOffHub() {
               boxShadow: '0 20px 60px rgba(0,0,0,0.2)', overflow: 'hidden',
               display: 'flex', flexDirection: 'column',
             }}>
-              {/* Status pill + close button */}
-              <div style={{ padding: '20px 24px 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              {/* Status pill + close button — hidden in upload form step */}
+              {hubDocStep !== 'form' && <div style={{ padding: '20px 24px 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 {(() => {
                   const pills = {
                     approved: { bg: '#dcfce7', color: '#15803d' },
-                    pending:  { bg: '#fef9c3', color: '#92400e' },
+                    pending:  { bg: '#dbeafe', color: '#1d4ed8' },
                     denied:   { bg: '#fee2e2', color: '#b91c1c' },
                   };
                   const pill = pills[item.status] || { bg: P.surface, color: P.inkSoft };
@@ -1070,10 +1109,10 @@ function DesktopTimeOffHub() {
                 }}>
                   <LucideIcon name="X" size={18} color={P.ink} strokeWidth={2} />
                 </button>
-              </div>
+              </div>}
 
-              {/* Hero: date + day count */}
-              <div style={{ padding: '16px 24px 20px' }}>
+              {/* Hero: date + day count — hidden in upload form step */}
+              {hubDocStep !== 'form' && <div style={{ padding: '16px 24px 20px' }}>
                 <div style={{
                   fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 22,
                   letterSpacing: '-0.04em', color: P.ink, lineHeight: '28px', marginBottom: 6,
@@ -1081,70 +1120,187 @@ function DesktopTimeOffHub() {
                 <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 15, color: P.inkSoft }}>
                   {item.days === 1 ? '1 day' : `${item.days} days`}
                 </div>
-              </div>
+              </div>}
 
-              {/* Divider */}
-              <div style={{ borderTop: `1px solid ${P.border}` }} />
+              {/* Divider — hidden in upload form step */}
+              {hubDocStep !== 'form' && <div style={{ borderTop: `1px solid ${P.border}` }} />}
 
-              {/* Detail rows */}
-              <div style={{ flex: 1, overflowY: 'auto', padding: '12px 24px 12px' }}>
-                {/* Leave type */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 0' }}>
-                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft }}>Leave type</span>
-                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 15, color: P.ink }}>{item.label}</span>
-                </div>
-
-                {/* Approver */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 0' }}>
-                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft }}>
-                    {item._adminRecorded ? 'Recorded by' : item.status === 'approved' ? 'Approved by' : item.status === 'pending' ? 'Pending review' : 'Denied by'}
-                  </span>
-                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 15, color: P.ink }}>
-                    {item._adminRecorded ? 'Sophie L. · HR admin' : item.status === 'pending' ? 'Waiting for Sophie L.' : 'Sophie L.'}
-                  </span>
-                </div>
-
-                {/* Denial reason */}
-                {item.status === 'denied' && item._denialReason && (
-                  <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, padding: '18px 0' }}>
-                    <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, flexShrink: 0 }}>Reason</span>
-                    <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 15, color: P.ink, textAlign: 'right' }}>{item._denialReason}</span>
+              {/* Detail rows — or inline upload form */}
+              {hubDocStep === 'form' ? (
+                <div className={hubFormExiting ? 'doc-form-out' : 'doc-form-in'} style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
+                  <div style={{ padding: '14px 20px', display: 'flex', alignItems: 'center', gap: 10, borderBottom: `1px solid ${P.border}`, flexShrink: 0 }}>
+                    <button onClick={() => { if (hubDocSubmitting) return; setHubFormExiting(true); setTimeout(() => { setHubDocStep(null); setHubDocFile(null); setHubFormExiting(false); }, 150); }} style={{ width: 32, height: 32, borderRadius: 8, background: P.surface, border: 'none', cursor: hubDocSubmitting ? 'default' : 'pointer', opacity: hubDocSubmitting ? 0.35 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <LucideIcon name="ArrowLeft" size={18} color={P.ink} strokeWidth={2} />
+                    </button>
+                    <div style={{ flex: 1, fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18, color: P.ink }}>{item.status === 'pending' && (item._attachments || []).length > 0 ? 'Submitted documents' : 'Documents'}</div>
+                    <button onClick={() => { if (hubDocSubmitting) return; closeDetailModal(); }} style={{ width: 32, height: 32, borderRadius: 8, background: P.surface, border: 'none', cursor: hubDocSubmitting ? 'default' : 'pointer', opacity: hubDocSubmitting ? 0.35 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <LucideIcon name="X" size={18} color={P.ink} strokeWidth={2} />
+                    </button>
                   </div>
-                )}
-
-                {/* Submitted */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 0' }}>
-                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft }}>Submitted</span>
-                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 15, color: P.ink }}>16 Nov 2025</span>
-                </div>
-              </div>
-
-              {/* Divider */}
-              <div style={{ borderTop: `1px solid ${P.border}` }} />
-
-              {/* Action buttons */}
-              {!item._adminRecorded && (
-                <div style={{ padding: '12px 24px 20px', display: 'flex', flexDirection: 'row', gap: 8 }}>
-                  {item.status === 'denied' ? (
-                    <Button variant="primary" size="large" fullWidth onClick={() => {
-                      const _ltr = { 'Legal holiday':'timeoff','ADV day':'timeoff','Extra-legal leave':'timeoff','Time off':'timeoff','Short leave':'special-civic','Sick leave':'sick' };
-                      closeDetailModal(() => nav && nav.push('request-time-off', { prefillReason: _ltr[item.label] || null, replaceDeniedItem: item }));
-                    }}>Request again</Button>
-                  ) : (
-                    <>
-                      <Button variant="outline" size="large" fullWidth
-                        onClick={() => closeDetailModal(() => nav && nav.push('request-time-off', { editItem: item }))}>
-                        Edit request
-                      </Button>
-                      <Button variant="outline" size="large" fullWidth
-                        style={{ color: PFC.errorText, borderColor: PFC.errorBorder }}
-                        onClick={() => closeDetailModal(() => setShowConfirmId(item.id))}>
-                        Cancel request
-                      </Button>
-                    </>
+                  <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px' }}>
+                    {/* Existing uploaded files */}
+                    {(item._attachments || []).map((att, i) => (
+                      <div key={att.name + i} style={{ background: P.surface, border: `1px solid ${P.border}`, borderRadius: 12, marginBottom: 8, overflow: 'hidden' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px' }}>
+                          <div style={{ width: 40, height: 40, borderRadius: 8, background: '#f0f0f2', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                            <LucideIcon name="FileText" size={20} color={P.inkSoft} strokeWidth={1.5} />
+                          </div>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.ink, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{att.name}</div>
+                            <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>{att.size}</div>
+                          </div>
+                          {item.status === 'pending' && (
+                            <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, fontWeight: 500, color: '#2d7a4f', background: '#e8f5ee', borderRadius: 6, padding: '3px 8px', flexShrink: 0 }}>Sent to HR</span>
+                          )}
+                          <button onClick={() => { item._attachments = item._attachments.filter((_, idx) => idx !== i); setTick(t => t + 1); }} style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: 4, display: 'inline-flex', flexShrink: 0 }}>
+                            <LucideIcon name="X" size={16} color={P.inkSoft} strokeWidth={2} />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                    {/* New file being picked — hidden when request is under review and has existing docs */}
+                    {item.status === 'pending' && (item._attachments || []).length > 0 && !hubDocFile ? null : hubDocFile ? (
+                      <div className={hubDocFileExiting ? 'doc-file-card-out' : 'doc-file-card-in'} style={{ background: P.surface, border: `1px solid ${P.border}`, borderRadius: 12, marginBottom: 8, overflow: 'hidden' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px' }}>
+                          <div style={{ width: 40, height: 40, borderRadius: 8, background: '#f0f0f2', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                            <LucideIcon name="FileText" size={20} color={P.inkSoft} strokeWidth={1.5} />
+                          </div>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.ink, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{hubDocFile.name}</div>
+                            <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>{hubDocFile.size}</div>
+                          </div>
+                          <button onClick={() => { setHubDocFileExiting(true); setTimeout(() => { setHubDocFile(null); setHubDocFileExiting(false); setHubDocSubmitting(false); setHubDocProgress(0); }, 150); }} style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: 4, display: 'inline-flex', flexShrink: 0 }}>
+                            <LucideIcon name="X" size={16} color={P.inkSoft} strokeWidth={2} />
+                          </button>
+                        </div>
+                        {hubDocSubmitting && (
+                          <div style={{ padding: '0 14px 12px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 4 }}>
+                              <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, fontWeight: 500, color: P.inkSoft }}>{hubDocProgress}%</span>
+                            </div>
+                            <div style={{ height: 3, background: P.border, borderRadius: 99, overflow: 'hidden' }}>
+                              <div style={{ height: '100%', background: P.ink, borderRadius: 99, width: `${hubDocProgress}%`, transition: hubDocProgress === 0 ? 'none' : hubDocProgress === 100 ? 'width 150ms linear' : 'width 500ms ease-out' }} />
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <button onClick={() => {
+                        const pool = _HUB_DOC_POOL;
+                        const used = (item._attachments || []).map(a => a.name);
+                        const file = pool.find(f => !used.includes(f.name)) || pool[(item._attachments || []).length % pool.length];
+                        setHubDocFile(file);
+                        setHubDocSubmitting(true);
+                        setHubDocProgress(0);
+                        [[80,5],[400,22],[800,42],[1200,60],[1600,76],[2000,85],[2300,100]].forEach(([d,p]) => setTimeout(() => setHubDocProgress(p), d));
+                        setTimeout(() => { setHubDocSubmitting(false); setHubDocProgress(0); }, 2600);
+                      }} style={{ width: '100%', padding: '16px 14px', border: `1.5px dashed ${P.border}`, borderRadius: 12, background: '#fafafa', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                        <LucideIcon name="Upload" size={28} color={P.ink} strokeWidth={1.75} />
+                        <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.ink }}>Drag & Drop or Choose file to upload</span>
+                        <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>Max 6 files · Up to 5MB</span>
+                      </button>
+                    )}
+                  </div>
+                  {(item.status !== 'pending' || (item._attachments || []).length === 0 || hubDocFile) && (
+                  <div style={{ padding: '14px 24px 24px', borderTop: `1px solid ${P.border}`, flexShrink: 0 }}>
+                    <Button variant="primary" size="large" fullWidth disabled={!hubDocFile || hubDocSubmitting || hubDocFinalizing} onClick={() => {
+                      setHubDocFinalizing(true);
+                      setTimeout(() => {
+                        if (!item._attachments) item._attachments = [];
+                        item._attachments.push({ name: hubDocFile.name, size: hubDocFile.size });
+                        setTick(t => t + 1);
+                        setHubDocFinalizing(false);
+                        closeDetailModal(() => { setToast('Document uploaded'); setTimeout(() => setToast(null), 4000); });
+                      }, 1200);
+                    }}>{hubDocSubmitting ? 'Uploading…' : hubDocFinalizing ? 'Submitting…' : 'Submit document'}</Button>
+                  </div>
                   )}
                 </div>
+              ) : (
+                <div style={{ flex: 1, overflowY: 'auto', padding: '12px 24px 12px' }}>
+                  {/* Leave type */}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 0' }}>
+                    <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft }}>Leave type</span>
+                    <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 15, color: P.ink }}>{item.label}</span>
+                  </div>
+
+                  {/* Approver */}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 0' }}>
+                    <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft }}>
+                      {item._adminRecorded ? 'Recorded by' : item.status === 'approved' ? 'Approved by' : item.status === 'pending' ? 'Pending review' : 'Denied by'}
+                    </span>
+                    <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 15, color: P.ink }}>
+                      {item._adminRecorded ? 'Sophie L. · HR admin' : item.status === 'pending' ? 'Waiting for Sophie L.' : 'Sophie L.'}
+                    </span>
+                  </div>
+
+                  {/* Denial reason */}
+                  {item.status === 'denied' && item._denialReason && (
+                    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, padding: '18px 0' }}>
+                      <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, flexShrink: 0 }}>Reason</span>
+                      <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 15, color: P.ink, textAlign: 'right' }}>{item._denialReason}</span>
+                    </div>
+                  )}
+
+                  {/* Submitted */}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 0' }}>
+                    <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft }}>Submitted</span>
+                    <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 15, color: P.ink }}>16 Nov 2025</span>
+                  </div>
+
+                  {/* Document row — only for special leave types */}
+                  {_itemSupportsDocs(item) && (() => {
+                    const hasDoc = item._attachments && item._attachments.length > 0;
+                    const canAct = !item._adminRecorded;
+                    return (
+                      <div
+                        onClick={canAct ? () => setHubDocStep('form') : undefined}
+                        style={{
+                          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                          padding: '18px 0', borderTop: `1px solid ${P.border}`,
+                          cursor: canAct ? 'pointer' : 'default',
+                        }}
+                      >
+                        <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft }}>Document</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                          {hasDoc
+                            ? <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 15, color: P.ink }}>{item._attachments.length === 1 ? item._attachments[0].name : `${item._attachments.length} files`}</span>
+                            : <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.ink, textDecoration: 'underline', textUnderlineOffset: 3 }}>Not uploaded</span>
+                          }
+                          {canAct && <LucideIcon name="ChevronRight" size={14} color={P.inkSoft} strokeWidth={2} />}
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </div>
               )}
+
+              {/* Divider + action buttons — hidden when upload form is active */}
+              {hubDocStep !== 'form' && <>
+                <div style={{ borderTop: `1px solid ${P.border}` }} />
+                {!item._adminRecorded && (
+                  <div style={{ padding: '12px 24px 20px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    {item.status === 'denied' ? (
+                      <Button variant="outline" size="large" fullWidth onClick={() => {
+                        const _ltr = { 'Legal holiday':'timeoff','ADV day':'timeoff','Extra-legal leave':'timeoff','Time off':'timeoff','Short leave':'special-civic','Sick leave':'sick' };
+                        closeDetailModal(() => nav && nav.push('request-time-off', { prefillReason: _ltr[item.label] || null, replaceDeniedItem: item }));
+                      }}>Request again</Button>
+                    ) : (
+                      <div style={{ display: 'flex', gap: 8 }}>
+                        <Button variant="outline" size="large" fullWidth
+                          onClick={() => closeDetailModal(() => nav && nav.push('request-time-off', { editItem: item }))}>
+                          Edit request
+                        </Button>
+                        <Button variant="outline" size="large" fullWidth
+                          style={{ color: PFC.errorText, borderColor: PFC.errorBorder }}
+                          onClick={() => closeDetailModal(() => setShowConfirmId(item.id))}>
+                          Cancel request
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </>}
             </div>
           </div>
         );
@@ -1469,8 +1625,9 @@ function TimeOffHubScreen() {
                   )}
                   <div style={{ background: 'white', border: '1px solid #EAEAEB', borderRadius: 16, overflow: 'hidden' }}>
                   {groupItems.map((item, itemIdx) => {
-                    const _icon = _displayIcon(item.label);
-                    const _label = _displayLabel(item.label);
+                    const _icon = _itemIcon(item);
+                    const _label = _itemFullLabel(item);
+                    const _missingDoc = _itemSupportsDocs(item) && item.status !== 'approved' && (!item._attachments || item._attachments.length === 0);
                     return (
                       <div key={item.id} style={{ padding: '0 16px', borderBottom: itemIdx < groupItems.length - 1 ? '1px solid #EAEAEB' : 'none' }}>
                       <div
@@ -1507,10 +1664,10 @@ function TimeOffHubScreen() {
                             <div style={{
                               position: 'absolute', top: -7, right: -7,
                               width: 16, height: 16, borderRadius: '50%',
-                              background: '#fef3c7', border: '2px solid white',
+                              background: '#dbeafe', border: '2px solid white',
                               display: 'flex', alignItems: 'center', justifyContent: 'center',
                             }}>
-                              <LucideIcon name="Clock" size={9} color="#b45309" strokeWidth={2.5} />
+                              <LucideIcon name="Clock" size={9} color="#2563eb" strokeWidth={2.5} />
                             </div>
                           )}
                         </div>
@@ -1519,10 +1676,14 @@ function TimeOffHubScreen() {
                             <span style={{ fontWeight: 600, color: P.ink }}>{_formatDate(item)}</span>
                             <span style={{ fontWeight: 400, color: P.inkSoft }}>{' · '}{item.days === 1 ? '1 day' : `${item.days} days`}</span>
                           </div>
-                          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 13, color: P.inkSoft, lineHeight: '18px' }}>
-                            {_label}
-                          </div>
+                          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 13, color: P.inkSoft, lineHeight: '18px', marginTop: 1 }}>{_label}</div>
                         </div>
+                        {_missingDoc && (
+                          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#fff7ed', color: '#b45309', padding: '5px 12px', borderRadius: 20, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, flexShrink: 0, whiteSpace: 'nowrap' }}>
+                            <span style={{ fontSize: 8, lineHeight: 1 }}>●</span>
+                            Document missing
+                          </div>
+                        )}
                         <LucideIcon name="ChevronRight" size={18} color={P.inkSoft} strokeWidth={2} />
                       </div>
                       </div>
@@ -1825,8 +1986,9 @@ function TimeOffHistoryScreen() {
   const groups = toGroups(filtered);
 
   const ItemRow = ({ item }) => {
-    const _icon = _displayIcon(item.label);
-    const _label = _displayLabel(item.label);
+    const _icon = _itemIcon(item);
+    const _label = _itemFullLabel(item);
+    const _missingDoc = _itemSupportsDocs(item) && (!item._attachments || item._attachments.length === 0);
     return (
       <div key={item.id}
         role="button" tabIndex={0}
@@ -1845,6 +2007,12 @@ function TimeOffHistoryScreen() {
           </div>
           <div style={{ fontFamily: 'var(--font-display)', fontWeight: 400, fontSize: 13, color: P.inkSoft, marginTop: 2 }}>{_label}</div>
         </div>
+        {_missingDoc && (
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#fff7ed', color: '#b45309', padding: '5px 12px', borderRadius: 20, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, flexShrink: 0, whiteSpace: 'nowrap' }}>
+            <span style={{ fontSize: 8, lineHeight: 1 }}>●</span>
+            Document missing
+          </div>
+        )}
         {item._sickConverted != null && (
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#fce7f3', color: '#be185d', padding: '5px 12px', borderRadius: 20, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, flexShrink: 0, whiteSpace: 'nowrap' }}>
             <span style={{ fontSize: 8, lineHeight: 1 }}>●</span>
@@ -2805,7 +2973,7 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
     return wrapDesktop(
       <div style={{ display: 'flex', flexDirection: 'column', minHeight: isDesktop ? 400 : '100%', background: isDesktop ? 'transparent' : '#F2F2F2', borderRadius: isDesktop ? 20 : 0 }}>
         {/* Centred content */}
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: isDesktop ? '48px 32px 0' : '16px 16px 0', textAlign: 'center', maxWidth: isDesktop ? 480 : undefined, alignSelf: 'center', width: '100%' }}>
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: isDesktop ? '48px 32px 0' : '32px 20px 0', textAlign: 'center', maxWidth: isDesktop ? 480 : undefined, alignSelf: 'center', width: '100%' }}>
           <SuccessCheck iconName={iconName} iconColor={iconColor} iconBg={iconBg} />
           <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 22, color: P.ink, marginBottom: 8, animation: 'fadeSlideIn 0.5s ease-out 0.15s both' }}>
             {heading}
@@ -2835,7 +3003,7 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
           </div>
         </div>
         {/* Buttons pinned to bottom */}
-        <div style={{ padding: isDesktop ? '24px 32px 40px' : '16px 16px 24px', display: 'flex', justifyContent: 'center', animation: 'fadeSlideIn 0.5s ease-out 0.45s both', maxWidth: isDesktop ? 480 : undefined, alignSelf: 'center', width: '100%' }}>
+        <div style={{ padding: isDesktop ? '24px 32px 40px' : '16px 20px 40px', display: 'flex', justifyContent: 'center', animation: 'fadeSlideIn 0.5s ease-out 0.45s both', maxWidth: isDesktop ? 480 : undefined, alignSelf: 'center', width: '100%' }}>
           <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 10 }}>
             <Button variant="primary" size="large" fullWidth onClick={handleDone}>
               Back to time off
@@ -4133,7 +4301,7 @@ window.registerScreen('absence-type', AbsenceTypeScreen);
 // ─────────────────────────────────────────────────────────────
 const DETAIL_STATUS = {
   approved: { label: 'Approved by Sophie L.',  color: 'rgb(22,163,74)',  bg: 'rgb(220,252,231)', icon: 'CircleCheck' },
-  pending:  { label: 'Pending — Sophie L.',    color: 'rgb(161,98,7)',   bg: 'rgb(254,243,199)', icon: 'Clock'       },
+  pending:  { label: 'Pending — Sophie L.',    color: 'rgb(37,99,235)',  bg: 'rgb(219,234,254)', icon: 'Clock'       },
   denied:   { label: 'Denied by Sophie L.',    color: 'rgb(185,28,28)',  bg: 'rgb(255,235,235)', icon: 'CircleX'     },
 };
 
@@ -4156,6 +4324,10 @@ function TimeOffDetailScreen({ item, onClose }) {
   const [docStep, setDocStep] = React.useState(null); // null | 'form' | 'success'
   const [docFile, setDocFile] = React.useState(null);
   const [docSubmitting, setDocSubmitting] = React.useState(false);
+  const [docProgress, setDocProgress] = React.useState(0);
+  const [docFinalizing, setDocFinalizing] = React.useState(false);
+  const [docFileExiting, setDocFileExiting] = React.useState(false);
+  const [docFormExiting, setDocFormExiting] = React.useState(false);
   const [showDocSheet, setShowDocSheet] = React.useState(false);
   const [docSheetAnim, setDocSheetAnim] = React.useState('');
 
@@ -4194,12 +4366,22 @@ function TimeOffDetailScreen({ item, onClose }) {
   const _submitDoc = (fileOverride) => {
     const file = fileOverride || docFile;
     if (!file) return;
-    setDocSubmitting(true);
+    setDocFinalizing(true);
     setTimeout(() => {
       _persistDocs([...docs, file]);
-      setDocSubmitting(false);
-      setDocStep('success');
-    }, 1000);
+      setDocStep(null);
+      setDocFile(null);
+      setDocFinalizing(false);
+      doClose();
+      setTimeout(() => { window.__refreshTimeOff && window.__refreshTimeOff(); window.__showTimeOffToast && window.__showTimeOffToast('Document uploaded'); }, 50);
+    }, 1200);
+  };
+  const _startFileUpload = (file) => {
+    setDocFile(file);
+    setDocSubmitting(true);
+    setDocProgress(0);
+    [[80,5],[400,22],[800,42],[1200,60],[1600,76],[2000,85],[2300,100]].forEach(([d,p]) => setTimeout(() => setDocProgress(p), d));
+    setTimeout(() => { setDocSubmitting(false); setDocProgress(0); }, 2600);
   };
   const _removeDoc = (idx) => {
     _persistDocs(docs.filter((_, i) => i !== idx));
@@ -4476,45 +4658,76 @@ function TimeOffDetailScreen({ item, onClose }) {
         </>
         ) : docStep === 'form' ? (
         /* ── Doc upload form ── */
-        <>
+        <div className={docFormExiting ? 'doc-form-out' : 'doc-form-in'} style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
           <div style={{ padding: '14px 20px', display: 'flex', alignItems: 'center', gap: 10, borderBottom: `1px solid ${P.border}`, flexShrink: 0 }}>
-            <button onClick={() => setDocStep(null)} style={{ width: 32, height: 32, borderRadius: 8, background: P.surface, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <button onClick={() => { if (docSubmitting) return; setDocFormExiting(true); setTimeout(() => { setDocStep(null); setDocFormExiting(false); }, 150); }} style={{ width: 32, height: 32, borderRadius: 8, background: P.surface, border: 'none', cursor: docSubmitting ? 'default' : 'pointer', opacity: docSubmitting ? 0.35 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
               <LucideIcon name="ArrowLeft" size={18} color={P.ink} strokeWidth={2} />
             </button>
-            <div style={{ flex: 1, fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18, color: P.ink }}>Add document</div>
-            <button onClick={() => doClose()} style={{ width: 32, height: 32, borderRadius: 8, background: P.surface, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <div style={{ flex: 1, fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18, color: P.ink }}>Documents</div>
+            <button onClick={() => { if (docSubmitting) return; doClose(); }} style={{ width: 32, height: 32, borderRadius: 8, background: P.surface, border: 'none', cursor: docSubmitting ? 'default' : 'pointer', opacity: docSubmitting ? 0.35 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
               <LucideIcon name="X" size={18} color={P.ink} strokeWidth={2} />
             </button>
           </div>
           <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px' }}>
-            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.inkSoft, marginBottom: 8 }}>
-              Document <span style={{ color: PFC.errorText }}>*</span>
+            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.inkSoft, marginBottom: 2 }}>
+              File <span style={{ color: PFC.errorText }}>*</span>
             </div>
-            {docFile ? (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 14px', background: P.surface, border: `1px solid ${P.border}`, borderRadius: 12, marginBottom: 8 }}>
-                <LucideIcon name="FileText" size={18} color={P.inkSoft} strokeWidth={1.75} />
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.ink, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{docFile.name}</div>
-                  <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>{docFile.size}</div>
+            <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, marginBottom: 10 }}>Supporting certificate or official notice</div>
+            {docs.map((doc, i) => (
+              <div key={doc.name + i} style={{ background: P.surface, border: `1px solid ${P.border}`, borderRadius: 12, marginBottom: 8, overflow: 'hidden' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px' }}>
+                  <div style={{ width: 40, height: 40, borderRadius: 8, background: '#f0f0f2', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <LucideIcon name="FileText" size={20} color={P.inkSoft} strokeWidth={1.5} />
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.ink, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{doc.name}</div>
+                    <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>{doc.size}</div>
+                  </div>
+                  <button onClick={() => _removeDoc(i)} style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: 4, display: 'inline-flex', flexShrink: 0 }}>
+                    <LucideIcon name="X" size={16} color={P.inkSoft} strokeWidth={2} />
+                  </button>
                 </div>
-                <button onClick={() => setDocFile(null)} style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: 4, display: 'inline-flex' }}>
-                  <LucideIcon name="X" size={16} color={P.inkSoft} strokeWidth={2} />
-                </button>
+              </div>
+            ))}
+            {docFile ? (
+              <div className={docFileExiting ? 'doc-file-card-out' : 'doc-file-card-in'} style={{ background: P.surface, border: `1px solid ${P.border}`, borderRadius: 12, marginBottom: 8, overflow: 'hidden' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px' }}>
+                  <div style={{ width: 40, height: 40, borderRadius: 8, background: '#f0f0f2', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <LucideIcon name="FileText" size={20} color={P.inkSoft} strokeWidth={1.5} />
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.ink, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{docFile.name}</div>
+                    <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>{docFile.size}</div>
+                  </div>
+                  <button onClick={() => { setDocFileExiting(true); setTimeout(() => { setDocFile(null); setDocFileExiting(false); setDocSubmitting(false); setDocProgress(0); }, 150); }} style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: 4, display: 'inline-flex', flexShrink: 0 }}>
+                    <LucideIcon name="X" size={16} color={P.inkSoft} strokeWidth={2} />
+                  </button>
+                </div>
+                {docSubmitting && (
+                  <div style={{ padding: '0 14px 12px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 4 }}>
+                      <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, fontWeight: 500, color: P.inkSoft }}>{docProgress}%</span>
+                    </div>
+                    <div style={{ height: 3, background: P.border, borderRadius: 99, overflow: 'hidden' }}>
+                      <div style={{ height: '100%', background: P.ink, borderRadius: 99, width: `${docProgress}%`, transition: docProgress === 0 ? 'none' : docProgress === 100 ? 'width 150ms linear' : 'width 500ms ease-out' }} />
+                    </div>
+                  </div>
+                )}
               </div>
             ) : (
-              <button onClick={() => setDocFile(_docFilePool[docs.length % _docFilePool.length])} style={{ width: '100%', padding: '20px 14px', border: `1.5px dashed ${P.border}`, borderRadius: 12, background: '#fafafa', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                <LucideIcon name="Upload" size={22} color={P.inkSoft} strokeWidth={1.75} />
-                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.inkSoft }}>Choose file</span>
-                <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkFaint }}>PDF, JPG, PNG up to 10 MB</span>
+              <button onClick={() => _startFileUpload(_docFilePool[(docs.length) % _docFilePool.length])} style={{ width: '100%', padding: '16px 14px', border: `1.5px dashed ${P.border}`, borderRadius: 12, background: '#fafafa', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                <LucideIcon name="Upload" size={28} color={P.ink} strokeWidth={1.75} />
+                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.ink }}>Drag & Drop or Choose file to upload</span>
+                <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>Max 6 files · Up to 5MB</span>
               </button>
             )}
           </div>
           <div style={{ padding: '14px 24px 24px', borderTop: `1px solid ${P.border}`, flexShrink: 0 }}>
-            <Button variant="primary" size="large" fullWidth disabled={!docFile || docSubmitting} onClick={() => _submitDoc()}>
-              {docSubmitting ? 'Submitting…' : 'Submit document'}
+            <Button variant="primary" size="large" fullWidth disabled={!docFile || docSubmitting || docFinalizing} onClick={() => _submitDoc()}>
+              {docSubmitting ? 'Uploading…' : docFinalizing ? 'Submitting…' : 'Submit document'}
             </Button>
           </div>
-        </>
+        </div>
         ) : (
         /* ── Desktop detail view ── */
         <>
@@ -4641,11 +4854,21 @@ function TimeOffDetailScreen({ item, onClose }) {
             {/* Documents — attachable after submission for any non-timeoff leave */}
             {supportsDocs && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10, padding: '18px 0', borderTop: `1px solid ${P.border}` }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft }}>Documents</span>
-                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>
-                    {docs.length === 0 ? 'None yet' : docs.length + ' file' + (docs.length > 1 ? 's' : '')}
-                  </span>
+                <div
+                  onClick={_startDocForm}
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }}
+                >
+                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft }}>Document</span>
+                  {docs.length === 0 ? (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                      <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.ink, textDecoration: 'underline', textUnderlineOffset: 3 }}>Not uploaded</span>
+                      <LucideIcon name="ChevronRight" size={14} color={P.inkSoft} strokeWidth={2} />
+                    </div>
+                  ) : (
+                    <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 15, color: P.ink }}>
+                      {docs.length === 1 ? docs[0].name : `${docs.length} files`}
+                    </span>
+                  )}
                 </div>
                 {docs.length > 0 && (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -4669,11 +4892,11 @@ function TimeOffDetailScreen({ item, onClose }) {
                         </button>
                       </div>
                     ))}
+                    <Button variant="outline" leftIcon="Upload" fullWidth onClick={_startDocForm}>
+                      Add another
+                    </Button>
                   </div>
                 )}
-                <Button variant="outline" leftIcon="Upload" fullWidth onClick={_startDocForm}>
-                  {docs.length === 0 ? 'Upload document' : 'Add another'}
-                </Button>
               </div>
             )}
 
@@ -4690,7 +4913,7 @@ function TimeOffDetailScreen({ item, onClose }) {
                   ? { label: 'Approved', detail: item._approvedDate || '18 Nov 2025', state: 'done', color: '#16a34a' }
                   : item.status === 'denied'
                   ? { label: 'Denied', detail: item._deniedDate || '18 Nov 2025', state: 'error', color: '#dc2626' }
-                  : { label: 'Pending review', detail: 'Waiting for approval', state: 'pending', color: '#d97706' },
+                  : { label: 'Pending review', detail: 'Waiting for approval', state: 'pending', color: '#2563eb' },
               ];
               const illnessState = item._sickIllnessStatus || 'pending';
               steps.push(illnessState === 'approved'
@@ -4812,7 +5035,7 @@ function TimeOffDetailScreen({ item, onClose }) {
 
           {/* Status pill + hero — matching desktop */}
           {(() => {
-            const pills = { approved: { bg: '#dcfce7', color: '#15803d' }, pending: { bg: '#fef9c3', color: '#92400e' }, denied: { bg: '#fee2e2', color: '#b91c1c' } };
+            const pills = { approved: { bg: '#dcfce7', color: '#15803d' }, pending: { bg: '#f3f4f6', color: '#50545e' }, denied: { bg: '#fee2e2', color: '#b91c1c' } };
             const useIllnessPill = item._sickConverted != null;
             const pill = useIllnessPill ? { bg: '#fce7f3', color: '#be185d' } : (pills[item.status] || { bg: P.surface, color: P.inkSoft });
             const pillLabel = useIllnessPill ? 'Illness reported' : (item._adminRecorded ? 'Recorded' : ({ approved: 'Approved', pending: 'Pending', denied: 'Denied' }[item.status] || item.status));
@@ -4934,11 +5157,21 @@ function TimeOffDetailScreen({ item, onClose }) {
                 )}
                 {supportsDocs && (
                   <div style={{ ...rowStyle, flexDirection: 'column', alignItems: 'stretch', gap: 10 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <span style={labelStyle}>Documents</span>
-                      <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>
-                        {docs.length === 0 ? 'None yet' : docs.length + ' file' + (docs.length > 1 ? 's' : '')}
-                      </span>
+                    <div
+                      onClick={_startDocForm}
+                      style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }}
+                    >
+                      <span style={labelStyle}>Document</span>
+                      {docs.length === 0 ? (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                          <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.ink, textDecoration: 'underline', textUnderlineOffset: 3 }}>Not uploaded</span>
+                          <LucideIcon name="ChevronRight" size={14} color={P.inkSoft} strokeWidth={2} />
+                        </div>
+                      ) : (
+                        <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 15, color: P.ink }}>
+                          {docs.length === 1 ? docs[0].name : `${docs.length} files`}
+                        </span>
+                      )}
                     </div>
                     {docs.length > 0 && (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -4962,11 +5195,11 @@ function TimeOffDetailScreen({ item, onClose }) {
                             </button>
                           </div>
                         ))}
+                        <Button variant="secondary" icon="Upload" fullWidth onClick={_startDocForm}>
+                          Add another
+                        </Button>
                       </div>
                     )}
-                    <Button variant="secondary" icon="Upload" fullWidth onClick={_startDocForm}>
-                      {docs.length === 0 ? 'Upload document' : 'Add another'}
-                    </Button>
                   </div>
                 )}
                 <div style={rowStyle}>
@@ -5348,37 +5581,68 @@ function TimeOffDetailScreen({ item, onClose }) {
               ) : (
                 <>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 20px', borderBottom: `1px solid ${P.border}`, flexShrink: 0 }}>
-                    <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18, color: P.ink }}>Add document</div>
-                    <button onClick={_closeDocSheet} style={{ width: 32, height: 32, borderRadius: 8, background: P.surface, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18, color: P.ink }}>Documents</div>
+                    <button onClick={() => { if (docSubmitting) return; _closeDocSheet(); }} style={{ width: 32, height: 32, borderRadius: 8, background: P.surface, border: 'none', cursor: docSubmitting ? 'default' : 'pointer', opacity: docSubmitting ? 0.35 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       <LucideIcon name="X" size={18} color={P.ink} strokeWidth={2} />
                     </button>
                   </div>
                   <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px' }}>
-                    <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.inkSoft, marginBottom: 8 }}>
-                      Document <span style={{ color: PFC.errorText }}>*</span>
+                    <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.inkSoft, marginBottom: 2 }}>
+                      File <span style={{ color: PFC.errorText }}>*</span>
                     </div>
-                    {docFile ? (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 14px', background: P.surface, border: `1px solid ${P.border}`, borderRadius: 12, marginBottom: 8 }}>
-                        <LucideIcon name="FileText" size={18} color={P.inkSoft} strokeWidth={1.75} />
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.ink, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{docFile.name}</div>
-                          <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>{docFile.size}</div>
+                    <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, marginBottom: 10 }}>Supporting certificate or official notice</div>
+                    {docs.map((doc, i) => (
+                      <div key={doc.name + i} style={{ background: P.surface, border: `1px solid ${P.border}`, borderRadius: 12, marginBottom: 8, overflow: 'hidden' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px' }}>
+                          <div style={{ width: 40, height: 40, borderRadius: 8, background: '#f0f0f2', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                            <LucideIcon name="FileText" size={20} color={P.inkSoft} strokeWidth={1.5} />
+                          </div>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.ink, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{doc.name}</div>
+                            <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>{doc.size}</div>
+                          </div>
+                          <button onClick={() => _removeDoc(i)} style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: 4, display: 'inline-flex', flexShrink: 0 }}>
+                            <LucideIcon name="X" size={16} color={P.inkSoft} strokeWidth={2} />
+                          </button>
                         </div>
-                        <button onClick={() => setDocFile(null)} style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: 4, display: 'inline-flex' }}>
-                          <LucideIcon name="X" size={16} color={P.inkSoft} strokeWidth={2} />
-                        </button>
+                      </div>
+                    ))}
+                    {docFile ? (
+                      <div className={docFileExiting ? 'doc-file-card-out' : 'doc-file-card-in'} style={{ background: P.surface, border: `1px solid ${P.border}`, borderRadius: 12, marginBottom: 8, overflow: 'hidden' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px' }}>
+                          <div style={{ width: 40, height: 40, borderRadius: 8, background: '#f0f0f2', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                            <LucideIcon name="FileText" size={20} color={P.inkSoft} strokeWidth={1.5} />
+                          </div>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.ink, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{docFile.name}</div>
+                            <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>{docFile.size}</div>
+                          </div>
+                          <button onClick={() => { setDocFileExiting(true); setTimeout(() => { setDocFile(null); setDocFileExiting(false); setDocSubmitting(false); setDocProgress(0); }, 150); }} style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: 4, display: 'inline-flex', flexShrink: 0 }}>
+                            <LucideIcon name="X" size={16} color={P.inkSoft} strokeWidth={2} />
+                          </button>
+                        </div>
+                        {docSubmitting && (
+                          <div style={{ padding: '0 14px 12px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 4 }}>
+                              <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, fontWeight: 500, color: P.inkSoft }}>{docProgress}%</span>
+                            </div>
+                            <div style={{ height: 3, background: P.border, borderRadius: 99, overflow: 'hidden' }}>
+                              <div style={{ height: '100%', background: P.ink, borderRadius: 99, width: `${docProgress}%`, transition: docProgress === 0 ? 'none' : docProgress === 100 ? 'width 150ms linear' : 'width 500ms ease-out' }} />
+                            </div>
+                          </div>
+                        )}
                       </div>
                     ) : (
-                      <button onClick={() => setDocFile(_docFilePool[docs.length % _docFilePool.length])} style={{ width: '100%', padding: '20px 14px', border: `1.5px dashed ${P.border}`, borderRadius: 12, background: '#fafafa', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
-                        <LucideIcon name="Upload" size={22} color={P.inkSoft} strokeWidth={1.75} />
-                        <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.inkSoft }}>Choose file</span>
-                        <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkFaint }}>PDF, JPG, PNG up to 10 MB</span>
+                      <button onClick={() => _startFileUpload(_docFilePool[(docs.length) % _docFilePool.length])} style={{ width: '100%', padding: '16px 14px', border: `1.5px dashed ${P.border}`, borderRadius: 12, background: '#fafafa', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+                        <LucideIcon name="Upload" size={28} color={P.ink} strokeWidth={1.75} />
+                        <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.ink }}>Drag & Drop or Choose file to upload</span>
+                        <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>Max 6 files · Up to 5MB</span>
                       </button>
                     )}
                   </div>
                   <div style={{ padding: '14px 24px 40px', borderTop: `1px solid ${P.border}`, flexShrink: 0 }}>
                     <Button variant="primary" size="large" fullWidth disabled={!docFile || docSubmitting} onClick={() => _submitDoc()}>
-                      {docSubmitting ? 'Submitting…' : 'Submit document'}
+                      {docSubmitting ? 'Uploading…' : 'Submit document'}
                     </Button>
                   </div>
                 </>
