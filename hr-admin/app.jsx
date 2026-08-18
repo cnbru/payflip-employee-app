@@ -6320,6 +6320,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
   // Food-mode INSS state
   const [inssUploaded, setInssUploaded] = useState(false);
   const [inssUploading, setInssUploading] = useState(false);
+  const [inssDownloaded, setInssDownloaded] = useState(false);
 
   // Food-mode state (untouched)
   const [socialSecretariat, setSocialSecretariat] = useState('SD Worx');
@@ -6860,20 +6861,21 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
                   <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.ink }}>INSS numbers</span>
                 </div>
                 <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
-                  <AppLink href="#" onClick={e => {
-                    e.preventDefault();
-                    const header = 'Name,Email,INSS number\n';
-                    const rows = foodSelectedEmployees.map(id => {
-                      const emp = EMPLOYEES[id];
-                      return `"${emp?.name || id}","${emp?.email || ''}",""`;
-                    }).join('\n');
-                    const blob = new Blob([header + rows], { type: 'text/csv' });
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url; a.download = 'inss_numbers_template.csv'; a.click();
-                    URL.revokeObjectURL(url);
-                  }}>Download the template</AppLink>, fill in each employee's INSS number, and upload the completed file below. Payflip uses these to match the monthly attendance file from your social secretariat.
+                  Payflip uses INSS numbers to match the monthly attendance file from your social secretariat. Download our template, fill in each employee's number, and upload it below.
                 </p>
+                <Button variant="secondary" icon={inssDownloaded ? 'check' : 'download'} onClick={() => {
+                  const header = 'Name,Email,INSS number\n';
+                  const rows = foodSelectedEmployees.map(id => {
+                    const emp = EMPLOYEES[id];
+                    return `"${emp?.name || id}","${emp?.email || ''}",""`;
+                  }).join('\n');
+                  const blob = new Blob([header + rows], { type: 'text/csv' });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url; a.download = 'inss_numbers_template.csv'; a.click();
+                  URL.revokeObjectURL(url);
+                  setInssDownloaded(true);
+                }} style={{ width: '100%', justifyContent: 'center' }}>{inssDownloaded ? 'Downloaded' : 'Download template'}</Button>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-150)' }}>
                   {inssUploaded ? (
                     <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', padding: 'var(--space-150) var(--space-200)', border: `1px solid ${P.border}`, borderRadius: 10, background: P.bg }}>
