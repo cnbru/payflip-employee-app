@@ -6320,6 +6320,8 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
   // Food-mode INSS state
   const [inssUploaded, setInssUploaded] = useState(false);
   const [inssUploading, setInssUploading] = useState(false);
+  const [inssMatching, setInssMatching] = useState(false);
+  const [inssMatchResult, setInssMatchResult] = useState(null); // { matched: N, unmatched: string[] }
 
   // Food-mode state (untouched)
   const [socialSecretariat, setSocialSecretariat] = useState('SD Worx');
@@ -6359,7 +6361,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
   const foodEmpCount = foodSelectedEmployees.length;
   const isFoodDefaultSelection = foodSelectedEmployees.length === foodDefaultSelection.length && foodSelectedEmployees.every(id => foodDefaultSelection.includes(id));
   const foodMissingInss = foodSelectedEmployees.filter(id => !EMP_EXTRA[id]?.inssNumber);
-  const foodInssComplete = inssUploaded || foodMissingInss.length === 0;
+  const foodInssComplete = inssMatchResult !== null;
   // Deposit = €37/employee/month × 3 months, rounded to nearest €50
   const deposit = Math.max(50, Math.round(empCount * 37 * 3 / 50) * 50);
 
@@ -6875,23 +6877,58 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
                   }}>Download the template</AppLink>, fill in each employee's INSS number, and upload the completed file below. Payflip uses these to match the monthly attendance file from your social secretariat.
                 </p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-150)' }}>
-                  {/* Upload zone / file card */}
                   {inssUploaded ? (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', padding: 'var(--space-150) var(--space-200)', border: `1px solid ${P.border}`, borderRadius: 10, background: P.bg }}>
-                      <span style={{ width: 32, height: 32, borderRadius: '50%', background: '#e8f5f0', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                        <Icon name="check" size={14} color="#008556" strokeWidth={2.5} />
-                      </span>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink }}>inss_numbers.xlsx</div>
-                        <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>Uploaded successfully</div>
+                    <>
+                      {/* File card — scanning / matched */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', padding: 'var(--space-150) var(--space-200)', border: `1px solid ${P.border}`, borderRadius: 10, background: P.bg }}>
+                        <span style={{ width: 32, height: 32, borderRadius: '50%', background: inssMatchResult ? '#e8f5f0' : P.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'background 300ms' }}>
+                          {inssMatching
+                            ? <div style={{ width: 14, height: 14, borderRadius: '50%', border: `2px solid ${P.border}`, borderTopColor: P.ink, animation: 'spin 600ms linear infinite' }} />
+                            : <Icon name="check" size={14} color="#008556" strokeWidth={2.5} />}
+                        </span>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>inss_numbers.xlsx</div>
+                          <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>
+                            {inssMatching
+                              ? 'Scanning for INSS numbers…'
+                              : inssMatchResult?.unmatched.length === 0
+                                ? `All ${inssMatchResult.matched} employees matched`
+                                : `${inssMatchResult?.matched} of ${foodEmpCount} employees matched`}
+                          </div>
+                        </div>
+                        {!inssMatching && (
+                          <a href="#" onClick={e => { e.preventDefault(); setInssUploaded(false); setInssMatching(false); setInssMatchResult(null); }} style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.ink, textDecoration: 'underline', flexShrink: 0 }}>Remove</a>
+                        )}
                       </div>
-                      <a href="#" onClick={e => { e.preventDefault(); setInssUploaded(false); }} style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.ink, textDecoration: 'underline', flexShrink: 0 }}>Remove</a>
-                    </div>
+                      {/* Unmatched employees warning */}
+                      {inssMatchResult && inssMatchResult.unmatched.length > 0 && (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-075)', padding: 'var(--space-150) var(--space-175)', background: '#FEF3C7', borderRadius: 10 }}>
+                          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: '#92400E' }}>
+                            {inssMatchResult.unmatched.length === 1 ? '1 employee not found' : `${inssMatchResult.unmatched.length} employees not found`}
+                          </div>
+                          <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: '#92400E', lineHeight: '17px' }}>
+                            {inssMatchResult.unmatched.join(', ')} won't receive vouchers this month. You can add their INSS number from their employee profile.
+                          </div>
+                        </div>
+                      )}
+                    </>
                   ) : (
+                    /* Upload zone */
                     <div onClick={() => {
                       if (inssUploading) return;
                       setInssUploading(true);
-                      setTimeout(() => { setInssUploading(false); setInssUploaded(true); }, 1500);
+                      setTimeout(() => {
+                        setInssUploading(false);
+                        setInssUploaded(true);
+                        setInssMatching(true);
+                        setTimeout(() => {
+                          setInssMatching(false);
+                          const unmatched = foodSelectedEmployees
+                            .filter(id => !EMP_EXTRA[id]?.inssNumber)
+                            .map(id => EMPLOYEES[id]?.name || id);
+                          setInssMatchResult({ matched: foodSelectedEmployees.length - unmatched.length, unmatched });
+                        }, 1500);
+                      }, 1500);
                     }} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 'var(--space-150)', padding: 'var(--space-150) var(--space-200)', border: `1.5px dashed ${P.border}`, borderRadius: 10, background: P.bg, cursor: inssUploading ? 'default' : 'pointer' }}>
                       {inssUploading ? (
                         <>
@@ -6901,7 +6938,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
                       ) : (
                         <>
                           <Icon name="upload" size={15} color={P.inkSoft} strokeWidth={1.5} />
-                          <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink }}>Upload completed file</span>
+                          <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink }}>Upload file</span>
                           <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>· Excel or CSV</span>
                         </>
                       )}
