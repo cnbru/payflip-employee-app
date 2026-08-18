@@ -6320,7 +6320,6 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
   // Food-mode INSS state
   const [inssUploaded, setInssUploaded] = useState(false);
   const [inssUploading, setInssUploading] = useState(false);
-  const [inssDownloaded, setInssDownloaded] = useState(false);
 
   // Food-mode state (untouched)
   const [socialSecretariat, setSocialSecretariat] = useState('SD Worx');
@@ -6863,8 +6862,16 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
                 <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
                   Payflip uses INSS numbers to match the monthly attendance file from your social secretariat. Download our template, fill in each employee's number, and upload it below.
                 </p>
-                {!inssDownloaded ? (
-                  <Button variant="secondary" icon="download" onClick={() => {
+                {/* Template file card — always visible, fades after upload */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', padding: 'var(--space-125) var(--space-150)', background: P.bg, border: `1px solid ${P.border}`, borderRadius: 10, opacity: inssUploaded ? 0.4 : 1, transition: 'opacity 300ms' }}>
+                  <span style={{ width: 30, height: 30, borderRadius: 6, background: '#e8f5f0', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <Icon name="table" size={14} color="#008556" strokeWidth={1.75} />
+                  </span>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink }}>inss_numbers_template.csv</div>
+                    <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>Pre-filled with your {foodEmpCount} employees</div>
+                  </div>
+                  <button onClick={() => {
                     const header = 'Name,Email,INSS number\n';
                     const rows = foodSelectedEmployees.map(id => {
                       const emp = EMPLOYEES[id];
@@ -6875,40 +6882,39 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
                     const a = document.createElement('a');
                     a.href = url; a.download = 'inss_numbers_template.csv'; a.click();
                     URL.revokeObjectURL(url);
-                    setInssDownloaded(true);
-                  }} style={{ width: '100%', justifyContent: 'center' }}>Download template</Button>
+                  }} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 8px', border: `1px solid ${P.border}`, borderRadius: 6, background: P.bgCard, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.ink, cursor: 'pointer', flexShrink: 0 }}>
+                    <Icon name="download" size={12} color={P.ink} strokeWidth={2} /> Download
+                  </button>
+                </div>
+                {/* Upload zone / uploaded file card */}
+                {inssUploaded ? (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', padding: 'var(--space-150) var(--space-200)', border: `1px solid ${P.border}`, borderRadius: 10, background: P.bg }}>
+                    <span style={{ width: 32, height: 32, borderRadius: '50%', background: '#e8f5f0', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <Icon name="check" size={14} color="#008556" strokeWidth={2.5} />
+                    </span>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>inss_numbers_template.csv</div>
+                      <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>{foodEmpCount} employees · all INSS numbers filled</div>
+                    </div>
+                    <a href="#" onClick={e => { e.preventDefault(); setInssUploaded(false); }} style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.ink, textDecoration: 'underline', flexShrink: 0 }}>Remove</a>
+                  </div>
                 ) : (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-150)' }}>
-                    {inssUploaded ? (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', padding: 'var(--space-150) var(--space-200)', border: `1px solid ${P.border}`, borderRadius: 10, background: P.bg }}>
-                      <span style={{ width: 32, height: 32, borderRadius: '50%', background: '#e8f5f0', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                        <Icon name="check" size={14} color="#008556" strokeWidth={2.5} />
-                      </span>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>inss_numbers_template.csv</div>
-                        <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>{foodEmpCount} employees · all INSS numbers filled</div>
-                      </div>
-                      <a href="#" onClick={e => { e.preventDefault(); setInssUploaded(false); }} style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.ink, textDecoration: 'underline', flexShrink: 0 }}>Remove</a>
-                    </div>
-                  ) : (
-                    <div onClick={() => {
-                      if (inssUploading) return;
-                      setInssUploading(true);
-                      setTimeout(() => { setInssUploading(false); setInssUploaded(true); }, 1500);
-                    }} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 'var(--space-150)', padding: 'var(--space-150) var(--space-200)', border: `1.5px dashed ${P.border}`, borderRadius: 10, background: P.bg, cursor: inssUploading ? 'default' : 'pointer' }}>
-                      {inssUploading ? (
-                        <>
-                          <div style={{ width: 16, height: 16, borderRadius: '50%', border: `2px solid ${P.border}`, borderTopColor: P.ink, animation: 'spin 600ms linear infinite', flexShrink: 0 }} />
-                          <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft }}>Uploading…</span>
-                        </>
-                      ) : (
-                        <>
-                          <Icon name="upload" size={15} color={P.inkSoft} strokeWidth={1.5} />
-                          <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink }}>Upload completed template</span>
-                        </>
-                      )}
-                    </div>
-                  )}
+                  <div onClick={() => {
+                    if (inssUploading) return;
+                    setInssUploading(true);
+                    setTimeout(() => { setInssUploading(false); setInssUploaded(true); }, 1500);
+                  }} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 'var(--space-150)', padding: 'var(--space-150) var(--space-200)', border: `1.5px dashed ${P.border}`, borderRadius: 10, background: P.bg, cursor: inssUploading ? 'default' : 'pointer' }}>
+                    {inssUploading ? (
+                      <>
+                        <div style={{ width: 16, height: 16, borderRadius: '50%', border: `2px solid ${P.border}`, borderTopColor: P.ink, animation: 'spin 600ms linear infinite', flexShrink: 0 }} />
+                        <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft }}>Uploading…</span>
+                      </>
+                    ) : (
+                      <>
+                        <Icon name="upload" size={15} color={P.inkSoft} strokeWidth={1.5} />
+                        <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink }}>Upload completed template</span>
+                      </>
+                    )}
                   </div>
                 )}
                 <Button variant="primary" disabled={!foodInssComplete} onClick={() => setStep(3)} style={{ width: '100%', justifyContent: 'center', fontSize: 'var(--fs-body-md)', padding: 'var(--space-125) var(--space-250)' }}>Continue</Button>
