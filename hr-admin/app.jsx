@@ -6908,12 +6908,6 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
                       )}
                     </div>
                   )}
-                  {/* Status line — count + missing context in one line */}
-                  <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: foodInssComplete ? '#008556' : '#D97706', lineHeight: '18px' }}>
-                    {foodInssComplete
-                      ? `All ${foodEmpCount} employees have an INSS number ✓`
-                      : `${foodEmpCount - foodMissingInss.length} of ${foodEmpCount} employees have an INSS number — ${foodMissingInss.length} ${foodMissingInss.length === 1 ? 'row' : 'rows'} will be blank in the template`}
-                  </div>
                 </div>
                 <Button variant="primary" disabled={!foodInssComplete} onClick={() => setStep(3)} style={{ width: '100%', justifyContent: 'center', fontSize: 'var(--fs-body-md)', padding: 'var(--space-125) var(--space-250)' }}>Continue</Button>
               </div>
