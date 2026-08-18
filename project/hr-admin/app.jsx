@@ -6863,21 +6863,27 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
                 <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
                   Payflip uses INSS numbers to match the monthly attendance file from your social secretariat. Download our template, fill in each employee's number, and upload it below.
                 </p>
-                <Button variant="secondary" icon={inssDownloaded ? 'check' : 'download'} onClick={() => {
-                  const header = 'Name,Email,INSS number\n';
-                  const rows = foodSelectedEmployees.map(id => {
-                    const emp = EMPLOYEES[id];
-                    return `"${emp?.name || id}","${emp?.email || ''}",""`;
-                  }).join('\n');
-                  const blob = new Blob([header + rows], { type: 'text/csv' });
-                  const url = URL.createObjectURL(blob);
-                  const a = document.createElement('a');
-                  a.href = url; a.download = 'inss_numbers_template.csv'; a.click();
-                  URL.revokeObjectURL(url);
-                  setInssDownloaded(true);
-                }} style={{ width: '100%', justifyContent: 'center' }}>{inssDownloaded ? 'Downloaded' : 'Download template'}</Button>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-150)' }}>
-                  {inssUploaded ? (
+                {!inssDownloaded ? (
+                  <Button variant="secondary" icon="download" onClick={() => {
+                    const header = 'Name,Email,INSS number\n';
+                    const rows = foodSelectedEmployees.map(id => {
+                      const emp = EMPLOYEES[id];
+                      return `"${emp?.name || id}","${emp?.email || ''}",""`;
+                    }).join('\n');
+                    const blob = new Blob([header + rows], { type: 'text/csv' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url; a.download = 'inss_numbers_template.csv'; a.click();
+                    URL.revokeObjectURL(url);
+                    setInssDownloaded(true);
+                  }} style={{ width: '100%', justifyContent: 'center' }}>Download template</Button>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-150)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-100)', color: P.inkSoft }}>
+                      <Icon name="check" size={13} color="#008556" strokeWidth={2.5} />
+                      <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: '#008556' }}>Template downloaded — fill in the INSS numbers, then upload below</span>
+                    </div>
+                    {inssUploaded ? (
                     <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', padding: 'var(--space-150) var(--space-200)', border: `1px solid ${P.border}`, borderRadius: 10, background: P.bg }}>
                       <span style={{ width: 32, height: 32, borderRadius: '50%', background: '#e8f5f0', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                         <Icon name="check" size={14} color="#008556" strokeWidth={2.5} />
@@ -6907,7 +6913,8 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
                       )}
                     </div>
                   )}
-                </div>
+                  </div>
+                )}
                 <Button variant="primary" disabled={!foodInssComplete} onClick={() => setStep(3)} style={{ width: '100%', justifyContent: 'center', fontSize: 'var(--fs-body-md)', padding: 'var(--space-125) var(--space-250)' }}>Continue</Button>
               </div>
             ) : step < 2 ? (
