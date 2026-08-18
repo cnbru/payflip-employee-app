@@ -650,19 +650,26 @@ const CARD_SEED = {
 
 // ── Per-employee supplemental data ────────────────────────────────────────
 const EMP_EXTRA = {
-  'bram-goossens':       { payrollId: '000041', hireDate: '15/03/2023', lang: 'Dutch'   },
-  'emma-martens':        { payrollId: '000040', hireDate: '12/05/2025', lang: 'English' },
-  'mathias-de-smedt':    { payrollId: '000032', hireDate: '01/09/2022', lang: 'Dutch'   },
-  'thomas-vandenberghe': { payrollId: '000028', hireDate: '04/02/2022', lang: 'Dutch'   },
-  'thomas-janssens':     { payrollId: '000044', hireDate: '10/01/2023', lang: 'Dutch'   },
-  'david':               { payrollId: '000015', hireDate: '07/11/2020', lang: 'French'  },
-  'stijn-laurent':       { payrollId: '000019', hireDate: '14/04/2021', lang: 'Dutch'   },
-  'jana-goossens':       { payrollId: '000033', hireDate: '02/11/2022', lang: 'Dutch'   },
-  'laura-mertens':       { payrollId: '000038', hireDate: '07/03/2024', lang: 'Dutch'   },
-  'pieter-mertens':      { payrollId: '000009', hireDate: '01/06/2019', lang: 'Dutch'   },
-  'sarah-de-smedt':      { payrollId: '000025', hireDate: '16/08/2021', lang: 'French'  },
-  'julie-goossens':      { payrollId: '000011', hireDate: '03/09/2019', lang: 'Dutch'   },
-  'noor-de-smedt':       { payrollId: '000043', hireDate: '22/09/2025', lang: 'Dutch'   },
+  'bram-goossens':       { payrollId: '000041', hireDate: '15/03/2023', lang: 'Dutch',   inssNumber: '90.06.23-145.82' },
+  'emma-martens':        { payrollId: '000040', hireDate: '12/05/2025', lang: 'English', inssNumber: '95.11.14-218.37' },
+  'mathias-de-smedt':    { payrollId: '000032', hireDate: '01/09/2022', lang: 'Dutch',   inssNumber: '88.03.07-074.16' },
+  'thomas-vandenberghe': { payrollId: '000028', hireDate: '04/02/2022', lang: 'Dutch',   inssNumber: '92.07.19-361.54' },
+  'thomas-janssens':     { payrollId: '000044', hireDate: '10/01/2023', lang: 'Dutch',   inssNumber: '91.02.28-509.63' },
+  'david':               { payrollId: '000015', hireDate: '07/11/2020', lang: 'French',  inssNumber: '87.09.12-633.29' },
+  'stijn-laurent':       { payrollId: '000019', hireDate: '14/04/2021', lang: 'Dutch',   inssNumber: '89.04.30-812.47' },
+  'jana-goossens':       { payrollId: '000033', hireDate: '02/11/2022', lang: 'Dutch',   inssNumber: '93.08.05-127.91' },
+  'laura-mertens':       { payrollId: '000038', hireDate: '07/03/2024', lang: 'Dutch',   inssNumber: '96.05.22-445.68' },
+  'pieter-mertens':      { payrollId: '000009', hireDate: '01/06/2019', lang: 'Dutch',   inssNumber: '85.01.17-298.53' },
+  'sarah-de-smedt':      { payrollId: '000025', hireDate: '16/08/2021', lang: 'French',  inssNumber: '94.12.03-673.14' },
+  'julie-goossens':      { payrollId: '000011', hireDate: '03/09/2019', lang: 'Dutch',   inssNumber: '86.10.25-534.76' },
+  'noor-de-smedt':       { payrollId: '000043', hireDate: '22/09/2025', lang: 'Dutch',   inssNumber: '97.06.11-189.42' },
+  'ruben-declercq':      { inssNumber: '91.08.14-317.59' },
+  'ines-baert':          { inssNumber: '93.03.26-482.71' },
+  'joachim-nijs':        { inssNumber: '88.11.09-726.38' },
+  'sara-verbeke':        { inssNumber: '95.07.17-853.26' },
+  'wout-desmet':         { inssNumber: '89.05.04-164.85' },
+  'amber-claes':         { inssNumber: '96.02.21-591.47' },
+  'pieter-verheyen':     { inssNumber: '87.12.30-243.68' },
 };
 // ── Work regime helpers ───────────────────────────────────────────────────
 const COMPANY_REGIME_DEFAULTS = { contractedHours: 40, emailDomain: 'lumiogroup.be' };
@@ -1020,8 +1027,9 @@ function DetailsTab({ emp, empId, onNav, adminAccess, onAdminSave, companyRegime
           <div style={{ flex: 1 }}><label style={labelStyle}>Entity</label><div style={fieldStyle}>{emp.entity}</div></div>
           <div style={{ flex: 1 }}><label style={labelStyle}>Start date at company *</label><div style={fieldStyle}>{ex.hireDate || '—'}</div></div>
         </div>
-        <div style={{ maxWidth: 'calc(50% - 8px)' }}>
-          <label style={labelStyle}>Employee Payroll ID *</label><div style={fieldStyle}>{ex.payrollId || '—'}</div>
+        <div style={{ display: 'flex', gap: 'var(--space-200)' }}>
+          <div style={{ flex: 1 }}><label style={labelStyle}>Employee Payroll ID *</label><div style={fieldStyle}>{ex.payrollId || '—'}</div></div>
+          <div style={{ flex: 1 }}><label style={labelStyle}>INSS number</label><div style={fieldStyle}>{ex.inssNumber || '—'}</div></div>
         </div>
       </div>
       {(() => {
@@ -6309,6 +6317,10 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
   const [liveMenuOpen, setLiveMenuOpen] = useState(false);
   const { rendered: liveMenuRendered, visible: liveMenuVisible } = usePopoverTransition(liveMenuOpen);
 
+  // Food-mode INSS state
+  const [inssUploaded, setInssUploaded] = useState(false);
+  const [inssUploading, setInssUploading] = useState(false);
+
   // Food-mode state (untouched)
   const [socialSecretariat, setSocialSecretariat] = useState('SD Worx');
   const [secOpen, setSecOpen] = useState(false);
@@ -6346,6 +6358,8 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
   const [showFoodPickerModal, setShowFoodPickerModal] = useState(false);
   const foodEmpCount = foodSelectedEmployees.length;
   const isFoodDefaultSelection = foodSelectedEmployees.length === foodDefaultSelection.length && foodSelectedEmployees.every(id => foodDefaultSelection.includes(id));
+  const foodMissingInss = foodSelectedEmployees.filter(id => !EMP_EXTRA[id]?.inssNumber);
+  const foodInssComplete = inssUploaded || foodMissingInss.length === 0;
   // Deposit = €37/employee/month × 3 months, rounded to nearest €50
   const deposit = Math.max(50, Math.round(empCount * 37 * 3 / 50) * 50);
 
@@ -6363,11 +6377,11 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
     return () => clearTimeout(t);
   }, [widgetMode, step, mandateDenied]);
 
-  // Food: simulate bank approval 5s after step 3 (awaiting approval)
+  // Food: simulate bank approval 5s after step 4 (awaiting approval)
   React.useEffect(() => {
-    if (widgetMode !== 'food' || step !== 3) return;
+    if (widgetMode !== 'food' || step !== 4) return;
     const t = setTimeout(() => {
-      setStep(4);
+      setStep(5);
       onToast?.({ message: 'Mandate approved — select your social secretariat', type: 'approve' });
     }, 5000);
     return () => clearTimeout(t);
@@ -6712,6 +6726,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
           ];
           const foodMeta = [
             { label: 'Select employees',         color: P.inkSoft, bg: P.bg },
+            { label: 'INSS numbers',             color: P.inkSoft, bg: P.bg },
             { label: 'Sign mandate',             color: P.inkSoft, bg: P.bg },
             { label: 'Awaiting approval',        color: '#D97706', bg: '#FEF3C7' },
             { label: 'Social secretariat',       color: P.inkSoft, bg: P.bg },
@@ -6722,7 +6737,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
             : (foodMeta[step - 1] || foodMeta[0]);
           const stepLabel = widgetMode === 'mobility'
             ? `${meta.label} · ${step} of 4`
-            : `${meta.label} · ${step} of 5`;
+            : `${meta.label} · ${step} of 6`;
           return (
             <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)' }}>
               {!hidden ? (
@@ -6836,12 +6851,92 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
             )}
           </div>
 
-          {/* Food Step 2 — Sign mandate */}
+          {/* Food Step 2 — INSS numbers */}
           <div style={{ background: step === 2 ? P.white : inactiveBg, borderBottom: `1px solid ${P.border}` }}>
             {step === 2 ? (
-              <div key="food-step2-active" style={{ padding: 'var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-250)', animation: `stepContentEnter 250ms ${EASE_OUT}` }}>
+              <div key="food-step2-active" style={{ padding: 'var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-250)', animation: `stepContentEnter 250ms ${EASE_OUT} 120ms both` }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)' }}>
                   {stepBadgeEl(2)}
+                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.ink }}>INSS numbers</span>
+                </div>
+                <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
+                  Payflip receives a monthly attendance file from your social secretariat. We match it using INSS numbers — without them, we can't calculate how many vouchers each employee is entitled to.
+                </p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-150)' }}>
+                  {/* Download template */}
+                  <Button variant="secondary" icon="download" onClick={() => {
+                    const header = 'Name,Email,INSS number\n';
+                    const rows = foodSelectedEmployees.map(id => {
+                      const emp = EMPLOYEES[id];
+                      const inss = EMP_EXTRA[id]?.inssNumber || '';
+                      return `"${emp?.name || id}","${emp?.email || ''}","${inss}"`;
+                    }).join('\n');
+                    const blob = new Blob([header + rows], { type: 'text/csv' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url; a.download = 'inss_numbers_template.csv'; a.click();
+                    URL.revokeObjectURL(url);
+                  }} style={{ justifyContent: 'center' }}>Download template</Button>
+                  {/* Upload zone / file card */}
+                  {inssUploaded ? (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', padding: 'var(--space-150) var(--space-200)', border: `1px solid ${P.border}`, borderRadius: 10, background: P.bg }}>
+                      <span style={{ width: 32, height: 32, borderRadius: '50%', background: '#e8f5f0', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        <Icon name="check" size={14} color="#008556" strokeWidth={2.5} />
+                      </span>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink }}>inss_numbers.xlsx</div>
+                        <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>Uploaded successfully</div>
+                      </div>
+                      <a href="#" onClick={e => { e.preventDefault(); setInssUploaded(false); }} style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.ink, textDecoration: 'underline', flexShrink: 0 }}>Remove</a>
+                    </div>
+                  ) : (
+                    <div onClick={() => {
+                      if (inssUploading) return;
+                      setInssUploading(true);
+                      setTimeout(() => { setInssUploading(false); setInssUploaded(true); }, 1500);
+                    }} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 'var(--space-100)', padding: 'var(--space-300)', border: `1.5px dashed ${P.border}`, borderRadius: 10, background: P.bg, cursor: inssUploading ? 'default' : 'pointer', textAlign: 'center' }}>
+                      {inssUploading ? (
+                        <>
+                          <div style={{ width: 28, height: 28, borderRadius: '50%', border: `2.5px solid ${P.border}`, borderTopColor: P.ink, animation: 'spin 600ms linear infinite' }} />
+                          <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft }}>Uploading…</span>
+                        </>
+                      ) : (
+                        <>
+                          <Icon name="upload" size={20} color={P.inkSoft} strokeWidth={1.5} />
+                          <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink }}>Upload completed file</span>
+                          <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>Excel or CSV</span>
+                        </>
+                      )}
+                    </div>
+                  )}
+                  {/* Status line */}
+                  <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: foodInssComplete ? '#008556' : '#D97706', lineHeight: '18px' }}>
+                    {foodInssComplete
+                      ? `All ${foodEmpCount} employees have an INSS number ✓`
+                      : `${foodEmpCount - foodMissingInss.length} of ${foodEmpCount} — download the template, fill in the missing ${foodMissingInss.length}, and re-upload.`}
+                  </div>
+                </div>
+                <Button variant="primary" disabled={!foodInssComplete} onClick={() => setStep(3)} style={{ width: '100%', justifyContent: 'center', fontSize: 'var(--fs-body-md)', padding: 'var(--space-125) var(--space-250)' }}>Continue</Button>
+              </div>
+            ) : step < 2 ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', padding: 'var(--space-300)', opacity: 0.55 }}>
+                {stepBadgeEl(2)}
+                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-md)', color: P.inkSoft }}>INSS numbers</span>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', padding: 'var(--space-300)', animation: `stepDoneEnter 200ms ${EASE_OUT}`, opacity: 0.70 }}>
+                {stepBadgeEl(2)}
+                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.inkSoft }}>INSS numbers complete</span>
+              </div>
+            )}
+          </div>
+
+          {/* Food Step 3 — Sign mandate */}
+          <div style={{ background: step === 3 ? P.white : inactiveBg, borderBottom: `1px solid ${P.border}` }}>
+            {step === 3 ? (
+              <div key="food-step3-active" style={{ padding: 'var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-250)', animation: `stepContentEnter 250ms ${EASE_OUT}` }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)' }}>
+                  {stepBadgeEl(3)}
                   <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.ink }}>Sign mandate</span>
                 </div>
                 <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
@@ -6853,52 +6948,52 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
                     Secured by Twikey — funds arrive within 3 business days.
                   </span>
                 </div>
-                <Button variant="primary" onClick={() => setStep(3)} style={{ width: '100%', justifyContent: 'center', fontSize: 'var(--fs-body-md)', padding: 'var(--space-125) var(--space-250)' }}>Sign with Twikey</Button>
+                <Button variant="primary" onClick={() => setStep(4)} style={{ width: '100%', justifyContent: 'center', fontSize: 'var(--fs-body-md)', padding: 'var(--space-125) var(--space-250)' }}>Sign with Twikey</Button>
               </div>
-            ) : step < 2 ? (
+            ) : step < 3 ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', padding: 'var(--space-300)', opacity: 0.55 }}>
-                {stepBadgeEl(2)}
+                {stepBadgeEl(3)}
                 <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-md)', color: P.inkSoft }}>Sign mandate</span>
               </div>
             ) : (
               <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', padding: 'var(--space-300)', animation: `stepDoneEnter 200ms ${EASE_OUT}`, opacity: 0.70 }}>
-                {stepBadgeEl(2)}
+                {stepBadgeEl(3)}
                 <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.inkSoft }}>Mandate signed</span>
               </div>
             )}
           </div>
 
-          {/* Food Step 3 — Awaiting approval (auto-advances after 5s) */}
-          <div style={{ background: step === 3 ? P.white : inactiveBg, borderBottom: `1px solid ${P.border}` }}>
-            {step === 3 ? (
-              <div key="food-step3-active" style={{ padding: 'var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-200)', animation: `stepContentEnter 250ms ${EASE_OUT}` }}>
+          {/* Food Step 4 — Awaiting approval (auto-advances after 5s) */}
+          <div style={{ background: step === 4 ? P.white : inactiveBg, borderBottom: `1px solid ${P.border}` }}>
+            {step === 4 ? (
+              <div key="food-step4-active" style={{ padding: 'var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-200)', animation: `stepContentEnter 250ms ${EASE_OUT}` }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)' }}>
-                  {stepBadgeEl(3)}
+                  {stepBadgeEl(4)}
                   <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.ink }}>Awaiting approval</span>
                 </div>
                 <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
                   Your bank is reviewing the direct debit mandate. This usually takes a few hours — no action needed, we'll notify you once it's approved.
                 </p>
               </div>
-            ) : step < 3 ? (
+            ) : step < 4 ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', padding: 'var(--space-300)', opacity: 0.55 }}>
-                {stepBadgeEl(3)}
+                {stepBadgeEl(4)}
                 <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-md)', color: P.inkSoft }}>Awaiting approval</span>
               </div>
             ) : (
               <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', padding: 'var(--space-300)', animation: `stepDoneEnter 200ms ${EASE_OUT}`, opacity: 0.70 }}>
-                {stepBadgeEl(3, step === 4)}
+                {stepBadgeEl(4, step === 5)}
                 <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.inkSoft }}>Mandate approved</span>
               </div>
             )}
           </div>
 
-          {/* Food Step 4 — Select social secretariat */}
-          <div style={{ background: step === 4 ? P.white : inactiveBg, borderBottom: `1px solid ${P.border}` }}>
-            {step === 4 ? (
-              <div key="food-step4-active" style={{ padding: 'var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-200)', animation: `stepContentEnter 250ms ${EASE_OUT}` }}>
+          {/* Food Step 5 — Select social secretariat */}
+          <div style={{ background: step === 5 ? P.white : inactiveBg, borderBottom: `1px solid ${P.border}` }}>
+            {step === 5 ? (
+              <div key="food-step5-active" style={{ padding: 'var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-200)', animation: `stepContentEnter 250ms ${EASE_OUT}` }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)' }}>
-                  {stepBadgeEl(4)}
+                  {stepBadgeEl(5)}
                   <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.ink }}>Select social secretariat</span>
                 </div>
                 <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
@@ -6928,28 +7023,28 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
                     </div>
                   )}
                 </div>
-                <Button variant="primary" onClick={() => { setSecOpen(false); setStep(5); }} style={{ width: '100%', justifyContent: 'center', fontSize: 'var(--fs-body-md)', padding: 'var(--space-125) var(--space-250)' }}>Confirm</Button>
+                <Button variant="primary" onClick={() => { setSecOpen(false); setStep(6); }} style={{ width: '100%', justifyContent: 'center', fontSize: 'var(--fs-body-md)', padding: 'var(--space-125) var(--space-250)' }}>Confirm</Button>
               </div>
-            ) : step < 4 ? (
+            ) : step < 5 ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', padding: 'var(--space-300)', opacity: 0.55 }}>
-                {stepBadgeEl(4)}
+                {stepBadgeEl(5)}
                 <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-md)', color: P.inkSoft }}>Select social secretariat</span>
               </div>
             ) : (
               <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', padding: 'var(--space-300)', animation: `stepDoneEnter 200ms ${EASE_OUT}`, opacity: 0.70 }}>
-                {stepBadgeEl(4, step === 5)}
+                {stepBadgeEl(5, step === 6)}
                 <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.inkSoft }}>{socialSecretariat}</span>
-                <a href="#" onClick={e => { e.preventDefault(); setStep(4); }} style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink, textDecoration: 'underline', marginLeft: 'auto' }}>Edit</a>
+                <a href="#" onClick={e => { e.preventDefault(); setStep(5); }} style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink, textDecoration: 'underline', marginLeft: 'auto' }}>Edit</a>
               </div>
             )}
           </div>
 
-          {/* Food Step 5 — Notify employees */}
-          <div style={{ background: step === 5 ? P.white : inactiveBg, borderBottom: `1px solid ${P.border}` }}>
-            {step === 5 ? (
-              <div key="food-step5-active" style={{ padding: 'var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-200)', animation: `stepContentEnter 250ms ${EASE_OUT}` }}>
+          {/* Food Step 6 — Notify employees */}
+          <div style={{ background: step === 6 ? P.white : inactiveBg, borderBottom: `1px solid ${P.border}` }}>
+            {step === 6 ? (
+              <div key="food-step6-active" style={{ padding: 'var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-200)', animation: `stepContentEnter 250ms ${EASE_OUT}` }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)' }}>
-                  {stepBadgeEl(5)}
+                  {stepBadgeEl(6)}
                   <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.ink }}>Notify employees</span>
                 </div>
                 <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
@@ -6965,7 +7060,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
               </div>
             ) : (
               <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', padding: 'var(--space-300)', opacity: 0.55 }}>
-                {stepBadgeEl(5)}
+                {stepBadgeEl(6)}
                 <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-md)', color: P.inkSoft }}>Notify employees</span>
               </div>
             )}
@@ -11327,6 +11422,9 @@ function App() {
         @keyframes stepDoneEnter {
           from { opacity: 0; transform: translateY(-4px); }
           to   { opacity: 0.70; transform: translateY(0); }
+        }
+        @keyframes spin {
+          to { transform: rotate(360deg); }
         }
         * { box-sizing: border-box; }
         ::placeholder { color: #9ca3af; opacity: 1; }
