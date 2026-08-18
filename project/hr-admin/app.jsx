@@ -6862,36 +6862,20 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
                 <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
                   Payflip receives a monthly attendance file from your social secretariat. We match it using INSS numbers — without them, we can't calculate how many vouchers each employee is entitled to.
                 </p>
-                {/* Sequential micro-flow */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-075)', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>
-                  <span>1 · Download template</span>
-                  <Icon name="arrow-right" size={11} color={P.inkFaint} strokeWidth={1.5} />
-                  <span>2 · Fill in INSS numbers</span>
-                  <Icon name="arrow-right" size={11} color={P.inkFaint} strokeWidth={1.5} />
-                  <span>3 · Re-upload</span>
-                </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-150)' }}>
-                  {/* Download template */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-075)' }}>
-                    <Button variant="secondary" icon="download" onClick={() => {
-                      const header = 'Name,Email,INSS number\n';
-                      const rows = foodSelectedEmployees.map(id => {
-                        const emp = EMPLOYEES[id];
-                        const inss = EMP_EXTRA[id]?.inssNumber || '';
-                        return `"${emp?.name || id}","${emp?.email || ''}","${inss}"`;
-                      }).join('\n');
-                      const blob = new Blob([header + rows], { type: 'text/csv' });
-                      const url = URL.createObjectURL(blob);
-                      const a = document.createElement('a');
-                      a.href = url; a.download = 'inss_numbers_template.csv'; a.click();
-                      URL.revokeObjectURL(url);
-                    }} style={{ justifyContent: 'center' }}>Download template</Button>
-                    {!inssUploaded && foodMissingInss.length > 0 && (
-                      <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, textAlign: 'center' }}>
-                        {foodMissingInss.length} {foodMissingInss.length === 1 ? 'employee is' : 'employees are'} missing — {foodMissingInss.length === 1 ? 'their row' : 'their rows'} will be blank in the template
-                      </div>
-                    )}
-                  </div>
+                  <Button variant="secondary" icon="download" onClick={() => {
+                    const header = 'Name,Email,INSS number\n';
+                    const rows = foodSelectedEmployees.map(id => {
+                      const emp = EMPLOYEES[id];
+                      const inss = EMP_EXTRA[id]?.inssNumber || '';
+                      return `"${emp?.name || id}","${emp?.email || ''}","${inss}"`;
+                    }).join('\n');
+                    const blob = new Blob([header + rows], { type: 'text/csv' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url; a.download = 'inss_numbers_template.csv'; a.click();
+                    URL.revokeObjectURL(url);
+                  }} style={{ justifyContent: 'center' }}>Download template</Button>
                   {/* Upload zone / file card */}
                   {inssUploaded ? (
                     <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', padding: 'var(--space-150) var(--space-200)', border: `1px solid ${P.border}`, borderRadius: 10, background: P.bg }}>
@@ -6924,21 +6908,14 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
                       )}
                     </div>
                   )}
-                  {/* Status line — fact only, no instructions */}
+                  {/* Status line — count + missing context in one line */}
                   <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: foodInssComplete ? '#008556' : '#D97706', lineHeight: '18px' }}>
                     {foodInssComplete
                       ? `All ${foodEmpCount} employees have an INSS number ✓`
-                      : `${foodEmpCount - foodMissingInss.length} of ${foodEmpCount} employees have an INSS number on file`}
+                      : `${foodEmpCount - foodMissingInss.length} of ${foodEmpCount} employees have an INSS number — ${foodMissingInss.length} ${foodMissingInss.length === 1 ? 'row' : 'rows'} will be blank in the template`}
                   </div>
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-075)' }}>
-                  <Button variant="primary" disabled={!foodInssComplete} onClick={() => setStep(3)} style={{ width: '100%', justifyContent: 'center', fontSize: 'var(--fs-body-md)', padding: 'var(--space-125) var(--space-250)' }}>Continue</Button>
-                  {!foodInssComplete && (
-                    <div style={{ textAlign: 'center', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>
-                      Upload the completed file above to continue
-                    </div>
-                  )}
-                </div>
+                <Button variant="primary" disabled={!foodInssComplete} onClick={() => setStep(3)} style={{ width: '100%', justifyContent: 'center', fontSize: 'var(--fs-body-md)', padding: 'var(--space-125) var(--space-250)' }}>Continue</Button>
               </div>
             ) : step < 2 ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', padding: 'var(--space-300)', opacity: 0.55 }}>
