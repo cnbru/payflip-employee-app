@@ -6865,8 +6865,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
                     const header = 'Name,Email,INSS number\n';
                     const rows = foodSelectedEmployees.map(id => {
                       const emp = EMPLOYEES[id];
-                      const inss = EMP_EXTRA[id]?.inssNumber || '';
-                      return `"${emp?.name || id}","${emp?.email || ''}","${inss}"`;
+                      return `"${emp?.name || id}","${emp?.email || ''}",""`;
                     }).join('\n');
                     const blob = new Blob([header + rows], { type: 'text/csv' });
                     const url = URL.createObjectURL(blob);
