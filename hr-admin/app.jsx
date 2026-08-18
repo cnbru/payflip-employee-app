@@ -6860,10 +6860,8 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
                   <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.ink }}>INSS numbers</span>
                 </div>
                 <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
-                  Payflip receives a monthly attendance file from your social secretariat. We match it using INSS numbers — without them, we can't calculate how many vouchers each employee is entitled to.
-                </p>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-150)' }}>
-                  <Button variant="secondary" icon="download" onClick={() => {
+                  <AppLink href="#" onClick={e => {
+                    e.preventDefault();
                     const header = 'Name,Email,INSS number\n';
                     const rows = foodSelectedEmployees.map(id => {
                       const emp = EMPLOYEES[id];
@@ -6875,7 +6873,9 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
                     const a = document.createElement('a');
                     a.href = url; a.download = 'inss_numbers_template.csv'; a.click();
                     URL.revokeObjectURL(url);
-                  }} style={{ justifyContent: 'center' }}>Download template</Button>
+                  }}>Download the template</AppLink>, fill in each employee's INSS number, and upload the completed file below. Payflip uses these to match the monthly attendance file from your social secretariat.
+                </p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-150)' }}>
                   {/* Upload zone / file card */}
                   {inssUploaded ? (
                     <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', padding: 'var(--space-150) var(--space-200)', border: `1px solid ${P.border}`, borderRadius: 10, background: P.bg }}>
