@@ -6863,7 +6863,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
                   Payflip uses INSS numbers to match the monthly attendance file from your social secretariat. Download our template, fill in each employee's number, and upload it below.
                 </p>
                 {/* Template file card — always visible, fades after upload */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', padding: 'var(--space-125) var(--space-150)', background: P.bg, border: `1px solid ${P.border}`, borderRadius: 10, opacity: inssUploaded ? 0.4 : 1, transition: 'opacity 300ms' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', opacity: inssUploaded ? 0.4 : 1, transition: 'opacity 300ms' }}>
                   <span style={{ width: 30, height: 30, borderRadius: 6, background: '#e8f5f0', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                     <Icon name="table" size={14} color="#008556" strokeWidth={1.75} />
                   </span>
