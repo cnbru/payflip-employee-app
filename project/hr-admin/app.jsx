@@ -6377,12 +6377,12 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
     return () => clearTimeout(t);
   }, [widgetMode, step, mandateDenied]);
 
-  // Food: simulate bank approval 5s after step 4 (awaiting approval)
+  // Food: simulate bank approval 5s after step 5 (awaiting approval)
   React.useEffect(() => {
-    if (widgetMode !== 'food' || step !== 4) return;
+    if (widgetMode !== 'food' || step !== 5) return;
     const t = setTimeout(() => {
-      setStep(5);
-      onToast?.({ message: 'Mandate approved — select your social secretariat', type: 'approve' });
+      setStep(6);
+      onToast?.({ message: 'Mandate approved — notify your employees to get started', type: 'approve' });
     }, 5000);
     return () => clearTimeout(t);
   }, [widgetMode, step]);
@@ -6727,9 +6727,9 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
           const foodMeta = [
             { label: 'Select employees',         color: P.inkSoft, bg: P.bg },
             { label: 'INSS numbers',             color: P.inkSoft, bg: P.bg },
+            { label: 'Social secretariat',       color: P.inkSoft, bg: P.bg },
             { label: 'Sign mandate',             color: P.inkSoft, bg: P.bg },
             { label: 'Awaiting approval',        color: '#D97706', bg: '#FEF3C7' },
-            { label: 'Social secretariat',       color: P.inkSoft, bg: P.bg },
             { label: 'Notify employees',         color: P.inkSoft, bg: P.bg },
           ];
           const meta = widgetMode === 'mobility'
@@ -6923,69 +6923,12 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
             )}
           </div>
 
-          {/* Food Step 3 — Sign mandate */}
+          {/* Food Step 3 — Select social secretariat */}
           <div style={{ background: step === 3 ? P.white : inactiveBg, borderBottom: `1px solid ${P.border}` }}>
             {step === 3 ? (
-              <div key="food-step3-active" style={{ padding: 'var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-250)', animation: `stepContentEnter 250ms ${EASE_OUT}` }}>
+              <div key="food-step3-social" style={{ padding: 'var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-200)', animation: `stepContentEnter 250ms ${EASE_OUT}` }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)' }}>
                   {stepBadgeEl(3)}
-                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.ink }}>Sign mandate</span>
-                </div>
-                <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
-                  Authorises Payflip to collect the exact meal voucher amount each month, based on the number of days employees have worked. No buffer, no top-ups — just the right amount at the right time.
-                </p>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', padding: 'var(--space-125) var(--space-200)', border: `1px solid ${P.border}`, borderRadius: 10, background: P.bg }}>
-                  <img src={TWIKEY_LOGO_IMG} alt="Twikey" style={{ width: 80, height: 35, display: 'block', objectFit: 'contain', flexShrink: 0 }} />
-                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, lineHeight: '17px' }}>
-                    Secured by Twikey — funds arrive within 3 business days.
-                  </span>
-                </div>
-                <Button variant="primary" onClick={() => setStep(4)} style={{ width: '100%', justifyContent: 'center', fontSize: 'var(--fs-body-md)', padding: 'var(--space-125) var(--space-250)' }}>Sign with Twikey</Button>
-              </div>
-            ) : step < 3 ? (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', padding: 'var(--space-300)', opacity: 0.55 }}>
-                {stepBadgeEl(3)}
-                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-md)', color: P.inkSoft }}>Sign mandate</span>
-              </div>
-            ) : (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', padding: 'var(--space-300)', animation: `stepDoneEnter 200ms ${EASE_OUT}`, opacity: 0.70 }}>
-                {stepBadgeEl(3)}
-                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.inkSoft }}>Mandate signed</span>
-              </div>
-            )}
-          </div>
-
-          {/* Food Step 4 — Awaiting approval (auto-advances after 5s) */}
-          <div style={{ background: step === 4 ? P.white : inactiveBg, borderBottom: `1px solid ${P.border}` }}>
-            {step === 4 ? (
-              <div key="food-step4-active" style={{ padding: 'var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-200)', animation: `stepContentEnter 250ms ${EASE_OUT}` }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)' }}>
-                  {stepBadgeEl(4)}
-                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.ink }}>Awaiting approval</span>
-                </div>
-                <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
-                  Your bank is reviewing the direct debit mandate. This usually takes a few hours — no action needed, we'll notify you once it's approved.
-                </p>
-              </div>
-            ) : step < 4 ? (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', padding: 'var(--space-300)', opacity: 0.55 }}>
-                {stepBadgeEl(4)}
-                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-md)', color: P.inkSoft }}>Awaiting approval</span>
-              </div>
-            ) : (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', padding: 'var(--space-300)', animation: `stepDoneEnter 200ms ${EASE_OUT}`, opacity: 0.70 }}>
-                {stepBadgeEl(4, step === 5)}
-                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.inkSoft }}>Mandate approved</span>
-              </div>
-            )}
-          </div>
-
-          {/* Food Step 5 — Select social secretariat */}
-          <div style={{ background: step === 5 ? P.white : inactiveBg, borderBottom: `1px solid ${P.border}` }}>
-            {step === 5 ? (
-              <div key="food-step5-active" style={{ padding: 'var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-200)', animation: `stepContentEnter 250ms ${EASE_OUT}` }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)' }}>
-                  {stepBadgeEl(5)}
                   <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.ink }}>Select social secretariat</span>
                 </div>
                 <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
@@ -7015,18 +6958,75 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
                     </div>
                   )}
                 </div>
-                <Button variant="primary" onClick={() => { setSecOpen(false); setStep(6); }} style={{ width: '100%', justifyContent: 'center', fontSize: 'var(--fs-body-md)', padding: 'var(--space-125) var(--space-250)' }}>Confirm</Button>
+                <Button variant="primary" onClick={() => { setSecOpen(false); setStep(4); }} style={{ width: '100%', justifyContent: 'center', fontSize: 'var(--fs-body-md)', padding: 'var(--space-125) var(--space-250)' }}>Confirm</Button>
               </div>
-            ) : step < 5 ? (
+            ) : step < 3 ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', padding: 'var(--space-300)', opacity: 0.55 }}>
-                {stepBadgeEl(5)}
+                {stepBadgeEl(3)}
                 <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-md)', color: P.inkSoft }}>Select social secretariat</span>
               </div>
             ) : (
               <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', padding: 'var(--space-300)', animation: `stepDoneEnter 200ms ${EASE_OUT}`, opacity: 0.70 }}>
-                {stepBadgeEl(5, step === 6)}
+                {stepBadgeEl(3, step === 4)}
                 <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.inkSoft }}>{socialSecretariat}</span>
-                <a href="#" onClick={e => { e.preventDefault(); setStep(5); }} style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink, textDecoration: 'underline', marginLeft: 'auto' }}>Edit</a>
+                <a href="#" onClick={e => { e.preventDefault(); setStep(3); }} style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink, textDecoration: 'underline', marginLeft: 'auto' }}>Edit</a>
+              </div>
+            )}
+          </div>
+
+          {/* Food Step 4 — Sign mandate */}
+          <div style={{ background: step === 4 ? P.white : inactiveBg, borderBottom: `1px solid ${P.border}` }}>
+            {step === 4 ? (
+              <div key="food-step4-active" style={{ padding: 'var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-250)', animation: `stepContentEnter 250ms ${EASE_OUT}` }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)' }}>
+                  {stepBadgeEl(4)}
+                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.ink }}>Sign mandate</span>
+                </div>
+                <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
+                  Authorises Payflip to collect the exact meal voucher amount each month, based on the number of days employees have worked. No buffer, no top-ups — just the right amount at the right time.
+                </p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', padding: 'var(--space-125) var(--space-200)', border: `1px solid ${P.border}`, borderRadius: 10, background: P.bg }}>
+                  <img src={TWIKEY_LOGO_IMG} alt="Twikey" style={{ width: 80, height: 35, display: 'block', objectFit: 'contain', flexShrink: 0 }} />
+                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, lineHeight: '17px' }}>
+                    Secured by Twikey — funds arrive within 3 business days.
+                  </span>
+                </div>
+                <Button variant="primary" onClick={() => setStep(5)} style={{ width: '100%', justifyContent: 'center', fontSize: 'var(--fs-body-md)', padding: 'var(--space-125) var(--space-250)' }}>Sign with Twikey</Button>
+              </div>
+            ) : step < 4 ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', padding: 'var(--space-300)', opacity: 0.55 }}>
+                {stepBadgeEl(4)}
+                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-md)', color: P.inkSoft }}>Sign mandate</span>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', padding: 'var(--space-300)', animation: `stepDoneEnter 200ms ${EASE_OUT}`, opacity: 0.70 }}>
+                {stepBadgeEl(4)}
+                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.inkSoft }}>Mandate signed</span>
+              </div>
+            )}
+          </div>
+
+          {/* Food Step 5 — Awaiting approval (auto-advances after 5s) */}
+          <div style={{ background: step === 5 ? P.white : inactiveBg, borderBottom: `1px solid ${P.border}` }}>
+            {step === 5 ? (
+              <div key="food-step5-active" style={{ padding: 'var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-200)', animation: `stepContentEnter 250ms ${EASE_OUT}` }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)' }}>
+                  {stepBadgeEl(5)}
+                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.ink }}>Awaiting approval</span>
+                </div>
+                <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
+                  Your bank is reviewing the direct debit mandate. This usually takes a few hours — no action needed, we'll notify you once it's approved.
+                </p>
+              </div>
+            ) : step < 5 ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', padding: 'var(--space-300)', opacity: 0.55 }}>
+                {stepBadgeEl(5)}
+                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-md)', color: P.inkSoft }}>Awaiting approval</span>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', padding: 'var(--space-300)', animation: `stepDoneEnter 200ms ${EASE_OUT}`, opacity: 0.70 }}>
+                {stepBadgeEl(5, step === 6)}
+                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.inkSoft }}>Mandate approved</span>
               </div>
             )}
           </div>
