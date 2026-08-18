@@ -6879,12 +6879,6 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
                   }} style={{ width: '100%', justifyContent: 'center' }}>Download template</Button>
                 ) : (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-150)' }}>
-                    {!inssUploaded && (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-100)' }}>
-                        <Icon name="check" size={13} color="#008556" strokeWidth={2.5} />
-                        <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: '#008556' }}>Downloaded — fill in each employee's INSS number, then upload below</span>
-                      </div>
-                    )}
                     {inssUploaded ? (
                     <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', padding: 'var(--space-150) var(--space-200)', border: `1px solid ${P.border}`, borderRadius: 10, background: P.bg }}>
                       <span style={{ width: 32, height: 32, borderRadius: '50%', background: '#e8f5f0', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
