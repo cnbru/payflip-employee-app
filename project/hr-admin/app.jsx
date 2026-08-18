@@ -1191,26 +1191,26 @@ const ALLOWANCE_TYPES = [
 
 const EXPENSES_SEED = [
   // August 2026
-  { id: 'exp-31', employee: 'emma-martens',      category: 'Restaurant',      amount:  28.50, currency: 'EUR', expenseDate: '10 Aug', submittedAt: '12 Aug', description: 'Working lunch — project kick-off',                   receipt: '',                status: 'pending' },
+  { id: 'exp-31', employee: 'emma-martens',      category: 'Restaurant',      amount:  28.50, currency: 'EUR', expenseDate: '10 Aug', submittedAt: '12 Aug', description: 'Working lunch — project kick-off',                   receipt: 'lunch_aug.pdf',   status: 'pending' },
   { id: 'exp-32', employee: 'thomas-janssens',   category: 'Hotel',           amount: 165.00, currency: 'EUR', expenseDate:  '5 Aug', submittedAt:  '8 Aug', description: 'Hotel Brussels — partner offsite',                    receipt: 'hotel_aug.pdf',   status: 'approved' },
   { id: 'exp-33', employee: 'bram-goossens',     category: 'Travel',          amount:  52.00, currency: 'EUR', expenseDate:  '1 Aug', submittedAt:  '5 Aug', description: 'Eurostar Brussels–London return',                     receipt: 'eurostar_aug.pdf',status: 'approved' },
   { id: 'exp-34', employee: 'stijn-laurent',     category: 'Taxi',            amount:  19.00, currency: 'EUR', expenseDate: '31 Jul', submittedAt:  '1 Aug', description: 'Taxi home — late client dinner',                      receipt: 'taxi_aug.pdf',    status: 'approved' },
   // July 2026
   { id: 'exp-1',  employee: 'thomas-janssens',   category: 'Travel',          amount: 124.50, currency: 'EUR', expenseDate: '11 Jul', submittedAt: '14 Jul', description: 'Train Brussels–Ghent client visit',                   receipt: 'sncb_ticket.pdf', status: 'pending' },
-  { id: 'exp-2',  employee: 'sarah-de-smedt',    category: 'Restaurant',      amount:  87.00, currency: 'EUR', expenseDate:  '9 Jul', submittedAt: '10 Jul', description: 'Team lunch — 4 people',                               receipt: '',                status: 'pending' },
+  { id: 'exp-2',  employee: 'sarah-de-smedt',    category: 'Restaurant',      amount:  87.00, currency: 'EUR', expenseDate:  '9 Jul', submittedAt: '10 Jul', description: 'Team lunch — 4 people',                               receipt: 'lunch_jul.pdf',   status: 'pending' },
   { id: 'exp-3',  employee: 'bram-goossens',     category: 'Taxi',            amount:  34.00, currency: 'EUR', expenseDate:  '7 Jul', submittedAt:  '7 Jul', description: 'Taxi to Brussels airport — client meeting',            receipt: 'taxi_receipt.pdf',status: 'pending' },
-  { id: 'exp-4',  employee: 'emma-martens',      category: 'Restaurant',      amount:  15.00, currency: 'EUR', expenseDate: '29 Jun', submittedAt:  '1 Jul', description: 'Working lunch with design team',                       receipt: '',                status: 'approved' },
+  { id: 'exp-4',  employee: 'emma-martens',      category: 'Restaurant',      amount:  15.00, currency: 'EUR', expenseDate: '29 Jun', submittedAt:  '1 Jul', description: 'Working lunch with design team',                       receipt: 'lunch_jun.pdf',   status: 'approved' },
   // June 2026
   { id: 'exp-5',  employee: 'david',             category: 'Travel',          amount: 212.00, currency: 'EUR', expenseDate: '17 Jun', submittedAt: '25 Jun', description: 'Brussels–London for product workshop',                 receipt: 'eurostar.pdf',    status: 'approved' },
-  { id: 'exp-6',  employee: 'pieter-mertens',    category: 'Restaurant',      amount:  43.50, currency: 'EUR', expenseDate: '21 Jun', submittedAt: '22 Jun', description: 'Client dinner',                                        receipt: '',                status: 'rejected', rejectReason: 'No client approval on record for this dinner.' },
+  { id: 'exp-6',  employee: 'pieter-mertens',    category: 'Restaurant',      amount:  43.50, currency: 'EUR', expenseDate: '21 Jun', submittedAt: '22 Jun', description: 'Client dinner',                                        receipt: 'dinner_jun.pdf',  status: 'rejected', rejectReason: 'No client approval on record for this dinner.' },
   { id: 'exp-7',  employee: 'jana-goossens',     category: 'Taxi',            amount:  19.00, currency: 'EUR', expenseDate: '18 Jun', submittedAt: '18 Jun', description: 'Taxi home after late client event',                    receipt: 'taxi_receipt.pdf',status: 'approved' },
-  { id: 'exp-8',  employee: 'stijn-laurent',     category: 'Travel',          amount:  31.00, currency: 'EUR', expenseDate:  '1 Jun', submittedAt: '15 Jun', description: 'Monthly transit pass — June',                          receipt: '',                status: 'pending' },
-  { id: 'exp-9',  employee: 'laura-mertens',     category: 'Restaurant',      amount:  27.50, currency: 'EUR', expenseDate:  '8 Jun', submittedAt: '10 Jun', description: 'Lunch with new hire onboarding',                       receipt: '',                status: 'approved' },
-  { id: 'exp-10', employee: 'mathias-de-smedt',  category: 'Taxi',            amount:  22.00, currency: 'EUR', expenseDate:  '2 Jun', submittedAt:  '3 Jun', description: 'Taxi to Ghent office — missed last train',             receipt: '',                status: 'pending' },
+  { id: 'exp-8',  employee: 'stijn-laurent',     category: 'Travel',          amount:  31.00, currency: 'EUR', expenseDate:  '1 Jun', submittedAt: '15 Jun', description: 'Monthly transit pass — June',                          receipt: 'transit_jun.pdf', status: 'pending' },
+  { id: 'exp-9',  employee: 'laura-mertens',     category: 'Restaurant',      amount:  27.50, currency: 'EUR', expenseDate:  '8 Jun', submittedAt: '10 Jun', description: 'Lunch with new hire onboarding',                       receipt: 'lunch_jun2.pdf',  status: 'approved' },
+  { id: 'exp-10', employee: 'mathias-de-smedt',  category: 'Taxi',            amount:  22.00, currency: 'EUR', expenseDate:  '2 Jun', submittedAt:  '3 Jun', description: 'Taxi to Ghent office — missed last train',             receipt: 'taxi_jun.pdf',    status: 'pending' },
   // May 2026
   { id: 'exp-11', employee: 'thomas-janssens',   category: 'Hotel',           amount: 189.00, currency: 'EUR', expenseDate: '21 May', submittedAt: '28 May', description: 'Hotel Antwerp — overnight client visit',               receipt: 'hotel_may.pdf',   status: 'approved' },
   { id: 'exp-12', employee: 'sarah-de-smedt',    category: 'Travel',          amount:  44.00, currency: 'EUR', expenseDate: '19 May', submittedAt: '21 May', description: 'Train Brussels–Liège–Brussels',                        receipt: 'sncb_may.pdf',    status: 'approved' },
-  { id: 'exp-13', employee: 'bram-goossens',     category: 'Restaurant',      amount:  38.50, currency: 'EUR', expenseDate: '14 May', submittedAt: '15 May', description: 'Lunch with candidate — recruitment',                   receipt: '',                status: 'rejected', rejectReason: 'Recruitment lunches require prior manager sign-off.' },
+  { id: 'exp-13', employee: 'bram-goossens',     category: 'Restaurant',      amount:  38.50, currency: 'EUR', expenseDate: '14 May', submittedAt: '15 May', description: 'Lunch with candidate — recruitment',                   receipt: 'lunch_may.pdf',   status: 'rejected', rejectReason: 'Recruitment lunches require prior manager sign-off.' },
   { id: 'exp-14', employee: 'jana-goossens',     category: 'Taxi',            amount:  24.00, currency: 'EUR', expenseDate:  '8 May', submittedAt:  '8 May', description: 'Taxi to offsite — public transport unavailable',        receipt: 'taxi_may.pdf',    status: 'approved' },
   { id: 'exp-15', employee: 'laura-mertens',     category: 'Online courses',  amount: 129.00, currency: 'EUR', expenseDate:  '1 May', submittedAt:  '2 May', description: 'Coursera subscription — May',                          receipt: 'coursera_may.pdf',status: 'approved' },
   // April 2026
@@ -3209,6 +3209,60 @@ function OverlapPopover({ req, overlapping, empDept }) {
   );
 }
 
+function generateReceiptContent(expense) {
+  const f = v => `€ ${v.toFixed(2).replace('.', ',')}`;
+  const amt = expense.amount;
+  const cat = expense.category;
+  if (cat === 'Hotel') {
+    const vat = +(amt * 0.21 / 1.21).toFixed(2);
+    const city = 4.50;
+    const base = +(amt - vat - city).toFixed(2);
+    return { merchant: 'IBIS HOTELS', sub: 'Brussels Grand Place', lines: [['Room charge (1 night)', f(base)], ['City tax', f(city)], ['VAT 21%', f(vat)]] };
+  }
+  if (cat === 'Taxi') {
+    const booking = 2.20, base = 2.50;
+    const rest = amt - booking - base;
+    const dist = +(rest * 0.78).toFixed(2);
+    const time = +(rest * 0.22).toFixed(2);
+    return { merchant: 'UBER', sub: 'Trip receipt', lines: [['Base fare', f(base)], ['Distance', f(dist)], ['Time', f(time)], ['Booking fee', f(booking)]] };
+  }
+  if (cat === 'Travel') {
+    const route = (expense.description || '').split('—')[0].trim();
+    return { merchant: 'NMBS / SNCB', sub: route || 'Train ticket', lines: [['1 × 2nd class ticket', f(amt)]] };
+  }
+  if (cat === 'Restaurant') {
+    const vat = +(amt * 0.10 / 1.10).toFixed(2);
+    const food = +(amt - vat).toFixed(2);
+    return { merchant: 'RESTAURANT', sub: (expense.description || '').split('—')[0].trim(), lines: [['Food & drinks', f(food)], ['VAT 10%', f(vat)]] };
+  }
+  if (cat === 'Online courses') {
+    return { merchant: 'ONLINE LEARNING', sub: (expense.description || '').split('—')[0].trim(), lines: [['Subscription / course fee', f(amt)]] };
+  }
+  if (cat === 'Conference fees') {
+    return { merchant: 'CONFERENCE', sub: (expense.description || '').split('—')[0].trim(), lines: [['Registration fee', f(amt)]] };
+  }
+  return { merchant: (cat || 'MERCHANT').toUpperCase(), sub: '', lines: [[expense.description || 'Purchase', f(amt)]] };
+}
+
+function expensePayrollMonth(submittedAt, short = false) {
+  if (!submittedAt) return null;
+  const parts = submittedAt.trim().split(' ');
+  if (parts.length < 2) return null;
+  const day = parseInt(parts[0]);
+  const monthAbbr = parts[1];
+  const year = parts.length >= 3 ? parseInt(parts[2]) : 2026;
+  const ABBR = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const FULL = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  let mIdx = ABBR.indexOf(monthAbbr);
+  if (mIdx === -1) return null;
+  if (day > 25) {
+    const nextIdx = mIdx === 11 ? 0 : mIdx + 1;
+    const y = nextIdx === 0 ? year + 1 : year;
+    return short ? `${ABBR[nextIdx]} payroll` : `${FULL[nextIdx]} ${y} payroll`;
+  }
+  return short ? `${ABBR[mIdx]} payroll` : `${FULL[mIdx]} ${year} payroll`;
+}
+
 // ── Expense drawer ─────────────────────────────────────────────────────────
 function ExpenseDrawer({ expense, onClose, onApprove, onReject, onEdit, categories = [], initialRejectMode = false, requireApproval = true }) {
   const emp = EMPLOYEES[expense.employee] || { name: expense.employee, initials: '?', color: P.border };
@@ -3216,6 +3270,7 @@ function ExpenseDrawer({ expense, onClose, onApprove, onReject, onEdit, categori
 
   const [rejectMode, setRejectMode] = React.useState(initialRejectMode);
   const [rejectReason, setRejectReason] = React.useState('');
+  const [receiptFullscreen, setReceiptFullscreen] = React.useState(false);
   const [editMode, setEditMode] = React.useState(false);
   const [editAmount, setEditAmount] = React.useState(String(expense.amount));
   const [editCategory, setEditCategory] = React.useState(expense.category);
@@ -3281,12 +3336,6 @@ function ExpenseDrawer({ expense, onClose, onApprove, onReject, onEdit, categori
         <TableRow label="Description" icon="file-text">
           <span style={{ textAlign: 'right', whiteSpace: 'normal', lineHeight: 1.4 }}>{expense.description || '—'}</span>
         </TableRow>
-        <TableRow label="Receipt" icon="paperclip">
-          {expense.receipt
-            ? <AppLink>{expense.receipt}</AppLink>
-            : <span style={{ color: P.inkFaint }}>No receipt attached</span>
-          }
-        </TableRow>
       </Group>
 
       <SectionHeader>Admin</SectionHeader>
@@ -3300,6 +3349,11 @@ function ExpenseDrawer({ expense, onClose, onApprove, onReject, onEdit, categori
         <TableRow label="Submitted" icon="clock">
           {expense.submittedAt}
         </TableRow>
+        {expense.status === 'approved' && expensePayrollMonth(expense.submittedAt) && (
+          <TableRow label="Payroll" icon="landmark">
+            <span style={{ color: P.inkSoft, fontSize: 'var(--fs-body-sm)' }}>{expensePayrollMonth(expense.submittedAt)}</span>
+          </TableRow>
+        )}
         {expense.status === 'rejected' && expense.rejectReason && (
           <TableRow label="Reject reason" icon="message-square">
             <span style={{ textAlign: 'right', whiteSpace: 'normal', lineHeight: 1.4, color: P.danger }}>{expense.rejectReason}</span>
@@ -3309,10 +3363,87 @@ function ExpenseDrawer({ expense, onClose, onApprove, onReject, onEdit, categori
     </div>
   );
 
+  const receiptSrc = expense.category === 'Taxi' ? 'receipt_taxi.pdf.png' : null;
+  const receiptContent = receiptSrc ? (
+    <img src={receiptSrc} style={{ display: 'block', width: '100%', borderRadius: 4, boxShadow: '0 2px 12px rgba(15,13,40,0.12)' }} alt="Receipt" />
+  ) : (() => {
+    const rc = generateReceiptContent(expense);
+    const totalStr = `€ ${expense.amount.toFixed(2).replace('.', ',')}`;
+    return (
+      <div style={{ borderRadius: 4, boxShadow: '0 2px 12px rgba(15,13,40,0.12)', fontFamily: 'ui-monospace, "SFMono-Regular", Menlo, monospace', fontSize: 12.5, lineHeight: 1.8, color: '#1a1a1a', background: '#faf9f7' }}>
+        <div style={{ padding: '24px 28px 28px' }}>
+          <div style={{ textAlign: 'center', marginBottom: 16 }}>
+            <div style={{ fontWeight: 700, fontSize: 14, letterSpacing: 1, textTransform: 'uppercase' }}>{rc.merchant}</div>
+            {rc.sub && <div style={{ color: '#666', fontSize: 11.5, marginTop: 2 }}>{rc.sub}</div>}
+            <div style={{ color: '#999', fontSize: 11, marginTop: 4 }}>{expense.expenseDate}</div>
+          </div>
+          <div style={{ borderTop: '1px dashed #ccc', margin: '12px 0 10px' }} />
+          {rc.lines.map(([label, val], i) => (
+            <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: 16 }}>
+              <span style={{ color: '#555' }}>{label}</span>
+              <span style={{ whiteSpace: 'nowrap', color: '#1a1a1a' }}>{val}</span>
+            </div>
+          ))}
+          <div style={{ borderTop: '1px dashed #ccc', margin: '10px 0' }} />
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 700, fontSize: 14 }}>
+            <span>TOTAL</span>
+            <span>{totalStr}</span>
+          </div>
+          <div style={{ borderTop: '1px dashed #ccc', margin: '12px 0 0' }} />
+          <div style={{ color: '#aaa', fontSize: 10.5, marginTop: 10, textAlign: 'center', lineHeight: 1.6 }}>
+            Payment: Corporate card<br />
+            {expense.receipt}
+          </div>
+        </div>
+      </div>
+    );
+  })();
+
+  const receiptPanel = expense.receipt && (
+    <div style={{ width: 500, borderLeft: `1px solid ${P.border}`, display: 'flex', flexDirection: 'column', overflow: 'hidden', flexShrink: 0, position: 'relative' }}>
+      <div style={{ flex: 1, overflowY: 'auto', background: '#e8e7e5', padding: 40, paddingBottom: 96 }}>
+        {receiptContent}
+      </div>
+      <div style={{ position: 'absolute', bottom: 20, left: '50%', transform: 'translateX(-50%)', pointerEvents: 'all', display: 'flex', background: P.white, borderRadius: 14, boxShadow: '0 4px 16px rgba(0,0,0,0.14), 0 0 0 1px rgba(0,0,0,0.06)' }}>
+        <button onClick={() => setReceiptFullscreen(true)} style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '9px 16px', background: 'none', border: 'none', cursor: 'pointer', borderRadius: '14px 0 0 14px' }}>
+          <Icon name="expand" size={14} color={P.ink} strokeWidth={1.75} />
+          <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.ink, whiteSpace: 'nowrap' }}>Full screen</span>
+        </button>
+        {receiptSrc && (<>
+          <div style={{ width: 1, background: P.border, margin: '8px 0' }} />
+          <a href={receiptSrc} download={expense.receipt} style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '9px 16px', textDecoration: 'none', cursor: 'pointer', borderRadius: '0 14px 14px 0' }}>
+            <Icon name="download" size={14} color={P.ink} strokeWidth={1.75} />
+            <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.ink, whiteSpace: 'nowrap' }}>Download</span>
+          </a>
+        </>)}
+      </div>
+    </div>
+  );
+
+  const fullscreenModal = receiptFullscreen && (
+    <div onClick={() => setReceiptFullscreen(false)} style={{ position: 'fixed', inset: 0, zIndex: 400, background: 'rgba(15,13,40,0.82)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', padding: '48px 24px 24px', overflowY: 'auto' }}>
+      <div style={{ position: 'fixed', top: 16, right: 16, display: 'flex', gap: 8 }}>
+        {receiptSrc && (
+          <a href={receiptSrc} download={expense.receipt} onClick={e => e.stopPropagation()} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 10, background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.2)', color: '#fff', textDecoration: 'none', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', cursor: 'pointer' }}>
+            <Icon name="download" size={13} color="#fff" strokeWidth={2} /> Download
+          </a>
+        )}
+        <button onClick={() => setReceiptFullscreen(false)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 36, height: 36, borderRadius: 10, background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.2)', color: '#fff', cursor: 'pointer' }}>
+          <Icon name="X" size={16} color="#fff" strokeWidth={2} />
+        </button>
+      </div>
+      <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: 680 }}>
+        {receiptContent}
+      </div>
+    </div>
+  );
+
   return (
-    <DrawerShell onClose={onClose} title={rejectMode ? 'Reject expense' : editMode ? 'Edit expense' : 'Expense details'} onBack={secondPanel ? () => { setRejectMode(false); setEditMode(false); } : undefined}>
+    <>
+    <DrawerShell onClose={onClose} title={rejectMode ? 'Reject expense' : editMode ? 'Edit expense' : 'Expense details'} onBack={secondPanel ? () => { setRejectMode(false); setEditMode(false); } : undefined} width={expense.receipt ? 980 : 480}>
       {close => (
-        <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
+        <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
+          <div style={{ flex: 1, position: 'relative', overflow: 'hidden', minWidth: 0 }}>
           <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', transform: detailSlide, transition: slideTransition }}>
             <div style={{ flex: 1, overflowY: 'auto' }}>
               {detailContent}
@@ -3367,7 +3498,15 @@ function ExpenseDrawer({ expense, onClose, onApprove, onReject, onEdit, categori
                     You're rejecting <strong style={{ color: P.ink }}>{emp.name}</strong>'s {expense.category} expense ({amountStr}).
                   </p>
                   <div>
-                    <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 'var(--space-075)' }}>Reason <span style={{ textTransform: 'none', fontWeight: 400 }}>(optional)</span></label>
+                    <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 'var(--space-100)' }}>Reason <span style={{ textTransform: 'none', fontWeight: 400 }}>(optional)</span></label>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 10 }}>
+                      {['Missing receipt', 'Wrong category', 'Incorrect amount', 'Not a valid business expense'].map(preset => {
+                        const active = rejectReason === preset;
+                        return (
+                          <button key={preset} onClick={() => setRejectReason(active ? '' : preset)} style={{ padding: '5px 10px', borderRadius: 20, border: `1px solid ${active ? P.ink : P.border}`, background: active ? P.ink : 'transparent', color: active ? P.white : P.inkSoft, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', cursor: 'pointer', lineHeight: 1 }}>{preset}</button>
+                        );
+                      })}
+                    </div>
                     <textarea value={rejectReason} onChange={e => setRejectReason(e.target.value)} placeholder="Explain why this expense is being rejected…" rows={3} style={{ width: '100%', padding: 'var(--space-125) var(--space-150)', borderRadius: 8, border: `1px solid ${P.border}`, background: P.bg, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, resize: 'none', lineHeight: 1.5, boxSizing: 'border-box', outline: 'none' }} />
                   </div>
                 </div>
@@ -3378,9 +3517,13 @@ function ExpenseDrawer({ expense, onClose, onApprove, onReject, onEdit, categori
               </>
             )}
           </div>
+          </div>
+          {receiptPanel}
         </div>
       )}
     </DrawerShell>
+    {fullscreenModal}
+    </>
   );
 }
 
@@ -3997,7 +4140,12 @@ function ExpenseRow({ exp, onApprove, onDetail, onRejectDirectly, showStatus, sh
       {showStatus && <StatusDot status={exp.status} />}
       <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink }}>{exp.category}</span>
       <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{exp.description}</span>
-      <span style={{ fontFamily: 'var(--font-display)', fontSize: 'var(--fs-body-sm)', fontWeight: 600, color: P.ink }}>{amountStr}</span>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 2 }}>
+        <span style={{ fontFamily: 'var(--font-display)', fontSize: 'var(--fs-body-sm)', fontWeight: 600, color: P.ink }}>{amountStr}</span>
+        {exp.status === 'approved' && expensePayrollMonth(exp.submittedAt, true) && (
+          <span style={{ fontFamily: 'var(--font-body)', fontSize: 10, color: P.inkFaint }}>{expensePayrollMonth(exp.submittedAt, true)}</span>
+        )}
+      </div>
       <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkFaint }}>{exp.expenseDate}</span>
       <div onClick={e => e.stopPropagation()} style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 'var(--space-050)' }}>
         {showApproveActions && exp.status === 'pending' && (<>
@@ -6320,6 +6468,10 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
   // Food-mode INSS state
   const [inssUploaded, setInssUploaded] = useState(false);
   const [inssUploading, setInssUploading] = useState(false);
+  const [inssDownloaded, setInssDownloaded] = useState(false);
+  const [inssUploadHover, setInssUploadHover] = useState(false);
+  const [inssUploadError, setInssUploadError] = useState(null);
+  const inssFileInputRef = React.useRef(null);
 
   // Food-mode state (untouched)
   const [socialSecretariat, setSocialSecretariat] = useState('SD Worx');
@@ -6377,11 +6529,11 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
     return () => clearTimeout(t);
   }, [widgetMode, step, mandateDenied]);
 
-  // Food: simulate bank approval 5s after step 5 (awaiting approval)
+  // Food: simulate bank approval 5s after step 4 (awaiting approval)
   React.useEffect(() => {
-    if (widgetMode !== 'food' || step !== 5) return;
+    if (widgetMode !== 'food' || step !== 4) return;
     const t = setTimeout(() => {
-      setStep(6);
+      setStep(5);
       onToast?.({ message: 'Mandate approved — notify your employees to get started', type: 'approve' });
     }, 5000);
     return () => clearTimeout(t);
@@ -6725,9 +6877,8 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
             { label: 'Send invites',     color: P.inkSoft,  bg: P.bg },
           ];
           const foodMeta = [
-            { label: 'Select employees',         color: P.inkSoft, bg: P.bg },
-            { label: 'INSS numbers',             color: P.inkSoft, bg: P.bg },
             { label: 'Social secretariat',       color: P.inkSoft, bg: P.bg },
+            { label: 'INSS numbers',             color: P.inkSoft, bg: P.bg },
             { label: 'Sign mandate',             color: P.inkSoft, bg: P.bg },
             { label: 'Awaiting approval',        color: '#D97706', bg: '#FEF3C7' },
             { label: 'Notify employees',         color: P.inkSoft, bg: P.bg },
@@ -6737,7 +6888,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
             : (foodMeta[step - 1] || foodMeta[0]);
           const stepLabel = widgetMode === 'mobility'
             ? `${meta.label} · ${step} of 4`
-            : `${meta.label} · ${step} of 6`;
+            : `${meta.label} · ${step} of 5`;
           return (
             <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)' }}>
               {!hidden ? (
@@ -6812,132 +6963,12 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
           <div style={{ display: 'flex', alignItems: 'stretch' }}>
             <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
 
-          {/* Food Step 1 — Select employees */}
+          {/* Food Step 1 — Select social secretariat */}
           <div style={{ background: step === 1 ? P.white : inactiveBg, borderBottom: `1px solid ${P.border}` }}>
             {step === 1 ? (
-              <div key="food-step1-active" style={{ padding: 'var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-250)', animation: PREFERS_REDUCED_MOTION ? 'none' : `stepContentEnter 250ms ${EASE_OUT} 120ms both` }}>
+              <div key="food-step1-social" style={{ padding: 'var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-200)', animation: `stepContentEnter 250ms ${EASE_OUT}` }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)' }}>
                   {stepBadgeEl(1)}
-                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.ink }}>Select employees</span>
-                </div>
-                <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
-                  Choose who gets access to meal vouchers. All active employees are eligible.
-                </p>
-                <div style={{ display: 'flex', border: `1px solid ${P.border}`, borderRadius: 10, overflow: 'hidden' }}>
-                  <div style={{ flex: 1, padding: 'var(--space-200) var(--space-250)', display: 'flex', flexDirection: 'column' }}>
-                    <div style={{ ...SL, marginBottom: 'var(--space-075)' }}>Employees</div>
-                    <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 36, color: P.ink, lineHeight: 1, marginBottom: 'var(--space-200)', flex: 1 }}>
-                      {foodEmpCount}
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-050)', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft }}>
-                      <span>{isFoodDefaultSelection ? `${allFoodEmployees.length} pre-selected` : `${foodEmpCount} of ${allFoodEmployees.length}`}</span>
-                      <span>·</span>
-                      <span onClick={e => { e.stopPropagation(); setShowFoodPickerModal(true); }} style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink, textDecoration: 'underline', cursor: 'pointer' }}>
-                        {isFoodDefaultSelection ? 'Review' : 'Edit'}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-                <Button variant="primary" disabled={foodEmpCount === 0} onClick={() => setStep(2)} style={{ width: '100%', justifyContent: 'center', fontSize: 'var(--fs-body-md)', padding: 'var(--space-125) var(--space-250)' }}>Continue</Button>
-              </div>
-            ) : (
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: 'var(--space-300)', animation: `stepDoneEnter 200ms ${EASE_OUT}`, opacity: 0.70 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)' }}>
-                  {stepBadgeEl(1)}
-                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.inkSoft }}>{foodEmpCount} employees selected</span>
-                </div>
-                {step === 2 && <a href="#" onClick={e => { e.preventDefault(); setStep(1); }} style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink, textDecoration: 'underline' }}>Edit</a>}
-              </div>
-            )}
-          </div>
-
-          {/* Food Step 2 — INSS numbers */}
-          <div style={{ background: step === 2 ? P.white : inactiveBg, borderBottom: `1px solid ${P.border}` }}>
-            {step === 2 ? (
-              <div key="food-step2-active" style={{ padding: 'var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-250)', animation: `stepContentEnter 250ms ${EASE_OUT} 120ms both` }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)' }}>
-                  {stepBadgeEl(2)}
-                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.ink }}>INSS numbers</span>
-                </div>
-                <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
-                  Payflip uses INSS numbers to match the monthly attendance file from your social secretariat. Download our template, fill in each employee's number, and upload it below.
-                </p>
-                {/* Template file card — always visible, fades after upload */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', opacity: inssUploaded ? 0.4 : 1, transition: 'opacity 300ms' }}>
-                  <span style={{ width: 30, height: 30, borderRadius: 6, background: '#e8f5f0', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    <Icon name="table" size={14} color="#008556" strokeWidth={1.75} />
-                  </span>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink }}>inss_numbers_template.csv</div>
-                    <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>Pre-filled with your {foodEmpCount} employees</div>
-                  </div>
-                  <button onClick={() => {
-                    const header = 'Name,Email,INSS number\n';
-                    const rows = foodSelectedEmployees.map(id => {
-                      const emp = EMPLOYEES[id];
-                      return `"${emp?.name || id}","${emp?.email || ''}",""`;
-                    }).join('\n');
-                    const blob = new Blob([header + rows], { type: 'text/csv' });
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url; a.download = 'inss_numbers_template.csv'; a.click();
-                    URL.revokeObjectURL(url);
-                  }} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 8px', border: `1px solid ${P.border}`, borderRadius: 6, background: P.bgCard, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.ink, cursor: 'pointer', flexShrink: 0 }}>
-                    <Icon name="download" size={12} color={P.ink} strokeWidth={2} /> Download
-                  </button>
-                </div>
-                {/* Upload zone / uploaded file card */}
-                {inssUploaded ? (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', padding: 'var(--space-150) var(--space-200)', border: `1px solid ${P.border}`, borderRadius: 10, background: P.bg }}>
-                    <span style={{ width: 32, height: 32, borderRadius: '50%', background: '#e8f5f0', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                      <Icon name="check" size={14} color="#008556" strokeWidth={2.5} />
-                    </span>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>inss_numbers_template.csv</div>
-                      <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>{foodEmpCount} employees · all INSS numbers filled</div>
-                    </div>
-                    <a href="#" onClick={e => { e.preventDefault(); setInssUploaded(false); }} style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.ink, textDecoration: 'underline', flexShrink: 0 }}>Remove</a>
-                  </div>
-                ) : (
-                  <div onClick={() => {
-                    if (inssUploading) return;
-                    setInssUploading(true);
-                    setTimeout(() => { setInssUploading(false); setInssUploaded(true); }, 1500);
-                  }} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 'var(--space-150)', padding: 'var(--space-150) var(--space-200)', border: `1.5px dashed ${P.border}`, borderRadius: 10, background: P.bg, cursor: inssUploading ? 'default' : 'pointer' }}>
-                    {inssUploading ? (
-                      <>
-                        <div style={{ width: 16, height: 16, borderRadius: '50%', border: `2px solid ${P.border}`, borderTopColor: P.ink, animation: 'spin 600ms linear infinite', flexShrink: 0 }} />
-                        <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft }}>Uploading…</span>
-                      </>
-                    ) : (
-                      <>
-                        <Icon name="upload" size={15} color={P.inkSoft} strokeWidth={1.5} />
-                        <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink }}>Upload completed template</span>
-                      </>
-                    )}
-                  </div>
-                )}
-                <Button variant="primary" disabled={!foodInssComplete} onClick={() => setStep(3)} style={{ width: '100%', justifyContent: 'center', fontSize: 'var(--fs-body-md)', padding: 'var(--space-125) var(--space-250)' }}>Continue</Button>
-              </div>
-            ) : step < 2 ? (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', padding: 'var(--space-300)', opacity: 0.55 }}>
-                {stepBadgeEl(2)}
-                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-md)', color: P.inkSoft }}>INSS numbers</span>
-              </div>
-            ) : (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', padding: 'var(--space-300)', animation: `stepDoneEnter 200ms ${EASE_OUT}`, opacity: 0.70 }}>
-                {stepBadgeEl(2)}
-                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.inkSoft }}>INSS numbers complete</span>
-              </div>
-            )}
-          </div>
-
-          {/* Food Step 3 — Select social secretariat */}
-          <div style={{ background: step === 3 ? P.white : inactiveBg, borderBottom: `1px solid ${P.border}` }}>
-            {step === 3 ? (
-              <div key="food-step3-social" style={{ padding: 'var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-200)', animation: `stepContentEnter 250ms ${EASE_OUT}` }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)' }}>
-                  {stepBadgeEl(3)}
                   <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.ink }}>Select social secretariat</span>
                 </div>
                 <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
@@ -6967,28 +6998,135 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
                     </div>
                   )}
                 </div>
-                <Button variant="primary" onClick={() => { setSecOpen(false); setStep(4); }} style={{ width: '100%', justifyContent: 'center', fontSize: 'var(--fs-body-md)', padding: 'var(--space-125) var(--space-250)' }}>Confirm</Button>
-              </div>
-            ) : step < 3 ? (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', padding: 'var(--space-300)', opacity: 0.55 }}>
-                {stepBadgeEl(3)}
-                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-md)', color: P.inkSoft }}>Select social secretariat</span>
+                <Button variant="primary" onClick={() => { setSecOpen(false); setStep(2); }} style={{ width: '100%', justifyContent: 'center', fontSize: 'var(--fs-body-md)', padding: 'var(--space-125) var(--space-250)' }}>Confirm</Button>
               </div>
             ) : (
               <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', padding: 'var(--space-300)', animation: `stepDoneEnter 200ms ${EASE_OUT}`, opacity: 0.70 }}>
-                {stepBadgeEl(3, step === 4)}
+                {stepBadgeEl(1, step === 2)}
                 <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.inkSoft }}>{socialSecretariat}</span>
-                <a href="#" onClick={e => { e.preventDefault(); setStep(3); }} style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink, textDecoration: 'underline', marginLeft: 'auto' }}>Edit</a>
+                <a href="#" onClick={e => { e.preventDefault(); setStep(1); }} style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink, textDecoration: 'underline', marginLeft: 'auto' }}>Edit</a>
               </div>
             )}
           </div>
 
-          {/* Food Step 4 — Sign mandate */}
-          <div style={{ background: step === 4 ? P.white : inactiveBg, borderBottom: `1px solid ${P.border}` }}>
-            {step === 4 ? (
-              <div key="food-step4-active" style={{ padding: 'var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-250)', animation: `stepContentEnter 250ms ${EASE_OUT}` }}>
+          {/* Food Step 2 — INSS numbers */}
+          <div style={{ background: step === 2 ? P.white : inactiveBg, borderBottom: `1px solid ${P.border}` }}>
+            {step === 2 ? (
+              <div key="food-step2-active" style={{ padding: 'var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-250)', animation: `stepContentEnter 250ms ${EASE_OUT} 120ms both` }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)' }}>
-                  {stepBadgeEl(4)}
+                  {stepBadgeEl(2)}
+                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.ink }}>INSS numbers</span>
+                </div>
+                <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
+                  Download the template, fill in each employee's INSS number, and upload it here. Payflip uses these to match {socialSecretariat}'s monthly attendance file.
+                </p>
+                {/* Download card — always visible; swaps to a compact done state after download */}
+                {(() => {
+                  const doDownload = () => {
+                    const header = 'Name,Email,INSS number\n';
+                    const rows = foodSelectedEmployees.map(id => {
+                      const emp = EMPLOYEES[id];
+                      return `"${emp?.name || id}","${emp?.email || ''}",""`;
+                    }).join('\n');
+                    const blob = new Blob([header + rows], { type: 'text/csv' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url; a.download = 'inss_numbers_template.csv'; a.click();
+                    URL.revokeObjectURL(url);
+                    setInssDownloaded(true);
+                  };
+                  return inssDownloaded ? (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', padding: 'var(--space-150) var(--space-200)', background: P.bg, borderRadius: 8 }}>
+                      <Icon name="circle-check" size={14} color="#16A34A" strokeWidth={2} style={{ flexShrink: 0 }} />
+                      <span style={{ flex: 1, minWidth: 0, fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: P.inkSoft }}>inss_numbers_template.csv</span>
+                      <button onClick={doDownload} title="Download again" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', background: 'transparent', cursor: 'pointer', padding: 4, flexShrink: 0, color: P.inkSoft }}><Icon name="download" size={13} color={P.inkSoft} strokeWidth={2} /></button>
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', padding: 'var(--space-150) var(--space-200)', background: P.bg, borderRadius: 8 }}>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: P.ink }}>inss_numbers_template.csv</div>
+                        <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginTop: 2 }}>Pre-filled with your {foodSelectedEmployees.length} employees — add the INSS number for each one</div>
+                      </div>
+                      <button onClick={doDownload} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 8px', border: `1px solid ${P.border}`, borderRadius: 6, background: P.bgCard, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.ink, cursor: 'pointer', flexShrink: 0 }}>
+                        <Icon name="download" size={11} color={P.ink} strokeWidth={2} /> Download
+                      </button>
+                    </div>
+                  );
+                })()}
+                {/* Upload zone / file card — only shown after download */}
+                {inssDownloaded && (
+                  inssUploaded ? (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', padding: 'var(--space-150) var(--space-200)', border: `1px solid ${P.border}`, borderRadius: 8, animation: `stepContentEnter 200ms ${EASE_OUT} both` }}>
+                      <Icon name="file-text" size={16} color={P.inkSoft} strokeWidth={1.5} style={{ flexShrink: 0 }} />
+                      <span style={{ flex: 1, minWidth: 0, fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: P.ink, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>inss_numbers_template.csv</span>
+                      <button onClick={() => { setInssUploaded(false); setInssUploadError(null); }} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 24, height: 24, border: 'none', background: 'transparent', cursor: 'pointer', flexShrink: 0, padding: 0 }}><Icon name="x" size={14} color={P.inkSoft} strokeWidth={2} /></button>
+                    </div>
+                  ) : (
+                    <>
+                      <input
+                        ref={inssFileInputRef}
+                        type="file"
+                        accept=".csv,.xlsx,.xls"
+                        style={{ display: 'none' }}
+                        onChange={e => {
+                          const file = e.target.files?.[0];
+                          e.target.value = '';
+                          if (!file) return;
+                          const ext = file.name.split('.').pop().toLowerCase();
+                          if (!['csv', 'xlsx', 'xls'].includes(ext)) {
+                            setInssUploadError(`Wrong file type — please upload the CSV template`);
+                            return;
+                          }
+                          setInssUploadError(null);
+                          setInssUploading(true);
+                          setTimeout(() => { setInssUploading(false); setInssUploaded(true); }, 1500);
+                        }}
+                      />
+                      <div
+                        onClick={() => { if (inssUploading) return; inssFileInputRef.current?.click(); }}
+                        onMouseEnter={() => setInssUploadHover(true)}
+                        onMouseLeave={() => setInssUploadHover(false)}
+                        style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 'var(--space-100)', padding: 'var(--space-300) var(--space-200)', border: `1.5px dashed ${inssUploadError ? '#DC2626' : inssUploadHover && !inssUploading ? P.inkSoft : P.border}`, borderRadius: 8, background: inssUploadHover && !inssUploading ? P.bg : 'transparent', cursor: inssUploading ? 'default' : 'pointer', transition: 'border-color 150ms, background 150ms', animation: `stepContentEnter 200ms ${EASE_OUT} both` }}
+                      >
+                        {inssUploading ? (
+                          <>
+                            <div style={{ width: 16, height: 16, borderRadius: '50%', border: `2px solid ${P.border}`, borderTopColor: P.ink, animation: 'spin 600ms linear infinite' }} />
+                            <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft }}>Uploading…</span>
+                          </>
+                        ) : (
+                          <>
+                            <Icon name="upload" size={18} color={inssUploadError ? '#DC2626' : P.inkSoft} strokeWidth={1.5} />
+                            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: inssUploadError ? '#DC2626' : P.ink }}>
+                              {inssUploadError ? inssUploadError : 'Drag & drop or click to browse'}
+                            </span>
+                            {!inssUploadError && <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>Upload the completed template</span>}
+                          </>
+                        )}
+                      </div>
+                    </>
+                  )
+                )}
+                <Button variant="primary" disabled={!foodInssComplete} onClick={() => setStep(3)} style={{ width: '100%', justifyContent: 'center', fontSize: 'var(--fs-body-md)', padding: 'var(--space-125) var(--space-250)' }}>Continue</Button>
+              </div>
+            ) : step < 2 ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', padding: 'var(--space-300)', opacity: 0.55 }}>
+                {stepBadgeEl(2)}
+                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-md)', color: P.inkSoft }}>INSS numbers</span>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', padding: 'var(--space-300)', animation: `stepDoneEnter 200ms ${EASE_OUT}`, opacity: 0.70 }}>
+                {stepBadgeEl(2)}
+                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.inkSoft }}>INSS numbers complete</span>
+              </div>
+            )}
+          </div>
+
+          {/* Food Step 3 — Sign mandate */}
+          <div style={{ background: step === 3 ? P.white : inactiveBg, borderBottom: `1px solid ${P.border}` }}>
+            {step === 3 ? (
+              <div key="food-step3-active" style={{ padding: 'var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-250)', animation: `stepContentEnter 250ms ${EASE_OUT}` }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)' }}>
+                  {stepBadgeEl(3)}
                   <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.ink }}>Sign mandate</span>
                 </div>
                 <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
@@ -7000,52 +7138,52 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
                     Secured by Twikey — funds arrive within 3 business days.
                   </span>
                 </div>
-                <Button variant="primary" onClick={() => setStep(5)} style={{ width: '100%', justifyContent: 'center', fontSize: 'var(--fs-body-md)', padding: 'var(--space-125) var(--space-250)' }}>Sign with Twikey</Button>
+                <Button variant="primary" onClick={() => setStep(4)} style={{ width: '100%', justifyContent: 'center', fontSize: 'var(--fs-body-md)', padding: 'var(--space-125) var(--space-250)' }}>Sign with Twikey</Button>
               </div>
-            ) : step < 4 ? (
+            ) : step < 3 ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', padding: 'var(--space-300)', opacity: 0.55 }}>
-                {stepBadgeEl(4)}
+                {stepBadgeEl(3)}
                 <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-md)', color: P.inkSoft }}>Sign mandate</span>
               </div>
             ) : (
               <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', padding: 'var(--space-300)', animation: `stepDoneEnter 200ms ${EASE_OUT}`, opacity: 0.70 }}>
-                {stepBadgeEl(4)}
+                {stepBadgeEl(3)}
                 <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.inkSoft }}>Mandate signed</span>
               </div>
             )}
           </div>
 
-          {/* Food Step 5 — Awaiting approval (auto-advances after 5s) */}
-          <div style={{ background: step === 5 ? P.white : inactiveBg, borderBottom: `1px solid ${P.border}` }}>
-            {step === 5 ? (
-              <div key="food-step5-active" style={{ padding: 'var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-200)', animation: `stepContentEnter 250ms ${EASE_OUT}` }}>
+          {/* Food Step 4 — Awaiting approval (auto-advances after 5s) */}
+          <div style={{ background: step === 4 ? P.white : inactiveBg, borderBottom: `1px solid ${P.border}` }}>
+            {step === 4 ? (
+              <div key="food-step4-active" style={{ padding: 'var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-200)', animation: `stepContentEnter 250ms ${EASE_OUT}` }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)' }}>
-                  {stepBadgeEl(5)}
+                  {stepBadgeEl(4)}
                   <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.ink }}>Awaiting approval</span>
                 </div>
                 <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
                   Your bank is reviewing the direct debit mandate. This usually takes a few hours — no action needed, we'll notify you once it's approved.
                 </p>
               </div>
-            ) : step < 5 ? (
+            ) : step < 4 ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', padding: 'var(--space-300)', opacity: 0.55 }}>
-                {stepBadgeEl(5)}
+                {stepBadgeEl(4)}
                 <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-md)', color: P.inkSoft }}>Awaiting approval</span>
               </div>
             ) : (
               <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', padding: 'var(--space-300)', animation: `stepDoneEnter 200ms ${EASE_OUT}`, opacity: 0.70 }}>
-                {stepBadgeEl(5, step === 6)}
+                {stepBadgeEl(4, step === 5)}
                 <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.inkSoft }}>Mandate approved</span>
               </div>
             )}
           </div>
 
-          {/* Food Step 6 — Notify employees */}
-          <div style={{ background: step === 6 ? P.white : inactiveBg, borderBottom: `1px solid ${P.border}` }}>
-            {step === 6 ? (
-              <div key="food-step6-active" style={{ padding: 'var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-200)', animation: `stepContentEnter 250ms ${EASE_OUT}` }}>
+          {/* Food Step 5 — Notify employees */}
+          <div style={{ background: step === 5 ? P.white : inactiveBg, borderBottom: `1px solid ${P.border}` }}>
+            {step === 5 ? (
+              <div key="food-step5-active" style={{ padding: 'var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-200)', animation: `stepContentEnter 250ms ${EASE_OUT}` }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)' }}>
-                  {stepBadgeEl(6)}
+                  {stepBadgeEl(5)}
                   <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.ink }}>Notify employees</span>
                 </div>
                 <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
@@ -7061,7 +7199,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
               </div>
             ) : (
               <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', padding: 'var(--space-300)', opacity: 0.55 }}>
-                {stepBadgeEl(6)}
+                {stepBadgeEl(5)}
                 <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-md)', color: P.inkSoft }}>Notify employees</span>
               </div>
             )}
@@ -7570,7 +7708,7 @@ function CategoryModal({ title, initialVal, initialLimit, onSave, onDelete, onCl
                     placeholder="No limit"
                     style={{ flex: 1, border: 'none', outline: 'none', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, background: 'transparent' }} />
                 </div>
-                <p style={{ margin: 'var(--space-050) 0 0', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkFaint }}>Leave blank for no limit.</p>
+                <p style={{ margin: 'var(--space-050) 0 0', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkFaint }}>Monthly cap per employee. Leave blank for no limit.</p>
               </div>
             </div>
             <div style={{ padding: 'var(--space-200) var(--space-300)', borderTop: `1px solid ${P.border}`, display: 'flex', alignItems: 'center', gap: 'var(--space-125)' }}>
@@ -10115,6 +10253,50 @@ function BenefitsSettings({ appEntity = null }) {
 // ── Changelog ──────────────────────────────────────────────────────────────
 const CHANGELOG_ENTRIES = [
   {
+    date: '18 Aug 2026',
+    title: 'Expenses: receipt mandatory + side-by-side preview',
+    description: 'Receipts were a filename link — each one required a click, an open, a check, and a navigate back for every expense in the queue. Britt Moens named it directly in user research: "in an ideal world I would not lose time opening receipts." And there was no rule preventing employees from submitting without one.',
+    items: [
+      { commit: 'f3a91b2', summary: 'Receipt panel opens alongside expense detail — permanent side-by-side layout at 980px width' },
+      { commit: 'c8d204e', summary: 'Full-screen receipt view and download via floating pill toolbar' },
+      { commit: 'b71e3f9', summary: 'Receipts now mandatory — all expenses must have a receipt on submission' },
+      { commit: 'a4c6d18', summary: 'Receipt row removed from Supporting section — redundant when panel is visible' },
+    ],
+  },
+  {
+    date: '18 Aug 2026',
+    title: 'Expenses: UX improvements from user research',
+    description: 'A session with Britt Moens (HR admin and finance lead) surfaced three repeated friction points: typing the same reject reason from scratch every time, no indication of which payroll run an approved expense would land in, and no period label on the spending limit field.',
+    items: [
+      { commit: '3d8a51c', summary: 'Preset reject reason chips — Missing receipt, Wrong category, Incorrect amount, Not a valid business expense' },
+      { commit: '7f290bd', summary: 'Payroll cutoff indicator on approved expenses — shown in drawer and as a label in the list' },
+      { commit: 'e1054f7', summary: 'Spending limit field: "Monthly cap per employee. Leave blank for no limit."' },
+    ],
+  },
+  {
+    date: '13–18 Aug 2026',
+    title: 'Food wizard: INSS numbers step',
+    description: 'Belgian meal voucher enrollment requires INSS numbers before the social secretariat can process anything. The step was missing from the wizard entirely — it went straight from employee selection to social secretariat, which is not a valid enrollment path.',
+    items: [
+      { commit: '1f03424', summary: 'INSS numbers step added as step 2, before social secretariat selection' },
+      { commit: 'faa8cff', summary: 'Template download → upload flow, with employee matching and unmatched-employee list' },
+      { commit: '7e98a5e', summary: 'Social secretariat moved to step 3 — INSS collection is a prerequisite' },
+      { commit: '09ca5e0', summary: 'INSS template shown as a file card with inline Download action' },
+      { commit: '0b6fdc0', summary: 'File card: border removed from template row for visual consistency' },
+    ],
+  },
+  {
+    date: '14–16 Aug 2026',
+    title: 'Time off: document upload overhaul',
+    description: 'The employee app\'s "Upload document" button went nowhere — tapping it was a dead end. The multi-step submit flow, success state, and visibility of existing files were all missing.',
+    items: [
+      { commit: '5f307ab', summary: 'Funeral leave seed item added; Report illness button scoped to correct leave types' },
+      { commit: 'def72c7', summary: 'Document upload as multi-step flow: form → submit → success' },
+      { commit: 'a7cc0f6', summary: 'Upload document button switched to outline variant' },
+      { commit: 'e6ed11c', summary: 'Documents form overhaul — existing files visible, upload UX, submitted state' },
+    ],
+  },
+  {
     date: '12 Aug 2026',
     title: 'Payflip Card settings page restructure',
     items: [
@@ -10259,25 +10441,49 @@ function ChangelogScreen() {
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, overflow: 'hidden', animation: `screenEnter 180ms ${EASE_OUT}` }}>
       <PageHeader title="Product Changelog" subtitle="Product and UX decisions behind the HR Admin prototype — what we decided, and why." />
       <div style={{ flex: 1, overflow: 'auto', padding: 'var(--space-400) var(--space-400) 60px' }}>
-        <div style={{ maxWidth: 680, display: 'flex', flexDirection: 'column', gap: 'var(--space-500)' }}>
+        <div style={{ maxWidth: 680 }}>
           {CHANGELOG_ENTRIES.map((entry, i) => (
             <div key={i} style={{ display: 'flex', gap: 'var(--space-300)' }}>
-              <div style={{ width: 108, flexShrink: 0, paddingTop: 'var(--space-025)' }}>
-                <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkFaint, fontWeight: 500 }}>{entry.date}</span>
+              {/* Timeline spine */}
+              <div style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: 5 }}>
+                <div style={{ width: 9, height: 9, borderRadius: '50%', border: `1.5px solid ${P.border}`, background: P.white, flexShrink: 0, zIndex: 1 }} />
+                {i < CHANGELOG_ENTRIES.length - 1 && (
+                  <div style={{ width: 1, flex: 1, minHeight: 24, background: P.border, marginTop: 5 }} />
+                )}
               </div>
-              <div style={{ flex: 1, minWidth: 0, borderLeft: `1px solid ${P.border}`, paddingLeft: 'var(--space-250)' }}>
-                <h3 style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-md)', color: P.ink, margin: '0 0 var(--space-150)' }}>{entry.title}</h3>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-150)' }}>
-                  {entry.items.map((item, j) => (
-                    <div key={j} style={{ display: 'flex', alignItems: 'flex-start', gap: 'var(--space-100)' }}>
-                      <div style={{ width: 4, height: 4, borderRadius: '50%', background: P.inkFaint, flexShrink: 0, marginTop: 'var(--space-100)' }} />
-                      <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: 1.6 }}>
-                        <span style={{ color: P.ink, fontWeight: 500 }}>{item.summary}</span>
-                        {item.detail && ' ' + item.detail}
-                        {item.why && <span style={{ display: 'block', marginTop: 'var(--space-025)', color: P.inkSoft }}>Why: {item.why}</span>}
-                      </span>
-                    </div>
-                  ))}
+              {/* Entry content */}
+              <div style={{ flex: 1, minWidth: 0, paddingBottom: 'var(--space-500)' }}>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: 11, fontWeight: 500, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 'var(--space-075)' }}>{entry.date}</div>
+                <h3 style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 20, color: P.ink, margin: '0 0 var(--space-150)', lineHeight: 1.25 }}>{entry.title}</h3>
+                {entry.description && (
+                  <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: 1.65, margin: '0 0 var(--space-200)' }}>{entry.description}</p>
+                )}
+                <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 10, padding: 16 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 'var(--space-125)' }}>
+                    <span style={{ fontSize: 9, color: P.inkFaint }}>▸</span>
+                    <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 10, color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.09em' }}>What happened</span>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-100)' }}>
+                    {entry.items.map((item, j) => (
+                      <div key={j} style={{ display: 'flex', alignItems: 'flex-start', gap: 'var(--space-200)' }}>
+                        {item.commit ? (
+                          <>
+                            <span style={{ fontFamily: 'ui-monospace, "SFMono-Regular", Menlo, monospace', fontSize: 12, color: P.inkFaint, flexShrink: 0, paddingTop: 1, letterSpacing: 0 }}>{item.commit}</span>
+                            <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, lineHeight: 1.5 }}>{item.summary}</span>
+                          </>
+                        ) : (
+                          <>
+                            <div style={{ width: 4, height: 4, borderRadius: '50%', background: P.inkFaint, flexShrink: 0, marginTop: 7 }} />
+                            <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: 1.6 }}>
+                              <span style={{ color: P.ink, fontWeight: 500 }}>{item.summary}</span>
+                              {item.detail && ' ' + item.detail}
+                              {item.why && <span style={{ display: 'block', marginTop: 2, color: P.inkSoft }}>Why: {item.why}</span>}
+                            </span>
+                          </>
+                        )}
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
