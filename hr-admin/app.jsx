@@ -6902,7 +6902,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
                       </div>
                       {/* Unmatched employees warning */}
                       {inssMatchResult && inssMatchResult.unmatched.length > 0 && (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-075)', padding: 'var(--space-150) var(--space-175)', background: '#FEF3C7', borderRadius: 10 }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-075)', padding: 'var(--space-150)', background: '#FEF3C7', borderRadius: 10 }}>
                           <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: '#92400E' }}>
                             {inssMatchResult.unmatched.length === 1 ? '1 employee not found' : `${inssMatchResult.unmatched.length} employees not found`}
                           </div>
