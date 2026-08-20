@@ -385,10 +385,13 @@ function Button({ variant = 'secondary', onClick, children, icon, iconSize = 14,
   const v = BUTTON_VARIANTS[variant] || BUTTON_VARIANTS.secondary;
   const flush = variant === 'text' || variant === 'danger';
   const [hovered, setHovered] = useState(false);
+  const [pressed, setPressed] = useState(false);
   return (
     <button type={type} onClick={onClick} disabled={disabled}
       onMouseEnter={() => !disabled && setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
+      onMouseLeave={() => { setHovered(false); setPressed(false); }}
+      onPointerDown={() => !disabled && setPressed(true)}
+      onPointerUp={() => setPressed(false)}
       style={{
         display: 'inline-flex', alignItems: 'center', gap: 'var(--space-100)',
         padding: flush ? 0 : '9px 18px',
@@ -397,7 +400,8 @@ function Button({ variant = 'secondary', onClick, children, icon, iconSize = 14,
         cursor: disabled ? 'not-allowed' : 'pointer',
         opacity: disabled ? 0.5 : 1,
         fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)',
-        transition: PREFERS_REDUCED_MOTION ? 'none' : `background 120ms ${EASE_OUT}`,
+        transform: (!PREFERS_REDUCED_MOTION && pressed) ? 'scale(0.97)' : 'scale(1)',
+        transition: PREFERS_REDUCED_MOTION ? 'none' : `background 120ms ${EASE_OUT}, transform 150ms ${EASE_OUT}`,
         ...style,
       }}>
       {icon && <Icon name={icon} size={iconSize} color={v.color} strokeWidth={2.5} />}
