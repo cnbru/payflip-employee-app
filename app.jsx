@@ -236,7 +236,7 @@ function DesktopAppShell() {
         }}>
         <div style={{
           maxWidth: 1088, margin: '0 auto',
-          minHeight: '100%',
+          height: '100%',
         }}>
           <ScreenRenderer />
         </div>
