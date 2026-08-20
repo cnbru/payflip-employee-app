@@ -376,7 +376,7 @@ function IconButton({ icon, onClick, size = 30, iconSize = 14, color = P.ink, bl
 // ── Button — the four sanctioned button treatments. Reach for this instead of
 // a raw <button style={{...}}> — see CLAUDE.md "Shared components".
 const BUTTON_VARIANTS = {
-  primary:   { background: P.action, hover: '#2d1048', color: '#fff', border: 'none' },
+  primary:   { background: P.action, hover: 'var(--bg-primary-hover)', color: '#fff', border: 'none' },
   secondary: { background: 'transparent', hover: P.bg, color: P.ink, border: `1px solid ${P.border}` },
   danger:    { background: 'transparent', hover: P.dangerBg, color: P.danger, border: 'none' },
   text:      { background: 'transparent', hover: P.bg, color: P.ink, border: 'none' },
@@ -3284,6 +3284,11 @@ function ExpenseDrawer({ expense, onClose, onApprove, onReject, onEdit, categori
           <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{emp.name}</span>
           <Avatar employeeId={expense.employee} size={22} />
         </TableRow>
+        {emp.department && (
+          <TableRow label="Department" icon="building-2">
+            {emp.department}
+          </TableRow>
+        )}
       </Group>
 
       <SectionHeader>Details</SectionHeader>
@@ -3349,16 +3354,16 @@ function ExpenseDrawer({ expense, onClose, onApprove, onReject, onEdit, categori
       <div style={{ flex: 1, overflowY: 'auto', background: '#e8e7e5', padding: 40, paddingBottom: 96 }}>
         {receiptContent}
       </div>
-      <div style={{ position: 'absolute', bottom: 20, left: '50%', transform: 'translateX(-50%)', pointerEvents: 'all', display: 'flex', background: P.white, borderRadius: 14, boxShadow: '0 4px 16px rgba(0,0,0,0.14), 0 0 0 1px rgba(0,0,0,0.06)' }}>
-        <button onClick={() => setReceiptFullscreen(true)} style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '9px 16px', background: 'none', border: 'none', cursor: 'pointer', borderRadius: '14px 0 0 14px' }}>
+      <div style={{ position: 'absolute', bottom: 20, left: '50%', transform: 'translateX(-50%)', pointerEvents: 'all', display: 'flex', background: P.white, borderRadius: 8, boxShadow: '0 4px 16px rgba(0,0,0,0.14), 0 0 0 1px rgba(0,0,0,0.06)' }}>
+        <button onClick={() => setReceiptFullscreen(true)} style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '9px 16px', background: 'none', border: 'none', cursor: 'pointer', borderRadius: '8px 0 0 8px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink, whiteSpace: 'nowrap' }}>
           <Icon name="expand" size={14} color={P.ink} strokeWidth={1.75} />
-          <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.ink, whiteSpace: 'nowrap' }}>Full screen</span>
+          Full screen
         </button>
         {receiptSrc && (<>
           <div style={{ width: 1, background: P.border, margin: '8px 0' }} />
-          <a href={receiptSrc} download={expense.receipt} style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '9px 16px', textDecoration: 'none', cursor: 'pointer', borderRadius: '0 14px 14px 0' }}>
+          <a href={receiptSrc} download={expense.receipt} style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '9px 16px', textDecoration: 'none', cursor: 'pointer', borderRadius: '0 8px 8px 0', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink, whiteSpace: 'nowrap' }}>
             <Icon name="download" size={14} color={P.ink} strokeWidth={1.75} />
-            <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.ink, whiteSpace: 'nowrap' }}>Download</span>
+            Download
           </a>
         </>)}
       </div>
@@ -3366,7 +3371,7 @@ function ExpenseDrawer({ expense, onClose, onApprove, onReject, onEdit, categori
   );
 
   const fullscreenModal = receiptFullscreen && (
-    <div onClick={() => setReceiptFullscreen(false)} style={{ position: 'fixed', inset: 0, zIndex: 400, background: 'rgba(15,13,40,0.82)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', padding: '48px 24px 24px', overflowY: 'auto' }}>
+    <div onClick={() => setReceiptFullscreen(false)} style={{ position: 'fixed', inset: 0, zIndex: 400, background: 'rgba(0,0,0,0.7)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', padding: '48px 24px 24px', overflowY: 'auto' }}>
       <div style={{ position: 'fixed', top: 16, right: 16, display: 'flex', gap: 8 }}>
         {receiptSrc && (
           <a href={receiptSrc} download={expense.receipt} onClick={e => e.stopPropagation()} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 10, background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.2)', color: '#fff', textDecoration: 'none', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', cursor: 'pointer' }}>
