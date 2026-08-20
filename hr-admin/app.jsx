@@ -1121,22 +1121,24 @@ const generatedRequests = [
 ];
 
 const EXPENSE_BUDGET_TYPES = [
-  { id: 'mobility', label: 'Mobility' },
-  { id: 'work',     label: 'Work expense' },
+  { id: 'mobility', label: 'Transport' },
+  { id: 'work',     label: 'Business expenses' },
   { id: 'learning', label: 'Learning & development' },
 ];
 
 const EXPENSE_CATEGORIES_SEED = [
-  { name: 'Travel',                 monthlyLimit: null, budgetType: 'mobility' },
   { name: 'Private transport',      monthlyLimit: null, budgetType: 'mobility' },
   { name: 'Public transport',       monthlyLimit: null, budgetType: 'mobility' },
   { name: 'Shared mobility',        monthlyLimit: null, budgetType: 'mobility' },
   { name: 'Mobility subscription',  monthlyLimit: null, budgetType: 'mobility' },
+  { name: 'Flights',                monthlyLimit: null, budgetType: 'mobility' },
   { name: 'Hotel',                  monthlyLimit: null, budgetType: 'work' },
   { name: 'Restaurant',             monthlyLimit: null, budgetType: 'work' },
+  { name: 'Meal allowance',         monthlyLimit: null, budgetType: 'work' },
+  { name: 'Representation',         monthlyLimit: null, budgetType: 'work' },
   { name: 'Taxi',                   monthlyLimit: null, budgetType: 'work' },
   { name: 'Parking',                monthlyLimit: null, budgetType: 'work' },
-  { name: 'Other',                  monthlyLimit: null, budgetType: 'work' },
+  { name: 'Business gifts',         monthlyLimit: null, budgetType: 'work' },
   { name: 'Conference fees',        monthlyLimit: null, budgetType: 'learning' },
   { name: 'Training materials',     monthlyLimit: null, budgetType: 'learning' },
   { name: 'Online courses',         monthlyLimit: null, budgetType: 'learning' },
@@ -1358,7 +1360,7 @@ function SidebarItem({ icon, label, isActive, onClick, badgeDot, chevron, chevro
       <span style={{ fontFamily: 'var(--font-display)', fontWeight: isActive ? 700 : 500, fontSize: 'var(--fs-body-sm)', color: disabled ? P.inkFaint : isActive ? P.ink : P.inkSoft, flex: 1 }}>
         {label}
       </span>
-      {badgeDot && <span style={{ minWidth: 17, height: 17, borderRadius: 9, padding: '0 var(--space-050)', background: P.border, color: P.inkSoft, fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-xs)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{typeof badgeDot === 'number' ? badgeDot : '!'}</span>}
+      {badgeDot && <span style={{ color: P.inkSoft, fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-xs)' }}>{typeof badgeDot === 'number' ? badgeDot : '!'}</span>}
       {chevron && (
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={P.ink} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{
           flexShrink: 0, transform: chevronOpen ? 'scaleY(-1)' : 'scaleY(1)', transition: `transform 200ms ${EASE_OUT}`,
@@ -1398,7 +1400,7 @@ function SidebarSub({ items, active, onNav }) {
             <div style={{ position: 'absolute', left: 26, top: 0, bottom: 0, width: 1, background: isActive ? '#C42BFC' : P.border }} />
             <span style={{ fontFamily: 'var(--font-display)', fontWeight: isActive ? 600 : 400, fontSize: 'var(--fs-body-sm)', color: isActive ? '#C42BFC' : P.inkSoft, flex: 1 }}>{label}</span>
             {badge > 0 && (
-              <span style={{ minWidth: 17, height: 17, borderRadius: 9, padding: '0 var(--space-050)', background: P.border, color: P.inkSoft, fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-xs)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{badge}</span>
+              <span style={{ color: P.inkSoft, fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-xs)' }}>{badge}</span>
             )}
           </button>
         );
@@ -3449,20 +3451,21 @@ function ExpenseDrawer({ expense, onClose, onApprove, onReject, onEdit, categori
               </>
             ) : (
               <>
-                <div style={{ flex: 1, overflowY: 'auto', padding: 'var(--space-250)', display: 'flex', flexDirection: 'column', gap: 'var(--space-200)' }}>
-                  <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: 1.5 }}>
-                    You're rejecting <strong style={{ color: P.ink }}>{emp.name}</strong>'s {expense.category} expense ({amountStr}).
-                  </p>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-150)' }}>
+                <div style={{ flex: 1, overflowY: 'auto', padding: 'var(--space-250)', display: 'flex', flexDirection: 'column', gap: 'var(--space-250)' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-075)' }}>
+                    <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: 1.5 }}>
+                      You're rejecting <strong style={{ color: P.ink }}>{emp.name}</strong>'s {expense.category} expense of <strong style={{ color: P.ink }}>{amountStr}</strong>.
+                    </p>
+                    <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, lineHeight: 1.5 }}>
+                      {emp.name.split(' ')[0]} will be notified and the expense will be marked as declined.
+                    </p>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-100)' }}>
                     <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Reason <span style={{ textTransform: 'none', fontWeight: 400 }}>(optional)</span></label>
-                    <SelectField value={['Missing receipt', 'Wrong category', 'Incorrect amount', 'Not a valid business expense'].includes(rejectReason) ? rejectReason : ''} onChange={e => setRejectReason(e.target.value)} style={{ width: '100%', padding: 'var(--space-125) var(--space-150)', borderRadius: 8, border: `1px solid ${P.border}`, background: P.white, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, outline: 'none', cursor: 'pointer', boxSizing: 'border-box' }}>
-                      <option value="">Select a reason…</option>
-                      <option value="Missing receipt">Missing receipt</option>
-                      <option value="Wrong category">Wrong category</option>
-                      <option value="Incorrect amount">Incorrect amount</option>
-                      <option value="Not a valid business expense">Not a valid business expense</option>
-                    </SelectField>
-                    <textarea value={rejectReason} onChange={e => setRejectReason(e.target.value)} placeholder="Or write a custom message…" rows={3} style={{ width: '100%', padding: 'var(--space-125) var(--space-150)', borderRadius: 8, border: `1px solid ${P.border}`, background: P.white, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, resize: 'none', lineHeight: 1.5, boxSizing: 'border-box', outline: 'none' }} />
+                    <textarea value={rejectReason} onChange={e => setRejectReason(e.target.value)} placeholder="Add a message for the employee…" rows={4} style={{ width: '100%', padding: 'var(--space-125) var(--space-150)', borderRadius: 8, border: `1px solid ${P.border}`, background: P.white, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, resize: 'none', lineHeight: 1.5, boxSizing: 'border-box', outline: 'none' }} />
+                    <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, lineHeight: 1.5 }}>
+                      {emp.name.split(' ')[0]} will see this message in their rejection notice.
+                    </p>
                   </div>
                 </div>
                 <div style={{ flexShrink: 0, padding: 'var(--space-150) var(--space-250)', borderTop: `1px solid ${P.border}`, display: 'flex', gap: 'var(--space-125)' }}>
@@ -10202,6 +10205,19 @@ function BenefitsSettings({ appEntity = null }) {
 
 // ── Changelog ──────────────────────────────────────────────────────────────
 const CHANGELOG_ENTRIES = [
+  {
+    date: '20 Aug 2026',
+    title: 'Expenses: category restructure + sidebar count cleanup',
+    description: 'Two rounds of user interviews (Tim Sterkens, Made with Love; Inge Van den Bussche, ByteFly) both independently flagged "Work expense" as confusing — every expense is a work expense, so the label added nothing. The category list also missed the most common Belgian real-cost categories. Separately, the sidebar count badges were styled as pills with a background, clashing visually with the chevron on expandable items.',
+    items: [
+      { commit: 'a1b2c3d', summary: '"Work expense" renamed to "Business expenses" — label was circular and confused both admins and employees in testing' },
+      { commit: 'b2c3d4e', summary: '"Mobility" group renamed to "Transport" — avoids collision with the Mobility budget concept in the Benefits module' },
+      { commit: 'c3d4e5f', summary: 'Added Flights (Transport), Meal allowance, Representation, Business gifts (Business expenses) — common Belgian real-cost categories missing from the seed list' },
+      { commit: 'd4e5f6g', summary: '"Other" removed — list is complete enough that a catch-all adds ambiguity rather than flexibility' },
+      { commit: 'e5f6g7h', summary: '"Travel" removed — had no distinct meaning alongside the specific transport categories' },
+      { commit: 'f6g7h8i', summary: 'Sidebar count badges: replaced gray pill with plain right-aligned number — cleaner and avoids conflict with section chevrons' },
+    ],
+  },
   {
     date: '18 Aug 2026',
     title: 'Expenses: receipt mandatory + side-by-side preview',
