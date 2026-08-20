@@ -3349,12 +3349,9 @@ function ExpenseDrawer({ expense, onClose, onApprove, onReject, onEdit, categori
     );
   })();
 
-  const receiptPanel = expense.receipt && (
-    <div style={{ width: 500, borderLeft: `1px solid ${P.border}`, display: 'flex', flexDirection: 'column', overflow: 'hidden', flexShrink: 0, position: 'relative' }}>
-      <div style={{ flex: 1, overflowY: 'auto', background: '#e8e7e5', padding: 40, paddingBottom: 96 }}>
-        {receiptContent}
-      </div>
-      <div style={{ position: 'absolute', bottom: 20, left: '50%', transform: 'translateX(-50%)', pointerEvents: 'all', display: 'flex', background: P.white, borderRadius: 8, boxShadow: '0 4px 16px rgba(0,0,0,0.14), 0 0 0 1px rgba(0,0,0,0.06)' }}>
+  const receiptPill = (
+    <div style={{ display: 'flex', justifyContent: 'center', padding: '16px 0 0' }}>
+      <div style={{ display: 'flex', background: P.white, borderRadius: 8, boxShadow: '0 4px 16px rgba(0,0,0,0.14), 0 0 0 1px rgba(0,0,0,0.06)' }}>
         <button onClick={() => setReceiptFullscreen(true)} style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '9px 16px', background: 'none', border: 'none', cursor: 'pointer', borderRadius: '8px 0 0 8px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink, whiteSpace: 'nowrap' }}>
           <Icon name="expand" size={14} color={P.ink} strokeWidth={1.75} />
           Full screen
@@ -3366,6 +3363,15 @@ function ExpenseDrawer({ expense, onClose, onApprove, onReject, onEdit, categori
             Download
           </a>
         </>)}
+      </div>
+    </div>
+  );
+
+  const receiptPanel = expense.receipt && (
+    <div style={{ width: 500, borderLeft: `1px solid ${P.border}`, display: 'flex', flexDirection: 'column', overflow: 'hidden', flexShrink: 0 }}>
+      <div style={{ flex: 1, overflowY: 'auto', background: '#e8e7e5', padding: 40, paddingBottom: 40 }}>
+        {receiptContent}
+        {receiptPill}
       </div>
     </div>
   );
