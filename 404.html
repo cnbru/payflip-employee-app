@@ -31,6 +31,12 @@
     }
     #root { height: 100%; }
     button:focus-visible { outline: 2px solid var(--blue-500); outline-offset: 2px; border-radius: 6px; }
+    button:not([disabled]) { transition: transform 150ms cubic-bezier(0.22, 1, 0.36, 1); }
+    button:not([disabled]):active { transform: scale(0.97); }
+    @media (prefers-reduced-motion: reduce) {
+      button:not([disabled]) { transition: none; }
+      button:not([disabled]):active { transform: none; }
+    }
     .hide-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
     .hide-scrollbar::-webkit-scrollbar { display: none; }
     input::placeholder { color: #0f0d28; opacity: 1; }
@@ -76,6 +82,6 @@
 </head>
 <body>
   <div id="root"></div>
-  <script type="text/babel" src="app.jsx?v=1345"></script>
+  <script type="text/babel" src="app.jsx?v=1346"></script>
 </body>
 </html>
