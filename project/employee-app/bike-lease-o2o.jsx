@@ -8,8 +8,10 @@ const O2O_COMPANY_CONTRIB       = 20;
 const O2O_AVAILABLE_BUDGET      = 3200;
 
 const O2O_BUDGETS = [
-  { id: 'eoy',   label: 'End-of-year premium', amount: 2400 },
-  { id: 'bonus', label: 'Bonus',                amount: 800  },
+  { id: 'eoy',      label: 'End-of-year premium', amount: 2400, status: 'available' },
+  { id: 'bonus',    label: 'Bonus',                amount: 800,  status: 'available' },
+  { id: 'ecochq',   label: 'Eco-cheque budget',    amount: 1200, status: 'locked'    },
+  { id: 'mobility', label: 'Mobility budget',       amount: 500,  status: 'expired'   },
 ];
 
 const O2O_QUOTES = [
@@ -278,7 +280,7 @@ function BLEditModal({ current, onSave, onClose }) {
           <LucideIcon name="X" size={18} color={PFC.inkSoft} strokeWidth={2} />
         </button>
       </div>
-      {O2O_BUDGETS.map(b => (
+      {O2O_BUDGETS.filter(b => !b.status || b.status === 'available').map(b => (
         <button key={b.id} onClick={() => setVal(b.id)} style={{
           width: '100%', marginBottom: 10, padding: '15px 16px', borderRadius: 16, textAlign: 'left',
           border: val === b.id ? `2px solid ${PFC.inkDarker}` : `1.5px solid ${PFC.border}`,
@@ -308,6 +310,7 @@ function BLEditModal({ current, onSave, onClose }) {
 // ── Main screen ───────────────────────────────────────────────────────────────
 function BikeLeaseO2OScreen() {
   const { pop } = useNav();
+  const viewMode = React.useContext(window.ViewModeContext);
   const [step,   setStep]   = React.useState(0);
   const [quote,  setQuote]  = React.useState(null);
   const [budget, setBudget] = React.useState('eoy');
@@ -322,7 +325,7 @@ function BikeLeaseO2OScreen() {
   const activeBudget = O2O_BUDGETS.find(x => x.id === budget);
   const c = o2oCalcQuote(activeQuote);
 
-  // ── Moderator nav ──────────────────────────────────────────
+  // ── Moderator nav (mobile only) ────────────────────────────
   const modBar = (
     <div style={{ display: 'flex', gap: 4, padding: '5px 12px 5px', borderBottom: `1px solid ${PFC.border}`, background: '#f7f7f8', flexShrink: 0 }}>
       {['Intro', 'Select', 'Budget', 'Review', 'Done'].map((label, i) => {
@@ -337,6 +340,21 @@ function BikeLeaseO2OScreen() {
           }}>{label}</button>
         );
       })}
+    </div>
+  );
+
+  // ── Desktop stepper progress bar ───────────────────────────
+  // Maps flow step index → { position, total, label }
+  const DESKTOP_STEPS = { 1: [1,3,'Select bike'], 2: [2,3,'Choose budget'], 3: [3,3,'Review'] };
+  const desktopStepInfo = DESKTOP_STEPS[step] || [step, 3, ''];
+  const desktopStepper = (
+    <div style={{ padding: '16px 0 20px', flexShrink: 0 }}>
+      <div style={{ fontFamily: 'var(--font-display)', fontSize: 12, fontWeight: 600, color: PFC.ink, marginBottom: 10, letterSpacing: '0.05em' }}>
+        Step {desktopStepInfo[0]} of {desktopStepInfo[1]} · {desktopStepInfo[2]}
+      </div>
+      <div style={{ position: 'relative', height: 5, borderRadius: 2, background: '#eaeaeb' }}>
+        <div style={{ position: 'absolute', left: 0, top: 0, height: 5, borderRadius: 2, background: '#c42bfc', width: `${(desktopStepInfo[0] / desktopStepInfo[1]) * 100}%`, transition: 'width 300ms ease' }} />
+      </div>
     </div>
   );
 
@@ -532,7 +550,141 @@ function BikeLeaseO2OScreen() {
   );
 
   // ── Step 2: Budget ─────────────────────────────────────────
-  const budgetScreen = (
+  const budgetRadioCard = (bdg) => {
+    const isAvailable = !bdg.status || bdg.status === 'available';
+    const isLocked    = bdg.status === 'locked';
+    const isExpired   = bdg.status === 'expired';
+    const isDisabled  = !isAvailable;
+    const isSel       = budget === bdg.id;
+    const cardStyle = {
+      width: '100%', padding: 16, borderRadius: 10, textAlign: 'left',
+      border: `1px solid ${PFC.border}`,
+      boxShadow: isSel ? `0 0 0 2px ${PFC.inkDarker}` : 'none',
+      background: isDisabled ? PFC.bgInactive : 'white',
+      display: 'flex', gap: 16, alignItems: 'flex-start',
+    };
+    const inner = (
+      <>
+        <div style={{ paddingTop: 3, flexShrink: 0 }}>
+          <div style={{
+            width: 16, height: 16, borderRadius: '50%', boxSizing: 'border-box',
+            border: `1.5px solid ${isDisabled ? PFC.border : PFC.borderHard}`,
+            background: 'white',
+          }} />
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ fontFamily: 'var(--font-display)', fontSize: 15, fontWeight: 500, color: isDisabled ? PFC.inkSoft : PFC.ink }}>
+              {bdg.label}
+            </div>
+            {isLocked && (
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '2px 8px', borderRadius: 20, background: PFC.warnBg, border: `1px solid ${PFC.warnBorder}`, fontSize: 11, fontWeight: 600, color: PFC.warnText, fontFamily: 'var(--font-display)', letterSpacing: '0.04em' }}>
+                <LucideIcon name="Lock" size={10} color={PFC.warnText} strokeWidth={2.5} />Locked
+              </span>
+            )}
+            {isExpired && (
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '2px 8px', borderRadius: 20, background: PFC.bgInactive, border: `1px solid ${PFC.border}`, fontSize: 11, fontWeight: 600, color: PFC.inkSoft, fontFamily: 'var(--font-display)', letterSpacing: '0.04em' }}>
+                <LucideIcon name="Clock" size={10} color={PFC.inkSoft} strokeWidth={2.5} />Deadline passed
+              </span>
+            )}
+            <div style={{ marginLeft: 'auto', fontFamily: 'var(--font-display)', fontSize: 22, fontWeight: 700, color: isDisabled ? PFC.inkSoft : PFC.ink, letterSpacing: '-0.01em', flexShrink: 0 }}>
+              €{o2oFmt(bdg.amount)}
+            </div>
+          </div>
+          {isLocked && (
+            <div style={{ marginTop: 6 }}>
+              <button onClick={() => {}} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: 'var(--font-display)', fontSize: 13, color: PFC.ink, textDecoration: 'underline', fontWeight: 500 }}>
+                Sign the addendum to unlock this budget →
+              </button>
+            </div>
+          )}
+          {isExpired && (
+            <div style={{ fontFamily: 'var(--font-display)', fontSize: 13, color: PFC.inkSoft, marginTop: 5, lineHeight: 1.5 }}>
+              HR will reopen this for the next benefit cycle.
+            </div>
+          )}
+        </div>
+      </>
+    );
+    if (isDisabled) {
+      return (
+        <div key={bdg.id} role="group" aria-label={`${bdg.label} — not available`} style={cardStyle}>
+          {inner}
+        </div>
+      );
+    }
+    return (
+      <button key={bdg.id} onClick={() => setBudget(bdg.id)} style={{ ...cardStyle, cursor: 'pointer' }}>
+        {inner}
+      </button>
+    );
+  };
+
+  const budgetScreenDesktop = (
+    <div style={{ minHeight: '100%', background: 'white', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ padding: '0 40px' }}>{desktopStepper}</div>
+      <div style={{ flex: 1, overflowY: 'auto', padding: '0 40px 60px' }}>
+        <div style={{ display: 'flex', gap: 40, alignItems: 'flex-start' }}>
+
+          {/* Left column */}
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ fontFamily: 'var(--font-display)', fontSize: 28, fontWeight: 700, color: PFC.ink, marginBottom: 12 }}>Choose budget</div>
+              <div style={{ fontFamily: 'var(--font-display)', fontSize: 16, color: PFC.inkSoft, lineHeight: 1.6 }}>
+                Pick a budget to finance your benefit. You can split across both sources if one isn't enough.
+              </div>
+            </div>
+
+            <div style={{ marginTop: 32, marginBottom: 32 }}>
+              <div style={{ fontFamily: 'var(--font-display)', fontSize: 12, fontWeight: 600, color: PFC.inkSoft, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 10 }}>Available</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {O2O_BUDGETS.filter(b => !b.status || b.status === 'available').map(bdg => budgetRadioCard(bdg))}
+              </div>
+              {O2O_BUDGETS.some(b => b.status === 'locked' || b.status === 'expired') && (
+                <div style={{ marginTop: 24 }}>
+                  <div style={{ fontFamily: 'var(--font-display)', fontSize: 12, fontWeight: 600, color: PFC.inkSoft, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 10 }}>Not yet available</div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    {O2O_BUDGETS.filter(b => b.status === 'locked' || b.status === 'expired').map(bdg => budgetRadioCard(bdg))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Back + Continue */}
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button onClick={() => goTo(1)} style={{ padding: '8px 16px', borderRadius: 10, border: `1px solid ${PFC.border}`, background: 'white', fontFamily: 'var(--font-display)', fontSize: 16, fontWeight: 600, color: PFC.ink, cursor: 'pointer' }}>
+                Back
+              </button>
+              <button onClick={() => goTo(3)} style={{ padding: '8px 24px', borderRadius: 10, border: 'none', background: '#220a35', fontFamily: 'var(--font-display)', fontSize: 16, fontWeight: 600, color: 'white', cursor: 'pointer' }}>
+                Continue
+              </button>
+            </div>
+          </div>
+
+          {/* Right summary card */}
+          <div style={{ width: 376, flexShrink: 0, position: 'sticky', top: 0 }}>
+            <div style={{ background: 'white', borderRadius: 16, boxShadow: '0px 5px 10px rgba(163,164,178,0.25)', padding: 32 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 4 }}>
+                <BLSparkIcon />
+                <span style={{ fontFamily: 'var(--font-display)', fontSize: 13, color: PFC.inkSoft }}>Estimated Payflip advantage</span>
+              </div>
+              <div style={{ fontFamily: 'var(--font-display)', fontSize: 32, fontWeight: 800, color: PFC.purple, fontVariantNumeric: 'tabular-nums', marginBottom: 8 }}>+€{o2oFmt(c.advantage)}</div>
+              <button onClick={() => setModal('adv')} style={{ fontFamily: 'var(--font-display)', fontSize: 13, color: PFC.ink, fontWeight: 500, textDecoration: 'underline', background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginBottom: 20 }}>
+                How is this calculated?
+              </button>
+              <BLHr my={0} />
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 20 }}>
+                <div style={{ fontFamily: 'var(--font-display)', fontSize: 14, color: PFC.inkSoft }}>Budget impact</div>
+                <div style={{ fontFamily: 'var(--font-display)', fontSize: 14, fontWeight: 600, color: PFC.inkSoft, fontVariantNumeric: 'tabular-nums' }}>~€{o2oFmt(c.fullYearTotal)}/yr</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  const budgetScreen = viewMode === 'desktop' ? budgetScreenDesktop : (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: '#f2f2f2', position: 'relative' }}>
       {modBar}
       {topBarBackX('Configure')}
@@ -616,7 +768,128 @@ function BikeLeaseO2OScreen() {
   );
 
   // ── Step 3: Review ─────────────────────────────────────────
-  const reviewScreen = (
+  const reviewRowStyle = { paddingBottom: 20, marginBottom: 20, borderBottom: `1px solid ${PFC.border}` };
+  const reviewLabelStyle = { fontFamily: 'var(--font-display)', fontSize: 14, color: PFC.inkSoft, marginBottom: 6 };
+  const reviewValueStyle = { fontFamily: 'var(--font-display)', fontSize: 16, fontWeight: 600, color: PFC.ink };
+  const reviewSubStyle   = { fontFamily: 'var(--font-display)', fontSize: 13, color: PFC.inkSoft, marginTop: 3 };
+
+  const reviewScreenDesktop = (
+    <div style={{ minHeight: '100%', background: 'white', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ padding: '0 40px' }}>{desktopStepper}</div>
+      <div style={{ flex: 1, overflowY: 'auto', padding: '0 40px 60px' }}>
+        <div style={{ display: 'flex', gap: 40, alignItems: 'flex-start' }}>
+
+          {/* Left column */}
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontFamily: 'var(--font-display)', fontSize: 28, fontWeight: 800, color: PFC.ink, marginBottom: 40 }}>Bike lease</div>
+
+            {/* Review rows */}
+            <div style={reviewRowStyle}>
+              <div style={reviewLabelStyle}>Bike</div>
+              <div style={reviewValueStyle}>{activeQuote.bike}</div>
+              <div style={reviewSubStyle}>{activeQuote.dealer} · {activeQuote.quoteRef}</div>
+            </div>
+            <div style={reviewRowStyle}>
+              <div style={reviewLabelStyle}>Lease period</div>
+              <div style={reviewValueStyle}>{activeQuote.leasePeriod} months</div>
+              <div style={reviewSubStyle}>Confirmed in O2O</div>
+            </div>
+            <div style={{ ...reviewRowStyle, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <div style={reviewLabelStyle}>Paid from</div>
+                <div style={reviewValueStyle}>{activeBudget?.label}</div>
+              </div>
+              <button onClick={() => goTo(2)} style={{ border: `1px solid ${PFC.border}`, borderRadius: 8, minHeight: 32, padding: '0 16px', fontFamily: 'var(--font-display)', fontSize: 13, fontWeight: 500, color: PFC.inkSoft, background: 'white', cursor: 'pointer' }}>
+                Edit
+              </button>
+            </div>
+
+            {/* What happens next */}
+            <div style={{ marginTop: 8 }}>
+              <div style={{ fontFamily: 'var(--font-display)', fontSize: 16, fontWeight: 700, color: PFC.ink, marginBottom: 16 }}>What happens after you confirm?</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+                {O2O_TIMELINE.map((item, i) => (
+                  <div key={i} style={{ display: 'flex', gap: 16, paddingBottom: i < O2O_TIMELINE.length - 1 ? 20 : 0 }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexShrink: 0 }}>
+                      <div style={{ width: 10, height: 10, borderRadius: '50%', background: PFC.inkDarker, marginTop: 4, flexShrink: 0 }} />
+                      {i < O2O_TIMELINE.length - 1 && <div style={{ width: 1, flex: 1, background: PFC.border, marginTop: 4 }} />}
+                    </div>
+                    <div style={{ paddingBottom: i < O2O_TIMELINE.length - 1 ? 4 : 0 }}>
+                      <div style={{ fontFamily: 'var(--font-display)', fontSize: 14, fontWeight: 600, color: PFC.ink }}>{item.title}</div>
+                      <div style={{ fontFamily: 'var(--font-display)', fontSize: 13, color: PFC.inkSoft, marginTop: 3, lineHeight: 1.5 }}>{item.desc}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Right sticky summary card */}
+          <div style={{ width: 376, flexShrink: 0, position: 'sticky', top: 0 }}>
+            <div style={{ background: 'white', borderRadius: 16, boxShadow: '0px 5px 10px rgba(163,164,178,0.25)', padding: 32 }}>
+
+              {/* Payflip advantage */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 4 }}>
+                <BLSparkIcon />
+                <span style={{ fontFamily: 'var(--font-display)', fontSize: 13, color: PFC.inkSoft }}>Estimated Payflip advantage</span>
+              </div>
+              <div style={{ fontFamily: 'var(--font-display)', fontSize: 32, fontWeight: 800, color: PFC.purple, fontVariantNumeric: 'tabular-nums', marginBottom: 8 }}>+€{o2oFmt(c.advantage)}</div>
+              <button onClick={() => setModal('adv')} style={{ fontFamily: 'var(--font-display)', fontSize: 13, color: PFC.ink, fontWeight: 500, textDecoration: 'underline', background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginBottom: 20 }}>
+                How is this calculated?
+              </button>
+
+              <BLHr my={0} />
+
+              {/* Budget impact */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 20, marginBottom: 20 }}>
+                <div style={{ fontFamily: 'var(--font-display)', fontSize: 14, color: PFC.inkSoft }}>You pay</div>
+                <div style={{ fontFamily: 'var(--font-display)', fontSize: 16, fontWeight: 700, color: PFC.ink, fontVariantNumeric: 'tabular-nums' }}>€{o2oFmt(c.empMonth)}/month</div>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+                <div style={{ fontFamily: 'var(--font-display)', fontSize: 14, color: PFC.inkSoft }}>From {activeBudget?.label}</div>
+                <div style={{ fontFamily: 'var(--font-display)', fontSize: 14, color: PFC.inkSoft, fontVariantNumeric: 'tabular-nums' }}>€{o2oFmt(c.fullYearTotal)}/yr</div>
+              </div>
+
+              {/* T&C */}
+              <div style={{ marginBottom: 20 }}>
+                <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+                  <button
+                    onClick={() => { setTcs(!tcs); setTcsErr(false); }}
+                    style={{ width: 22, height: 22, borderRadius: 6, flexShrink: 0, marginTop: 1, background: tcs ? PFC.inkDarker : 'white', border: tcs ? `2px solid ${PFC.inkDarker}` : tcsErr ? '2px solid #ef4444' : `2px solid ${PFC.borderHard}`, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                  >
+                    {tcs && <BLTickIcon />}
+                  </button>
+                  <div style={{ fontFamily: 'var(--font-display)', fontSize: 13, color: PFC.inkSoft, lineHeight: 1.6 }}>
+                    I agree to the{' '}
+                    <span style={{ color: PFC.inkDarker, fontWeight: 500, textDecoration: 'underline' }}>Terms &amp; Conditions</span>
+                    {' '}of the O2O bike lease.
+                  </div>
+                </div>
+                {tcsErr && <div style={{ marginTop: 8, marginLeft: 34, fontFamily: 'var(--font-display)', fontSize: 13, color: '#ef4444' }}>Please agree to the terms to continue.</div>}
+              </div>
+
+              {/* Submit */}
+              <button
+                onClick={() => { if (!tcs) { setTcsErr(true); return; } goTo(4); }}
+                style={{ width: '100%', padding: '14px', borderRadius: 12, background: '#220a35', color: 'white', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 15, border: 'none', cursor: 'pointer' }}
+              >
+                Submit choice
+              </button>
+            </div>
+
+            {/* Delete link */}
+            <div style={{ textAlign: 'center', marginTop: 16 }}>
+              <button onClick={() => {}} style={{ fontFamily: 'var(--font-display)', fontSize: 14, color: '#de1c22', fontWeight: 500, background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  const reviewScreen = viewMode === 'desktop' ? reviewScreenDesktop : (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: '#f2f2f2', position: 'relative' }}>
       {modBar}
       {topBarBackX('Review your choice')}

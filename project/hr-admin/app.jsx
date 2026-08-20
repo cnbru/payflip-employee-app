@@ -1927,11 +1927,11 @@ function CalendarDrawer({ req, requests, onClose, onApprove, onDecline, onCancel
   const heroDateStr = req.startDate === req.endDate ? req.startDate : `${req.startDate} – ${req.endDate}`;
   const durationStr = req.days === 0.5 ? '½ day' : req.days === 1 ? '1 day' : `${req.days} days`;
 
-  const labelStyle = { flexShrink: 0, fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: P.ink, whiteSpace: 'nowrap' };
-  const valueStyle = { flex: 1, minWidth: 0, fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: P.inkSoft, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 'var(--space-100)' };
+  const labelStyle = { flexShrink: 0, fontFamily: 'var(--font-display)', fontWeight: 400, fontSize: 'var(--fs-body-sm)', color: P.inkSoft, whiteSpace: 'nowrap' };
+  const valueStyle = { flex: 1, minWidth: 0, fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: P.ink, display: 'flex', alignItems: 'center', justifyContent: 'flex-start', gap: 'var(--space-100)' };
   const TableRow = ({ label, icon, children }) => (
     <div style={{ display: 'flex', alignItems: 'center', padding: 'var(--space-200) var(--space-300)', gap: 'var(--space-200)' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-100)', flexShrink: 0 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-100)', flexShrink: 0, width: 160 }}>
         {icon && <Icon name={icon} size={14} color={P.inkSoft} strokeWidth={1.75} style={{ flexShrink: 0 }} />}
         <div style={labelStyle}>{label}</div>
       </div>
@@ -1939,24 +1939,18 @@ function CalendarDrawer({ req, requests, onClose, onApprove, onDecline, onCancel
     </div>
   );
 
-  const SectionHeader = ({ children }) => (
-    <div style={{ padding: 'var(--space-300) var(--space-300) var(--space-075)', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-      {children}
-    </div>
+  const SectionHeader = ({ first = false, children }) => (
+    <>
+      {!first && <div style={{ height: 1, background: P.border }} />}
+      <div style={{ padding: 'var(--space-400) var(--space-300) var(--space-075)', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+        {children}
+      </div>
+    </>
   );
 
   const Group = ({ children }) => {
     const items = React.Children.toArray(children).filter(Boolean);
-    return (
-      <div>
-        {items.map((child, i) => (
-          <React.Fragment key={i}>
-            {i > 0 && <div style={{ height: 1, background: P.border, marginLeft: 'var(--space-300)', marginRight: 'var(--space-300)' }} />}
-            {child}
-          </React.Fragment>
-        ))}
-      </div>
-    );
+    return <div style={{ paddingBottom: 'var(--space-200)' }}>{items}</div>;
   };
 
   const hasOverlap = overlapping.length > 0;
@@ -1979,7 +1973,7 @@ function CalendarDrawer({ req, requests, onClose, onApprove, onDecline, onCancel
 
   const detailContent = (
     <div>
-      <SectionHeader>Request</SectionHeader>
+      <SectionHeader first>Request</SectionHeader>
       <Group>
         <TableRow label="Requested by" icon="user">
           <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{emp.name}</span>
@@ -1997,6 +1991,11 @@ function CalendarDrawer({ req, requests, onClose, onApprove, onDecline, onCancel
         <TableRow label="Department" icon="building-2">
           {emp.department}
         </TableRow>
+        {req.submittedAt && (
+          <TableRow label="Requested on" icon="clock">
+            {req.submittedAt}
+          </TableRow>
+        )}
       </Group>
 
       {(req.note || ATTACHMENT_RULES[req.type]) && <>
@@ -2022,74 +2021,48 @@ function CalendarDrawer({ req, requests, onClose, onApprove, onDecline, onCancel
         </Group>
       </>}
 
-      <SectionHeader>Team impact</SectionHeader>
+      <div style={{ height: 1, background: P.border }} />
       {(() => {
         const offIds = new Set(overlapping.map(r => r.employee));
-        const sorted = [
-          ...allTeamMemberIds.filter(id => offIds.has(id)),
-          ...allTeamMemberIds.filter(id => !offIds.has(id)),
-        ];
-        const MAX_STACK = 3;
-        const stackIds = sorted.slice(0, MAX_STACK);
-        const hidden = sorted.length - MAX_STACK;
+        const awayLabel = overlapping.length === 1
+          ? '1 teammate away during this window'
+          : `${overlapping.length} teammates away during this window`;
         return (
           <div>
-            {/* Collapsed row */}
-            <div onClick={hasOverlap ? () => setTeamExpanded(x => !x) : undefined} style={{ display: 'flex', alignItems: 'center', padding: 'var(--space-200) var(--space-300)', gap: 'var(--space-200)', cursor: hasOverlap ? 'pointer' : 'default' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-100)', flexShrink: 0 }}>
-                <Icon name="users" size={14} color={P.inkSoft} strokeWidth={1.75} style={{ flexShrink: 0 }} />
-                <div style={{ flexShrink: 0, fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: P.ink, whiteSpace: 'nowrap' }}>Team availability</div>
-              </div>
-              <div style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 'var(--space-100)' }}>
-                {hasOverlap
-                  ? <DotPill bg={P.warningBorder} color={P.warningDark}>{overlapping.length} of {teamSize} away</DotPill>
-                  : <DotPill bg="#dcfce7" color="#166534">All available</DotPill>
-                }
-                {hasOverlap && (
-                  <span style={{ flexShrink: 0, width: 24, height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <Icon name="chevron-down" size={14} color={P.inkSoft} strokeWidth={2} style={{ transition: 'transform 200ms ease', transform: teamExpanded ? 'rotate(180deg)' : 'rotate(0deg)' }} />
-                  </span>
-                )}
-              </div>
+            <div style={{ padding: 'var(--space-400) var(--space-300) var(--space-075)', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+              Team availability
             </div>
-
-            {/* Expanded member list */}
-            {teamExpanded && (
-              <div style={{ margin: '0 var(--space-200) var(--space-150)', background: '#f9f9fa', borderRadius: 10, overflow: 'hidden' }}>
-                {sorted.filter(id => offIds.has(id)).map((empId, i) => {
-                  const oe = EMPLOYEES[empId];
-                  const offReq = overlapping.find(r => r.employee === empId);
-                  const dateStr = offReq.startDate === offReq.endDate ? offReq.startDate : `${offReq.startDate} – ${offReq.endDate}`;
-                  return (
-                    <React.Fragment key={empId}>
-                    {i > 0 && <div style={{ height: 1, background: P.border, margin: '0 var(--space-150)' }} />}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-125)', padding: 'var(--space-125) var(--space-150)' }}>
-                      <span style={{ borderRadius: '50%', border: '2px solid #fcd34d', display: 'flex', lineHeight: 0, flexShrink: 0 }}>
-                        <Avatar employeeId={empId} size={18} />
-                      </span>
-                      <span style={{ flex: 1, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink }}>{oe?.name}</span>
-                      <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>{dateStr}</span>
-                    </div>
-                    </React.Fragment>
-                  );
-                })}
-              </div>
+            {hasOverlap ? (
+              <>
+                <div style={{ margin: 'var(--space-100) var(--space-200) var(--space-150)', padding: 'var(--space-125) var(--space-150)', background: P.warningBg, border: `1px solid ${P.warningBorder}`, borderRadius: 8, display: 'flex', alignItems: 'center', gap: 'var(--space-100)' }}>
+                  <Icon name="alert-triangle" size={13} color={P.warningDark} strokeWidth={2} style={{ flexShrink: 0 }} />
+                  <span style={{ fontFamily: 'var(--font-display)', fontSize: 'var(--fs-body-xs)', color: P.warningDark }}>{awayLabel}</span>
+                </div>
+                <div style={{ margin: '0 var(--space-200) var(--space-200)', border: `1px solid ${P.border}`, borderRadius: 10, overflow: 'hidden' }}>
+                  {[...allTeamMemberIds].filter(id => offIds.has(id)).map((empId, i) => {
+                    const oe = EMPLOYEES[empId];
+                    const offReq = overlapping.find(r => r.employee === empId);
+                    const dateStr = offReq.startDate === offReq.endDate ? offReq.startDate : `${offReq.startDate} – ${offReq.endDate}`;
+                    return (
+                      <React.Fragment key={empId}>
+                        {i > 0 && <div style={{ height: 1, background: P.border }} />}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', padding: 'var(--space-150) var(--space-200)' }}>
+                          <Avatar employeeId={empId} size={20} style={{ flexShrink: 0 }} />
+                          <span style={{ flex: 1, fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-xs)', color: P.ink }}>{oe?.name}</span>
+                          <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>{dateStr}</span>
+                        </div>
+                      </React.Fragment>
+                    );
+                  })}
+                </div>
+              </>
+            ) : (
+              <div style={{ padding: 'var(--space-075) var(--space-300) var(--space-200)', fontFamily: 'var(--font-display)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft }}>All teammates available</div>
             )}
           </div>
         );
       })()}
 
-      <SectionHeader>Admin</SectionHeader>
-      <Group>
-        <TableRow label="Status" icon="circle-dot">
-          <DotPill bg={pill.bg} color={pill.color}>{pill.label}</DotPill>
-        </TableRow>
-        {req.submittedAt && (
-          <TableRow label="Requested on" icon="clock">
-            {req.submittedAt}
-          </TableRow>
-        )}
-      </Group>
       <div style={{ height: 16 }} />
     </div>
   );
@@ -3244,25 +3217,6 @@ function generateReceiptContent(expense) {
   return { merchant: (cat || 'MERCHANT').toUpperCase(), sub: '', lines: [[expense.description || 'Purchase', f(amt)]] };
 }
 
-function expensePayrollMonth(submittedAt, short = false) {
-  if (!submittedAt) return null;
-  const parts = submittedAt.trim().split(' ');
-  if (parts.length < 2) return null;
-  const day = parseInt(parts[0]);
-  const monthAbbr = parts[1];
-  const year = parts.length >= 3 ? parseInt(parts[2]) : 2026;
-  const ABBR = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  const FULL = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-  let mIdx = ABBR.indexOf(monthAbbr);
-  if (mIdx === -1) return null;
-  if (day > 25) {
-    const nextIdx = mIdx === 11 ? 0 : mIdx + 1;
-    const y = nextIdx === 0 ? year + 1 : year;
-    return short ? `${ABBR[nextIdx]} payroll` : `${FULL[nextIdx]} ${y} payroll`;
-  }
-  return short ? `${ABBR[mIdx]} payroll` : `${FULL[mIdx]} ${year} payroll`;
-}
-
 // ── Expense drawer ─────────────────────────────────────────────────────────
 function ExpenseDrawer({ expense, onClose, onApprove, onReject, onEdit, categories = [], initialRejectMode = false, requireApproval = true }) {
   const emp = EMPLOYEES[expense.employee] || { name: expense.employee, initials: '?', color: P.border };
@@ -3282,81 +3236,68 @@ function ExpenseDrawer({ expense, onClose, onApprove, onReject, onEdit, categori
   const editSlide   = secondPanel ? 'translateX(0)'     : 'translateX(100%)';
   const slideTransition = `transform ${SLIDE_DUR}ms ${EASE_DRAWER}`;
 
-  const labelStyle = { flexShrink: 0, fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: P.ink, whiteSpace: 'nowrap' };
-  const valueStyle = { flex: 1, minWidth: 0, fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: P.inkSoft, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 'var(--space-100)' };
+  const labelStyle = { flexShrink: 0, fontFamily: 'var(--font-display)', fontWeight: 400, fontSize: 'var(--fs-body-sm)', color: P.inkSoft, whiteSpace: 'nowrap' };
+  const valueStyle = { flex: 1, minWidth: 0, fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: P.ink, display: 'flex', alignItems: 'center', justifyContent: 'flex-start', gap: 'var(--space-100)' };
 
-  const TableRow = ({ label, icon, children }) => (
-    <div style={{ display: 'flex', alignItems: 'center', padding: 'var(--space-200) var(--space-300)', gap: 'var(--space-200)' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-100)', flexShrink: 0 }}>
+  const TableRow = ({ label, icon, top = false, children }) => (
+    <div style={{ display: 'flex', alignItems: top ? 'flex-start' : 'center', padding: 'var(--space-200) var(--space-300)', gap: 'var(--space-200)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-100)', flexShrink: 0, width: 160, ...(top ? { paddingTop: 1 } : {}) }}>
         {icon && <Icon name={icon} size={14} color={P.inkSoft} strokeWidth={1.75} style={{ flexShrink: 0 }} />}
         <div style={labelStyle}>{label}</div>
       </div>
       <div style={valueStyle}>{children}</div>
     </div>
   );
-  const SectionHeader = ({ children }) => (
-    <div style={{ padding: 'var(--space-300) var(--space-300) var(--space-075)', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-      {children}
-    </div>
+  const SectionHeader = ({ first = false, children }) => (
+    <>
+      {!first && <div style={{ height: 1, background: P.border }} />}
+      <div style={{ padding: 'var(--space-400) var(--space-300) var(--space-075)', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+        {children}
+      </div>
+    </>
   );
   const Group = ({ children }) => {
     const items = React.Children.toArray(children).filter(Boolean);
-    return (
-      <div>
-        {items.map((child, i) => (
-          <React.Fragment key={i}>
-            {i > 0 && <div style={{ height: 1, background: P.border, marginLeft: 'var(--space-300)', marginRight: 'var(--space-300)' }} />}
-            {child}
-          </React.Fragment>
-        ))}
-      </div>
-    );
+    return <div style={{ paddingBottom: 'var(--space-200)' }}>{items}</div>;
   };
 
   const amountStr = `€ ${expense.amount.toFixed(2).replace('.', ',')}`;
 
   const detailContent = (
     <div>
-      <SectionHeader>Expense</SectionHeader>
+      <SectionHeader first>Expense</SectionHeader>
       <Group>
-        <TableRow label="Submitted by" icon="user">
-          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{emp.name}</span>
-          <Avatar employeeId={expense.employee} size={22} />
-        </TableRow>
         <TableRow label="Amount" icon="coins">
           <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-sm)', color: P.ink }}>{amountStr}</span>
         </TableRow>
         <TableRow label="Category" icon="tag">
           {expense.category}
         </TableRow>
-      </Group>
-
-      <SectionHeader>Supporting</SectionHeader>
-      <Group>
-        <TableRow label="Description" icon="file-text">
-          <span style={{ textAlign: 'right', whiteSpace: 'normal', lineHeight: 1.4 }}>{expense.description || '—'}</span>
+        <TableRow label="Note" icon="message-square" top>
+          <span style={{ whiteSpace: 'normal', lineHeight: 1.4 }}>{expense.description || '—'}</span>
+        </TableRow>
+        <TableRow label="Submitted by" icon="user">
+          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{emp.name}</span>
+          <Avatar employeeId={expense.employee} size={22} />
         </TableRow>
       </Group>
 
-      <SectionHeader>Admin</SectionHeader>
+      <SectionHeader>Details</SectionHeader>
       <Group>
-        <TableRow label="Status" icon="circle-dot">
-          <StatusPill status={expense.status} />
-        </TableRow>
+        {expense.status !== 'pending' && (
+          <TableRow label="Status" icon="circle-dot">
+            <StatusPill status={expense.status} />
+          </TableRow>
+        )}
         <TableRow label="Expense date" icon="calendar">
           {expense.expenseDate}
         </TableRow>
         <TableRow label="Submitted" icon="clock">
           {expense.submittedAt}
         </TableRow>
-        {expense.status === 'approved' && expensePayrollMonth(expense.submittedAt) && (
-          <TableRow label="Payroll" icon="landmark">
-            <span style={{ color: P.inkSoft, fontSize: 'var(--fs-body-sm)' }}>{expensePayrollMonth(expense.submittedAt)}</span>
-          </TableRow>
-        )}
         {expense.status === 'rejected' && expense.rejectReason && (
-          <TableRow label="Reject reason" icon="message-square">
-            <span style={{ textAlign: 'right', whiteSpace: 'normal', lineHeight: 1.4, color: P.danger }}>{expense.rejectReason}</span>
+          <TableRow label="Reject reason" icon="message-square" top>
+            <span style={{ whiteSpace: 'normal', lineHeight: 1.4, color: P.danger }}>{expense.rejectReason}</span>
           </TableRow>
         )}
       </Group>
@@ -3440,10 +3381,10 @@ function ExpenseDrawer({ expense, onClose, onApprove, onReject, onEdit, categori
 
   return (
     <>
-    <DrawerShell onClose={onClose} title={rejectMode ? 'Reject expense' : editMode ? 'Edit expense' : 'Expense details'} onBack={secondPanel ? () => { setRejectMode(false); setEditMode(false); } : undefined} width={expense.receipt ? 980 : 480}>
+    <DrawerShell onClose={onClose} title={rejectMode ? 'Reject expense' : editMode ? 'Edit expense' : 'Expense details'} onBack={secondPanel ? () => { setRejectMode(false); setEditMode(false); } : undefined} width={expense.receipt ? 900 : 480}>
       {close => (
         <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
-          <div style={{ flex: 1, position: 'relative', overflow: 'hidden', minWidth: 0 }}>
+          <div style={{ width: 400, flexShrink: 0, position: 'relative', overflow: 'hidden', minWidth: 0 }}>
           <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', transform: detailSlide, transition: slideTransition }}>
             <div style={{ flex: 1, overflowY: 'auto' }}>
               {detailContent}
@@ -3469,21 +3410,21 @@ function ExpenseDrawer({ expense, onClose, onApprove, onReject, onEdit, categori
                 <div style={{ flex: 1, overflowY: 'auto', padding: 'var(--space-250)', display: 'flex', flexDirection: 'column', gap: 'var(--space-200)' }}>
                   <div>
                     <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 'var(--space-075)' }}>Amount</label>
-                    <div style={{ display: 'flex', alignItems: 'center', border: `1px solid ${P.border}`, borderRadius: 8, background: P.bg, overflow: 'hidden' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', border: `1px solid ${P.border}`, borderRadius: 8, background: P.white, overflow: 'hidden' }}>
                       <span style={{ padding: 'var(--space-125) var(--space-150)', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, borderRight: `1px solid ${P.border}` }}>€</span>
                       <input type="number" step="0.01" value={editAmount} onChange={e => setEditAmount(e.target.value)} style={{ flex: 1, padding: 'var(--space-125) var(--space-150)', border: 'none', background: 'transparent', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, outline: 'none' }} />
                     </div>
                   </div>
                   <div>
                     <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 'var(--space-075)' }}>Category</label>
-                    <select value={editCategory} onChange={e => setEditCategory(e.target.value)} style={{ width: '100%', padding: 'var(--space-125) var(--space-150)', borderRadius: 8, border: `1px solid ${P.border}`, background: P.bg, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, outline: 'none', cursor: 'pointer' }}>
+                    <SelectField value={editCategory} onChange={e => setEditCategory(e.target.value)} style={{ width: '100%', padding: 'var(--space-125) var(--space-150)', borderRadius: 8, border: `1px solid ${P.border}`, background: P.white, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, outline: 'none', cursor: 'pointer', boxSizing: 'border-box' }}>
                       {!categories.find(c => c.name === editCategory) && <option value={editCategory}>{editCategory}</option>}
                       {categories.map(c => <option key={c.name} value={c.name}>{c.name}</option>)}
-                    </select>
+                    </SelectField>
                   </div>
                   <div>
                     <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 'var(--space-075)' }}>Description</label>
-                    <textarea value={editDescription} onChange={e => setEditDescription(e.target.value)} rows={3} style={{ width: '100%', padding: 'var(--space-125) var(--space-150)', borderRadius: 8, border: `1px solid ${P.border}`, background: P.bg, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, resize: 'none', lineHeight: 1.5, boxSizing: 'border-box', outline: 'none' }} />
+                    <textarea value={editDescription} onChange={e => setEditDescription(e.target.value)} rows={3} style={{ width: '100%', padding: 'var(--space-125) var(--space-150)', borderRadius: 8, border: `1px solid ${P.border}`, background: P.white, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, resize: 'none', lineHeight: 1.5, boxSizing: 'border-box', outline: 'none' }} />
                   </div>
                 </div>
                 <div style={{ flexShrink: 0, padding: 'var(--space-150) var(--space-250)', borderTop: `1px solid ${P.border}`, display: 'flex', gap: 'var(--space-125)' }}>
@@ -3497,17 +3438,16 @@ function ExpenseDrawer({ expense, onClose, onApprove, onReject, onEdit, categori
                   <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: 1.5 }}>
                     You're rejecting <strong style={{ color: P.ink }}>{emp.name}</strong>'s {expense.category} expense ({amountStr}).
                   </p>
-                  <div>
-                    <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 'var(--space-100)' }}>Reason <span style={{ textTransform: 'none', fontWeight: 400 }}>(optional)</span></label>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 10 }}>
-                      {['Missing receipt', 'Wrong category', 'Incorrect amount', 'Not a valid business expense'].map(preset => {
-                        const active = rejectReason === preset;
-                        return (
-                          <button key={preset} onClick={() => setRejectReason(active ? '' : preset)} style={{ padding: '5px 10px', borderRadius: 20, border: `1px solid ${active ? P.ink : P.border}`, background: active ? P.ink : 'transparent', color: active ? P.white : P.inkSoft, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', cursor: 'pointer', lineHeight: 1 }}>{preset}</button>
-                        );
-                      })}
-                    </div>
-                    <textarea value={rejectReason} onChange={e => setRejectReason(e.target.value)} placeholder="Explain why this expense is being rejected…" rows={3} style={{ width: '100%', padding: 'var(--space-125) var(--space-150)', borderRadius: 8, border: `1px solid ${P.border}`, background: P.bg, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, resize: 'none', lineHeight: 1.5, boxSizing: 'border-box', outline: 'none' }} />
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-150)' }}>
+                    <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Reason <span style={{ textTransform: 'none', fontWeight: 400 }}>(optional)</span></label>
+                    <SelectField value={['Missing receipt', 'Wrong category', 'Incorrect amount', 'Not a valid business expense'].includes(rejectReason) ? rejectReason : ''} onChange={e => setRejectReason(e.target.value)} style={{ width: '100%', padding: 'var(--space-125) var(--space-150)', borderRadius: 8, border: `1px solid ${P.border}`, background: P.white, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, outline: 'none', cursor: 'pointer', boxSizing: 'border-box' }}>
+                      <option value="">Select a reason…</option>
+                      <option value="Missing receipt">Missing receipt</option>
+                      <option value="Wrong category">Wrong category</option>
+                      <option value="Incorrect amount">Incorrect amount</option>
+                      <option value="Not a valid business expense">Not a valid business expense</option>
+                    </SelectField>
+                    <textarea value={rejectReason} onChange={e => setRejectReason(e.target.value)} placeholder="Or write a custom message…" rows={3} style={{ width: '100%', padding: 'var(--space-125) var(--space-150)', borderRadius: 8, border: `1px solid ${P.border}`, background: P.white, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, resize: 'none', lineHeight: 1.5, boxSizing: 'border-box', outline: 'none' }} />
                   </div>
                 </div>
                 <div style={{ flexShrink: 0, padding: 'var(--space-150) var(--space-250)', borderTop: `1px solid ${P.border}`, display: 'flex', gap: 'var(--space-125)' }}>
@@ -4140,12 +4080,7 @@ function ExpenseRow({ exp, onApprove, onDetail, onRejectDirectly, showStatus, sh
       {showStatus && <StatusDot status={exp.status} />}
       <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink }}>{exp.category}</span>
       <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{exp.description}</span>
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 2 }}>
-        <span style={{ fontFamily: 'var(--font-display)', fontSize: 'var(--fs-body-sm)', fontWeight: 600, color: P.ink }}>{amountStr}</span>
-        {exp.status === 'approved' && expensePayrollMonth(exp.submittedAt, true) && (
-          <span style={{ fontFamily: 'var(--font-body)', fontSize: 10, color: P.inkFaint }}>{expensePayrollMonth(exp.submittedAt, true)}</span>
-        )}
-      </div>
+      <span style={{ fontFamily: 'var(--font-display)', fontSize: 'var(--fs-body-sm)', fontWeight: 600, color: P.ink }}>{amountStr}</span>
       <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkFaint }}>{exp.expenseDate}</span>
       <div onClick={e => e.stopPropagation()} style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 'var(--space-050)' }}>
         {showApproveActions && exp.status === 'pending' && (<>
