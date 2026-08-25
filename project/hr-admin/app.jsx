@@ -64,6 +64,7 @@ const LEAVE_COLORS = {
   'Ceremony':                    P.warningBg,
   'Civic duty':                  '#c5dcfd',
   'Moving':                      '#fde9c8',
+  'Seniority leave':             '#d1fae5',
 };
 const LEAVE_BORDER_COLORS = {
   'Statutory annual leave':                    '#7aafe8',
@@ -77,6 +78,7 @@ const LEAVE_BORDER_COLORS = {
   'Ceremony':                    '#e5c87a',
   'Civic duty':                  '#7aafe8',
   'Moving':                      '#e0b97a',
+  'Seniority leave':             '#6ee7b7',
 };
 // Reverse map: fill color hex → border color hex (for palette swatches)
 const COLOR_TO_BORDER = Object.fromEntries(
@@ -84,20 +86,23 @@ const COLOR_TO_BORDER = Object.fromEntries(
 );
 
 const SPECIAL_LEAVE_METADATA = {
-  'Paternity leave':                 { statutory: true, statutoryDays: 20, statutoryLabel: '20 days', statutoryNote: 'First 3 days paid by employer at full salary — days 4–20 reimbursed by INAMI at 82%. Must be taken within 4 months of birth.' },
-  'Maternity leave':             { statutory: true, statutoryDays: null, statutoryLabel: '15 weeks', statutoryNote: 'Pre-natal: up to 6 weeks before due date (1 week mandatory). Post-natal: minimum 9 weeks mandatory. Paid by INAMI at 82% of capped salary.' },
-  'Wedding':                    { statutory: true,  statutoryDays: 2,  statutoryLabel: '1–2 days', statutoryNote: "Own wedding: 2 days · Child's, sibling's or parent's wedding: 1 day" },
-  'Funeral leave':              { statutory: true,  statutoryDays: 10, statutoryLabel: '1–10 days', statutoryNote: 'Spouse or child: 3 days immediate + 7 flexible (Royal Decree 2021). Parent or in-law: 3 days. Sibling, grandparent: 2 days. Other family: 1 day.' },
+  'Statutory annual leave':   { statutory: true, statutoryDays: 20, statutoryLabel: '20 days minimum', statutoryNote: 'Belgian law mandates a minimum of 20 days per year for full-time employees (prorated for part-time). Individual employees can be allocated more under Employee exceptions.' },
+  'Sick leave':               { statutory: true, statutoryDays: null, statutoryLabel: null, statutoryNote: 'Employer pays guaranteed wage for up to 30 days (white collar). RIZIV pays 60% of capped salary from day 31 · 65%/55%/45% after 1 year depending on civil status. Up to 3 illness periods per year without medical certificate.' },
+  'Paternity leave':                 { statutory: true, statutoryDays: 20, statutoryLabel: '20 days', statutoryNote: 'First 3 days paid by employer at full salary (klein verlet) · remaining 17 days reimbursed by INAMI at 82% of capped salary. Must be taken within 4 months of birth.' },
+  'Maternity leave':             { statutory: true, statutoryDays: null, statutoryLabel: '15 weeks', statutoryNote: 'Pre-natal: up to 6 weeks before due date (1 week mandatory). Post-natal: minimum 9 weeks mandatory. INAMI pays 82% of capped salary for first 30 days · 75% thereafter.' },
+  'Wedding':                    { statutory: true,  statutoryDays: 2,  statutoryLabel: 'Up to 2 days', statutoryNote: "Own wedding: 2 days · Child's, sibling's or parent's wedding: 1 day" },
+  'Funeral leave':              { statutory: true,  statutoryDays: 10, statutoryLabel: 'Up to 10 days', statutoryNote: 'Spouse or child: 3 days immediate + 7 flexible (Royal Decree 2021). Parent or in-law: 3 days. Sibling, grandparent: 2 days. Other family: 1 day.' },
   'Ceremony':                   { statutory: true,  statutoryDays: 1,  statutoryLabel: '1 day',    statutoryNote: "Child's solemn communion or humanist coming-of-age ceremony" },
   'Civic duty':                 { statutory: true,  statutoryDays: null, statutoryLabel: 'Duration of duty', statutoryNote: 'For the duration of jury duty, court summons, or other civic obligation — no fixed maximum' },
   'Moving':                     { statutory: false, companyPolicy: true, statutoryDays: 1, statutoryLabel: '1 day', statutoryNote: 'Company benefit — not legally mandated, freely configurable' },
+  'Seniority leave':            { statutory: false, companyPolicy: true, statutoryDays: null, statutoryLabel: null, statutoryNote: 'Company benefit — extra days awarded based on years of service. Not legally required.' },
 };
 
 const LEAVE_SECTIONS = [
   { id: 'time-off',      label: 'Time off',      typeNames: ['Statutory annual leave', 'ADV / RTT', 'Extra-legal leave'] },
   { id: 'sick-leave',    label: 'Sick leave',     typeNames: ['Sick leave'] },
   { id: 'parental',      label: 'Parental leave', typeNames: ['Paternity leave', 'Maternity leave'] },
-  { id: 'special-leave', label: 'Special leave',  typeNames: ['Wedding', 'Funeral leave', 'Ceremony', 'Civic duty', 'Moving'] },
+  { id: 'special-leave', label: 'Special leave',  typeNames: ['Wedding', 'Funeral leave', 'Ceremony', 'Civic duty', 'Moving', 'Seniority leave'] },
 ];
 
 
@@ -113,6 +118,7 @@ const LEAVE_ICONS = {
   'Ceremony':     'book-open',
   'Civic duty':   'landmark',
   'Moving':       'truck',
+  'Seniority leave': 'award',
 };
 
 const ALL_LEAVE_TYPES = [
@@ -531,10 +537,10 @@ function WeekCard({ entry, requestId, requests, isPending }) {
   const req = requests.find(function(rr) { return rr.id === requestId; });
   return (
     <React.Fragment>
-      <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-xs)', color: P.ink, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', lineHeight: 1.3 }}>
+      <span style={{ display: 'block', width: '100%', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-xs)', color: P.ink, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', lineHeight: 1.3 }}>
         {entry.type}
       </span>
-      <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, whiteSpace: 'nowrap', lineHeight: 1.3 }}>
+      <span style={{ display: 'block', width: '100%', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', lineHeight: 1.3 }}>
         {isPending ? 'Pending' : req ? (req.days + ' ' + (req.days === 1 ? 'day' : 'days')) : ''}
       </span>
     </React.Fragment>
@@ -1614,7 +1620,10 @@ const BASE_PATH = (() => {
 
 function screenToPath(screen) {
   let p;
-  if (screen.startsWith('employee-detail:')) p = '/hr-admin/people/' + screen.split(':')[1];
+  if (screen.startsWith('employee-detail:')) {
+    const [, empId, tab] = screen.split(':');
+    p = '/hr-admin/people/' + empId + (tab ? '/' + tab : '');
+  }
   else if (screen === 'employees:admin') p = '/hr-admin/people';
   else {
     const entry = ROUTE_MAP.find(r => r.screen === screen);
@@ -1627,8 +1636,8 @@ function pathToScreen(path) {
   let clean = path;
   if (BASE_PATH && clean.startsWith(BASE_PATH)) clean = clean.slice(BASE_PATH.length);
   clean = clean.replace(/\/$/, '') || '/hr-admin';
-  const empMatch = clean.match(/^\/hr-admin\/people\/(.+)$/);
-  if (empMatch) return 'employee-detail:' + empMatch[1];
+  const empMatch = clean.match(/^\/hr-admin\/people\/([^/]+)(?:\/([^/]+))?$/);
+  if (empMatch) return 'employee-detail:' + empMatch[1] + (empMatch[2] ? ':' + empMatch[2] : '');
   const entry = ROUTE_MAP.find(r => r.path === clean);
   return entry ? entry.screen : 'dashboard';
 }
@@ -1845,6 +1854,7 @@ function CalendarDrawer({ req, requests, onClose, onApprove, onDecline, onCancel
   const [cancelReason, setCancelReason] = React.useState('');
   const [declineMode, setDeclineMode] = React.useState(!!initialDeclineMode);
   const [declineReason, setDeclineReason] = React.useState('');
+  const [docFullscreen, setDocFullscreen] = React.useState(false);
 
   // Edit form state — initialized lazily via enterEdit()
   const [editType, setEditType] = React.useState(req.type);
@@ -2004,19 +2014,13 @@ function CalendarDrawer({ req, requests, onClose, onApprove, onDecline, onCancel
         )}
       </Group>
 
-      {(req.note || ATTACHMENT_RULES[req.type]) && <>
+      {(req.note || (ATTACHMENT_RULES[req.type] && !req.document)) && <>
         <SectionHeader>Supporting info</SectionHeader>
         <Group>
-          {ATTACHMENT_RULES[req.type] && (
-            <TableRow label="Document" icon="paperclip">
-              {req.document ? (
-                <AppLink>{req.document}</AppLink>
-              ) : (
-                <>
-                  <DotPill dot={false} color={P.warningDark} bg={P.warningBg} border={P.warningBorder}>Missing</DotPill>
-                  <span style={{ fontWeight: 400, color: P.inkSoft }}>{ATTACHMENT_RULES[req.type].label}</span>
-                </>
-              )}
+          {ATTACHMENT_RULES[req.type] && !req.document && (
+            <TableRow label="Document" icon="shield">
+              <DotPill dot={false} color={P.warningDark} bg={P.warningBg} border={P.warningBorder}>Missing</DotPill>
+              <span style={{ fontWeight: 400, color: P.inkSoft }}>{ATTACHMENT_RULES[req.type].label}</span>
             </TableRow>
           )}
           {req.note && (
@@ -2091,14 +2095,64 @@ function CalendarDrawer({ req, requests, onClose, onApprove, onDecline, onCancel
   };
   const editDurStr = editDays === 0.5 ? '½ day' : editDays === 1 ? '1 day' : `${editDays} days`;
 
+  const docSrc = req.document ? req.document.replace(/\.pdf$/, '.svg') : null;
+  const docContent = docSrc && (
+    <img src={docSrc} style={{ display: 'block', width: '100%', borderRadius: 4, boxShadow: '0 2px 12px rgba(15,13,40,0.12)' }} alt="Document" />
+  );
+  const docPill = req.document && (
+    <div style={{ display: 'flex', justifyContent: 'center', padding: '16px 0 0' }}>
+      <div style={{ display: 'flex', background: P.white, borderRadius: 8, boxShadow: '0 4px 16px rgba(0,0,0,0.14), 0 0 0 1px rgba(0,0,0,0.06)' }}>
+        <button onClick={() => setDocFullscreen(true)} style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '9px 16px', background: 'none', border: 'none', cursor: 'pointer', borderRadius: '8px 0 0 8px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink, whiteSpace: 'nowrap' }}>
+          <Icon name="expand" size={14} color={P.ink} strokeWidth={1.75} />
+          Full screen
+        </button>
+        {docSrc && (<>
+          <div style={{ width: 1, background: P.border, margin: '8px 0' }} />
+          <a href={docSrc} download={req.document} style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '9px 16px', textDecoration: 'none', cursor: 'pointer', borderRadius: '0 8px 8px 0', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink, whiteSpace: 'nowrap' }}>
+            <Icon name="download" size={14} color={P.ink} strokeWidth={1.75} />
+            Download
+          </a>
+        </>)}
+      </div>
+    </div>
+  );
+  const docPanel = req.document && (
+    <div style={{ width: 500, borderLeft: `1px solid ${P.border}`, display: 'flex', flexDirection: 'column', overflow: 'hidden', flexShrink: 0 }}>
+      <div style={{ flex: 1, overflowY: 'auto', background: '#e8e7e5', padding: 40, paddingBottom: 40 }}>
+        {docContent}
+        {docPill}
+      </div>
+    </div>
+  );
+  const docFullscreenModal = docFullscreen && (
+    <div onClick={() => setDocFullscreen(false)} style={{ position: 'fixed', inset: 0, zIndex: 400, background: 'rgba(0,0,0,0.7)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', padding: '48px 24px 24px', overflowY: 'auto' }}>
+      <div style={{ position: 'fixed', top: 16, right: 16, display: 'flex', gap: 8 }}>
+        {docSrc && (
+          <a href={docSrc} download={req.document} onClick={e => e.stopPropagation()} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 10, background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.2)', color: '#fff', textDecoration: 'none', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', cursor: 'pointer' }}>
+            <Icon name="download" size={13} color="#fff" strokeWidth={2} /> Download
+          </a>
+        )}
+        <button onClick={() => setDocFullscreen(false)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 36, height: 36, borderRadius: 10, background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.2)', color: '#fff', cursor: 'pointer' }}>
+          <Icon name="X" size={16} color="#fff" strokeWidth={2} />
+        </button>
+      </div>
+      <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: 680 }}>
+        {docContent}
+      </div>
+    </div>
+  );
+
   return (
+    <>
     <DrawerShell onClose={onClose}
       title={editMode ? 'Edit request' : cancelMode ? 'Cancel absence' : declineMode ? 'Decline request' : 'Request details'}
-      onBack={secondPanel ? (editMode ? exitEdit : cancelMode ? exitCancel : exitDecline) : undefined}>
+      onBack={secondPanel ? (editMode ? exitEdit : cancelMode ? exitCancel : exitDecline) : undefined}
+      width={req.document ? 900 : 480}>
       {close => (
         <>
+        <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
         {/* Clipping window for the two sliding panels */}
-        <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
+        <div style={{ flex: 1, position: 'relative', overflow: 'hidden', minWidth: 0 }}>
 
           {/* Detail panel */}
           <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', transform: detailSlide, transition: slideTransition }}>
@@ -2204,6 +2258,8 @@ function CalendarDrawer({ req, requests, onClose, onApprove, onDecline, onCancel
           </div>
 
         </div>
+        {docPanel}
+        </div>
 
         {avatarTip && ReactDOM.createPortal(
           <div style={{ position: 'fixed', zIndex: 9999, left: avatarTip.x, top: avatarTip.y - 8, transform: 'translate(-50%, -100%)', background: P.ink, color: P.white, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', padding: 'var(--space-075) var(--space-125)', borderRadius: 8, pointerEvents: 'none', whiteSpace: 'nowrap', lineHeight: 1.5 }}>
@@ -2221,6 +2277,8 @@ function CalendarDrawer({ req, requests, onClose, onApprove, onDecline, onCancel
         </>
       )}
     </DrawerShell>
+    {docFullscreenModal}
+    </>
   );
 }
 
@@ -3859,8 +3917,8 @@ function RequestRow({ req, requests, onApprove, onDecline, onDetail, onDeclineDi
   const remaining = Math.max(0, emp.entitlement - usedDays - req.days);
   const overlapping = getOverlapping(req, requests);
   const gridCols = showStatus
-    ? (showEntity ? '32px 1.8fr 0.8fr 1fr 0.9fr 0.7fr 0.7fr 1fr 1fr 96px' : '32px 1.8fr 1fr 0.9fr 0.7fr 0.7fr 1fr 1fr 96px')
-    : (showEntity ? '32px 1.8fr 0.8fr 0.9fr 0.7fr 0.7fr 1fr 1fr 96px' : '32px 1.8fr 0.9fr 0.7fr 0.7fr 1fr 1fr 96px');
+    ? (showEntity ? '32px 1.2fr 0.8fr 1fr 1fr 0.7fr 0.7fr 1fr 1fr 96px' : '32px 1.2fr 1fr 1fr 0.7fr 0.7fr 1fr 1fr 96px')
+    : (showEntity ? '32px 1.2fr 0.8fr 1fr 0.7fr 0.7fr 1fr 1fr 96px' : '32px 1.2fr 1fr 0.7fr 0.7fr 1fr 1fr 96px');
   return (
     <div style={{
       display: 'grid',
@@ -3887,9 +3945,9 @@ function RequestRow({ req, requests, onApprove, onDecline, onDetail, onDeclineDi
           </div>
           {showEntity && <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{emp.entity || '—'}</span>}
           {showStatus && <StatusDot status={req.status} />}
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-100)' }}>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-100)', minWidth: 0, overflow: 'hidden' }}>
             <span style={{ width: 10, height: 10, borderRadius: '50%', background: LEAVE_COLORS[req.type] || P.inkFaint, border: `1.5px solid ${LEAVE_BORDER_COLORS[req.type] || P.border}`, flexShrink: 0 }} />
-            <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink }}>{req.type}</span>
+            <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{req.type}</span>
             {req.document && <Icon name="paperclip" size={12} color={P.inkFaint} strokeWidth={1.75} style={{ flexShrink: 0 }} />}
           </span>
           <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink }}>{req.days} {req.days === 1 ? 'day' : 'days'}</span>
@@ -4297,14 +4355,6 @@ function RequestsScreen({ requests, onApprove, onDecline, onSave, onCancel, onVi
   const [editReq, setEditReq] = useState(null);
   const [addOpen, setAddOpen] = useState(false);
   const [selected, setSelected] = useState(new Set());
-  const [pillLeaving, setPillLeaving] = useState(false);
-  useEffect(() => {
-    if (selected.size === 0 && !pillLeaving) return;
-    if (selected.size > 0) { setPillLeaving(false); return; }
-    setPillLeaving(true);
-    const t = setTimeout(() => setPillLeaving(false), 120);
-    return () => clearTimeout(t);
-  }, [selected.size]);
   const prevPendingIdsRef = useRef(new Set());
   const removalTimersRef = useRef(new Set());
   const [removingIds, setRemovingIds] = useState(() => new Set());
@@ -4379,10 +4429,21 @@ function RequestsScreen({ requests, onApprove, onDecline, onSave, onCancel, onVi
         searchText={searchText} onSearch={v => { setSearchText(v); setPage(1); }}
         filter={leaveFilter} onFilter={v => { setLeaveFilter(v); setPage(1); }}
         deptFilter={deptFilter} onDeptFilter={v => { setDeptFilter(v); setPage(1); }}
-      />
+      >
+        {selected.size > 0 && (
+          <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 'var(--space-100)' }}>
+            {selectedPending.length > 0 && (
+              <Button variant="primary" onClick={() => { selectedPending.forEach(id => onApprove(id)); setSelected(new Set()); }} style={{ padding: 'var(--space-075) var(--space-150)', fontSize: 'var(--fs-body-xs)', borderRadius: 7 }}>
+                Approve{selectedPending.length > 1 ? ` all ${selectedPending.length}` : ''}
+              </Button>
+            )}
+            <Button variant="secondary" onClick={() => setSelected(new Set())} style={{ padding: 'var(--space-075) var(--space-125)', fontSize: 'var(--fs-body-xs)', borderRadius: 7 }}>Clear</Button>
+          </div>
+        )}
+      </FilterToolbar>
       <div style={{ flex: 1, overflowY: 'auto', padding: '0 var(--space-250) var(--space-250)' }}>
       <div style={{ background: P.white, borderRadius: 12, border: `1px solid ${P.border}`, overflow: 'clip' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: (() => { const s = tab === 'all' || tab === 'declined'; if (s && showEntity) return '32px 1.8fr 0.8fr 1fr 0.9fr 0.7fr 0.7fr 1fr 1fr 96px'; if (s) return '32px 1.8fr 1fr 0.9fr 0.7fr 0.7fr 1fr 1fr 96px'; if (showEntity) return '32px 1.8fr 0.8fr 0.9fr 0.7fr 0.7fr 1fr 1fr 96px'; return '32px 1.8fr 0.9fr 0.7fr 0.7fr 1fr 1fr 96px'; })(), alignItems: 'center', gap: 'var(--space-150)', padding: '0 var(--space-250)', height: 38, borderBottom: `1px solid ${P.border}`, background: P.bg, position: 'sticky', top: 0, zIndex: 5 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: (() => { const s = tab === 'all' || tab === 'declined'; if (s && showEntity) return '32px 1.2fr 0.8fr 1fr 1fr 0.7fr 0.7fr 1fr 1fr 96px'; if (s) return '32px 1.2fr 1fr 1fr 0.7fr 0.7fr 1fr 1fr 96px'; if (showEntity) return '32px 1.2fr 0.8fr 1fr 0.7fr 0.7fr 1fr 1fr 96px'; return '32px 1.2fr 1fr 0.7fr 0.7fr 1fr 1fr 96px'; })(), alignItems: 'center', gap: 'var(--space-150)', padding: '0 var(--space-250)', height: 38, borderBottom: `1px solid ${P.border}`, background: P.bg, position: 'sticky', top: 0, zIndex: 5 }}>
           <input type="checkbox" checked={allSelected} onChange={toggleAll} style={{ cursor: 'pointer', accentColor: P.action }} />
           <TH>Requested by</TH>{showEntity && <TH>Entity</TH>}{(tab === 'all' || tab === 'declined') && <TH>Status</TH>}<TH>Leave type</TH><TH>Duration</TH><TH>Date from</TH><TH>Date to</TH><TH>Also off</TH><div />
         </div>
@@ -4427,40 +4488,6 @@ function RequestsScreen({ requests, onApprove, onDecline, onSave, onCancel, onVi
         )}
       </div>
       </div>
-      {/* Bulk action bar */}
-      {(selected.size > 0 || pillLeaving) && (
-        <div style={{ position: 'absolute', bottom: 16, left: 0, right: 0, display: 'flex', justifyContent: 'center', pointerEvents: 'none', zIndex: 10 }}>
-          <div style={{
-            pointerEvents: pillLeaving ? 'none' : 'auto',
-            background: P.action, borderRadius: 10, padding: 'var(--space-075) var(--space-200)',
-            display: 'flex', alignItems: 'center', gap: 'var(--space-125)',
-            boxShadow: '0 6px 24px rgba(15,13,40,0.3)',
-            animation: pillLeaving
-              ? `pillFadeDown 120ms ${EASE_OUT} forwards`
-              : `pillFadeUp 0.15s ${EASE_OUT}`,
-          }}>
-            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: '#fff' }}>
-              {selected.size} selected
-            </span>
-            {selectedPending.length > 0 && (
-              <button onClick={() => { selectedPending.forEach(id => onApprove(id)); setSelected(new Set()); }} style={{
-                display: 'flex', alignItems: 'center', gap: 'var(--space-075)',
-                padding: 'var(--space-075) var(--space-150)', borderRadius: 7, border: 'none',
-                background: P.success, color: '#fff', cursor: 'pointer',
-                fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)',
-              }}>
-                <Icon name="CheckCircle" size={12} color="#fff" strokeWidth={2} />
-                Approve{selectedPending.length > 1 ? ` all ${selectedPending.length}` : ''}
-              </button>
-            )}
-            <button onClick={() => setSelected(new Set())} style={{
-              padding: 'var(--space-075) var(--space-125)', borderRadius: 7, border: '1px solid rgba(255,255,255,0.25)',
-              background: 'transparent', color: '#fff', cursor: 'pointer',
-              fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)',
-            }}>Clear</button>
-          </div>
-        </div>
-      )}
       {detail && (
         <CalendarDrawer key={detail.id} req={detail} requests={requests} onClose={() => { setDetail(null); setDetailDeclineMode(false); }}
           onApprove={(id) => { onApprove(id); setDetail(null); }}
@@ -5586,6 +5613,12 @@ function EditBalancesModal({ emp, balances, onSave, onClose, isNewEmployee, onCo
 function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, onApprove, onDecline, onViewTeamCalendar, employeeBalance, onUpdateBalance, needsSetup, confirmedDate, onConfirmBalances, onToast, adminAccess, onAdminSave, companyRegime, onEmployeeUpdate, getEmpWithOverrides, physicalCardsAllowed, mobilityWidgetState, initialTab = 'choices' }) {
   const emp = getEmpWithOverrides ? getEmpWithOverrides(employeeId) : EMPLOYEES[employeeId];
   const [activeTab, setActiveTab] = useState(initialTab);
+  const tabMountedRef = useRef(false);
+  useEffect(() => {
+    if (!tabMountedRef.current) { tabMountedRef.current = true; return; }
+    const s = `employee-detail:${employeeId}:${activeTab}`;
+    history.replaceState({ screen: s }, '', screenToPath(s));
+  }, [activeTab]);
   const [addModal, setAddModal] = useState(null); // null | 'add' | request object (edit)
   const [cancelAction, setCancelAction] = useState(null);
   const [editBalancesOpen, setEditBalancesOpen] = useState(false);
@@ -5995,6 +6028,7 @@ function CardTab({ empId, emp, mobilityLive, onToast, onNav }) {
   const [blockConfirmOpen, setBlockConfirmOpen] = useState(false);
   const [replaceConfirmOpen, setReplaceConfirmOpen] = useState(false);
   const [lostConfirmOpen, setLostConfirmOpen] = useState(false);
+  const [lostReportedAt, setLostReportedAt] = useState(null);
   const [displayPan, setDisplayPan] = useState(seed?.pan);
   const [reissued, setReissued] = useState(false);
   const [isReissuing, setIsReissuing] = useState(false);
@@ -6077,20 +6111,20 @@ function CardTab({ empId, emp, mobilityLive, onToast, onNav }) {
   );
 
   const quickActionCircles = (
-    <div style={{ display: 'flex', gap: 'var(--space-200)' }}>
+    <div style={{ display: 'flex', gap: 'var(--space-400)' }}>
       {hasActiveCard && [
         { icon: isFrozen ? 'play' : 'snowflake', label: isFrozen ? 'Unfreeze' : 'Freeze card', onClick: () => setFreezeConfirmOpen(true), color: isFrozen ? '#1d4ed8' : P.inkSoft },
-        { icon: 'alert-triangle', label: 'Report lost', onClick: () => setLostConfirmOpen(true), color: P.inkSoft },
+        { icon: 'alert-triangle', label: 'Report lost', onClick: () => setLostConfirmOpen(true), color: P.inkSoft, disabled: !!lostReportedAt },
         { icon: 'refresh-cw', label: 'Replace card', onClick: () => setReplaceConfirmOpen(true), color: P.inkSoft },
         { icon: 'ban', label: 'Block card', onClick: () => setBlockConfirmOpen(true), color: P.inkSoft },
-      ].map(({ icon, label, onClick, color }) => (
-        <div key={icon} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 'var(--space-075)' }}>
-          <button onClick={onClick} style={{
+      ].map(({ icon, label, onClick, color, disabled }) => (
+        <div key={icon} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 'var(--space-075)', opacity: disabled ? 0.4 : 1, transition: 'opacity 200ms' }}>
+          <button onClick={disabled ? undefined : onClick} disabled={disabled} style={{
             width: 48, height: 48, borderRadius: '50%', border: `1px solid ${P.border}`,
-            background: P.white, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            background: P.white, cursor: disabled ? 'default' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
             transition: 'background 120ms',
           }}
-            onMouseEnter={e => { e.currentTarget.style.background = P.bg; }}
+            onMouseEnter={e => { if (!disabled) e.currentTarget.style.background = P.bg; }}
             onMouseLeave={e => { e.currentTarget.style.background = P.white; }}
           >
             <Icon name={icon} size={18} color={color} strokeWidth={1.75} />
@@ -6168,15 +6202,24 @@ function CardTab({ empId, emp, mobilityLive, onToast, onNav }) {
       </div>
 
       {/* Card + action circles side by side */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-500)', marginBottom: 'var(--space-400)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-500)', marginBottom: 'var(--space-600)' }}>
         <div style={{ flexShrink: 0, position: 'relative' }}>
-          <div style={{ opacity: isFrozen ? 0.5 : isBlocked ? 0.25 : isReissuing ? 0.55 : 1, filter: (isFrozen || isBlocked) ? 'saturate(0)' : isReissuing ? 'saturate(0) brightness(1.08)' : 'none', transition: 'opacity 600ms, filter 600ms' }}>
+          <div style={{ opacity: isFrozen ? 0.5 : isBlocked ? 0.25 : isReissuing ? 0.6 : 1, filter: (isFrozen || isBlocked) ? 'saturate(0)' : 'none', transition: 'opacity 400ms, filter 400ms' }}>
             <img src={PAYFLIP_CARD_IMG} alt="Payflip Card" style={{ width: 240, height: 151, display: 'block', borderRadius: 14, boxShadow: '0 6px 20px rgba(15,13,40,0.2)' }} />
           </div>
           {isBlocked && (
             <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 14 }}>
               <div style={{ width: 48, height: 48, borderRadius: '50%', background: 'rgba(255,255,255,0.85)', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(4px)' }}>
                 <Icon name="ban" size={22} color={P.danger} strokeWidth={1.75} />
+              </div>
+            </div>
+          )}
+          {isReissuing && (
+            <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 14 }}>
+              <div style={{ width: 48, height: 48, borderRadius: '50%', background: 'rgba(255,255,255,0.85)', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(4px)' }}>
+                <span className="spin-cw" style={{ display: 'flex', animation: 'spinCW 900ms linear infinite' }}>
+                  <Icon name="refresh-cw" size={20} color={P.inkSoft} strokeWidth={1.75} />
+                </span>
               </div>
             </div>
           )}
@@ -6219,7 +6262,7 @@ function CardTab({ empId, emp, mobilityLive, onToast, onNav }) {
             <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: 1.55 }}>
               {isFrozen
                 ? `Payments will resume immediately. ${first} won't be notified.`
-                : `Payments will be paused immediately. ${first} won't be notified. You can unfreeze at any time.`}
+                : `All payments will be blocked immediately — the card will show as frozen in the app. ${first} won't be notified. You can unfreeze at any time.`}
             </p>
           </div>
         </ModalShell>
@@ -6234,6 +6277,9 @@ function CardTab({ empId, emp, mobilityLive, onToast, onNav }) {
               <Button variant="primary" style={{ background: P.danger }} onClick={() => {
                 const newPan = String(Math.floor(1000 + Math.random() * 9000));
                 setDisplayPan(newPan);
+                setStatus('active');
+                setLostReportedAt(Date.now());
+                setTimeout(() => setLostReportedAt(null), 8000);
                 close();
                 onToast && onToast({ message: `${first}'s card cancelled — replacement issued`, type: 'approve' });
               }}>Report and replace</Button>
@@ -6249,10 +6295,7 @@ function CardTab({ empId, emp, mobilityLive, onToast, onNav }) {
               </div>
             </div>
             <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: 1.55 }}>
-              The current card will be cancelled immediately and a new virtual card issued. {first} won't be notified. This cannot be undone.
-            </p>
-            <p style={{ margin: 'var(--space-125) 0 0', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: 1.55 }}>
-              A replacement card will be issued immediately — {first} can start using it right away.
+              The current card will be cancelled immediately and a new virtual card number issued — {first} can use it right away. This cannot be undone.
             </p>
           </div>
         </ModalShell>
@@ -6265,9 +6308,9 @@ function CardTab({ empId, emp, mobilityLive, onToast, onNav }) {
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-100)', padding: 'var(--space-200) var(--space-300)', borderTop: `1px solid ${P.border}` }}>
               <Button variant="secondary" onClick={close}>Keep card</Button>
               <Button variant="primary" onClick={() => {
-                setIsReissuing(true); close();
-                setTimeout(() => { setIsReissuing(false); setReissued(true); }, 1500);
-                onToast && onToast({ message: `Card reissued for ${first}`, type: 'approve' });
+                const newPan = String(Math.floor(1000 + Math.random() * 9000));
+                setIsReissuing(true); setStatus('active'); close();
+                setTimeout(() => { setIsReissuing(false); setReissued(true); setDisplayPan(newPan); onToast && onToast({ message: `Card reissued for ${first}`, type: 'approve' }); }, 900);
               }}>Reissue card</Button>
             </div>
           )}
@@ -6281,10 +6324,7 @@ function CardTab({ empId, emp, mobilityLive, onToast, onNav }) {
               </div>
             </div>
             <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: 1.55 }}>
-              A new security code and expiry date will be issued. The card number stays the same — {first} may need to update saved payment methods where they stored the old code.
-            </p>
-            <p style={{ margin: 'var(--space-125) 0 0', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: 1.55 }}>
-              {first} won't be notified.
+              A new card number, security code, and expiry date will be issued. {first} will be notified and will need to update any saved payment methods that use the old card.
             </p>
           </div>
         </ModalShell>
@@ -6421,10 +6461,13 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
   // Food-mode INSS state
   const [inssUploaded, setInssUploaded] = useState(false);
   const [inssUploading, setInssUploading] = useState(false);
-  const [inssDownloaded, setInssDownloaded] = useState(false);
   const [inssUploadHover, setInssUploadHover] = useState(false);
   const [inssUploadError, setInssUploadError] = useState(null);
   const inssFileInputRef = React.useRef(null);
+
+  // Food live state
+  const [foodUnmatched, setFoodUnmatched] = useState(2);
+  const [showUnmatchedDrawer, setShowUnmatchedDrawer] = useState(false);
 
   // Food-mode state (untouched)
   const [socialSecretariat, setSocialSecretariat] = useState('SD Worx');
@@ -6482,15 +6525,6 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
     return () => clearTimeout(t);
   }, [widgetMode, step, mandateDenied]);
 
-  // Food: simulate bank approval 5s after step 4 (awaiting approval)
-  React.useEffect(() => {
-    if (widgetMode !== 'food' || step !== 4) return;
-    const t = setTimeout(() => {
-      setStep(5);
-      onToast?.({ message: 'Mandate approved — notify your employees to get started', type: 'approve' });
-    }, 5000);
-    return () => clearTimeout(t);
-  }, [widgetMode, step]);
 
   // Fade in live state
   React.useEffect(() => {
@@ -6750,6 +6784,70 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
 
   const liveContent = () => {
     if (!live) return null;
+
+    if (widgetMode === 'food') {
+      const UNMATCHED_EMPLOYEES = [
+        { name: 'Thomas Renard', niss: '85.04.12-234.56' },
+        { name: 'Élise Fontaine', niss: '92.11.03-567.89' },
+      ];
+      return (
+        <div style={{ display: 'flex', flexDirection: 'column', opacity: liveVisible ? 1 : 0, transition: `opacity 250ms ${EASE_OUT}` }}>
+          {/* Unmatched employees warning */}
+          {foodUnmatched > 0 && (
+            <div style={{ padding: 'var(--space-150) var(--space-300)', borderBottom: `1px solid ${P.border}`, display: 'flex', alignItems: 'center', gap: 'var(--space-150)', background: '#FFFBEB' }}>
+              <Icon name="alert-triangle" size={14} color="#D97706" strokeWidth={2} style={{ flexShrink: 0 }} />
+              <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, flex: 1, lineHeight: '18px' }}>
+                {foodUnmatched} {foodUnmatched === 1 ? 'employee' : 'employees'} from {socialSecretariat} couldn't be matched
+              </span>
+              <button onClick={() => setShowUnmatchedDrawer(true)} style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.ink, textDecoration: 'underline', background: 'none', border: 'none', cursor: 'pointer', padding: 0, whiteSpace: 'nowrap' }}>Resolve →</button>
+            </div>
+          )}
+          {/* Stats row */}
+          <div style={{ padding: 'var(--space-250) var(--space-300)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 'var(--space-200)' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-050)' }}>
+              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 22, color: P.ink, letterSpacing: '-0.02em', lineHeight: 1 }}>{foodEmpCount} employees</div>
+              <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>{socialSecretariat} · September cycle</div>
+            </div>
+            <a href="#" onClick={e => e.preventDefault()} style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink, textDecoration: 'underline', whiteSpace: 'nowrap' }}>Manage →</a>
+          </div>
+          {/* Unmatched drawer */}
+          {showUnmatchedDrawer && (
+            <DrawerShell title="Unmatched employees" onClose={() => setShowUnmatchedDrawer(false)}>
+              {close => (
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                  <div style={{ padding: 'var(--space-300)', borderBottom: `1px solid ${P.border}` }}>
+                    <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: '20px' }}>
+                      {socialSecretariat} sent {UNMATCHED_EMPLOYEES.length} NISS {UNMATCHED_EMPLOYEES.length === 1 ? 'number' : 'numbers'} that don't match any employee in your People directory. Match them to an existing employee, add them to People, or ignore them for this cycle.
+                    </span>
+                  </div>
+                  <div style={{ flex: 1, overflowY: 'auto' }} className="hide-scrollbar">
+                    {UNMATCHED_EMPLOYEES.map((emp, i) => (
+                      <div key={i} style={{ padding: 'var(--space-250) var(--space-300)', borderBottom: `1px solid ${P.border}`, display: 'flex', flexDirection: 'column', gap: 'var(--space-150)' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)' }}>
+                          <div style={{ width: 36, height: 36, borderRadius: '50%', background: '#FEF3C7', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                            <Icon name="user-x" size={16} color="#D97706" strokeWidth={1.75} />
+                          </div>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: P.ink }}>{emp.name}</div>
+                            <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>NISS {emp.niss}</div>
+                          </div>
+                        </div>
+                        <div style={{ display: 'flex', gap: 'var(--space-100)' }}>
+                          <Button variant="secondary" style={{ flex: 1, justifyContent: 'center', fontSize: 'var(--fs-body-xs)', padding: 'var(--space-075) var(--space-125)' }} onClick={() => setFoodUnmatched(n => Math.max(0, n - 1))}>Match to employee</Button>
+                          <Button variant="secondary" style={{ flex: 1, justifyContent: 'center', fontSize: 'var(--fs-body-xs)', padding: 'var(--space-075) var(--space-125)' }} onClick={() => setFoodUnmatched(n => Math.max(0, n - 1))}>Add to People</Button>
+                          <Button variant="text" style={{ flex: 1, justifyContent: 'center', fontSize: 'var(--fs-body-xs)', padding: 'var(--space-075) var(--space-125)', color: P.inkSoft }} onClick={() => setFoodUnmatched(n => Math.max(0, n - 1))}>Ignore</Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </DrawerShell>
+          )}
+        </div>
+      );
+    }
+
     const justLaunched = !!ws.justLaunched;
     const fundingIssue = !!ws.fundingIssue;
     const toppingUp = !!ws.toppingUp;
@@ -6819,8 +6917,8 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
     <div style={{ background: P.white, borderRadius: 12, overflow: 'hidden', ...(live ? { border: `1px solid ${P.border}` } : { boxShadow: `0 0 0 1px rgba(15,13,40,0.07), 0 4px 24px rgba(15,13,40,0.08)` }) }}>
       {/* Header */}
       <div onClick={hidden ? () => setHidden(false) : undefined} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: 'var(--space-200) var(--space-300)', borderBottom: `1px solid ${P.border}`, cursor: hidden ? 'pointer' : 'default' }}>
-        <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.ink, letterSpacing: '-0.025px' }}>
-          {widgetMode === 'food' ? 'Launch meal vouchers' : 'Mobility account'}
+        <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-lg)', color: P.ink, letterSpacing: '-0.3px' }}>
+          {widgetMode === 'food' ? (live ? 'Meal vouchers' : 'Set up meal vouchers') : (live ? 'Mobility account' : 'Set up mobility')}
         </span>
         {!live && (() => {
           const mobilityMeta = [
@@ -6830,18 +6928,17 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
             { label: 'Send invites',     color: P.inkSoft,  bg: P.bg },
           ];
           const foodMeta = [
-            { label: 'Social secretariat',       color: P.inkSoft, bg: P.bg },
-            { label: 'INSS numbers',             color: P.inkSoft, bg: P.bg },
-            { label: 'Sign mandate',             color: P.inkSoft, bg: P.bg },
-            { label: 'Awaiting approval',        color: '#D97706', bg: '#FEF3C7' },
-            { label: 'Notify employees',         color: P.inkSoft, bg: P.bg },
+            { label: 'Social secretariat', color: P.inkSoft, bg: P.bg },
+            { label: 'INSS numbers',       color: P.inkSoft, bg: P.bg },
+            { label: 'Review payment',     color: P.inkSoft, bg: P.bg },
+            { label: 'Notify employees',   color: P.inkSoft, bg: P.bg },
           ];
           const meta = widgetMode === 'mobility'
             ? (mobilityMeta[step - 1] || mobilityMeta[0])
             : (foodMeta[step - 1] || foodMeta[0]);
           const stepLabel = widgetMode === 'mobility'
             ? `${meta.label} · ${step} of 4`
-            : `${meta.label} · ${step} of 5`;
+            : `${meta.label} · ${step} of 4`;
           return (
             <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)' }}>
               {!hidden ? (
@@ -6905,6 +7002,35 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
               </div>
               <div style={{ flex: 1, background: 'linear-gradient(140deg, #faf7fe 0%, #f0ebf8 40%, #ddd0f0 100%)', borderLeft: `1px solid ${P.border}`, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: 'var(--space-600) var(--space-400)', position: 'relative', overflow: 'hidden' }}>
                 <div className="gradient-drift" style={{ position: 'absolute', inset: 0, background: 'linear-gradient(200deg, #f5f0fe 0%, #e4d8f5 35%, #c8aee5 100%)', animation: 'gradientDrift 8s ease-in-out infinite alternate', pointerEvents: 'none' }} />
+                {/* Scattered mobility icons — texture layer */}
+                {[
+                  { icon: 'car',        x: 5,  y: 5,  r: -10, s: 18 },
+                  { icon: 'train',      x: 78, y: 4,  r:  15, s: 15 },
+                  { icon: 'bike',       x: 50, y: 9,  r: -8,  s: 16 },
+                  { icon: 'bus',        x: 22, y: 18, r:  12, s: 14 },
+                  { icon: 'bus',        x: 88, y: 16, r: -20, s: 17 },
+                  { icon: 'bike',       x: 68, y: 25, r:  18, s: 13 },
+                  { icon: 'car',        x: 38, y: 30, r: -25, s: 15 },
+                  { icon: 'train',      x: 10, y: 38, r:  10, s: 15 },
+                  { icon: 'bike',       x: 82, y: 38, r: -15, s: 14 },
+                  { icon: 'bus',        x: 55, y: 45, r:  22, s: 16 },
+                  { icon: 'car',        x: 25, y: 52, r: -18, s: 13 },
+                  { icon: 'train',      x: 90, y: 55, r:  28, s: 14 },
+                  { icon: 'car',        x: 12, y: 62, r:  14, s: 17 },
+                  { icon: 'train',      x: 70, y: 64, r: -20, s: 15 },
+                  { icon: 'bike',       x: 40, y: 70, r:  20, s: 16 },
+                  { icon: 'bus',        x: 78, y: 76, r: -12, s: 18 },
+                  { icon: 'bike',       x: 18, y: 80, r:  18, s: 13 },
+                  { icon: 'bus',        x: 58, y: 82, r: -16, s: 15 },
+                  { icon: 'car',        x: 88, y: 88, r:  10, s: 14 },
+                  { icon: 'train',      x: 35, y: 90, r: -22, s: 16 },
+                  { icon: 'bike',       x: 6,  y: 92, r:  16, s: 14 },
+                  { icon: 'bus',        x: 65, y: 93, r: -14, s: 15 },
+                ].map(({ icon, x, y, r, s }, i) => (
+                  <div key={i} style={{ position: 'absolute', left: `${x}%`, top: `${y}%`, transform: `rotate(${r}deg)`, opacity: 0.12, pointerEvents: 'none' }}>
+                    <Icon name={icon} size={s} color="#5b21b6" strokeWidth={1.5} />
+                  </div>
+                ))}
                 <CardTilt>
                   <img src={PAYFLIP_CARD_IMG} alt="Payflip Card" style={{ width: 270, height: 170, display: 'block', borderRadius: 14 }} />
                 </CardTilt>
@@ -6973,7 +7099,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
                 <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
                   Download the template, fill in each employee's INSS number, and upload it here. Payflip uses these to match {socialSecretariat}'s monthly attendance file.
                 </p>
-                {/* Download card — always visible; swaps to a compact done state after download */}
+                {/* Download link — static, always present */}
                 {(() => {
                   const doDownload = () => {
                     const header = 'Name,Email,INSS number\n';
@@ -6986,32 +7112,21 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
                     const a = document.createElement('a');
                     a.href = url; a.download = 'inss_numbers_template.csv'; a.click();
                     URL.revokeObjectURL(url);
-                    setInssDownloaded(true);
                   };
-                  return inssDownloaded ? (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', padding: 'var(--space-150) var(--space-200)', background: P.bg, borderRadius: 8 }}>
-                      <Icon name="circle-check" size={14} color="#16A34A" strokeWidth={2} style={{ flexShrink: 0 }} />
-                      <span style={{ flex: 1, minWidth: 0, fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: P.inkSoft }}>inss_numbers_template.csv</span>
-                      <button onClick={doDownload} title="Download again" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', background: 'transparent', cursor: 'pointer', padding: 4, flexShrink: 0, color: P.inkSoft }}><Icon name="download" size={13} color={P.inkSoft} strokeWidth={2} /></button>
-                    </div>
-                  ) : (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', padding: 'var(--space-150) var(--space-200)', background: P.bg, borderRadius: 8 }}>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: P.ink }}>inss_numbers_template.csv</div>
-                        <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginTop: 2 }}>Pre-filled with your {foodSelectedEmployees.length} employees — add the INSS number for each one</div>
-                      </div>
-                      <button onClick={doDownload} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 8px', border: `1px solid ${P.border}`, borderRadius: 6, background: P.bgCard, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.ink, cursor: 'pointer', flexShrink: 0 }}>
-                        <Icon name="download" size={11} color={P.ink} strokeWidth={2} /> Download
-                      </button>
-                    </div>
+                  return (
+                    <button onClick={doDownload} style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-075)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, textDecoration: 'underline', textUnderlineOffset: 2 }}>
+                      <Icon name="download" size={13} color={P.ink} strokeWidth={1.75} />
+                      inss_numbers_template.csv
+                    </button>
                   );
                 })()}
-                {/* Upload zone / file card — only shown after download */}
-                {inssDownloaded && (
-                  inssUploaded ? (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', padding: 'var(--space-150) var(--space-200)', border: `1px solid ${P.border}`, borderRadius: 8, animation: `stepContentEnter 200ms ${EASE_OUT} both` }}>
-                      <Icon name="file-text" size={16} color={P.inkSoft} strokeWidth={1.5} style={{ flexShrink: 0 }} />
-                      <span style={{ flex: 1, minWidth: 0, fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: P.ink, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>inss_numbers_template.csv</span>
+                {/* Upload zone */}
+                {inssUploaded ? (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', padding: 'var(--space-150) var(--space-200)', border: `1px solid ${P.successBorder}`, borderRadius: 8, background: P.successBg, animation: `stepContentEnter 200ms ${EASE_OUT} both` }}>
+                      <Icon name="circle-check" size={16} color={P.success} strokeWidth={2} style={{ flexShrink: 0 }} />
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: P.ink, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>inss_numbers_template.csv</div>
+                      </div>
                       <button onClick={() => { setInssUploaded(false); setInssUploadError(null); }} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 24, height: 24, border: 'none', background: 'transparent', cursor: 'pointer', flexShrink: 0, padding: 0 }}><Icon name="x" size={14} color={P.inkSoft} strokeWidth={2} /></button>
                     </div>
                   ) : (
@@ -7058,7 +7173,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
                       </div>
                     </>
                   )
-                )}
+                }
                 <Button variant="primary" disabled={!foodInssComplete} onClick={() => setStep(3)} style={{ width: '100%', justifyContent: 'center', fontSize: 'var(--fs-body-md)', padding: 'var(--space-125) var(--space-250)' }}>Continue</Button>
               </div>
             ) : step < 2 ? (
@@ -7074,69 +7189,60 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
             )}
           </div>
 
-          {/* Food Step 3 — Sign mandate */}
+          {/* Food Step 3 — Review payment (mandate already active from Mobility Card) */}
           <div style={{ background: step === 3 ? P.white : inactiveBg, borderBottom: `1px solid ${P.border}` }}>
             {step === 3 ? (
-              <div key="food-step3-active" style={{ padding: 'var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-250)', animation: `stepContentEnter 250ms ${EASE_OUT}` }}>
+              <div key="food-step3-active" style={{ padding: 'var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-200)', animation: `stepContentEnter 250ms ${EASE_OUT}` }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)' }}>
                   {stepBadgeEl(3)}
-                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.ink }}>Sign mandate</span>
+                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.ink }}>Review payment</span>
                 </div>
-                <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
-                  Authorises Payflip to collect the exact meal voucher amount each month, based on the number of days employees have worked. No buffer, no top-ups — just the right amount at the right time.
-                </p>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', padding: 'var(--space-125) var(--space-200)', border: `1px solid ${P.border}`, borderRadius: 10, background: P.bg }}>
-                  <img src={TWIKEY_LOGO_IMG} alt="Twikey" style={{ width: 80, height: 35, display: 'block', objectFit: 'contain', flexShrink: 0 }} />
-                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, lineHeight: '17px' }}>
-                    Secured by Twikey — funds arrive within 3 business days.
-                  </span>
+                {/* Context */}
+                <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: '20px' }}>You already have a SEPA Direct Debit mandate with Payflip. We'll use this mandate to collect future payments for your meal voucher orders.</span>
+                {/* Bank card — the confirmed thing, leads */}
+                <div style={{ borderRadius: 10, background: P.bg, overflow: 'hidden' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: 'var(--space-150) var(--space-200)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)' }}>
+                      <div style={{ width: 36, height: 36, borderRadius: 8, background: P.white, border: `1px solid ${P.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        <Icon name="landmark" size={16} color={P.ink} strokeWidth={1.75} />
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                        <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', fontWeight: 500, color: P.ink }}>BNP Paribas Fortis</span>
+                        <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>BE68 •••• •••• 4821</span>
+                      </div>
+                    </div>
+                    <DotPill bg={P.successBg} color={P.success} size={11} dot={true} border={false}>Active mandate</DotPill>
+                  </div>
+                  <div style={{ borderTop: `1px solid ${P.border}`, padding: 'var(--space-100) var(--space-200)' }}>
+                    <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>Mandate signed 14 March 2025 · used for Mobility Card</span>
+                  </div>
                 </div>
-                <Button variant="primary" onClick={() => setStep(4)} style={{ width: '100%', justifyContent: 'center', fontSize: 'var(--fs-body-md)', padding: 'var(--space-125) var(--space-250)' }}>Sign with Twikey</Button>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 'var(--space-075)' }}>
+                  <Icon name="info" size={14} color={P.inkSoft} strokeWidth={1.75} style={{ flexShrink: 0, marginTop: 2 }} />
+                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, lineHeight: '18px' }}>Payment will be taken once the first order is sent from {socialSecretariat}.</span>
+                </div>
+                <Button variant="primary" onClick={() => setStep(4)} style={{ width: '100%', justifyContent: 'center', fontSize: 'var(--fs-body-md)', padding: 'var(--space-125) var(--space-250)' }}>Confirm mandate</Button>
               </div>
             ) : step < 3 ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', padding: 'var(--space-300)', opacity: 0.55 }}>
                 {stepBadgeEl(3)}
-                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-md)', color: P.inkSoft }}>Sign mandate</span>
+                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-md)', color: P.inkSoft }}>Review payment</span>
               </div>
             ) : (
               <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', padding: 'var(--space-300)', animation: `stepDoneEnter 200ms ${EASE_OUT}`, opacity: 0.70 }}>
                 {stepBadgeEl(3)}
-                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.inkSoft }}>Mandate signed</span>
+                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.inkSoft }}>Mandate confirmed</span>
               </div>
             )}
           </div>
 
-          {/* Food Step 4 — Awaiting approval (auto-advances after 5s) */}
+
+          {/* Food Step 4 — Notify employees */}
           <div style={{ background: step === 4 ? P.white : inactiveBg, borderBottom: `1px solid ${P.border}` }}>
             {step === 4 ? (
               <div key="food-step4-active" style={{ padding: 'var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-200)', animation: `stepContentEnter 250ms ${EASE_OUT}` }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)' }}>
                   {stepBadgeEl(4)}
-                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.ink }}>Awaiting approval</span>
-                </div>
-                <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
-                  Your bank is reviewing the direct debit mandate. This usually takes a few hours — no action needed, we'll notify you once it's approved.
-                </p>
-              </div>
-            ) : step < 4 ? (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', padding: 'var(--space-300)', opacity: 0.55 }}>
-                {stepBadgeEl(4)}
-                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-md)', color: P.inkSoft }}>Awaiting approval</span>
-              </div>
-            ) : (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', padding: 'var(--space-300)', animation: `stepDoneEnter 200ms ${EASE_OUT}`, opacity: 0.70 }}>
-                {stepBadgeEl(4, step === 5)}
-                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.inkSoft }}>Mandate approved</span>
-              </div>
-            )}
-          </div>
-
-          {/* Food Step 5 — Notify employees */}
-          <div style={{ background: step === 5 ? P.white : inactiveBg, borderBottom: `1px solid ${P.border}` }}>
-            {step === 5 ? (
-              <div key="food-step5-active" style={{ padding: 'var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-200)', animation: `stepContentEnter 250ms ${EASE_OUT}` }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)' }}>
-                  {stepBadgeEl(5)}
                   <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.ink }}>Notify employees</span>
                 </div>
                 <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
@@ -7148,19 +7254,48 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
                     You don't issue cards yourself. Employees activate their card when they're ready by downloading the app.
                   </p>
                 </div>
-                <Button variant="primary" onClick={() => {}} style={{ width: '100%', justifyContent: 'center', fontSize: 'var(--fs-body-md)', padding: 'var(--space-125) var(--space-250)' }}>Notify {foodEmpCount} employees</Button>
+                <Button variant="primary" onClick={() => setWs({ live: true })} style={{ width: '100%', justifyContent: 'center', fontSize: 'var(--fs-body-md)', padding: 'var(--space-125) var(--space-250)' }}>Notify {foodEmpCount} employees</Button>
               </div>
             ) : (
               <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', padding: 'var(--space-300)', opacity: 0.55 }}>
-                {stepBadgeEl(5)}
+                {stepBadgeEl(4)}
                 <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-md)', color: P.inkSoft }}>Notify employees</span>
               </div>
             )}
           </div>
 
             </div>
-            <div style={{ flex: 1, background: 'linear-gradient(140deg, #faf7fe 0%, #f0ebf8 40%, #ddd0f0 100%)', borderLeft: `1px solid ${P.border}`, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: 'var(--space-600) var(--space-400)', position: 'relative', overflow: 'hidden' }}>
-              <div className="gradient-drift" style={{ position: 'absolute', inset: 0, background: 'linear-gradient(200deg, #f5f0fe 0%, #e4d8f5 35%, #c8aee5 100%)', animation: 'gradientDrift 8s ease-in-out infinite alternate', pointerEvents: 'none' }} />
+            <div style={{ flex: 1, background: 'linear-gradient(140deg, #fff7f5 0%, #ffe8e2 40%, #ffd0c4 100%)', borderLeft: `1px solid ${P.border}`, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: 'var(--space-600) var(--space-400)', position: 'relative', overflow: 'hidden' }}>
+              <div className="gradient-drift" style={{ position: 'absolute', inset: 0, background: 'linear-gradient(200deg, #fff5f2 0%, #ffddd4 35%, #ffc4b4 100%)', animation: 'gradientDrift 8s ease-in-out infinite alternate', pointerEvents: 'none' }} />
+              {/* Scattered food icons — texture layer */}
+              {[
+                { icon: 'utensils',   x: 5,  y: 5,  r: -18, s: 18 },
+                { icon: 'coffee',     x: 78, y: 4,  r:  22, s: 15 },
+                { icon: 'apple',      x: 52, y: 8,  r: -8,  s: 16 },
+                { icon: 'sandwich',   x: 22, y: 18, r:  14, s: 14 },
+                { icon: 'wheat',      x: 88, y: 16, r: -25, s: 17 },
+                { icon: 'egg',        x: 68, y: 25, r:  20, s: 13 },
+                { icon: 'utensils',   x: 38, y: 30, r: -30, s: 15 },
+                { icon: 'coffee',     x: 10, y: 38, r: -12, s: 15 },
+                { icon: 'apple',      x: 82, y: 38, r:  18, s: 14 },
+                { icon: 'wheat',      x: 55, y: 45, r:  10, s: 16 },
+                { icon: 'sandwich',   x: 25, y: 52, r: -20, s: 13 },
+                { icon: 'egg',        x: 90, y: 55, r:  30, s: 14 },
+                { icon: 'utensils',   x: 12, y: 62, r:  15, s: 17 },
+                { icon: 'coffee',     x: 70, y: 64, r: -22, s: 15 },
+                { icon: 'apple',      x: 40, y: 70, r:  25, s: 16 },
+                { icon: 'wheat',      x: 78, y: 76, r: -10, s: 18 },
+                { icon: 'sandwich',   x: 18, y: 80, r:  20, s: 13 },
+                { icon: 'egg',        x: 58, y: 82, r: -18, s: 15 },
+                { icon: 'utensils',   x: 88, y: 88, r:  12, s: 14 },
+                { icon: 'coffee',     x: 35, y: 90, r: -25, s: 16 },
+                { icon: 'apple',      x: 6,  y: 92, r:  18, s: 14 },
+                { icon: 'wheat',      x: 65, y: 93, r: -15, s: 15 },
+              ].map(({ icon, x, y, r, s }, i) => (
+                <div key={i} style={{ position: 'absolute', left: `${x}%`, top: `${y}%`, transform: `rotate(${r}deg)`, opacity: 0.12, pointerEvents: 'none' }}>
+                  <Icon name={icon} size={s} color="#9f3a20" strokeWidth={1.5} />
+                </div>
+              ))}
               <CardTilt>
                 <img src={PAYFLIP_CARD_IMG} alt="Payflip Card" style={{ width: 270, height: 170, display: 'block', borderRadius: 14 }} />
               </CardTilt>
@@ -7278,7 +7413,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
 function AttentionRow({ item, last, onNav }) {
   const [hovered, setHovered] = useState(false);
   return (
-    <div onClick={() => onNav(item.screen)} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
+    <div onClick={() => item.onClick ? item.onClick() : onNav(item.screen)} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
       style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', padding: 'var(--space-150) var(--space-250)', borderBottom: last ? 'none' : `1px solid ${P.border}`, cursor: 'pointer', background: hovered ? P.bgSubtle : 'transparent', transition: `background 150ms ${EASE_OUT}` }}>
       <div style={{ width: 32, height: 32, borderRadius: 8, background: item.iconBg ?? P.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
         <Icon name={item.icon} size={15} color={item.iconColor ?? '#3d4047'} strokeWidth={1.5} />
@@ -7290,10 +7425,87 @@ function AttentionRow({ item, last, onNav }) {
   );
 }
 
+function FoodLiveWidget({ socialSecretariat = 'SD Worx', empCount = 23, onNav }) {
+  const [unmatched, setUnmatched] = React.useState(2);
+  const [showDrawer, setShowDrawer] = React.useState(false);
+  const UNMATCHED = [
+    { name: 'Thomas Renard', niss: '85.04.12-234.56' },
+    { name: 'Élise Fontaine', niss: '92.11.03-567.89' },
+  ];
+  return (
+    <div style={{ border: `1px solid ${P.border}`, borderRadius: 12, background: P.white, overflow: 'hidden' }}>
+      {/* Header */}
+      <div style={{ padding: 'var(--space-200) var(--space-300)', borderBottom: `1px solid ${P.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-lg)', color: P.ink, letterSpacing: '-0.3px' }}>Meal vouchers</span>
+        <DotPill bg={P.successBg} color={P.success} dot size={11}>Active</DotPill>
+      </div>
+      {/* Unmatched warning */}
+      {unmatched > 0 && (
+        <div style={{ padding: 'var(--space-150) var(--space-300)', borderBottom: `1px solid ${P.border}`, display: 'flex', alignItems: 'center', gap: 'var(--space-150)', background: '#FFFBEB' }}>
+          <Icon name="alert-triangle" size={14} color="#D97706" strokeWidth={2} style={{ flexShrink: 0 }} />
+          <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, flex: 1, lineHeight: '18px' }}>
+            {unmatched} {unmatched === 1 ? 'employee' : 'employees'} from {socialSecretariat} couldn't be matched
+          </span>
+          <button onClick={() => setShowDrawer(true)} style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.ink, textDecoration: 'underline', background: 'none', border: 'none', cursor: 'pointer', padding: 0, whiteSpace: 'nowrap' }}>Resolve →</button>
+        </div>
+      )}
+      {/* Stats */}
+      <div style={{ padding: 'var(--space-250) var(--space-300)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 'var(--space-200)' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-050)' }}>
+          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 22, color: P.ink, letterSpacing: '-0.02em', lineHeight: 1 }}>{empCount} employees</div>
+          <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>{socialSecretariat} · September cycle</div>
+        </div>
+        <a href="#" onClick={e => e.preventDefault()} style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink, textDecoration: 'underline', whiteSpace: 'nowrap' }}>Manage →</a>
+      </div>
+      {/* Unmatched drawer */}
+      {showDrawer && (
+        <DrawerShell title="Unmatched employees" onClose={() => setShowDrawer(false)}>
+          {close => (
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+              <div style={{ padding: 'var(--space-300)', borderBottom: `1px solid ${P.border}` }}>
+                <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: '20px' }}>
+                  {socialSecretariat} sent {UNMATCHED.length} NISS {UNMATCHED.length === 1 ? 'number' : 'numbers'} that don't match any employee in your People directory. Match them to an existing employee, add them to People, or ignore them for this cycle.
+                </span>
+              </div>
+              <div style={{ flex: 1, overflowY: 'auto' }} className="hide-scrollbar">
+                {UNMATCHED.map((emp, i) => (
+                  <div key={i} style={{ padding: 'var(--space-250) var(--space-300)', borderBottom: i < UNMATCHED.length - 1 ? `1px solid ${P.border}` : 'none', display: 'flex', flexDirection: 'column', gap: 'var(--space-150)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)' }}>
+                      <div style={{ width: 36, height: 36, borderRadius: '50%', background: '#FEF3C7', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        <Icon name="user-x" size={16} color="#D97706" strokeWidth={1.75} />
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: P.ink }}>{emp.name}</div>
+                        <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>NISS {emp.niss}</div>
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', gap: 'var(--space-100)' }}>
+                      <Button variant="secondary" style={{ flex: 1, justifyContent: 'center', fontSize: 'var(--fs-body-xs)', padding: 'var(--space-075) var(--space-125)' }} onClick={() => setUnmatched(n => Math.max(0, n - 1))}>Match to employee</Button>
+                      <Button variant="secondary" style={{ flex: 1, justifyContent: 'center', fontSize: 'var(--fs-body-xs)', padding: 'var(--space-075) var(--space-125)' }} onClick={() => setUnmatched(n => Math.max(0, n - 1))}>Add to People</Button>
+                      <Button variant="text" style={{ flex: 1, justifyContent: 'center', fontSize: 'var(--fs-body-xs)', padding: 'var(--space-075) var(--space-125)', color: P.inkSoft }} onClick={() => setUnmatched(n => Math.max(0, n - 1))}>Ignore</Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </DrawerShell>
+      )}
+    </div>
+  );
+}
+
 function DashboardScreen({ requests, onNav, onToast, appEntity = null, physicalCardsAllowed, onPhysicalCardsChange, mobilityWidgetState, onMobilityWidgetStateChange, pendingRequests = 0, pendingExpenses = 0, pendingChoices = 0, activeBudgets = 0 }) {
   const today = new Date(); today.setHours(0,0,0,0);
   const fundingIssue = mobilityWidgetState.live && !!mobilityWidgetState.fundingIssue;
-  const totalPending = pendingRequests + pendingExpenses + pendingChoices + (fundingIssue ? 1 : 0);
+  const foodLive = mobilityWidgetState.live && mobilityWidgetState.widgetMode === 'food';
+  const [foodUnmatched, setFoodUnmatched] = useState(2);
+  const [showUnmatchedDrawer, setShowUnmatchedDrawer] = useState(false);
+  const UNMATCHED_EMPLOYEES = [
+    { name: 'Thomas Renard', niss: '85.04.12-234.56' },
+    { name: 'Élise Fontaine', niss: '92.11.03-567.89' },
+  ];
+  const totalPending = pendingRequests + pendingExpenses + pendingChoices + (fundingIssue ? 1 : 0) + (foodLive && foodUnmatched > 0 ? 1 : 0);
   const employeeCount = Object.keys(EMPLOYEES).length;
   const activeBenefits = BENEFIT_TYPES_SEED.filter(b => b.active).length;
   const firstName = CURRENT_USER.name.split(' ')[0];
@@ -7301,6 +7513,7 @@ function DashboardScreen({ requests, onNav, onToast, appEntity = null, physicalC
 
   const attentionItems = [
     fundingIssue && { icon: 'alert-circle', label: 'Mobility top-up failed', count: '!', screen: 'settings-cardrules', iconBg: P.dangerBg, iconColor: P.danger, badgeBg: P.danger },
+    foodLive && foodUnmatched > 0 && { icon: 'user-x', label: 'Unmatched employees — Meal vouchers', count: foodUnmatched, iconBg: '#FEF3C7', iconColor: '#D97706', badgeBg: '#D97706', onClick: () => setShowUnmatchedDrawer(true) },
     pendingRequests > 0 && { icon: 'calendar-days', label: 'Time-off requests', count: pendingRequests, screen: 'requests', iconBg: '#e8f0fe', iconColor: '#2563eb' },
     pendingExpenses > 0 && { icon: 'receipt', label: 'Expense requests', count: pendingExpenses, screen: 'expenses', iconBg: P.warningBg, iconColor: '#b45309' },
     pendingChoices > 0 && { icon: 'list-checks', label: 'Choices to approve', count: pendingChoices, screen: 'choices', iconBg: '#ede9fe', iconColor: '#6d28d9' },
@@ -7347,7 +7560,7 @@ function DashboardScreen({ requests, onNav, onToast, appEntity = null, physicalC
 
         {/* Widget row — grid layout once setup is live or hidden */}
         <div style={{ display: 'flex', gap: 'var(--space-250)', alignItems: 'flex-start', opacity: setupInProgress ? 0.35 : 1, transition: `opacity 250ms ${EASE_OUT}`, pointerEvents: setupInProgress ? 'none' : 'auto' }}>
-          {mobilityWidgetState.live && mobilityWidgetState.fundingIssue && (
+          {mobilityWidgetState.live && mobilityWidgetState.widgetMode !== 'food' && mobilityWidgetState.fundingIssue && (
             <div style={{ width: 420, flexShrink: 0 }}>
               <MobilityLaunchWidget onToast={onToast} onNav={onNav} physicalCardsAllowed={physicalCardsAllowed} onPhysicalCardsChange={onPhysicalCardsChange} mobilityWidgetState={mobilityWidgetState} onMobilityWidgetStateChange={onMobilityWidgetStateChange} />
             </div>
@@ -7364,10 +7577,45 @@ function DashboardScreen({ requests, onNav, onToast, appEntity = null, physicalC
                 <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft }}>You're all caught up</span>
               </div>
             ) : attentionItems.map((item, i) => (
-              <AttentionRow key={item.screen} item={item} last={i === attentionItems.length - 1} onNav={onNav} />
+              <AttentionRow key={item.label} item={item} last={i === attentionItems.length - 1} onNav={onNav} />
             ))}
           </div>
         </div>
+
+        {/* Unmatched employees drawer (food live) */}
+        {showUnmatchedDrawer && (
+          <DrawerShell title="Unmatched employees" onClose={() => setShowUnmatchedDrawer(false)}>
+            {close => (
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                <div style={{ padding: 'var(--space-300)', borderBottom: `1px solid ${P.border}` }}>
+                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: '20px' }}>
+                    SD Worx sent {UNMATCHED_EMPLOYEES.length} NISS {UNMATCHED_EMPLOYEES.length === 1 ? 'number' : 'numbers'} that don't match any employee in your People directory. Match them to an existing employee, add them to People, or ignore them for this cycle.
+                  </span>
+                </div>
+                <div style={{ flex: 1, overflowY: 'auto' }} className="hide-scrollbar">
+                  {UNMATCHED_EMPLOYEES.map((emp, i) => (
+                    <div key={i} style={{ padding: 'var(--space-250) var(--space-300)', borderBottom: i < UNMATCHED_EMPLOYEES.length - 1 ? `1px solid ${P.border}` : 'none', display: 'flex', flexDirection: 'column', gap: 'var(--space-150)' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)' }}>
+                        <div style={{ width: 36, height: 36, borderRadius: '50%', background: '#FEF3C7', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                          <Icon name="user-x" size={16} color="#D97706" strokeWidth={1.75} />
+                        </div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: P.ink }}>{emp.name}</div>
+                          <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>NISS {emp.niss}</div>
+                        </div>
+                      </div>
+                      <div style={{ display: 'flex', gap: 'var(--space-100)' }}>
+                        <Button variant="secondary" style={{ flex: 1, justifyContent: 'center', fontSize: 'var(--fs-body-xs)', padding: 'var(--space-075) var(--space-125)' }} onClick={() => setFoodUnmatched(n => Math.max(0, n - 1))}>Match to employee</Button>
+                        <Button variant="secondary" style={{ flex: 1, justifyContent: 'center', fontSize: 'var(--fs-body-xs)', padding: 'var(--space-075) var(--space-125)' }} onClick={() => setFoodUnmatched(n => Math.max(0, n - 1))}>Add to People</Button>
+                        <Button variant="text" style={{ flex: 1, justifyContent: 'center', fontSize: 'var(--fs-body-xs)', padding: 'var(--space-075) var(--space-125)', color: P.inkSoft }} onClick={() => setFoodUnmatched(n => Math.max(0, n - 1))}>Ignore</Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </DrawerShell>
+        )}
 
       </div>
       </div>
@@ -7376,7 +7624,7 @@ function DashboardScreen({ requests, onNav, onToast, appEntity = null, physicalC
 }
 
 // ── Payflip Card settings ───────────────────────────────────────────────────
-function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, onToast, mobilityWidgetState, onMobilityWidgetStateChange }) {
+function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, onToast, mobilityWidgetState, onMobilityWidgetStateChange, onNav }) {
   const [draftPhysicalCards, setDraftPhysicalCards] = useState(physicalCardsAllowed);
   const [showResignModal, setShowResignModal] = useState(false);
   const [resignSigning, setResignSigning] = useState(false);
@@ -7438,6 +7686,29 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, onToas
   _pts2.push(`L 300,${yOf2(_bal2)}`);
   const linePath2 = _pts2.join(' ');
   const areaPath2 = linePath2 + ' L 300,100 L 0,100 Z';
+
+  if (!isLive || mobilityWidgetState.widgetMode === 'food') {
+    return (
+      <div style={{ flex: 1, overflow: 'auto', animation: `screenEnter 180ms ${EASE_OUT}` }}>
+        <div style={{ maxWidth: 680, margin: '0 auto', padding: 'var(--space-500) var(--space-400)', display: 'flex', flexDirection: 'column', gap: 'var(--space-400)' }}>
+          <div>
+            <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 28, color: P.ink, margin: 0, letterSpacing: '-0.02em' }}>Payflip Card</h1>
+            <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, margin: 'var(--space-050) 0 0' }}>Manage card accounts and settings for your employees</p>
+          </div>
+          <div style={{ border: `1px solid ${P.border}`, borderRadius: 12, background: P.white, padding: 'var(--space-600) var(--space-400)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 'var(--space-200)', textAlign: 'center' }}>
+            <div style={{ width: 44, height: 44, borderRadius: 12, background: P.bg, border: `1px solid ${P.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Icon name="credit-card" size={20} color={P.inkSoft} strokeWidth={1.5} />
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-075)' }}>
+              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.ink }}>Mobility not set up yet</span>
+              <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, maxWidth: 340, lineHeight: '20px' }}>Card settings and mandate details will appear here once you've completed the Mobility setup.</span>
+            </div>
+            <Button variant="primary" icon="arrow-right" onClick={() => onNav && onNav('dashboard')}>Set up Mobility</Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={{ flex: 1, overflow: 'auto', animation: `screenEnter 180ms ${EASE_OUT}` }}>
@@ -8431,6 +8702,7 @@ const DEFAULT_LEAVE_CONFIGS = {
   'Ceremony':                    { requiresApproval: false, declaration: false, docRequired: false, maxDays: null, editRequiresApproval: false, cancelRequiresApproval: false, carryover: null, allowHalfDay: false, docThresholdDays: 0 },
   'Civic duty':                  { requiresApproval: false, declaration: false, docRequired: true,  maxDays: null, editRequiresApproval: false, cancelRequiresApproval: false, carryover: null, allowHalfDay: false, docThresholdDays: 0 },
   'Moving':                      { requiresApproval: false, declaration: false, docRequired: false, maxDays: 1,    editRequiresApproval: false, cancelRequiresApproval: false, carryover: 'forfeit', allowHalfDay: true, docThresholdDays: 0 },
+  'Seniority leave':             { requiresApproval: false, declaration: false, docRequired: false, maxDays: null, editRequiresApproval: false, cancelRequiresApproval: false, carryover: 'forfeit', allowHalfDay: false, docThresholdDays: 0, active: false },
 };
 
 const LEAVE_COLOR_VALUES = [...new Set(Object.values(LEAVE_COLORS))];
@@ -8810,7 +9082,7 @@ function initLeaveTypes() {
         name,
         section: section.id,
         color: LEAVE_COLORS[name],
-        active: true,
+        active: cfg.active ?? true,
         requiresApproval: cfg.requiresApproval ?? true,
         declaration: cfg.declaration || false,
         adminOnly: cfg.adminOnly || false,
@@ -8821,7 +9093,7 @@ function initLeaveTypes() {
         statutoryLabel: meta?.statutoryLabel || null,
         statutoryNote: meta?.statutoryNote || null,
         limitedDays: !meta?.statutory && cfg.maxDays != null,
-        maxDays: cfg.maxDays || 20,
+        maxDays: cfg.maxDays !== undefined ? cfg.maxDays : 20,
         editRequiresApproval: cfg.editRequiresApproval ?? false,
         cancelRequiresApproval: cfg.cancelRequiresApproval ?? false,
         carryover: cfg.carryover ?? null,
@@ -8944,14 +9216,14 @@ function LeaveTypeSettingsPage({ config, allLeaveTypes = [], onSave, onDelete, o
               </div>
               {audit && <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginTop: 'var(--space-075)' }}>Last updated by {audit.by} · {audit.at}</div>}
             </div>
-            {!isNew && !defaults.declaration && !defaults.adminOnly && (
+            {!isNew && !defaults.declaration && !defaults.adminOnly && !defaults.statutory && (
               <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-125)', paddingTop: 'var(--space-075)', flexShrink: 0 }}>
                 <span key={active ? 'active' : 'inactive'} style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, animation: PREFERS_REDUCED_MOTION ? 'none' : `labelFadeIn 120ms ${EASE_OUT}` }}>{active ? 'Active' : 'Inactive'}</span>
                 <Switch size="sm" checked={active} onChange={() => setActive(v => !v)} />
               </div>
             )}
           </div>
-          <div style={{ display: 'grid', gridTemplateRows: (!active && !defaults.declaration && !defaults.adminOnly) ? '1fr' : '0fr', transition: PREFERS_REDUCED_MOTION ? 'none' : `grid-template-rows 200ms ${EASE_OUT}`, overflow: 'hidden' }}>
+          <div style={{ display: 'grid', gridTemplateRows: (!active && !defaults.declaration && !defaults.adminOnly && !defaults.statutory) ? '1fr' : '0fr', transition: PREFERS_REDUCED_MOTION ? 'none' : `grid-template-rows 200ms ${EASE_OUT}`, overflow: 'hidden' }}>
             <div style={{ minHeight: 0 }}>
               <div style={{ marginTop: 'var(--space-200)', padding: 'var(--space-150) var(--space-200)', borderRadius: 10, background: '#eff6ff', border: '1px solid #bfdbfe', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: '#1d4ed8', display: 'flex', alignItems: 'flex-start', gap: 'var(--space-100)' }}>
                 <Icon name="info" size={14} color="#3b82f6" strokeWidth={2} style={{ flexShrink: 0, marginTop: 'var(--space-025)' }} />
@@ -9033,8 +9305,6 @@ function LeaveTypeSettingsPage({ config, allLeaveTypes = [], onSave, onDelete, o
 
             const infoCallout = defaults.statutory
               ? defaults.statutoryNote
-              : defaults.declaration
-              ? 'Sick leave has no legal maximum under Belgian law'
               : defaults.name === 'ADV / RTT'
               ? (advFT === 0
                   ? 'Your company uses 38h/week contracts — no ADV days are generated. Update contracted hours in Payroll settings.'
@@ -9044,46 +9314,57 @@ function LeaveTypeSettingsPage({ config, allLeaveTypes = [], onSave, onDelete, o
               : null;
 
             return (
-              <div style={card}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 'var(--space-200)', padding: 'var(--space-200) var(--space-250)', borderBottom: showBelow ? `1px solid ${P.border}` : 'none' }}>
-                  <div>
-                    <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: P.ink }}>Limit days per year</div>
-                    <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, marginTop: 'var(--space-050)' }}>Cap the number of days per year — can be overridden per employee</div>
-                  </div>
-                  <div style={{ flexShrink: 0 }}
-                    onMouseEnter={e => { if (isLocked && tooltipText) { const r = e.currentTarget.getBoundingClientRect(); setTooltip({ text: tooltipText, x: r.left + r.width / 2, y: r.top }); } }}
-                    onMouseLeave={() => setTooltip(null)}>
-                    <Switch size="sm" checked={isChecked} onChange={isLocked ? undefined : () => setLimitedDays(v => !v)} disabled={isLocked} />
-                  </div>
-                </div>
-                {isLocked ? (
-                  <div style={{ padding: 'var(--space-200) var(--space-250)' }}>
-                    {(infoCallout || (defaults.adminOnly && defaults.statutoryLabel)) && (
-                      <div style={{ padding: 'var(--space-100) var(--space-150)', borderRadius: 8, background: P.bg, border: `1px solid ${P.border}`, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, display: 'flex', gap: 'var(--space-100)', alignItems: 'flex-start' }}>
-                        <Icon name="info" size={14} color={P.inkSoft} strokeWidth={2} style={{ flexShrink: 0, marginTop: 'var(--space-025)' }} />
-                        <span>
-                          {defaults.adminOnly
-                            ? <strong style={{ fontFamily: 'var(--font-display)', fontWeight: 600 }}>{defaults.statutoryLabel}</strong>
-                            : (<>
-                                {(defaults.statutory && defaults.statutoryLabel) && <strong style={{ fontFamily: 'var(--font-display)', fontWeight: 600 }}>{defaults.statutoryLabel} — </strong>}
-                                {(defaults.name === 'ADV / RTT' && advFT > 0) && <strong style={{ fontFamily: 'var(--font-display)', fontWeight: 600 }}>{advFT} days — </strong>}
-                                {infoCallout}
-                              </>)
-                          }
-                        </span>
+              <>
+                {!isLocked && (
+                  <div style={card}>
+                    {!defaults.declaration && (
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 'var(--space-200)', padding: 'var(--space-200) var(--space-250)', borderBottom: (!isLocked && limitedDays) ? `1px solid ${P.border}` : 'none' }}>
+                        <div>
+                          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: P.ink }}>Limit days per year</div>
+                          <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, marginTop: 'var(--space-050)' }}>Cap the number of days per year — can be overridden per employee</div>
+                        </div>
+                        <div style={{ flexShrink: 0 }}
+                          onMouseEnter={e => { if (isLocked && tooltipText) { const r = e.currentTarget.getBoundingClientRect(); setTooltip({ text: tooltipText, x: r.left + r.width / 2, y: r.top }); } }}
+                          onMouseLeave={() => setTooltip(null)}>
+                          <Switch size="sm" checked={isChecked} onChange={isLocked ? undefined : () => setLimitedDays(v => !v)} disabled={isLocked} />
+                        </div>
+                      </div>
+                    )}
+                    {!isLocked && (
+                      <div style={{ display: 'grid', gridTemplateRows: limitedDays ? '1fr' : '0fr', transition: PREFERS_REDUCED_MOTION ? 'none' : `grid-template-rows 200ms ${EASE_OUT}`, overflow: 'hidden' }}>
+                        <div style={{ minHeight: 0 }}>
+                          <div style={{ padding: 'var(--space-200) var(--space-250)' }}>
+                            {stepper}
+                            {defaults.name === 'Seniority leave' && (
+                              <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, marginTop: 'var(--space-100)' }}>
+                                This sets the maximum cap. Actual days per employee are configured under their profile based on years of service.
+                              </div>
+                            )}
+                          </div>
+                        </div>
                       </div>
                     )}
                   </div>
-                ) : (
-                  <div style={{ display: 'grid', gridTemplateRows: limitedDays ? '1fr' : '0fr', transition: PREFERS_REDUCED_MOTION ? 'none' : `grid-template-rows 200ms ${EASE_OUT}`, overflow: 'hidden' }}>
-                    <div style={{ minHeight: 0 }}>
-                      <div style={{ padding: 'var(--space-200) var(--space-250)' }}>
-                        {stepper}
-                      </div>
-                    </div>
+                )}
+                {isLocked && (infoCallout || (defaults.adminOnly && defaults.statutoryLabel)) && (
+                  <div style={{ padding: 'var(--space-100) var(--space-150)', borderRadius: 8, background: P.bg, border: `1px solid ${P.border}`, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, display: 'flex', gap: 'var(--space-100)', alignItems: 'flex-start' }}>
+                    <Icon name="info" size={14} color={P.inkSoft} strokeWidth={2} style={{ flexShrink: 0, marginTop: 'var(--space-025)' }} />
+                    <span>
+                      {defaults.adminOnly
+                        ? (<>
+                            {defaults.statutoryLabel && <strong style={{ fontFamily: 'var(--font-display)', fontWeight: 600 }}>{defaults.statutoryLabel} — </strong>}
+                            {infoCallout}
+                          </>)
+                        : (<>
+                            {(defaults.statutory && defaults.statutoryLabel) && <strong style={{ fontFamily: 'var(--font-display)', fontWeight: 600 }}>{defaults.statutoryLabel} — </strong>}
+                            {(defaults.name === 'ADV / RTT' && advFT > 0) && <strong style={{ fontFamily: 'var(--font-display)', fontWeight: 600 }}>{advFT} days — </strong>}
+                            {infoCallout}
+                          </>)
+                      }
+                    </span>
                   </div>
                 )}
-              </div>
+              </>
             );
           })()}
 
@@ -9139,7 +9420,7 @@ function LeaveTypeSettingsPage({ config, allLeaveTypes = [], onSave, onDelete, o
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-150)' }}>
           <div style={SL}>Requests</div>
 
-          {!defaults.declaration && !defaults.adminOnly && (
+          {!defaults.declaration && !defaults.adminOnly && !(defaults.statutory && defaults.section === 'special-leave') && (
             <div style={card}>
               {settingsRow('Require approval', 'Each request must be approved before leave is confirmed', requiresApproval, () => setRequiresApproval(v => !v), !requiresApproval)}
               <div style={{ display: 'grid', gridTemplateRows: requiresApproval ? '1fr' : '0fr', transition: PREFERS_REDUCED_MOTION ? 'none' : `grid-template-rows 200ms ${EASE_OUT}`, overflow: 'hidden' }}>
@@ -9155,13 +9436,31 @@ function LeaveTypeSettingsPage({ config, allLeaveTypes = [], onSave, onDelete, o
 
           <div style={card}>
             {settingsRow(
-              defaults.adminOnly ? 'Request document from employee' : 'Require a supporting document',
-              defaults.adminOnly ? 'Employee receives a document request when this leave is recorded' : 'Employee must attach a supporting document',
+              defaults.adminOnly ? 'Request document from employee' : defaults.declaration ? 'Require medical certificate' : 'Require a supporting document',
+              defaults.adminOnly ? 'Employee receives a document request when this leave is recorded' : defaults.declaration ? 'Employee must provide a signed medical certificate (doktersattest)' : 'Employee must attach a supporting document',
               docRequired, () => setDocRequired(v => !v), true
             )}
           </div>
 
-          {!defaults.adminOnly && (
+          {defaults.declaration && docRequired && (
+            <div style={card}>
+              <div style={{ padding: 'var(--space-200) var(--space-250)' }}>
+                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: P.ink, marginBottom: 'var(--space-050)' }}>Certificate required from day</div>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, marginBottom: 'var(--space-125)' }}>Employees can self-certify for shorter absences</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-125)' }}>
+                  <div style={{ display: 'inline-flex', alignItems: 'center', border: `1px solid ${P.border}`, borderRadius: 8, overflow: 'hidden' }}>
+                    <button onClick={() => setDocThresholdDays(v => Math.max(1, (parseInt(v) || 1) - 1))} style={{ width: 32, height: 36, border: 'none', background: P.bg, color: P.inkSoft, cursor: 'pointer', fontSize: 'var(--fs-body-md)', fontFamily: 'var(--font-body)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>−</button>
+                    <input type="text" inputMode="numeric" value={docThresholdDays} onChange={e => setDocThresholdDays(parseInt(e.target.value) || '')}
+                      style={{ width: 48, height: 36, border: 'none', borderLeft: `1px solid ${P.border}`, borderRight: `1px solid ${P.border}`, padding: '0 var(--space-050)', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, outline: 'none', textAlign: 'center', background: P.white }} />
+                    <button onClick={() => setDocThresholdDays(v => (parseInt(v) || 0) + 1)} style={{ width: 32, height: 36, border: 'none', background: P.bg, color: P.inkSoft, cursor: 'pointer', fontSize: 'var(--fs-body-md)', fontFamily: 'var(--font-body)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>+</button>
+                  </div>
+                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft }}>days</span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {!defaults.adminOnly && !defaults.declaration && !(defaults.statutory && defaults.section === 'special-leave') && (
             <div style={card}>
               {settingsRow('Allow half-day requests', 'Employees can request a morning or afternoon instead of a full day', allowHalfDay, () => setAllowHalfDay(v => !v), true)}
             </div>
@@ -11627,7 +11926,7 @@ function App() {
         {screen === 'settings-documents' && <DocumentsSettings key={appEntity ?? 'all'} appEntity={appEntity} documents={settingsDocuments} onDocumentsChange={setSettingsDocuments} />}
         {screen === 'settings-payroll' && <PayrollSettings companyRegime={companyRegime} onRegimeChange={setCompanyRegime} appEntity={appEntity} onToast={addToast} />}
         {screen === 'settings-benefits' && <BenefitsSettings key={appEntity ?? 'all'} appEntity={appEntity} />}
-        {screen === 'settings-cardrules' && <CardRulesSettings physicalCardsAllowed={physicalCardsAllowed} onPhysicalCardsChange={setPhysicalCardsAllowed} onToast={addToast} mobilityWidgetState={mobilityWidgetState} onMobilityWidgetStateChange={setMobilityWidgetState} />}
+        {screen === 'settings-cardrules' && <CardRulesSettings physicalCardsAllowed={physicalCardsAllowed} onPhysicalCardsChange={setPhysicalCardsAllowed} onToast={addToast} mobilityWidgetState={mobilityWidgetState} onMobilityWidgetStateChange={setMobilityWidgetState} onNav={handleNav} />}
         {screen === 'changelog' && <ChangelogScreen />}
         {screen === 'components' && <ComponentLibraryScreen />}
         {screen.startsWith('settings-') && screen !== 'settings-allowances' && screen !== 'settings-expenses' && screen !== 'settings-team' && screen !== 'settings-timeoff' && screen !== 'settings-entities' && screen !== 'settings-documents' && screen !== 'settings-payroll' && screen !== 'settings-benefits' && screen !== 'settings-cardrules' && <StubScreen title={SETTINGS_TITLES[screen] || 'Settings'} description={`Configure ${(SETTINGS_TITLES[screen] || 'settings').toLowerCase()}`} />}
