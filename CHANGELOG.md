@@ -6,6 +6,55 @@ This file is not part of the prototype itself — it's project documentation to 
 
 ---
 
+## 2026-08-25 — Food live state, unmatched employees, and panel visual differentiation
+
+### Food live state: no dedicated widget
+
+After mobility launches, its setup widget stays on the dashboard and transforms into a live monitoring tile (balance, chart, adoption). Food deliberately does not follow this pattern — meal vouchers are processed monthly by a social secretariat, not funded via a live balance. There's nothing to monitor continuously. The widget disappears when food goes live.
+
+Instead, the one actionable post-launch problem for food surfaces in **Needs attention**: when the social secretariat file contains a NISS number that doesn't match any employee in People, that's a blocking reconciliation issue that needs admin attention before the cycle can be processed correctly. It gets an amber `user-x` row in Needs attention — not a dedicated widget — because it's an exception, not a standing operating condition.
+
+### Unmatched employees: Match / Add to People / Ignore
+
+When SD Worx (or any social secretariat) sends a file with NISS numbers not in Payflip's People directory, the admin needs to resolve them before the correct voucher amount can be calculated. Three actions per employee:
+
+- **Match to employee** — links the NISS to an existing People record.
+- **Add to People** — creates a new record for the unmatched person.
+- **Ignore** — skips them for this cycle (they won't receive vouchers this month).
+
+The drawer opens from the Needs attention row. Each resolved employee decrements the count; when it reaches zero the row disappears.
+
+*Why Needs attention, not a dedicated widget:* the unmatched problem is transient and exceptional — it happens when a new employee joins and the SS file arrives before HR has added them to Payflip. It doesn't justify a standing tile on the dashboard. The Needs attention model (an actionable row with a count badge, resolved and gone when handled) is the right fit.
+
+### Visual differentiation: food vs. mobility setup panels
+
+The right panel of the setup wizard used a single lavender gradient for both products. After mobility launched, an admin starting food setup would see the same panel and might think they'd already completed this. Two distinct identities:
+
+- **Mobility (purple):** `#faf7fe → #f0ebf8 → #ddd0f0` with scattered transport icons (car, train, bike, bus) at 12% opacity in `#5b21b6`. No planes — the mobility budget in Belgium covers commute transport, not business travel by air.
+- **Food (coral):** `#fff7f5 → #ffe8e2 → #ffd0c4` with scattered food icons (utensils, coffee, apple, sandwich, wheat, egg) at 12% opacity in `#9f3a20`. Amber was rejected — it clashed with the card's navy + purple. Green was rejected — it reads as eco vouchers in Belgium, a separate product.
+
+The icons are textural (12% opacity, varied size and rotation) — enough to signal the product category without competing with the card artwork.
+
+### Payflip Card settings: empty state before mobility is live
+
+The page previously showed full content (Active mandate, IBAN, Re-sign button) regardless of whether mobility had been set up. That state was incoherent — the mandate doesn't exist yet. The page now gates on `mobilityWidgetState.live`:
+
+- **Not live / food mode:** empty state with a credit-card icon, "Mobility not set up yet" heading, one-liner explanation, and a "Set up Mobility →" CTA that navigates to the dashboard.
+- **Live (mobility mode):** full settings page as before.
+
+*Why not hide the nav item:* hiding the page makes the feature undiscoverable and leaves the admin with no mental model of where card settings live. An empty state is reachable, informative, and points back to the right action.
+
+### Food wizard step 3: payment mandate copy and bank icon
+
+The payment step previously used mobility mandate copy. Food-specific version:
+
+- Explicitly names the existing SEPA Direct Debit mandate ("You already have a SEPA Direct Debit mandate with Payflip…")
+- Adds an info row: "Payment will be taken once the first order is sent from [social secretariat name]" — uses the SS selected in step 1, so the copy is specific.
+- Button renamed from "Continue" to "Confirm mandate" — signals an explicit confirmation, not just progression.
+- Bank icon background changed to white with a border — the previous blue background had no semantic meaning and introduced a color that wasn't in the system.
+
+---
+
 ## 2026-08-12 — Payflip Card settings page restructure
 
 ### "Card rules" → "Payflip Card"

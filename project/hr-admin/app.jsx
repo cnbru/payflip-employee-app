@@ -10505,6 +10505,19 @@ function BenefitsSettings({ appEntity = null }) {
 // ── Changelog ──────────────────────────────────────────────────────────────
 const CHANGELOG_ENTRIES = [
   {
+    date: '25 Aug 2026',
+    title: 'Food live state, unmatched employees, and panel visual differentiation',
+    description: 'Food goes live differently from mobility — no standing widget, because there\'s no live balance to monitor. The one post-launch exception (an employee in the SS file not found in People) surfaces in Needs attention rather than as a dedicated tile. Separately, the setup wizard panels now look distinct per product so an admin can\'t mistake food setup for a completed mobility setup.',
+    items: [
+      { commit: '22bb6d4', summary: 'Food live state: no widget — setup wizard disappears, unmatched employees appear in Needs attention as an amber row' },
+      { commit: '22bb6d4', summary: 'Unmatched employees drawer: Match to employee / Add to People / Ignore per NISS number; row disappears when count reaches zero' },
+      { commit: '22bb6d4', summary: 'Mobility panel: purple gradient + scattered transport icons (car, train, bike, bus — no planes)' },
+      { commit: '22bb6d4', summary: 'Food panel: coral/blush gradient + scattered food icons (utensils, coffee, apple, sandwich, wheat, egg); amber and green both rejected' },
+      { commit: '22bb6d4', summary: 'Payflip Card settings: empty state before mobility is live, with "Set up Mobility →" CTA; full page only renders post-launch' },
+      { commit: '22bb6d4', summary: 'Food step 3: food-specific mandate copy, "Confirm mandate" button, info row naming the social secretariat, white+border bank icon' },
+    ],
+  },
+  {
     date: '20 Aug 2026',
     title: 'Expenses: category restructure + sidebar count cleanup',
     description: 'Two rounds of user interviews (Tim Sterkens, Made with Love; Inge Van den Bussche, ByteFly) both independently flagged "Work expense" as confusing — every expense is a work expense, so the label added nothing. The category list also missed the most common Belgian real-cost categories. Separately, the sidebar count badges were styled as pills with a background, clashing visually with the chevron on expandable items.',
