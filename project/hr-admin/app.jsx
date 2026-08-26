@@ -7932,12 +7932,14 @@ function DashboardScreen({ requests, onNav, onToast, appEntity = null, physicalC
                               </div>
                             )}
                           </div>
-                          <Button variant="primary" style={{ justifyContent: 'center', opacity: pickedEmployee ? 1 : 0.4 }} disabled={!pickedEmployee} onClick={() => { if (pickedEmployee) resolve(selectedPerson); }}>
-                            {pickedEmployee ? `Add NISS to ${pickedEmployee.name}` : 'Select an employee above'}
-                          </Button>
-                          <Button variant="secondary" style={{ justifyContent: 'center' }} onClick={() => { setShowLinkCombobox(false); setMatchSearch(''); }}>
-                            Cancel
-                          </Button>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-100)' }}>
+                            <Button variant="primary" style={{ justifyContent: 'center', opacity: pickedEmployee ? 1 : 0.4 }} disabled={!pickedEmployee} onClick={() => { if (pickedEmployee) resolve(selectedPerson); }}>
+                              {pickedEmployee ? `Add NISS to ${pickedEmployee.name}` : 'Select an employee above'}
+                            </Button>
+                            <Button variant="secondary" style={{ justifyContent: 'center' }} onClick={() => { setShowLinkCombobox(false); setMatchSearch(''); }}>
+                              Cancel
+                            </Button>
+                          </div>
                         </div>
                       </>
                     )}
