@@ -597,7 +597,7 @@ const EMPLOYEES = {
   'thomas-vandenberghe': { name: 'Thomas Vandenberghe', initials: 'TV', color: '#99f6e4', entitlement: 20, department: 'Design',    email: 'thomas.vandenberghe@lumiogroup.be', entity: 'Lumio Group', entityId: 'lumio-group', budget: 0, role: 'Employee', status: 'Active', gender: 'm' },
   'thomas-janssens':     { name: 'Thomas Janssens',    initials: 'TJ', color: '#d9f99d', entitlement: 23, department: 'Design',    email: 'thomas.janssens@lumiogroup.be', entity: 'Lumio Group', entityId: 'lumio-group', budget: 3000, budgetUsed: 3000, role: 'Employee', status: 'Active', gender: 'm' },
   'charlotte-pieters':   { name: 'Charlotte Pieters',  initials: 'CP', color: '#fecdd3', entitlement: 20, department: 'Design',    email: 'charlotte.pieters@lumiogroup.be', entity: 'Lumio Group', entityId: 'lumio-group', budget: 2500, budgetUsed: 2500, role: 'Employee', status: 'Active', gender: 'f', fte: 0.8, workSchedule: [1,2,3,4] },
-  'lasse-willems':       { name: 'Lasse Willems',      initials: 'LW', color: '#c7d2fe', entitlement: 23, department: 'Design',    email: 'lasse.willems@lumiogroup.be',   entity: 'Lumio Group', entityId: 'lumio-group', budget: 4000, budgetUsed: 4000, role: 'Employee', status: 'Active', gender: 'm' },
+  'lasse-willems':       { name: 'Lasse Willems',      initials: 'LW', color: '#c7d2fe', entitlement: 23, department: 'Design',    email: 'lasse.willems@lumiogroup.be',   entity: 'Lumio Group', entityId: 'lumio-group', budget: 4000, budgetUsed: 4000, role: 'Employee', status: 'Active', gender: 'm', niss: '85.04.12-234.56', mealVoucherCycles: { count: 3, summary: 'Jun–Aug 2026' } },
   'nathalie-cox':        { name: 'Nathalie Cox',        initials: 'NC', color: '#a7f3d0', entitlement: 20, department: 'Design',    email: 'nathalie.cox@lumiogroup.be',    entity: 'Lumio Group', entityId: 'lumio-group', budget: 3200, budgetUsed: 3200, role: 'Employee', status: 'Active', gender: 'f' },
   'ruben-declercq':      { name: 'Ruben Declercq',     initials: 'RD', color: '#fed7aa', entitlement: 25, department: 'Design',    email: 'ruben.declercq@lumiogroup.be',  entity: 'Lumio Group', entityId: 'lumio-group', budget: 5500, budgetUsed: 5500, role: 'Employee', status: 'Active', gender: 'm' },
   'ines-baert':          { name: 'Inès Baert',          initials: 'IB', color: '#ddd6fe', entitlement: 20, department: 'Design',    email: 'ines.baert@lumiogroup.be',      entity: 'Lumio Group', entityId: 'lumio-group', budget: 2800, budgetUsed: 2800, role: 'Employee', status: 'Active', gender: 'f' },
@@ -6447,6 +6447,10 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
   const setStep = (v) => setWs({ step: typeof v === 'function' ? v(ws.step) : v });
   const mandateDenied = ws.mandateDenied;
   const setMandateDenied = (v) => setWs({ mandateDenied: typeof v === 'function' ? v(ws.mandateDenied) : v });
+  const mandateValidated = ws.mandateValidated;
+  const setMandateValidated = (v) => setWs({ mandateValidated: typeof v === 'function' ? v(ws.mandateValidated) : v });
+  const depositFailed = ws.depositFailed;
+  const setDepositFailed = (v) => setWs({ depositFailed: typeof v === 'function' ? v(ws.depositFailed) : v });
   const live = ws.live;
   const setLive = (v) => setWs({ live: typeof v === 'function' ? v(ws.live) : v });
   const liveVisible = ws.liveVisible;
@@ -6512,18 +6516,20 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
   const deposit = Math.max(50, Math.round(empCount * 37 * 3 / 50) * 50);
 
   const switchMode = (mode) => {
-    setWs({ widgetMode: mode, hidden: false, step: 1, mandateDenied: false, live: false, liveVisible: false });
+    setWs({ widgetMode: mode, hidden: false, step: 1, mandateDenied: false, mandateValidated: false, depositFailed: false, live: false, liveVisible: false });
   };
 
-  // Mobility: simulate deposit arriving 5s after step 2 (covers bank approval + collection)
+  // Mobility step 2: first 8s = mandate validation, then 8s = deposit collection, then advance
   React.useEffect(() => {
-    if (widgetMode !== 'mobility' || step !== 2 || mandateDenied) return;
-    const t = setTimeout(() => {
+    if (widgetMode !== 'mobility' || step !== 2 || mandateDenied || depositFailed) return;
+    const t1 = setTimeout(() => setMandateValidated(true), 8000);
+    const t2 = setTimeout(() => {
       setStep(3);
+      setMandateValidated(false);
       onToast?.({ message: 'Funds received — your account is ready', type: 'approve' });
-    }, 5000);
-    return () => clearTimeout(t);
-  }, [widgetMode, step, mandateDenied]);
+    }, 16000);
+    return () => { clearTimeout(t1); clearTimeout(t2); };
+  }, [widgetMode, step, mandateDenied, depositFailed]);
 
 
   // Fade in live state
@@ -6652,7 +6658,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
         <div style={{ display: 'grid', gridTemplateRows: step === 2 ? '1fr' : '0fr', transition: PREFERS_REDUCED_MOTION ? 'none' : `grid-template-rows 260ms ${EASE_OUT}`, overflow: 'hidden' }}>
           <div style={{ overflow: 'hidden' }}>
             {mandateDenied ? (
-              <div style={{ padding: 'var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-200)' }}>
+              <div style={{ padding: 'var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-200)', animation: PREFERS_REDUCED_MOTION ? `stepContentEnterReduced 200ms ${EASE_OUT} both` : `stepContentEnter 200ms ${EASE_OUT} both` }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)' }}>
                   <span style={{ width: 24, height: 24, borderRadius: 4, background: P.danger, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                     <Icon name="x" size={12} color="#fff" strokeWidth={2.5} />
@@ -6667,18 +6673,65 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
                   <Button variant="secondary" onClick={() => { window.location.href = 'mailto:support@payflip.be?subject=Mobility%20card%20mandate%20declined'; }} style={{ justifyContent: 'center', fontSize: 'var(--fs-body-sm)', padding: 'var(--space-100) var(--space-200)' }}>Contact support</Button>
                 </div>
               </div>
-            ) : (
-              <div style={{ padding: 'var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-200)' }}>
+            ) : depositFailed ? (
+              <div style={{ padding: 'var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-200)', animation: PREFERS_REDUCED_MOTION ? `stepContentEnterReduced 200ms ${EASE_OUT} both` : `stepContentEnter 200ms ${EASE_OUT} both` }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)' }}>
+                  <span style={{ width: 24, height: 24, borderRadius: 4, background: P.danger, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <Icon name="x" size={12} color="#fff" strokeWidth={2.5} />
+                  </span>
+                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.danger }}>Collection failed</span>
+                </div>
+                <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, lineHeight: '20px', margin: 0 }}>
+                  We couldn't collect €{deposit.toLocaleString('de-DE')} from your account. This is usually a temporary issue — check your account balance and try again.
+                </p>
+                <div style={{ display: 'flex', gap: 'var(--space-125)' }}>
+                  <Button variant="primary" onClick={() => setDepositFailed(false)} style={{ justifyContent: 'center', fontSize: 'var(--fs-body-sm)', padding: 'var(--space-100) var(--space-250)' }}>Retry collection</Button>
+                  <Button variant="secondary" onClick={() => { window.location.href = 'mailto:support@payflip.be?subject=Mobility%20card%20deposit%20failed'; }} style={{ justifyContent: 'center', fontSize: 'var(--fs-body-sm)', padding: 'var(--space-100) var(--space-200)' }}>Contact support</Button>
+                </div>
+              </div>
+            ) : (
+              <div style={{ padding: 'var(--space-300)', display: 'flex', flexDirection: 'column' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', marginBottom: 'var(--space-250)' }}>
                   {stepBadgeEl(2)}
                   <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.ink }}>Awaiting deposit</span>
                 </div>
-                <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
-                  We're collecting €{deposit.toLocaleString('de-DE')} via direct debit. Funds are usually available within 3 business days — no action needed, this card will update automatically.
-                </p>
-                <a href="#" onClick={e => { e.preventDefault(); setMandateDenied(true); }} style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, textDecoration: 'underline' }}>
-                  Simulate denial ↗
-                </a>
+                {/* Sub-step 1: Bank validation — indicator stretches to fill row height, line runs to bottom */}
+                <div style={{ display: 'flex', gap: 'var(--space-200)' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: 24, flexShrink: 0 }}>
+                    {mandateValidated
+                      ? <div style={{ width: 14, height: 14, borderRadius: '50%', background: '#e8f5f0', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 3 }}><Icon name="check" size={8} color="#008556" strokeWidth={2.5} /></div>
+                      : <div style={{ width: 14, height: 14, borderRadius: '50%', flexShrink: 0, border: '2px solid transparent', borderTopColor: P.ink, borderRightColor: P.border, borderBottomColor: P.border, borderLeftColor: P.border, animation: PREFERS_REDUCED_MOTION ? 'none' : 'spinCW 3000ms linear infinite', boxSizing: 'border-box', marginTop: 3 }} />
+                    }
+                    <div style={{ width: 1.5, flex: 1, background: P.border, marginTop: 3 }} />
+                  </div>
+                  <div style={{ flex: 1, paddingBottom: 'var(--space-250)' }}>
+                    <div style={{ fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: mandateValidated ? P.inkSoft : P.ink, lineHeight: '20px', transition: `color 300ms ${EASE_OUT}` }}>Bank validation</div>
+                    {!mandateValidated && (
+                      <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, lineHeight: '18px', marginTop: 2 }}>
+                        Your bank is verifying the direct debit mandate — no action needed.{' '}
+                        <a href="#" onClick={e => { e.preventDefault(); setMandateDenied(true); }} style={{ color: P.inkSoft, textDecoration: 'underline' }}>Simulate denial ↗</a>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                {/* Sub-step 2: Deposit collection */}
+                <div style={{ display: 'flex', gap: 'var(--space-200)' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: 24, flexShrink: 0 }}>
+                    {mandateValidated
+                      ? <div style={{ width: 14, height: 14, borderRadius: '50%', flexShrink: 0, border: '2px solid transparent', borderTopColor: P.ink, borderRightColor: P.border, borderBottomColor: P.border, borderLeftColor: P.border, animation: PREFERS_REDUCED_MOTION ? 'none' : 'spinCW 3000ms linear infinite', boxSizing: 'border-box', marginTop: 3 }} />
+                      : <div style={{ width: 14, height: 14, borderRadius: '50%', flexShrink: 0, border: `1.5px solid ${P.border}`, boxSizing: 'border-box', marginTop: 3 }} />
+                    }
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: mandateValidated ? P.ink : P.inkSoft, lineHeight: '20px', transition: `color 300ms ${EASE_OUT}` }}>Deposit collection</div>
+                    {mandateValidated && (
+                      <div key="deposit-desc" style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, lineHeight: '18px', marginTop: 2, animation: PREFERS_REDUCED_MOTION ? `stepContentEnterReduced 200ms ${EASE_OUT} both` : `stepContentEnter 200ms ${EASE_OUT} both` }}>
+                        Collecting €{deposit.toLocaleString('de-DE')} via direct debit. Funds usually arrive within 3 business days.{' '}
+                        <a href="#" onClick={e => { e.preventDefault(); setDepositFailed(true); }} style={{ color: P.inkSoft, textDecoration: 'underline' }}>Simulate failure ↗</a>
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
             )}
           </div>
@@ -6787,8 +6840,8 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
 
     if (widgetMode === 'food') {
       const UNMATCHED_EMPLOYEES = [
-        { name: 'Thomas Renard', niss: '85.04.12-234.56' },
-        { name: 'Élise Fontaine', niss: '92.11.03-567.89' },
+        { name: 'Thomas Vandenberghe', niss: '92.11.03-567.89' },
+        { name: 'Lasse Willems', niss: '95.07.18-123.45' },
       ];
       return (
         <div style={{ display: 'flex', flexDirection: 'column', opacity: liveVisible ? 1 : 0, transition: `opacity 250ms ${EASE_OUT}` }}>
@@ -6822,20 +6875,18 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
                   </div>
                   <div style={{ flex: 1, overflowY: 'auto' }} className="hide-scrollbar">
                     {UNMATCHED_EMPLOYEES.map((emp, i) => (
-                      <div key={i} style={{ padding: 'var(--space-250) var(--space-300)', borderBottom: `1px solid ${P.border}`, display: 'flex', flexDirection: 'column', gap: 'var(--space-150)' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)' }}>
-                          <div style={{ width: 36, height: 36, borderRadius: '50%', background: '#FEF3C7', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                            <Icon name="user-x" size={16} color="#D97706" strokeWidth={1.75} />
-                          </div>
-                          <div style={{ flex: 1, minWidth: 0 }}>
-                            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: P.ink }}>{emp.name}</div>
-                            <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>NISS {emp.niss}</div>
-                          </div>
+                      <div key={i} style={{ padding: 'var(--space-200) var(--space-300)', borderBottom: `1px solid ${P.border}`, display: 'flex', alignItems: 'center', gap: 'var(--space-150)' }}>
+                        <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#FEF3C7', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                          <Icon name="user-x" size={14} color="#D97706" strokeWidth={1.75} />
                         </div>
-                        <div style={{ display: 'flex', gap: 'var(--space-100)' }}>
-                          <Button variant="secondary" style={{ flex: 1, justifyContent: 'center', fontSize: 'var(--fs-body-xs)', padding: 'var(--space-075) var(--space-125)' }} onClick={() => setFoodUnmatched(n => Math.max(0, n - 1))}>Match to employee</Button>
-                          <Button variant="secondary" style={{ flex: 1, justifyContent: 'center', fontSize: 'var(--fs-body-xs)', padding: 'var(--space-075) var(--space-125)' }} onClick={() => setFoodUnmatched(n => Math.max(0, n - 1))}>Add to People</Button>
-                          <Button variant="text" style={{ flex: 1, justifyContent: 'center', fontSize: 'var(--fs-body-xs)', padding: 'var(--space-075) var(--space-125)', color: P.inkSoft }} onClick={() => setFoodUnmatched(n => Math.max(0, n - 1))}>Ignore</Button>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: P.ink }}>{emp.name}</div>
+                          <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>NISS {emp.niss}</div>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-075)', flexShrink: 0 }}>
+                          <Button variant="secondary" style={{ fontSize: 'var(--fs-body-xs)', padding: 'var(--space-050) var(--space-125)' }} onClick={() => setFoodUnmatched(n => Math.max(0, n - 1))}>Match</Button>
+                          <Button variant="secondary" style={{ fontSize: 'var(--fs-body-xs)', padding: 'var(--space-050) var(--space-125)' }} onClick={() => setFoodUnmatched(n => Math.max(0, n - 1))}>Add to People</Button>
+                          <button onClick={() => setFoodUnmatched(n => Math.max(0, n - 1))} style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, background: 'none', border: 'none', cursor: 'pointer', padding: 'var(--space-050) var(--space-075)' }}>Ignore</button>
                         </div>
                       </div>
                     ))}
@@ -6923,7 +6974,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
         {!live && (() => {
           const mobilityMeta = [
             { label: mandateDenied ? 'Mandate declined' : 'Sign mandate', color: mandateDenied ? '#DC2626' : P.inkSoft, bg: mandateDenied ? '#FEF2F2' : P.bg },
-            { label: 'Awaiting deposit', color: '#D97706',  bg: '#FEF3C7' },
+            { label: depositFailed ? 'Collection failed' : mandateValidated ? 'Awaiting deposit' : 'Validating mandate', color: depositFailed ? '#DC2626' : '#D97706', bg: depositFailed ? '#FEF2F2' : '#FEF3C7' },
             { label: 'Physical cards',   color: P.inkSoft,  bg: P.bg },
             { label: 'Send invites',     color: P.inkSoft,  bg: P.bg },
           ];
@@ -7469,20 +7520,18 @@ function FoodLiveWidget({ socialSecretariat = 'SD Worx', empCount = 23, onNav })
               </div>
               <div style={{ flex: 1, overflowY: 'auto' }} className="hide-scrollbar">
                 {UNMATCHED.map((emp, i) => (
-                  <div key={i} style={{ padding: 'var(--space-250) var(--space-300)', borderBottom: i < UNMATCHED.length - 1 ? `1px solid ${P.border}` : 'none', display: 'flex', flexDirection: 'column', gap: 'var(--space-150)' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)' }}>
-                      <div style={{ width: 36, height: 36, borderRadius: '50%', background: '#FEF3C7', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                        <Icon name="user-x" size={16} color="#D97706" strokeWidth={1.75} />
-                      </div>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: P.ink }}>{emp.name}</div>
-                        <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>NISS {emp.niss}</div>
-                      </div>
+                  <div key={i} style={{ padding: 'var(--space-200) var(--space-300)', borderBottom: i < UNMATCHED.length - 1 ? `1px solid ${P.border}` : 'none', display: 'flex', alignItems: 'center', gap: 'var(--space-150)' }}>
+                    <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#FEF3C7', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <Icon name="user-x" size={14} color="#D97706" strokeWidth={1.75} />
                     </div>
-                    <div style={{ display: 'flex', gap: 'var(--space-100)' }}>
-                      <Button variant="secondary" style={{ flex: 1, justifyContent: 'center', fontSize: 'var(--fs-body-xs)', padding: 'var(--space-075) var(--space-125)' }} onClick={() => setUnmatched(n => Math.max(0, n - 1))}>Match to employee</Button>
-                      <Button variant="secondary" style={{ flex: 1, justifyContent: 'center', fontSize: 'var(--fs-body-xs)', padding: 'var(--space-075) var(--space-125)' }} onClick={() => setUnmatched(n => Math.max(0, n - 1))}>Add to People</Button>
-                      <Button variant="text" style={{ flex: 1, justifyContent: 'center', fontSize: 'var(--fs-body-xs)', padding: 'var(--space-075) var(--space-125)', color: P.inkSoft }} onClick={() => setUnmatched(n => Math.max(0, n - 1))}>Ignore</Button>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: P.ink }}>{emp.name}</div>
+                      <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>NISS {emp.niss}</div>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-075)', flexShrink: 0 }}>
+                      <Button variant="secondary" style={{ fontSize: 'var(--fs-body-xs)', padding: 'var(--space-050) var(--space-125)' }} onClick={() => setUnmatched(n => Math.max(0, n - 1))}>Match</Button>
+                      <Button variant="secondary" style={{ fontSize: 'var(--fs-body-xs)', padding: 'var(--space-050) var(--space-125)' }} onClick={() => setUnmatched(n => Math.max(0, n - 1))}>Add to People</Button>
+                      <button onClick={() => setUnmatched(n => Math.max(0, n - 1))} style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, background: 'none', border: 'none', cursor: 'pointer', padding: 'var(--space-050) var(--space-075)' }}>Ignore</button>
                     </div>
                   </div>
                 ))}
@@ -7495,17 +7544,128 @@ function FoodLiveWidget({ socialSecretariat = 'SD Worx', empCount = 23, onNav })
   );
 }
 
+function MatchEmpCombobox({ employees, value, onChange, suggestions = [] }) {
+  const [query, setQuery] = React.useState('');
+  const [open, setOpen] = React.useState(false);
+  const ref = React.useRef(null);
+  const inputRef = React.useRef(null);
+
+  React.useEffect(() => {
+    if (!open) return;
+    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [open]);
+
+  const selected = value ? employees.find(e => e.id === value) : null;
+  const inputDisplayValue = selected && !query ? selected.name : query;
+  const filtered = employees.filter(e => !query || e.name.toLowerCase().includes(query.toLowerCase()));
+  const suggestionIds = new Set(suggestions.map(s => s.id));
+  const suggestedFiltered = suggestions.filter(s => !query || s.name.toLowerCase().includes(query.toLowerCase()));
+  const otherFiltered = filtered.filter(e => !suggestionIds.has(e.id));
+  const hasSuggestions = suggestedFiltered.length > 0;
+
+  const handleChange = (e) => {
+    setQuery(e.target.value);
+    if (value) onChange('');
+    setOpen(true);
+  };
+
+  const handleSelect = (emp) => {
+    onChange(emp.id);
+    setQuery('');
+    setOpen(false);
+  };
+
+  const handleClear = () => {
+    onChange('');
+    setQuery('');
+    setOpen(true);
+    inputRef.current?.focus();
+  };
+
+  const EmpRow = ({ emp }) => (
+    <div
+      onMouseDown={() => handleSelect(emp)}
+      style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', cursor: 'pointer', background: emp.id === value ? P.bg : P.white }}
+      onMouseEnter={e => e.currentTarget.style.background = P.bg}
+      onMouseLeave={e => e.currentTarget.style.background = emp.id === value ? P.bg : P.white}
+    >
+      <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink }}>{emp.name}</div>
+      <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: emp.niss ? P.inkSoft : P.inkFaint, fontVariantNumeric: 'tabular-nums', flexShrink: 0, marginLeft: 8 }}>{emp.niss || 'No NISS'}</div>
+    </div>
+  );
+
+  return (
+    <div ref={ref} style={{ position: 'relative' }}>
+      <div style={{ position: 'relative' }}>
+        {!selected && (
+          <div style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
+            <Icon name="search" size={14} color={P.inkSoft} strokeWidth={1.75} />
+          </div>
+        )}
+        <input
+          ref={inputRef}
+          value={inputDisplayValue}
+          onChange={handleChange}
+          onFocus={() => setOpen(true)}
+          placeholder="Search employee…"
+          style={{ width: '100%', height: 40, paddingLeft: selected ? 12 : 32, paddingRight: selected ? 80 : 12, border: `1px solid ${selected ? P.borderStrong : P.border}`, borderRadius: 8, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, background: P.white, outline: 'none', boxSizing: 'border-box' }}
+        />
+        {selected && (
+          <>
+            <div style={{ position: 'absolute', right: 30, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
+              <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>{selected.niss || 'No NISS'}</span>
+            </div>
+            <button onMouseDown={handleClear} style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', padding: 2, display: 'flex', alignItems: 'center' }}>
+              <Icon name="x" size={14} color={P.inkSoft} strokeWidth={2} />
+            </button>
+          </>
+        )}
+      </div>
+      {open && (hasSuggestions || otherFiltered.length > 0) && (
+        <div style={{ position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0, maxHeight: 260, overflowY: 'auto', background: P.white, border: `1px solid ${P.border}`, borderRadius: 8, boxShadow: '0 4px 16px rgba(15,13,40,0.12)', zIndex: 10 }} className="hide-scrollbar">
+          {hasSuggestions && (
+            <>
+              <div style={{ padding: '6px 12px 4px', fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>Suggested</div>
+              {suggestedFiltered.map(emp => (
+                <EmpRow key={emp.id} emp={emp} />
+              ))}
+            </>
+          )}
+          {hasSuggestions && otherFiltered.length > 0 && (
+            <div style={{ height: 1, background: P.border, margin: '4px 0' }} />
+          )}
+          {otherFiltered.length > 0 && (
+            <div style={{ padding: '6px 12px 4px', fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>All employees</div>
+          )}
+          {otherFiltered.map(emp => (
+            <EmpRow key={emp.id} emp={emp} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function DashboardScreen({ requests, onNav, onToast, appEntity = null, physicalCardsAllowed, onPhysicalCardsChange, mobilityWidgetState, onMobilityWidgetStateChange, pendingRequests = 0, pendingExpenses = 0, pendingChoices = 0, activeBudgets = 0 }) {
   const today = new Date(); today.setHours(0,0,0,0);
   const fundingIssue = mobilityWidgetState.live && !!mobilityWidgetState.fundingIssue;
   const foodLive = mobilityWidgetState.live && mobilityWidgetState.widgetMode === 'food';
   const [foodUnmatched, setFoodUnmatched] = useState(2);
-  const [showUnmatchedDrawer, setShowUnmatchedDrawer] = useState(false);
+  const [showMatchModal, setShowMatchModal] = useState(false);
+  const [matchQueue, setMatchQueue] = useState([]);
+  const [matchSearch, setMatchSearch] = useState('');
+  const [selectedPerson, setSelectedPerson] = useState(null);
+  const [showLinkSection, setShowLinkSection] = useState(false);
+  const [showLinkCombobox, setShowLinkCombobox] = useState(false);
+  const socialSecretariat = 'SD Worx';
   const UNMATCHED_EMPLOYEES = [
-    { name: 'Thomas Renard', niss: '85.04.12-234.56' },
-    { name: 'Élise Fontaine', niss: '92.11.03-567.89' },
+    { name: 'Thomas Vandenberghe', niss: '92.11.03-567.89' },
+    { name: 'Lasse Willems', niss: '95.07.18-123.45' },
   ];
-  const totalPending = pendingRequests + pendingExpenses + pendingChoices + (fundingIssue ? 1 : 0) + (foodLive && foodUnmatched > 0 ? 1 : 0);
+  const foodMode = mobilityWidgetState.widgetMode === 'food';
+  const totalPending = pendingRequests + pendingExpenses + pendingChoices + (fundingIssue ? 1 : 0) + (foodMode && foodUnmatched > 0 ? 1 : 0);
   const employeeCount = Object.keys(EMPLOYEES).length;
   const activeBenefits = BENEFIT_TYPES_SEED.filter(b => b.active).length;
   const firstName = CURRENT_USER.name.split(' ')[0];
@@ -7513,7 +7673,7 @@ function DashboardScreen({ requests, onNav, onToast, appEntity = null, physicalC
 
   const attentionItems = [
     fundingIssue && { icon: 'alert-circle', label: 'Mobility top-up failed', count: '!', screen: 'settings-cardrules', iconBg: P.dangerBg, iconColor: P.danger, badgeBg: P.danger },
-    foodLive && foodUnmatched > 0 && { icon: 'user-x', label: 'Unmatched employees — Meal vouchers', count: foodUnmatched, iconBg: '#FEF3C7', iconColor: '#D97706', badgeBg: '#D97706', onClick: () => setShowUnmatchedDrawer(true) },
+    foodMode && foodUnmatched > 0 && { icon: 'user-x', label: 'Unmatched employees — Meal vouchers', count: foodUnmatched, iconBg: '#FEF3C7', iconColor: '#D97706', badgeBg: '#D97706', onClick: () => { setMatchQueue([...UNMATCHED_EMPLOYEES]); setShowMatchModal(true); setSelectedPerson(null); } },
     pendingRequests > 0 && { icon: 'calendar-days', label: 'Time-off requests', count: pendingRequests, screen: 'requests', iconBg: '#e8f0fe', iconColor: '#2563eb' },
     pendingExpenses > 0 && { icon: 'receipt', label: 'Expense requests', count: pendingExpenses, screen: 'expenses', iconBg: P.warningBg, iconColor: '#b45309' },
     pendingChoices > 0 && { icon: 'list-checks', label: 'Choices to approve', count: pendingChoices, screen: 'choices', iconBg: '#ede9fe', iconColor: '#6d28d9' },
@@ -7582,40 +7742,159 @@ function DashboardScreen({ requests, onNav, onToast, appEntity = null, physicalC
           </div>
         </div>
 
-        {/* Unmatched employees drawer (food live) */}
-        {showUnmatchedDrawer && (
-          <DrawerShell title="Unmatched employees" onClose={() => setShowUnmatchedDrawer(false)}>
-            {close => (
-              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-                <div style={{ padding: 'var(--space-300)', borderBottom: `1px solid ${P.border}` }}>
-                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: '20px' }}>
-                    SD Worx sent {UNMATCHED_EMPLOYEES.length} NISS {UNMATCHED_EMPLOYEES.length === 1 ? 'number' : 'numbers'} that don't match any employee in your People directory. Match them to an existing employee, add them to People, or ignore them for this cycle.
-                  </span>
-                </div>
-                <div style={{ flex: 1, overflowY: 'auto' }} className="hide-scrollbar">
-                  {UNMATCHED_EMPLOYEES.map((emp, i) => (
-                    <div key={i} style={{ padding: 'var(--space-250) var(--space-300)', borderBottom: i < UNMATCHED_EMPLOYEES.length - 1 ? `1px solid ${P.border}` : 'none', display: 'flex', flexDirection: 'column', gap: 'var(--space-150)' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)' }}>
-                        <div style={{ width: 36, height: 36, borderRadius: '50%', background: '#FEF3C7', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                          <Icon name="user-x" size={16} color="#D97706" strokeWidth={1.75} />
+        {/* Unmatched employees modal (food live) */}
+        {showMatchModal && matchQueue.length > 0 && (() => {
+          // selectedPerson = unmatched employee being resolved (null = list view)
+          // matchSearch = selected Payflip employee ID in the dropdown
+
+          const allPeople = Object.entries(EMPLOYEES)
+            .filter(([, e]) => e.isEmployee !== false)
+            .map(([id, e]) => ({ id, ...e }));
+
+          const pickedEmployee = matchSearch ? allPeople.find(p => p.id === matchSearch) : null;
+          const pickedHasNiss = pickedEmployee?.niss;
+
+          const fuzzyMatches = selectedPerson ? (() => {
+            const tokens = selectedPerson.name.toLowerCase().split(/\s+/).filter(t => t.length > 2);
+            return allPeople
+              .map(p => ({ ...p, score: tokens.filter(t => p.name.toLowerCase().includes(t)).length }))
+              .filter(p => p.score > 0)
+              .sort((a, b) => b.score - a.score)
+              .slice(0, 3);
+          })() : [];
+
+          const resolve = (emp) => {
+            const next = matchQueue.filter(e => e.niss !== emp.niss);
+            setMatchQueue(next);
+            setSelectedPerson(null);
+            setMatchSearch('');
+            setShowLinkSection(false);
+            setShowLinkCombobox(false);
+            setFoodUnmatched(n => Math.max(0, n - 1));
+            if (next.length === 0) setShowMatchModal(false);
+          };
+
+          const closeModal = () => {
+            setShowMatchModal(false);
+            setMatchQueue([]);
+            setSelectedPerson(null);
+            setMatchSearch('');
+            setShowLinkSection(false);
+            setShowLinkCombobox(false);
+          };
+
+          if (selectedPerson) {
+            return (
+              <ModalShell onClose={closeModal} width={440}>
+                {close => (
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    {/* Step 1: choose action */}
+                    {!showLinkCombobox && (
+                      <>
+                        <div style={{ display: 'flex', alignItems: 'center', padding: 'var(--space-200) var(--space-300)', borderBottom: `1px solid ${P.border}`, gap: 'var(--space-150)' }}>
+                          <IconButton icon="arrow-left" onClick={() => { setSelectedPerson(null); setMatchSearch(''); setShowLinkSection(false); setShowLinkCombobox(false); }} />
+                          <div style={{ flex: 1 }}>
+                            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 17, color: P.ink, letterSpacing: '-0.01em', lineHeight: 1.2 }}>{selectedPerson.name}</div>
+                            <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, marginTop: 2, fontVariantNumeric: 'tabular-nums' }}>{selectedPerson.niss}</div>
+                          </div>
+                          <IconButton icon="X" onClick={close} blur />
                         </div>
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: P.ink }}>{emp.name}</div>
-                          <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>NISS {emp.niss}</div>
+                        <div style={{ padding: 'var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-250)' }}>
+                          <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, lineHeight: '20px' }}>
+                            This person wasn't found in Payflip. Add them as a new employee, or assign this NISS to someone who's already in the system.
+                          </div>
+                          <Button variant="primary" icon="user-plus" style={{ justifyContent: 'center' }} onClick={() => resolve(selectedPerson)}>
+                            Add as new employee
+                          </Button>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)' }}>
+                            <div style={{ flex: 1, height: 1, background: P.border }} />
+                            <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkFaint }}>or</span>
+                            <div style={{ flex: 1, height: 1, background: P.border }} />
+                          </div>
+                          <Button variant="secondary" style={{ justifyContent: 'center' }} onClick={() => setShowLinkCombobox(true)}>
+                            Assign NISS to existing employee
+                          </Button>
+                          <div style={{ textAlign: 'center' }}>
+                            <button onClick={() => resolve(selectedPerson)} style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkFaint, background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>
+                              Ignore for this cycle
+                            </button>
+                          </div>
                         </div>
-                      </div>
-                      <div style={{ display: 'flex', gap: 'var(--space-100)' }}>
-                        <Button variant="secondary" style={{ flex: 1, justifyContent: 'center', fontSize: 'var(--fs-body-xs)', padding: 'var(--space-075) var(--space-125)' }} onClick={() => setFoodUnmatched(n => Math.max(0, n - 1))}>Match to employee</Button>
-                        <Button variant="secondary" style={{ flex: 1, justifyContent: 'center', fontSize: 'var(--fs-body-xs)', padding: 'var(--space-075) var(--space-125)' }} onClick={() => setFoodUnmatched(n => Math.max(0, n - 1))}>Add to People</Button>
-                        <Button variant="text" style={{ flex: 1, justifyContent: 'center', fontSize: 'var(--fs-body-xs)', padding: 'var(--space-075) var(--space-125)', color: P.inkSoft }} onClick={() => setFoodUnmatched(n => Math.max(0, n - 1))}>Ignore</Button>
+                      </>
+                    )}
+                    {/* Step 2: link to existing employee */}
+                    {showLinkCombobox && (
+                      <>
+                        <div style={{ display: 'flex', alignItems: 'center', padding: 'var(--space-200) var(--space-300)', borderBottom: `1px solid ${P.border}`, gap: 'var(--space-150)' }}>
+                          <IconButton icon="arrow-left" onClick={() => { setShowLinkCombobox(false); setMatchSearch(''); }} />
+                          <div style={{ flex: 1 }}>
+                            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 17, color: P.ink, letterSpacing: '-0.01em', lineHeight: 1.2 }}>{selectedPerson.name}</div>
+                            <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, marginTop: 2, fontVariantNumeric: 'tabular-nums' }}>{selectedPerson.niss}</div>
+                          </div>
+                          <IconButton icon="X" onClick={close} blur />
+                        </div>
+                        <div style={{ padding: 'var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-250)' }}>
+                          <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, lineHeight: '20px' }}>
+                            <strong style={{ fontWeight: 600 }}>Assign this NISS to an existing employee.</strong> Select the employee this number belongs to. Their record will be updated with this national insurance number.
+                          </div>
+                          <MatchEmpCombobox employees={allPeople} value={matchSearch} onChange={setMatchSearch} suggestions={fuzzyMatches} />
+                          {pickedHasNiss && (
+                            <div style={{ background: P.dangerBg, border: `1px solid ${P.dangerBorder}`, borderRadius: 8, padding: 'var(--space-125) var(--space-150)', display: 'flex', gap: 'var(--space-100)', alignItems: 'flex-start' }}>
+                              <Icon name="alert-triangle" size={14} color={P.dangerDark} strokeWidth={1.75} style={{ flexShrink: 0, marginTop: 1 }} />
+                              <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.dangerDark, lineHeight: '18px' }}>
+                                {pickedEmployee.name} already has a NISS on file. It will be replaced.
+                              </div>
+                            </div>
+                          )}
+                          <Button variant="primary" style={{ justifyContent: 'center', opacity: pickedEmployee ? 1 : 0.4 }} disabled={!pickedEmployee} onClick={() => { if (pickedEmployee) resolve(selectedPerson); }}>
+                            {pickedEmployee ? `Add NISS to ${pickedEmployee.name}` : 'Select an employee above'}
+                          </Button>
+                          <Button variant="secondary" style={{ justifyContent: 'center' }} onClick={() => { setShowLinkCombobox(false); setMatchSearch(''); }}>
+                            Cancel
+                          </Button>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                )}
+              </ModalShell>
+            );
+          }
+
+          return (
+            <ModalShell onClose={closeModal} width={440}>
+              {close => (
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', padding: 'var(--space-250) var(--space-300)', borderBottom: `1px solid ${P.border}` }}>
+                    <div>
+                      <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-md)', color: P.ink }}>Unmatched employees</div>
+                      <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginTop: 2 }}>
+                        {matchQueue.length} {matchQueue.length === 1 ? 'person' : 'people'} from SD Worx not found in Payflip
                       </div>
                     </div>
-                  ))}
+                    <IconButton icon="X" onClick={close} blur />
+                  </div>
+                  <div>
+                    {matchQueue.map((emp, idx) => (
+                      <div key={emp.niss} style={{ display: 'flex', alignItems: 'center', padding: 'var(--space-200) var(--space-300)', borderBottom: idx < matchQueue.length - 1 ? `1px solid ${P.border}` : 'none' }}>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink }}>{emp.name}</div>
+                          <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginTop: 2, fontVariantNumeric: 'tabular-nums' }}>{emp.niss}</div>
+                        </div>
+                        <Button variant="secondary" onClick={() => { setSelectedPerson(emp); setMatchSearch(''); setShowLinkCombobox(false); }}>Resolve</Button>
+                      </div>
+                    ))}
+                  </div>
+                  <div style={{ padding: 'var(--space-150) var(--space-300)', borderTop: `1px solid ${P.border}`, textAlign: 'center' }}>
+                    <button onClick={() => { setFoodUnmatched(0); closeModal(); }} style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>
+                      Ignore all for this cycle
+                    </button>
+                  </div>
                 </div>
-              </div>
-            )}
-          </DrawerShell>
-        )}
+              )}
+            </ModalShell>
+          );
+        })()}
 
       </div>
       </div>
@@ -11631,6 +11910,8 @@ function App() {
     hidden: false,
     step: 1,
     mandateDenied: false,
+    mandateValidated: false,
+    depositFailed: false,
     live: false,
     liveVisible: false,
     invitedKeys: [],
@@ -11903,6 +12184,10 @@ function App() {
         @keyframes stepContentEnter {
           from { opacity: 0; transform: scale(0.97) translateY(4px); }
           to   { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        @keyframes stepContentEnterReduced {
+          from { opacity: 0; }
+          to   { opacity: 1; }
         }
         @keyframes stepDoneEnter {
           from { opacity: 0; transform: translateY(-4px); }
