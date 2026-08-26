@@ -7648,7 +7648,7 @@ function MatchEmpCombobox({ employees, value, onChange, suggestions = [] }) {
   );
 }
 
-function DashboardScreen({ requests, onNav, onToast, appEntity = null, physicalCardsAllowed, onPhysicalCardsChange, mobilityWidgetState, onMobilityWidgetStateChange, pendingRequests = 0, pendingExpenses = 0, pendingChoices = 0, activeBudgets = 0 }) {
+function DashboardScreen({ requests, onNav, onToast, appEntity = null, physicalCardsAllowed, onPhysicalCardsChange, mobilityWidgetState, onMobilityWidgetStateChange, pendingRequests = 0, pendingExpenses = 0, pendingChoices = 0, activeBudgets = 0, onAddEmployee }) {
   const today = new Date(); today.setHours(0,0,0,0);
   const fundingIssue = mobilityWidgetState.live && !!mobilityWidgetState.fundingIssue;
   const foodLive = mobilityWidgetState.live && mobilityWidgetState.widgetMode === 'food';
@@ -7803,7 +7803,13 @@ function DashboardScreen({ requests, onNav, onToast, appEntity = null, physicalC
                           <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, lineHeight: '20px' }}>
                             This person wasn't found in Payflip. Add them as a new employee, or assign this NISS to someone who's already in the system.
                           </div>
-                          <Button variant="primary" icon="user-plus" style={{ justifyContent: 'center' }} onClick={() => resolve(selectedPerson)}>
+                          <Button variant="primary" icon="user-plus" style={{ justifyContent: 'center' }} onClick={() => {
+                            const parts = selectedPerson.name.trim().split(/\s+/);
+                            const pFirst = parts.slice(0, -1).join(' ') || parts[0];
+                            const pLast  = parts.length > 1 ? parts[parts.length - 1] : '';
+                            resolve(selectedPerson);
+                            onAddEmployee && onAddEmployee({ firstName: pFirst, lastName: pLast, niss: selectedPerson.niss });
+                          }}>
                             Add as new employee
                           </Button>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)' }}>
@@ -11423,7 +11429,7 @@ const ENTITY_DOMAINS = {
   'lumio-nl':     'lumio.nl',
 };
 
-function AddEmployeeWizard({ onClose, onCreated, companyRegime, mobilityLive }) {
+function AddEmployeeWizard({ onClose, onCreated, companyRegime, mobilityLive, prefill = {} }) {
   const { visible, close } = useModalTransition(onClose, SHEET_CLOSE_DUR);
   const [step, setStep] = useState(1);
   const stepDirRef = React.useRef('forward');
@@ -11448,12 +11454,12 @@ function AddEmployeeWizard({ onClose, onCreated, companyRegime, mobilityLive }) 
   }, []);
 
   // Step 1 — Personal info
-  const [firstName, setFirstName]       = useState('');
-  const [lastName,  setLastName]        = useState('');
+  const [firstName, setFirstName]       = useState(prefill.firstName ?? '');
+  const [lastName,  setLastName]        = useState(prefill.lastName  ?? '');
   const [dob,       setDob]             = useState('');
   const [gender,    setGender]          = useState('');
   const [lang,      setLang]            = useState('Dutch');
-  const [niss,      setNiss]            = useState('');
+  const [niss,      setNiss]            = useState(prefill.niss      ?? '');
   const [iban,      setIban]            = useState('');
 
   // Step 2 — Employment
@@ -11859,6 +11865,7 @@ function App() {
   const addToast = (t) => setToasts(prev => [{ id: `t-${prev.length}-${Date.now()}`, ...t }, ...prev]);
   const removeToast = () => setToasts([]);
   const [addEmployeeOpen, setAddEmployeeOpen] = useState(false);
+  const [addEmployeePrefill, setAddEmployeePrefill] = useState({});
   const [freshEmployeeId, setFreshEmployeeId] = useState(null);
   const handleAddEmployee = (id, emp, extra, fullName, sendInvite, inviteToCard) => {
     EMPLOYEES[id] = emp;
@@ -12207,7 +12214,7 @@ function App() {
       <Sidebar active={screen} onNav={handleNav} pendingCount={pendingCount} sidebarMode={sidebarMode} onSetSidebarMode={setSidebarMode} appEntity={appEntity} onSetAppEntity={setAppEntity} setupInProgress={screen === 'dashboard' && !mobilityWidgetState.live && !mobilityWidgetState.hidden} />
 
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, overflow: 'hidden' }}>
-        {screen === 'dashboard' && <DashboardScreen key={appEntity ?? 'all'} requests={entityFilteredRequests} onNav={setScreen} onToast={addToast} appEntity={appEntity} physicalCardsAllowed={physicalCardsAllowed} onPhysicalCardsChange={setPhysicalCardsAllowed} mobilityWidgetState={mobilityWidgetState} onMobilityWidgetStateChange={setMobilityWidgetState} pendingRequests={pendingRequestsCount} pendingExpenses={pendingExpensesCount} pendingChoices={pendingChoicesCount} activeBudgets={allowances.filter(a => a.active).length} />}
+        {screen === 'dashboard' && <DashboardScreen key={appEntity ?? 'all'} requests={entityFilteredRequests} onNav={setScreen} onToast={addToast} appEntity={appEntity} physicalCardsAllowed={physicalCardsAllowed} onPhysicalCardsChange={setPhysicalCardsAllowed} mobilityWidgetState={mobilityWidgetState} onMobilityWidgetStateChange={setMobilityWidgetState} pendingRequests={pendingRequestsCount} pendingExpenses={pendingExpensesCount} pendingChoices={pendingChoicesCount} activeBudgets={allowances.filter(a => a.active).length} onAddEmployee={(pf) => { setAddEmployeePrefill(pf); setAddEmployeeOpen(true); }} />}
         {screen === 'team-absences' && <TeamAbsencesScreen key={appEntity ?? 'all'} requests={entityFilteredRequests} pendingCount={pendingRequestsCount} onNav={setScreen} onShowDetail={setCalDetail} activeReqId={calDetail?.id} onSave={saveRequest} companyEvents={companyEvents} onCancelCompanyEvent={cancelCompanyEvent} initialDate={calendarJumpDate} initialDeptFilter={calendarDeptFilter} appEntity={appEntity} leaveTypes={leaveTypes} />}
         {screen === 'requests' && <RequestsScreen key={appEntity ?? 'all'} requests={entityFilteredRequests} onApprove={approve} onDecline={requestDecline} onSave={saveRequest} onCancel={requestCancel} onNav={setScreen} onViewInCalendar={(req) => { const d = req._selectedDates?.[0] || req.startDate; if (d) { const iso = typeof d === 'string' && d.match(/^\d{4}-/) ? d : null; setCalendarJumpDate(iso ? new Date(iso) : parseDisplayDate(d)); } setCalDetail(req); setScreen('team-absences'); }} appEntity={appEntity} />}
         {(screen === 'employees' || screen === 'employees:admin') && <EmployeesScreen key={appEntity ?? 'all'} requests={entityFilteredRequests} onNav={setScreen} initialRoleFilter={screen === 'employees:admin' ? 'Admin' : 'All'} adminAccess={adminAccess} appEntity={appEntity} onAddEmployee={() => setAddEmployeeOpen(true)} />}
@@ -12289,7 +12296,7 @@ function App() {
         />
       )}
 
-      {addEmployeeOpen && <AddEmployeeWizard onClose={() => setAddEmployeeOpen(false)} onCreated={handleAddEmployee} companyRegime={companyRegime} mobilityLive={mobilityWidgetState.live} />}
+      {addEmployeeOpen && <AddEmployeeWizard onClose={() => { setAddEmployeeOpen(false); setAddEmployeePrefill({}); }} onCreated={handleAddEmployee} companyRegime={companyRegime} mobilityLive={mobilityWidgetState.live} prefill={addEmployeePrefill} />}
       <ToastStack toasts={toasts} onRemove={removeToast} />
       {followUpPrompt && !followUpModalOpen && (
         <FollowUpBanner
