@@ -6850,7 +6850,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
                 />
                 <div style={{ display: 'grid', gridTemplateRows: physicalCardsAllowed ? '1fr' : '0fr', transition: PREFERS_REDUCED_MOTION ? 'none' : `grid-template-rows 220ms ${EASE_OUT}`, overflow: 'hidden' }}>
                   <div style={{ overflow: 'hidden' }}>
-                    <div style={{ padding: 'var(--space-150) var(--space-200)', display: 'flex', flexDirection: 'column', gap: 'var(--space-100)' }}>
+                    <div style={{ padding: 'var(--space-200)', display: 'flex', flexDirection: 'column', gap: 'var(--space-150)' }}>
                       <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: P.ink }}>Where do we send physical cards?</div>
                       <div style={{ display: 'flex', gap: 'var(--space-100)' }}>
                         {[
