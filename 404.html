@@ -81,6 +81,27 @@
     @media (prefers-reduced-motion: reduce) {
       .gradient-drift { animation: none !important; }
     }
+
+    @keyframes linkCardTop {
+      from { opacity: 0; transform: translateY(-8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes linkCardBottom {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes linkBadgePop {
+      from { opacity: 0; transform: scale(0.5); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .link-card-top, .link-card-bottom { animation: none !important; }
+      .link-badge-pop { animation: linkBadgeFade 150ms ease both !important; }
+    }
+    @keyframes linkBadgeFade {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
   </style>
 
   <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
@@ -90,6 +111,6 @@
 </head>
 <body>
   <div id="root"></div>
-  <script type="text/babel" src="app.jsx?v=1444"></script>
+  <script type="text/babel" src="app.jsx?v=1506"></script>
 </body>
 </html>
