@@ -6438,10 +6438,13 @@ function AnimatedNumber({ value }) {
 
 function ProtoDevPanel({ widgetMode, switchMode, ws, setWs }) {
   const [open, setOpen] = React.useState(false);
+  const [pos, setPos] = React.useState(null); // null = default bottom-right
+  const dragOffset = React.useRef(null);
+  const panelRef = React.useRef(null);
+
   const BG = '#14142a';
   const BORDER = 'rgba(255,255,255,0.08)';
   const DIM = 'rgba(255,255,255,0.3)';
-  const BRIGHT = 'rgba(255,255,255,0.85)';
   const ACTIVE_BG = '#5b21b6';
   const INACTIVE_BG = 'rgba(255,255,255,0.06)';
 
@@ -6452,13 +6455,29 @@ function ProtoDevPanel({ widgetMode, switchMode, ws, setWs }) {
     <div style={{ fontFamily: 'monospace', fontSize: 9, fontWeight: 700, letterSpacing: '0.08em', color: DIM, textTransform: 'uppercase', marginBottom: 5 }}>{label}</div>
   );
 
+  const onDragStart = (e) => {
+    if (e.target.tagName === 'BUTTON') return;
+    e.preventDefault();
+    e.currentTarget.setPointerCapture(e.pointerId);
+    const rect = panelRef.current.getBoundingClientRect();
+    dragOffset.current = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+  };
+  const onDragMove = (e) => {
+    if (!dragOffset.current) return;
+    setPos({ x: e.clientX - dragOffset.current.x, y: e.clientY - dragOffset.current.y });
+  };
+  const onDragEnd = () => { dragOffset.current = null; };
+
+  const posStyle = pos ? { left: pos.x, top: pos.y } : { bottom: 20, right: 20 };
   const mobStep = ws.live ? 'live' : ws.step;
 
   return (
-    <div style={{ position: 'fixed', bottom: 20, right: 20, zIndex: 9999 }}>
+    <div ref={panelRef} style={{ position: 'fixed', ...posStyle, zIndex: 9999 }}>
       {open ? (
         <div style={{ background: BG, border: `1px solid ${BORDER}`, borderRadius: 10, width: 216, boxShadow: '0 12px 40px rgba(0,0,0,0.5)', overflow: 'hidden' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px 7px', borderBottom: `1px solid ${BORDER}` }}>
+          <div
+            onPointerDown={onDragStart} onPointerMove={onDragMove} onPointerUp={onDragEnd}
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px 7px', borderBottom: `1px solid ${BORDER}`, cursor: 'grab', userSelect: 'none' }}>
             <span style={{ fontFamily: 'monospace', fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', color: DIM, textTransform: 'uppercase' }}>Prototype controls</span>
             <button onClick={() => setOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: DIM, fontSize: 13, lineHeight: 1, padding: 0, display: 'flex' }}>✕</button>
           </div>
