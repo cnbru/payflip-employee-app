@@ -6764,15 +6764,14 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
               <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
                 Virtual cards are included automatically. Physical cards are optional — employees request their own from the app if you enable it here.
               </p>
-              <div style={{ border: `1px solid ${P.border}`, borderRadius: 10, overflow: 'hidden', background: physicalCardsAllowed ? '#faf8ff' : P.bg }}>
-                <div onClick={() => onPhysicalCardsChange && onPhysicalCardsChange(!physicalCardsAllowed)}
-                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: 'var(--space-150) var(--space-200)', cursor: 'pointer' }}>
-                  <div>
-                    <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink }}>Physical card requests</div>
-                    <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginTop: 'var(--space-025)' }}>€10 per card</div>
-                  </div>
-                  <Switch checked={!!physicalCardsAllowed} onChange={() => {}} />
-                </div>
+              <SettingsCard info="You can change this any time in Payflip Card settings.">
+                <SettingsRow
+                  label="Physical card requests"
+                  subtitle="€10 per card"
+                  trailing={<Switch checked={!!physicalCardsAllowed} onChange={() => onPhysicalCardsChange && onPhysicalCardsChange(!physicalCardsAllowed)} />}
+                  onClick={() => onPhysicalCardsChange && onPhysicalCardsChange(!physicalCardsAllowed)}
+                  last={!physicalCardsAllowed}
+                />
                 <div style={{ display: 'grid', gridTemplateRows: physicalCardsAllowed ? '1fr' : '0fr', transition: PREFERS_REDUCED_MOTION ? 'none' : `grid-template-rows 220ms ${EASE_OUT}`, overflow: 'hidden' }}>
                   <div style={{ overflow: 'hidden' }}>
                     <div style={{ borderTop: `1px solid ${P.border}`, padding: 'var(--space-150) var(--space-200)', display: 'flex', flexDirection: 'column', gap: 'var(--space-100)' }}>
@@ -6797,11 +6796,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
                     </div>
                   </div>
                 </div>
-                <div style={{ borderTop: `1px solid ${P.border}`, padding: 'var(--space-125) var(--space-200)', display: 'flex', alignItems: 'flex-start', gap: 'var(--space-100)' }}>
-                  <Icon name="info" size={13} color={P.inkSoft} strokeWidth={2} style={{ flexShrink: 0, paddingTop: 'var(--space-025)' }} />
-                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>You can change this any time in Payflip Card settings.</span>
-                </div>
-              </div>
+              </SettingsCard>
               <Button variant="primary" onClick={() => setStep(4)} style={{ width: '100%', justifyContent: 'center', fontSize: 'var(--fs-body-md)', padding: 'var(--space-125) var(--space-250)' }}>Continue</Button>
             </div>
           </div>
