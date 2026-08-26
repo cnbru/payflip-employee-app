@@ -11395,40 +11395,30 @@ const SETTINGS_TITLES = {
 
 // ── App switcher pill ──────────────────────────────────────────────────────
 // ── Toast ──────────────────────────────────────────────────────────────────
-function ToastItem({ toast, onDone }) {
-  const [exiting, setExiting] = useState(false);
-
-  const dismiss = () => {
-    setExiting(true);
-    setTimeout(onDone, 200);
-  };
-
+function ToastItem({ toast, onDismiss }) {
   useEffect(() => {
-    const t = setTimeout(dismiss, 8000);
+    const t = setTimeout(onDismiss, 8000);
     return () => clearTimeout(t);
   }, [toast.id]);
 
   const isDecline = toast.type === 'decline';
+  const hasAction = toast.onUndo || toast.onView;
 
   return (
     <div style={{
-      transform: exiting ? 'translateX(12px)' : 'translateX(0)',
-      opacity: exiting ? 0 : 1,
-      transition: exiting ? `opacity 200ms ${EASE_OUT}, transform 200ms ${EASE_OUT}` : 'none',
       background: P.white, color: P.ink,
-      padding: toast.onUndo || toast.onView ? '10px 10px 10px 16px' : '10px 20px',
+      padding: hasAction ? '10px 10px 10px 16px' : '10px 20px',
       borderRadius: 10,
       border: `1px solid ${P.border}`,
       fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)',
       boxShadow: '0 4px 20px rgba(15,13,40,0.1)',
       display: 'flex', alignItems: 'center', gap: 'var(--space-100)',
-      animation: exiting ? 'none' : `fadeDown 200ms ${EASE_OUT} both`,
       whiteSpace: 'nowrap',
     }}>
       <Icon name={isDecline ? 'X' : 'Check'} size={15} color={isDecline ? P.danger : P.success} strokeWidth={2.5} />
       {toast.message}
       {toast.onUndo && (
-        <button onClick={() => { toast.onUndo(); dismiss(); }} style={{
+        <button onClick={() => { toast.onUndo(); onDismiss(); }} style={{
           marginLeft: 'var(--space-050)', padding: 'var(--space-075) var(--space-150)', borderRadius: 7,
           border: `1px solid ${P.border}`,
           background: 'transparent', color: P.ink, cursor: 'pointer',
@@ -11436,7 +11426,7 @@ function ToastItem({ toast, onDone }) {
         }}>Undo</button>
       )}
       {toast.onView && (
-        <button onClick={() => { toast.onView(); dismiss(); }} style={{
+        <button onClick={() => { toast.onView(); onDismiss(); }} style={{
           marginLeft: 'var(--space-050)', padding: 'var(--space-075) var(--space-150)', borderRadius: 7,
           border: `1px solid ${P.border}`,
           background: 'transparent', color: P.ink, cursor: 'pointer',
@@ -11448,47 +11438,71 @@ function ToastItem({ toast, onDone }) {
 }
 
 function ToastStack({ toasts, onRemove }) {
-  const [hovered, setHovered] = React.useState(false);
+  const stackRef = React.useRef(null);
+  const prevIds = React.useRef([]);
+
+  // Entry animation: add is-enter (no-transition offset), reflow, remove → CSS transitions in
+  React.useLayoutEffect(() => {
+    if (!stackRef.current) return;
+    const currentIds = toasts.map(t => t.id);
+    const newIds = currentIds.filter(id => !prevIds.current.includes(id));
+    prevIds.current = currentIds;
+    for (const id of newIds) {
+      const el = stackRef.current.querySelector(`[data-toast-id="${id}"]`);
+      if (!el) continue;
+      el.classList.add('is-enter');
+      void el.offsetWidth; // synchronous reflow — spec's key trick
+      el.classList.remove('is-enter');
+    }
+  }, [toasts]);
+
+  // Hover spread via geometry (pointermove, not :hover — gaps belong to no element)
+  React.useEffect(() => {
+    const stack = stackRef.current;
+    if (!stack) return;
+    const stage = stack.parentElement;
+    const SPREAD_GAP = 8;
+    const spreadAbove = () => (stack.offsetHeight + SPREAD_GAP) * 2;
+    const within = (e, above) => {
+      const r = stack.getBoundingClientRect();
+      return e.clientX >= r.left && e.clientX <= r.right &&
+        e.clientY <= r.bottom && e.clientY >= r.top - above;
+    };
+    const onMove = (e) => {
+      if (stack.classList.contains('is-spread')) {
+        if (!within(e, spreadAbove())) stack.classList.remove('is-spread');
+      } else if (within(e, 0)) {
+        stack.classList.add('is-spread');
+      }
+    };
+    const onLeave = () => stack.classList.remove('is-spread');
+    stage.addEventListener('pointermove', onMove);
+    stage.addEventListener('pointerleave', onLeave);
+    return () => { stage.removeEventListener('pointermove', onMove); stage.removeEventListener('pointerleave', onLeave); };
+  }, []);
+
+  // Dismiss: is-leaving class → CSS exit animation → then remove from state
+  const dismiss = (id) => {
+    const el = stackRef.current?.querySelector(`[data-toast-id="${id}"]`);
+    if (el && !el.classList.contains('is-leaving')) el.classList.add('is-leaving');
+    setTimeout(() => onRemove(id), 310); // --stack-close (250ms) + 60ms buffer
+  };
+
   const MAX = 3;
   const visible = toasts.slice(0, MAX);
   if (!visible.length) return null;
 
-  const TOAST_H = 44;
-  const COLLAPSED_Y  = [0, 8, 14];        // px each back toast peeks below front
-  const SCALES       = [1, 0.94, 0.88];   // transitions-dev Large/Medium scale tokens
-  const OPACITIES    = [1, 0.7, 0.4];
-  const EXPANDED_STEP = TOAST_H + 10;     // height + gap when fanned out
-
   return (
-    <div
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{ position: 'fixed', top: 24, right: 24, zIndex: 300 }}
-    >
-      <div style={{ position: 'relative' }}>
+    <div style={{ position: 'fixed', bottom: 24, right: 24, zIndex: 300 }}>
+      <div ref={stackRef} className="t-stack">
         {visible.map((t, i) => (
-          <div key={t.id} style={{
-            position: i === 0 ? 'relative' : 'absolute',
-            top: i === 0 ? 'auto' : 0,
-            left: i === 0 ? 'auto' : 0,
-            right: i === 0 ? 'auto' : 0,
-            zIndex: MAX - i,
-            transform: `translateY(${hovered ? i * EXPANDED_STEP : COLLAPSED_Y[i]}px) scale(${hovered ? 1 : SCALES[i]})`,
-            transformOrigin: 'top center',
-            opacity: hovered ? 1 : OPACITIES[i],
-            transition: `transform 250ms ${EASE_OUT}, opacity 250ms ${EASE_OUT}`,
-            pointerEvents: i === 0 || hovered ? 'auto' : 'none',
-          }}>
-            {i === 0 || hovered ? (
-              <ToastItem toast={t} onDone={() => onRemove(t.id)} />
-            ) : (
-              <div style={{
-                background: P.white, borderRadius: 10,
-                border: `1px solid ${P.border}`,
-                boxShadow: '0 4px 20px rgba(15,13,40,0.08)',
-                height: TOAST_H,
-              }} />
-            )}
+          <div
+            key={t.id}
+            data-toast-id={t.id}
+            data-depth={String(i)}
+            className="t-stack-banner"
+          >
+            <ToastItem toast={t} onDismiss={() => dismiss(t.id)} />
           </div>
         ))}
       </div>
