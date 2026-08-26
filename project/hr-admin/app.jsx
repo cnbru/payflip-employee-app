@@ -7921,15 +7921,17 @@ function DashboardScreen({ requests, onNav, onToast, appEntity = null, physicalC
                           <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, lineHeight: '20px' }}>
                             <strong style={{ fontWeight: 600 }}>Assign this NISS to an existing employee.</strong> Select the employee this number belongs to. Their record will be updated with this national insurance number.
                           </div>
-                          <MatchEmpCombobox employees={allPeople} value={matchSearch} onChange={setMatchSearch} suggestions={fuzzyMatches} />
-                          {pickedHasNiss && (
-                            <div style={{ background: P.dangerBg, border: `1px solid ${P.dangerBorder}`, borderRadius: 8, padding: 'var(--space-125) var(--space-150)', display: 'flex', gap: 'var(--space-100)', alignItems: 'flex-start' }}>
-                              <Icon name="alert-triangle" size={14} color={P.dangerDark} strokeWidth={1.75} style={{ flexShrink: 0, marginTop: 1 }} />
-                              <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.dangerDark, lineHeight: '18px' }}>
-                                {pickedEmployee.name} already has a NISS on file. It will be replaced.
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-100)' }}>
+                            <MatchEmpCombobox employees={allPeople} value={matchSearch} onChange={setMatchSearch} suggestions={fuzzyMatches} />
+                            {pickedHasNiss && (
+                              <div style={{ background: P.dangerBg, border: `1px solid ${P.dangerBorder}`, borderRadius: 8, padding: 'var(--space-125) var(--space-150)', display: 'flex', gap: 'var(--space-100)', alignItems: 'flex-start' }}>
+                                <Icon name="alert-triangle" size={14} color={P.dangerDark} strokeWidth={1.75} style={{ flexShrink: 0, marginTop: 1 }} />
+                                <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.dangerDark, lineHeight: '18px' }}>
+                                  {pickedEmployee.name} already has a NISS on file. It will be replaced.
+                                </div>
                               </div>
-                            </div>
-                          )}
+                            )}
+                          </div>
                           <Button variant="primary" style={{ justifyContent: 'center', opacity: pickedEmployee ? 1 : 0.4 }} disabled={!pickedEmployee} onClick={() => { if (pickedEmployee) resolve(selectedPerson); }}>
                             {pickedEmployee ? `Add NISS to ${pickedEmployee.name}` : 'Select an employee above'}
                           </Button>
