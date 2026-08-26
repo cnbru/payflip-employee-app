@@ -6519,15 +6519,15 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
     setWs({ widgetMode: mode, hidden: false, step: 1, mandateDenied: false, mandateValidated: false, depositFailed: false, live: false, liveVisible: false });
   };
 
-  // Mobility step 2: first 8s = mandate validation, then 8s = deposit collection, then advance
+  // Mobility step 2: first 60s = mandate validation, then 60s = deposit collection, then advance
   React.useEffect(() => {
     if (widgetMode !== 'mobility' || step !== 2 || mandateDenied || depositFailed) return;
-    const t1 = setTimeout(() => setMandateValidated(true), 8000);
+    const t1 = setTimeout(() => setMandateValidated(true), 60000);
     const t2 = setTimeout(() => {
       setStep(3);
       setMandateValidated(false);
       onToast?.({ message: 'Funds received — your account is ready', type: 'approve' });
-    }, 16000);
+    }, 120000);
     return () => { clearTimeout(t1); clearTimeout(t2); };
   }, [widgetMode, step, mandateDenied, depositFailed]);
 
