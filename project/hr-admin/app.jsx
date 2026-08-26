@@ -7933,7 +7933,7 @@ function DashboardScreen({ requests, onNav, onToast, appEntity = null, physicalC
                             )}
                           </div>
                           <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-100)' }}>
-                            <Button variant="primary" style={{ justifyContent: 'center', opacity: pickedEmployee ? 1 : 0.4 }} disabled={!pickedEmployee} onClick={() => { if (pickedEmployee) resolve(selectedPerson); }}>
+                            <Button variant="primary" style={{ justifyContent: 'center', opacity: pickedEmployee ? 1 : 0.4 }} disabled={!pickedEmployee} onClick={() => { if (pickedEmployee) { const resolved = selectedPerson; const emp = pickedEmployee; resolve(resolved); onToast?.({ message: `NISS linked to ${emp.name}`, type: 'approve', onUndo: () => { setMatchQueue(q => [...q, resolved]); setFoodUnmatched(n => n + 1); setShowMatchModal(true); setSelectedPerson(resolved); } }); } }}>
                               {pickedEmployee ? `Add NISS to ${pickedEmployee.name}` : 'Select an employee above'}
                             </Button>
                             <Button variant="secondary" style={{ justifyContent: 'center' }} onClick={() => { setShowLinkCombobox(false); setMatchSearch(''); }}>
