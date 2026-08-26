@@ -6839,12 +6839,11 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
                 <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.ink }}>Physical cards</span>
               </div>
               <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
-                Virtual cards are included automatically. Physical cards are optional — employees request their own from the app if you enable it here.
+                Allow employees to request a physical Payflip card from the app. Each card costs €10.
               </p>
               <SettingsCard info="You can change this any time in Payflip Card settings.">
                 <SettingsRow
                   label="Physical card requests"
-                  subtitle="€10 per card"
                   trailing={<Switch checked={!!physicalCardsAllowed} onChange={() => onPhysicalCardsChange && onPhysicalCardsChange(!physicalCardsAllowed)} />}
                   onClick={() => onPhysicalCardsChange && onPhysicalCardsChange(!physicalCardsAllowed)}
                   last={!physicalCardsAllowed}
