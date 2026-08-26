@@ -11448,50 +11448,46 @@ function ToastItem({ toast, onDone }) {
 }
 
 function ToastStack({ toasts, onRemove }) {
-  const [hovered, setHovered] = React.useState(false);
-  const MAX = 3;
-  const visible = toasts.slice(0, MAX);
+  const MAX_VISIBLE = 3;
+  const PEEK = 14; // px each back toast peeks above the front
+  const visible = toasts.slice(0, MAX_VISIBLE);
   if (!visible.length) return null;
 
-  const TOAST_H = 44;
-  const COLLAPSED_Y  = [0, 8, 14];        // px each back toast peeks below front
-  const SCALES       = [1, 0.94, 0.88];   // transitions-dev Large/Medium scale tokens
-  const OPACITIES    = [1, 0.7, 0.4];
-  const EXPANDED_STEP = TOAST_H + 10;     // height + gap when fanned out
+  // Shift the container DOWN by (n-1)*PEEK so back toasts peek above
+  // without going above viewport. Front toast always sits at the container bottom.
+  const extra = (visible.length - 1) * PEEK;
 
   return (
-    <div
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{ position: 'fixed', top: 24, right: 24, zIndex: 300 }}
-    >
-      <div style={{ position: 'relative' }}>
-        {visible.map((t, i) => (
+    <div style={{ position: 'fixed', top: 24 + extra, right: 24, zIndex: 300 }}>
+      {[...visible].reverse().map((t, ri) => {
+        const i = visible.length - 1 - ri; // 0 = newest/front
+        const isBack = i > 0;
+        return (
           <div key={t.id} style={{
             position: i === 0 ? 'relative' : 'absolute',
-            top: i === 0 ? 'auto' : 0,
+            top: i === 0 ? 'auto' : -(i * PEEK),
+            right: 0,
             left: i === 0 ? 'auto' : 0,
-            right: i === 0 ? 'auto' : 0,
-            zIndex: MAX - i,
-            transform: `translateY(${hovered ? i * EXPANDED_STEP : COLLAPSED_Y[i]}px) scale(${hovered ? 1 : SCALES[i]})`,
+            zIndex: MAX_VISIBLE - i,
+            transform: isBack ? `scale(${1 - i * 0.06})` : 'none',
             transformOrigin: 'top center',
-            opacity: hovered ? 1 : OPACITIES[i],
-            transition: `transform 250ms ${EASE_OUT}, opacity 250ms ${EASE_OUT}`,
-            pointerEvents: i === 0 || hovered ? 'auto' : 'none',
+            transition: `transform 250ms ${EASE_OUT}`,
+            pointerEvents: i === 0 ? 'auto' : 'none',
           }}>
-            {i === 0 || hovered ? (
-              <ToastItem toast={t} onDone={() => onRemove(t.id)} />
-            ) : (
+            {isBack ? (
               <div style={{
-                background: P.white, borderRadius: 10,
+                background: P.white,
+                borderRadius: 10,
                 border: `1px solid ${P.border}`,
                 boxShadow: '0 4px 20px rgba(15,13,40,0.08)',
-                height: TOAST_H,
+                height: 44,
               }} />
+            ) : (
+              <ToastItem toast={t} onDone={() => onRemove(t.id)} />
             )}
           </div>
-        ))}
-      </div>
+        );
+      })}
     </div>
   );
 }
