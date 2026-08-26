@@ -6813,8 +6813,8 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
               <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
                 {empCount} employees will receive an email to download the Payflip app and request their own card.
               </p>
-              <div style={{ display: 'flex', gap: 'var(--space-150)', padding: 'var(--space-200)', borderRadius: 10, background: P.bg, alignItems: 'flex-start' }}>
-                <Icon name="info" size={16} color={P.inkSoft} strokeWidth={2} style={{ flexShrink: 0, marginTop: 'var(--space-025)' }} />
+              <div style={{ display: 'flex', gap: 'var(--space-150)', padding: 'var(--space-200)', borderRadius: 10, background: P.bg, border: `1px solid ${P.border}`, alignItems: 'flex-start' }}>
+                <Icon name="info" size={14} color={P.inkSoft} strokeWidth={2} style={{ flexShrink: 0, marginTop: 'var(--space-025)' }} />
                 <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, lineHeight: '18px', margin: 0 }}>
                   You don't issue cards yourself. Employees request their card when they're ready by downloading the app.
                 </p>
@@ -7299,8 +7299,8 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
                 <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
                   {foodEmpCount} employees will receive an email to download the Payflip app. They'll instantly receive their virtual meal voucher card and can order a physical card from the app.
                 </p>
-                <div style={{ display: 'flex', gap: 'var(--space-150)', padding: 'var(--space-200)', borderRadius: 10, background: P.bg, alignItems: 'flex-start' }}>
-                  <Icon name="info" size={16} color={P.inkSoft} strokeWidth={2} style={{ flexShrink: 0, marginTop: 'var(--space-025)' }} />
+                <div style={{ display: 'flex', gap: 'var(--space-150)', padding: 'var(--space-200)', borderRadius: 10, background: P.bg, border: `1px solid ${P.border}`, alignItems: 'flex-start' }}>
+                  <Icon name="info" size={14} color={P.inkSoft} strokeWidth={2} style={{ flexShrink: 0, marginTop: 'var(--space-025)' }} />
                   <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, lineHeight: '18px', margin: 0 }}>
                     You don't issue cards yourself. Employees activate their card when they're ready by downloading the app.
                   </p>
