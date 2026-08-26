@@ -7808,6 +7808,7 @@ function DashboardScreen({ requests, onNav, onToast, appEntity = null, physicalC
                             const pFirst = parts.slice(0, -1).join(' ') || parts[0];
                             const pLast  = parts.length > 1 ? parts[parts.length - 1] : '';
                             resolve(selectedPerson);
+                            closeModal();
                             onAddEmployee && onAddEmployee({ firstName: pFirst, lastName: pLast, niss: selectedPerson.niss });
                           }}>
                             Add as new employee
