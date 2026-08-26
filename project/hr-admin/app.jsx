@@ -6436,7 +6436,7 @@ function AnimatedNumber({ value }) {
   );
 }
 
-function ProtoDevPanel({ widgetMode, switchMode, ws, setWs, physicalCardsAllowed, onPhysicalCardsChange, cardDelivery, onCardDeliveryChange }) {
+function ProtoDevPanel({ widgetMode, switchMode, ws, setWs }) {
   const [open, setOpen] = React.useState(false);
   const BG = '#14142a';
   const BORDER = 'rgba(255,255,255,0.08)';
@@ -6483,20 +6483,6 @@ function ProtoDevPanel({ widgetMode, switchMode, ws, setWs, physicalCardsAllowed
               </div>
             </div>
 
-            <div style={{ padding: '10px 12px' }}>
-              {section('Physical cards')}
-              <div style={{ display: 'flex', gap: 3, marginBottom: physicalCardsAllowed ? 8 : 0 }}>
-                {btn('On', physicalCardsAllowed, () => onPhysicalCardsChange && onPhysicalCardsChange(true))}
-                {btn('Off', !physicalCardsAllowed, () => onPhysicalCardsChange && onPhysicalCardsChange(false))}
-              </div>
-              {physicalCardsAllowed && (<>
-                {section('Card delivery')}
-                <div style={{ display: 'flex', gap: 3 }}>
-                  {btn('Each emp', cardDelivery === 'home', () => onCardDeliveryChange && onCardDeliveryChange('home'))}
-                  {btn('Company', cardDelivery === 'office', () => onCardDeliveryChange && onCardDeliveryChange('office'))}
-                </div>
-              </>)}
-            </div>
           </>)}
         </div>
       ) : (
@@ -7036,7 +7022,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
 
   return (
     <div style={{ marginBottom: 'var(--space-300)' }}>
-      <ProtoDevPanel widgetMode={widgetMode} switchMode={switchMode} ws={ws} setWs={setWs} physicalCardsAllowed={physicalCardsAllowed} onPhysicalCardsChange={onPhysicalCardsChange} cardDelivery={cardDelivery} onCardDeliveryChange={onCardDeliveryChange} />
+      <ProtoDevPanel widgetMode={widgetMode} switchMode={switchMode} ws={ws} setWs={setWs} />
 
     <div style={{ background: P.white, borderRadius: 12, overflow: 'hidden', ...(live ? { border: `1px solid ${P.border}` } : { boxShadow: `0 0 0 1px rgba(15,13,40,0.07), 0 4px 24px rgba(15,13,40,0.08)` }) }}>
       {/* Header */}
