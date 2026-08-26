@@ -6855,7 +6855,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
                       <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: P.ink }}>Where do we send physical cards?</div>
                       <div style={{ display: 'flex', gap: 'var(--space-100)' }}>
                         {[
-                          { value: 'home', label: 'Each employee' },
+                          { value: 'home', label: 'Employee address' },
                           { value: 'office', label: 'Company address' },
                         ].map(opt => {
                           const sel = cardDelivery === opt.value;
@@ -6890,7 +6890,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
           <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', padding: 'var(--space-300)', animation: PREFERS_REDUCED_MOTION ? 'none' : `stepDoneEnter 200ms ${EASE_OUT} 140ms both` }}>
             {stepBadgeEl(3)}
             <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.inkSoft }}>
-              {physicalCardsAllowed ? `Physical cards · to ${cardDelivery === 'office' ? 'company address' : 'each employee'}` : 'Virtual only'}
+              {physicalCardsAllowed ? `Physical cards · to ${cardDelivery === 'office' ? 'company address' : 'employee address'}` : 'Virtual only'}
             </span>
             <a href="#" onClick={e => { e.preventDefault(); setStep(3); }} style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink, textDecoration: 'underline', marginLeft: 'auto' }}>Edit</a>
           </div>
@@ -8195,7 +8195,7 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, cardDe
               <SettingsRow
                 icon="map-pin"
                 label="Card delivery"
-                value={draftCardDelivery === 'office' ? 'Company address' : 'Each employee'}
+                value={draftCardDelivery === 'office' ? 'Company address' : 'Employee address'}
                 onClick={() => setShowDeliveryModal(true)}
                 last
               />
@@ -8205,7 +8205,7 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, cardDe
             <PickModal
               title="Where do we send physical cards?"
               options={[
-                { value: 'home', label: 'Each employee', hint: 'Employees enter their delivery address when requesting a card in the app.' },
+                { value: 'home', label: 'Employee address', hint: 'Employees enter their delivery address when requesting a card in the app.' },
                 { value: 'office', label: 'Company address', hint: 'All cards ship to your company address. You receive and distribute them to employees.' },
               ]}
               value={draftCardDelivery}
