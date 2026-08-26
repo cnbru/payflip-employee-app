@@ -6695,7 +6695,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
                   {stepBadgeEl(2)}
                   <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.ink }}>Processing deposit</span>
                 </div>
-                {/* Sub-step 1: Bank validation — indicator stretches to fill row height, line runs to bottom */}
+                {/* Sub-step 1: Mandate confirmation — indicator stretches to fill row height, line runs to bottom */}
                 <div style={{ display: 'flex', gap: 'var(--space-200)' }}>
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: 24, flexShrink: 0 }}>
                     {mandateValidated
@@ -6705,7 +6705,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
                     <div style={{ width: 1.5, flex: 1, background: P.border, marginTop: 3 }} />
                   </div>
                   <div style={{ flex: 1, paddingBottom: 'var(--space-250)' }}>
-                    <div style={{ fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: mandateValidated ? P.inkSoft : P.ink, lineHeight: '20px', transition: `color 300ms ${EASE_OUT}` }}>Bank validation</div>
+                    <div style={{ fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: mandateValidated ? P.inkSoft : P.ink, lineHeight: '20px', transition: `color 300ms ${EASE_OUT}` }}>Mandate confirmation</div>
                     {!mandateValidated && (
                       <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, lineHeight: '18px', marginTop: 2 }}>
                         Your bank is verifying the direct debit mandate — no action needed.{' '}
@@ -6714,7 +6714,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
                     )}
                   </div>
                 </div>
-                {/* Sub-step 2: Deposit collection */}
+                {/* Sub-step 2: First collection */}
                 <div style={{ display: 'flex', gap: 'var(--space-200)' }}>
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: 24, flexShrink: 0 }}>
                     {mandateValidated
@@ -6723,7 +6723,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
                     }
                   </div>
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: mandateValidated ? P.ink : P.inkSoft, lineHeight: '20px', transition: `color 300ms ${EASE_OUT}` }}>Deposit collection</div>
+                    <div style={{ fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: mandateValidated ? P.ink : P.inkSoft, lineHeight: '20px', transition: `color 300ms ${EASE_OUT}` }}>First collection</div>
                     {mandateValidated && (
                       <div key="deposit-desc" style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, lineHeight: '18px', marginTop: 2, animation: PREFERS_REDUCED_MOTION ? `stepContentEnterReduced 200ms ${EASE_OUT} both` : `stepContentEnter 200ms ${EASE_OUT} both` }}>
                         Collecting €{deposit.toLocaleString('de-DE')} via direct debit. Funds usually arrive within 3 business days.{' '}
@@ -6974,7 +6974,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
         {!live && (() => {
           const mobilityMeta = [
             { label: mandateDenied ? 'Mandate declined' : 'Sign mandate', color: mandateDenied ? '#DC2626' : P.inkSoft, bg: mandateDenied ? '#FEF2F2' : P.bg },
-            { label: depositFailed ? 'Collection failed' : mandateValidated ? 'Deposit collection' : 'Bank validation', color: depositFailed ? '#DC2626' : '#D97706', bg: depositFailed ? '#FEF2F2' : '#FEF3C7' },
+            { label: depositFailed ? 'Collection failed' : mandateValidated ? 'First collection' : 'Mandate confirmation', color: depositFailed ? '#DC2626' : '#D97706', bg: depositFailed ? '#FEF2F2' : '#FEF3C7' },
             { label: 'Physical cards',   color: P.inkSoft,  bg: P.bg },
             { label: 'Send invites',     color: P.inkSoft,  bg: P.bg },
           ];
