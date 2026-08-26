@@ -6965,8 +6965,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
   return (
     <div style={{ marginBottom: 'var(--space-300)' }}>
       {/* Prototype switcher */}
-      <div style={{ position: 'fixed', bottom: 20, right: 158, zIndex: 100, display: 'inline-flex', alignItems: 'center', gap: 'var(--space-075)', padding: 'var(--space-100) var(--space-125) var(--space-100) var(--space-150)', borderRadius: 20, background: P.action, boxShadow: 'rgba(15,13,40,0.2) 0px 2px 12px' }}>
-        <Icon name="wrench" size={12} color="#fff" strokeWidth={2} />
+      <div style={{ position: 'fixed', bottom: 20, right: 158, zIndex: 100, display: 'inline-flex', alignItems: 'center', gap: 'var(--space-075)', padding: 'var(--space-100) var(--space-125)', borderRadius: 20, background: P.action, boxShadow: 'rgba(15,13,40,0.2) 0px 2px 12px' }}>
         <div style={{ display: 'flex' }}>
           {['mobility', 'food'].map(m => (
             <button key={m} onClick={() => switchMode(m)} style={{
