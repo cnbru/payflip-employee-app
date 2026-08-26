@@ -6974,7 +6974,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
         {!live && (() => {
           const mobilityMeta = [
             { label: mandateDenied ? 'Mandate declined' : 'Sign mandate', color: mandateDenied ? '#DC2626' : P.inkSoft, bg: mandateDenied ? '#FEF2F2' : P.bg },
-            { label: depositFailed ? 'Collection failed' : mandateValidated ? 'Awaiting deposit' : 'Validating mandate', color: depositFailed ? '#DC2626' : '#D97706', bg: depositFailed ? '#FEF2F2' : '#FEF3C7' },
+            { label: depositFailed ? 'Collection failed' : mandateValidated ? 'Deposit collection' : 'Bank validation', color: depositFailed ? '#DC2626' : '#D97706', bg: depositFailed ? '#FEF2F2' : '#FEF3C7' },
             { label: 'Physical cards',   color: P.inkSoft,  bg: P.bg },
             { label: 'Send invites',     color: P.inkSoft,  bg: P.bg },
           ];
