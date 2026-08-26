@@ -6436,6 +6436,78 @@ function AnimatedNumber({ value }) {
   );
 }
 
+function ProtoDevPanel({ widgetMode, switchMode, ws, setWs, physicalCardsAllowed, onPhysicalCardsChange, cardDelivery, onCardDeliveryChange }) {
+  const [open, setOpen] = React.useState(false);
+  const BG = '#14142a';
+  const BORDER = 'rgba(255,255,255,0.08)';
+  const DIM = 'rgba(255,255,255,0.3)';
+  const BRIGHT = 'rgba(255,255,255,0.85)';
+  const ACTIVE_BG = '#5b21b6';
+  const INACTIVE_BG = 'rgba(255,255,255,0.06)';
+
+  const btn = (label, active, onClick) => (
+    <button onClick={onClick} style={{ flex: 1, padding: '4px 6px', borderRadius: 5, border: 'none', cursor: 'pointer', fontFamily: 'monospace', fontSize: 10, fontWeight: 700, background: active ? ACTIVE_BG : INACTIVE_BG, color: active ? '#fff' : DIM, transition: 'background 100ms, color 100ms', whiteSpace: 'nowrap' }}>{label}</button>
+  );
+  const section = (label) => (
+    <div style={{ fontFamily: 'monospace', fontSize: 9, fontWeight: 700, letterSpacing: '0.08em', color: DIM, textTransform: 'uppercase', marginBottom: 5 }}>{label}</div>
+  );
+
+  const mobStep = ws.live ? 'live' : ws.step;
+
+  return (
+    <div style={{ position: 'fixed', bottom: 20, right: 20, zIndex: 9999 }}>
+      {open ? (
+        <div style={{ background: BG, border: `1px solid ${BORDER}`, borderRadius: 10, width: 216, boxShadow: '0 12px 40px rgba(0,0,0,0.5)', overflow: 'hidden' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px 7px', borderBottom: `1px solid ${BORDER}` }}>
+            <span style={{ fontFamily: 'monospace', fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', color: DIM, textTransform: 'uppercase' }}>Prototype controls</span>
+            <button onClick={() => setOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: DIM, fontSize: 13, lineHeight: 1, padding: 0, display: 'flex' }}>✕</button>
+          </div>
+
+          <div style={{ padding: '10px 12px', borderBottom: `1px solid ${BORDER}` }}>
+            {section('Widget')}
+            <div style={{ display: 'flex', gap: 4 }}>
+              {btn('Mobility', widgetMode === 'mobility', () => switchMode('mobility'))}
+              {btn('Food', widgetMode === 'food', () => switchMode('food'))}
+            </div>
+          </div>
+
+          {widgetMode === 'mobility' && (<>
+            <div style={{ padding: '10px 12px', borderBottom: `1px solid ${BORDER}` }}>
+              {section('Wizard step')}
+              <div style={{ display: 'flex', gap: 3 }}>
+                {btn('1', mobStep === 1, () => setWs({ step: 1, mandateValidated: false, depositFailed: false, live: false, liveVisible: false, hidden: false }))}
+                {btn('2', mobStep === 2, () => setWs({ step: 2, mandateValidated: false, depositFailed: false, live: false, liveVisible: false, hidden: false }))}
+                {btn('3', mobStep === 3, () => setWs({ step: 3, mandateValidated: true, depositFailed: false, live: false, liveVisible: false, hidden: false }))}
+                {btn('4', mobStep === 4, () => setWs({ step: 4, mandateValidated: true, depositFailed: false, live: false, liveVisible: false, hidden: false }))}
+                {btn('Live', mobStep === 'live', () => setWs({ step: 5, mandateValidated: true, depositFailed: false, live: true, liveVisible: true, hidden: false }))}
+              </div>
+            </div>
+
+            <div style={{ padding: '10px 12px' }}>
+              {section('Physical cards')}
+              <div style={{ display: 'flex', gap: 3, marginBottom: physicalCardsAllowed ? 8 : 0 }}>
+                {btn('On', physicalCardsAllowed, () => onPhysicalCardsChange && onPhysicalCardsChange(true))}
+                {btn('Off', !physicalCardsAllowed, () => onPhysicalCardsChange && onPhysicalCardsChange(false))}
+              </div>
+              {physicalCardsAllowed && (<>
+                {section('Card delivery')}
+                <div style={{ display: 'flex', gap: 3 }}>
+                  {btn('Each emp', cardDelivery === 'home', () => onCardDeliveryChange && onCardDeliveryChange('home'))}
+                  {btn('Company', cardDelivery === 'office', () => onCardDeliveryChange && onCardDeliveryChange('office'))}
+                </div>
+              </>)}
+            </div>
+          </>)}
+        </div>
+      ) : (
+        <button onClick={() => setOpen(true)} style={{ background: BG, border: `1px solid ${BORDER}`, borderRadius: 8, padding: '5px 9px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5, boxShadow: '0 4px 16px rgba(0,0,0,0.4)' }}>
+          <span style={{ fontFamily: 'monospace', fontSize: 9, fontWeight: 700, letterSpacing: '0.08em', color: DIM, textTransform: 'uppercase' }}>Proto</span>
+        </button>
+      )}
+    </div>
+  );
+}
+
 function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysicalCardsChange, cardDelivery = 'home', onCardDeliveryChange, mobilityWidgetState, onMobilityWidgetStateChange }) {
   const ws = mobilityWidgetState;
   const setWs = (updater) => onMobilityWidgetStateChange(prev => typeof updater === 'function' ? { ...prev, ...updater(prev) } : { ...prev, ...updater });
@@ -6964,24 +7036,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
 
   return (
     <div style={{ marginBottom: 'var(--space-300)' }}>
-      {/* Prototype switcher */}
-      <div style={{ position: 'fixed', bottom: 20, right: 158, zIndex: 100, display: 'inline-flex', alignItems: 'center', gap: 'var(--space-075)', padding: 'var(--space-100) var(--space-125)', borderRadius: 20, background: P.action, boxShadow: 'rgba(15,13,40,0.2) 0px 2px 12px' }}>
-        <div style={{ display: 'flex' }}>
-          {['mobility', 'food'].map(m => (
-            <button key={m} onClick={() => switchMode(m)} style={{
-              padding: 'var(--space-025) var(--space-100)', borderRadius: 12, border: 'none',
-              background: widgetMode === m ? 'rgba(255,255,255,0.18)' : 'transparent',
-              cursor: 'pointer',
-              fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)',
-              color: widgetMode === m ? '#fff' : 'rgba(255,255,255,0.55)',
-              transition: 'background 150ms ease, color 150ms ease',
-              textTransform: 'capitalize',
-            }}>
-              {m === 'mobility' ? 'Mobility' : 'Food'}
-            </button>
-          ))}
-        </div>
-      </div>
+      <ProtoDevPanel widgetMode={widgetMode} switchMode={switchMode} ws={ws} setWs={setWs} physicalCardsAllowed={physicalCardsAllowed} onPhysicalCardsChange={onPhysicalCardsChange} cardDelivery={cardDelivery} onCardDeliveryChange={onCardDeliveryChange} />
 
     <div style={{ background: P.white, borderRadius: 12, overflow: 'hidden', ...(live ? { border: `1px solid ${P.border}` } : { boxShadow: `0 0 0 1px rgba(15,13,40,0.07), 0 4px 24px rgba(15,13,40,0.08)` }) }}>
       {/* Header */}
