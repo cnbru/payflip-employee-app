@@ -6784,7 +6784,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
                     <div style={{ width: 1.5, flex: 1, background: P.border, marginTop: 3 }} />
                   </div>
                   <div style={{ flex: 1, paddingBottom: 'var(--space-250)' }}>
-                    <div style={{ fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: mandateValidated ? P.inkSoft : P.ink, lineHeight: '20px', transition: `color 300ms ${EASE_OUT}` }}>Mandate confirmation</div>
+                    <div style={{ fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: mandateValidated ? P.inkSoft : P.ink, lineHeight: '20px', transition: `color 300ms ${EASE_OUT}` }}>{mandateValidated ? 'Mandate confirmed by your bank' : 'Awaiting bank confirmation'}</div>
                     <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, lineHeight: '18px', marginTop: 2 }}>
                       {mandateValidated
                         ? 'Twikey has sent you a signed copy of the mandate by email.'
@@ -7058,7 +7058,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
         {!live && (() => {
           const mobilityMeta = [
             { label: mandateDenied ? 'Mandate declined' : 'Sign mandate', color: mandateDenied ? P.dangerDark : P.inkSoft, bg: mandateDenied ? P.dangerBg : P.bg },
-            { label: depositFailed ? 'Collection failed' : mandateValidated ? 'First collection' : 'Mandate confirmation', color: depositFailed ? P.dangerDark : P.inkSoft, bg: depositFailed ? P.dangerBg : P.bg },
+            { label: depositFailed ? 'Collection failed' : mandateValidated ? 'First collection' : 'Bank confirmation', color: depositFailed ? P.dangerDark : P.inkSoft, bg: depositFailed ? P.dangerBg : P.bg },
             { label: 'Physical cards',   color: P.inkSoft,  bg: P.bg },
             { label: 'Send invites',     color: P.inkSoft,  bg: P.bg },
           ];
