@@ -12013,7 +12013,7 @@ function App() {
   const [cardDelivery, setCardDelivery] = useState('home');
   const [mobilityWidgetState, setMobilityWidgetState] = useState({
     widgetMode: 'mobility',
-    hidden: new URLSearchParams(location.search).get('setup') === 'collapsed',
+    hidden: location.hash.includes('setup=collapsed') || new URLSearchParams(location.search).get('setup') === 'collapsed',
     step: 1,
     mandateDenied: false,
     mandateValidated: false,
