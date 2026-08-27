@@ -6501,7 +6501,13 @@ function ProtoDevPanel({ widgetMode, switchMode, ws, setWs }) {
                 {btn('Live', mobStep === 'live', () => setWs({ step: 5, mandateValidated: true, depositFailed: false, live: true, liveVisible: true, hidden: false }))}
               </div>
             </div>
-
+            <div style={{ padding: '10px 12px' }}>
+              {section('Simulate error')}
+              <div style={{ display: 'flex', gap: 3 }}>
+                <button onClick={() => setWs(ws.mandateDenied ? { mandateDenied: false, step: 2 } : { mandateDenied: true, step: 1 })} style={{ flex: 1, padding: '4px 6px', borderRadius: 5, border: 'none', cursor: 'pointer', fontFamily: 'monospace', fontSize: 10, fontWeight: 700, background: ws.mandateDenied ? '#7f1d1d' : INACTIVE_BG, color: ws.mandateDenied ? '#fca5a5' : DIM, transition: 'background 100ms, color 100ms', whiteSpace: 'nowrap' }}>Denial</button>
+                <button onClick={() => setWs({ depositFailed: !ws.depositFailed })} style={{ flex: 1, padding: '4px 6px', borderRadius: 5, border: 'none', cursor: 'pointer', fontFamily: 'monospace', fontSize: 10, fontWeight: 700, background: ws.depositFailed ? '#7f1d1d' : INACTIVE_BG, color: ws.depositFailed ? '#fca5a5' : DIM, transition: 'background 100ms, color 100ms', whiteSpace: 'nowrap' }}>Coll. fail</button>
+              </div>
+            </div>
           </>)}
         </div>
       ) : (
@@ -6788,7 +6794,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
                     <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, lineHeight: '18px', marginTop: 2 }}>
                       {mandateValidated
                         ? 'Twikey has sent you a signed copy of the mandate by email.'
-                        : <>Your bank is registering the direct debit authorization — this typically takes up to 24 hours.{' '}<a href="#" onClick={e => { e.preventDefault(); setWs({ mandateDenied: true, step: 1 }); }} style={{ color: P.inkSoft, textDecoration: 'underline' }}>Simulate denial ↗</a></>
+                        : 'Your bank is registering the direct debit authorization — this typically takes up to 24 hours.'
                       }
                     </div>
                   </div>
@@ -6805,8 +6811,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
                     <div style={{ fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: mandateValidated ? P.ink : P.inkSoft, lineHeight: '20px', transition: `color 300ms ${EASE_OUT}` }}>Collection scheduled</div>
                     {mandateValidated && (
                       <div key="deposit-desc" style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, lineHeight: '18px', marginTop: 2, animation: PREFERS_REDUCED_MOTION ? `stepContentEnterReduced 200ms ${EASE_OUT} both` : `stepContentEnter 200ms ${EASE_OUT} both` }}>
-                        Collecting €{deposit.toLocaleString('de-DE')} via direct debit. You'll see this on your bank statement within 1–3 business days.{' '}
-                        <a href="#" onClick={e => { e.preventDefault(); setDepositFailed(true); }} style={{ color: P.inkSoft, textDecoration: 'underline' }}>Simulate failure ↗</a>
+                        Collecting €{deposit.toLocaleString('de-DE')} via direct debit. You'll see this on your bank statement within 1–3 business days.
                       </div>
                     )}
                   </div>
