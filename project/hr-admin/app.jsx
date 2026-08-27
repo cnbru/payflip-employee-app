@@ -6505,7 +6505,7 @@ function ProtoDevPanel({ widgetMode, switchMode, ws, setWs }) {
               {section('Bank confirm')}
               <div style={{ display: 'flex', gap: 3 }}>
                 {[{ label: '8s', val: 8 }, { label: '1m', val: 60 }, { label: '1h', val: 3600 }].map(({ label, val }) =>
-                  btn(label, (ws.bankConfirmDelay || 8) === val, () => setWs({ bankConfirmDelay: val, mandateValidated: false }), { key: label })
+                  <React.Fragment key={label}>{btn(label, (ws.bankConfirmDelay || 8) === val, () => setWs({ bankConfirmDelay: val, mandateValidated: false }))}</React.Fragment>
                 )}
               </div>
             </div>
@@ -7829,123 +7829,126 @@ function DashboardScreen({ requests, onNav, onToast, appEntity = null, physicalC
             setShowLinkCombobox(false);
           };
 
-          if (selectedPerson) {
-            return (
-              <ModalShell onClose={closeModal} width={440}>
-                {close => (
-                  <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    {/* Step 1: choose action */}
-                    {!showLinkCombobox && (
-                      <>
-                        <div style={{ display: 'flex', alignItems: 'center', padding: 'var(--space-200) var(--space-300)', borderBottom: `1px solid ${P.border}`, gap: 'var(--space-150)' }}>
-                          <IconButton icon="arrow-left" onClick={() => { setSelectedPerson(null); setMatchSearch(''); setShowLinkSection(false); setShowLinkCombobox(false); }} />
-                          <div style={{ flex: 1 }}>
-                            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 17, color: P.ink, letterSpacing: '-0.01em', lineHeight: 1.2 }}>{selectedPerson.name}</div>
-                            <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, marginTop: 2, fontVariantNumeric: 'tabular-nums' }}>{selectedPerson.niss}</div>
-                          </div>
-                          <IconButton icon="X" onClick={close} blur />
-                        </div>
-                        <div style={{ padding: 'var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-250)' }}>
-                          <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, lineHeight: '20px' }}>
-                            This person wasn't found in Payflip. Add them as a new employee, or assign this NISS to someone who's already in the system.
-                          </div>
-                          <Button variant="primary" icon="user-plus" style={{ justifyContent: 'center' }} onClick={() => {
-                            const parts = selectedPerson.name.trim().split(/\s+/);
-                            const pFirst = parts.slice(0, -1).join(' ') || parts[0];
-                            const pLast  = parts.length > 1 ? parts[parts.length - 1] : '';
-                            resolve(selectedPerson);
-                            closeModal();
-                            onAddEmployee && onAddEmployee({ firstName: pFirst, lastName: pLast, niss: selectedPerson.niss });
-                          }}>
-                            Add as new employee
-                          </Button>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)' }}>
-                            <div style={{ flex: 1, height: 1, background: P.border }} />
-                            <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkFaint }}>or</span>
-                            <div style={{ flex: 1, height: 1, background: P.border }} />
-                          </div>
-                          <Button variant="secondary" style={{ justifyContent: 'center' }} onClick={() => setShowLinkCombobox(true)}>
-                            Assign NISS to existing employee
-                          </Button>
-                          <div style={{ textAlign: 'center' }}>
-                            <button onClick={() => resolve(selectedPerson)} style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkFaint, background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>
-                              Ignore for this cycle
-                            </button>
-                          </div>
-                        </div>
-                      </>
-                    )}
-                    {/* Step 2: link to existing employee */}
-                    {showLinkCombobox && (
-                      <>
-                        <div style={{ display: 'flex', alignItems: 'center', padding: 'var(--space-200) var(--space-300)', borderBottom: `1px solid ${P.border}`, gap: 'var(--space-150)' }}>
-                          <IconButton icon="arrow-left" onClick={() => { setShowLinkCombobox(false); setMatchSearch(''); }} />
-                          <div style={{ flex: 1 }}>
-                            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 17, color: P.ink, letterSpacing: '-0.01em', lineHeight: 1.2 }}>{selectedPerson.name}</div>
-                            <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, marginTop: 2, fontVariantNumeric: 'tabular-nums' }}>{selectedPerson.niss}</div>
-                          </div>
-                          <IconButton icon="X" onClick={close} blur />
-                        </div>
-                        <div style={{ padding: 'var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-250)' }}>
-                          <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, lineHeight: '20px' }}>
-                            <strong style={{ fontWeight: 600 }}>Assign this NISS to an existing employee.</strong> Select the employee this number belongs to. Their record will be updated with this national insurance number.
-                          </div>
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-100)' }}>
-                            <MatchEmpCombobox employees={allPeople} value={matchSearch} onChange={setMatchSearch} suggestions={fuzzyMatches} />
-                            {pickedHasNiss && (
-                              <div style={{ background: P.dangerBg, border: `1px solid ${P.dangerBorder}`, borderRadius: 8, padding: 'var(--space-125) var(--space-150)', display: 'flex', gap: 'var(--space-100)', alignItems: 'flex-start' }}>
-                                <Icon name="alert-triangle" size={14} color={P.dangerDark} strokeWidth={1.75} style={{ flexShrink: 0, marginTop: 1 }} />
-                                <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.dangerDark, lineHeight: '18px' }}>
-                                  {pickedEmployee.name} already has a NISS on file. It will be replaced.
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-100)' }}>
-                            <Button variant="primary" style={{ justifyContent: 'center', opacity: pickedEmployee ? 1 : 0.4 }} disabled={!pickedEmployee} onClick={() => { if (pickedEmployee) { const resolved = selectedPerson; const emp = pickedEmployee; resolve(resolved); onToast?.({ message: `NISS linked to ${emp.name}`, type: 'approve', onUndo: () => { setMatchQueue(q => [...q, resolved]); setFoodUnmatched(n => n + 1); setShowMatchModal(true); setSelectedPerson(resolved); } }); } }}>
-                              {pickedEmployee ? `Add NISS to ${pickedEmployee.name}` : 'Select an employee above'}
-                            </Button>
-                            <Button variant="secondary" style={{ justifyContent: 'center' }} onClick={() => { setShowLinkCombobox(false); setMatchSearch(''); }}>
-                              Cancel
-                            </Button>
-                          </div>
-                        </div>
-                      </>
-                    )}
-                  </div>
-                )}
-              </ModalShell>
-            );
-          }
+          const SLIDE_DUR = 300;
+          const slideTransition = `transform ${SLIDE_DUR}ms ${EASE_DRAWER}`;
+          const outerX = selectedPerson ? '-50%' : '0%';
+          const innerX = showLinkCombobox ? '-50%' : '0%';
 
           return (
             <ModalShell onClose={closeModal} width={440}>
               {close => (
-                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                  <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', padding: 'var(--space-250) var(--space-300)', borderBottom: `1px solid ${P.border}` }}>
-                    <div>
-                      <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-md)', color: P.ink }}>Unmatched employees</div>
-                      <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginTop: 2 }}>
-                        {matchQueue.length} {matchQueue.length === 1 ? 'person' : 'people'} from SD Worx not found in Payflip
+                <div style={{ overflow: 'hidden', width: '100%' }}>
+                  {/* Outer strip: list panel | detail panel */}
+                  <div style={{ display: 'flex', flexWrap: 'nowrap', width: '200%', transform: `translateX(${outerX})`, transition: slideTransition }}>
+
+                    {/* Panel 1: List */}
+                    <div style={{ width: '50%', flexShrink: 0 }}>
+                      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', padding: 'var(--space-250) var(--space-300)', borderBottom: `1px solid ${P.border}` }}>
+                        <div>
+                          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-md)', color: P.ink }}>Unmatched employees</div>
+                          <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginTop: 2 }}>
+                            {matchQueue.length} {matchQueue.length === 1 ? 'person' : 'people'} from SD Worx not found in Payflip
+                          </div>
+                        </div>
+                        <IconButton icon="X" onClick={close} blur />
+                      </div>
+                      <div>
+                        {matchQueue.map((emp, idx) => (
+                          <div key={emp.niss} style={{ display: 'flex', alignItems: 'center', padding: 'var(--space-200) var(--space-300)', borderBottom: idx < matchQueue.length - 1 ? `1px solid ${P.border}` : 'none' }}>
+                            <div style={{ flex: 1 }}>
+                              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink }}>{emp.name}</div>
+                              <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginTop: 2, fontVariantNumeric: 'tabular-nums' }}>{emp.niss}</div>
+                            </div>
+                            <Button variant="secondary" onClick={() => { setSelectedPerson(emp); setMatchSearch(''); setShowLinkCombobox(false); }}>Resolve</Button>
+                          </div>
+                        ))}
+                      </div>
+                      <div style={{ padding: 'var(--space-150) var(--space-300)', borderTop: `1px solid ${P.border}`, textAlign: 'center' }}>
+                        <button onClick={() => { setFoodUnmatched(0); closeModal(); }} style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>
+                          Ignore all for this cycle
+                        </button>
                       </div>
                     </div>
-                    <IconButton icon="X" onClick={close} blur />
-                  </div>
-                  <div>
-                    {matchQueue.map((emp, idx) => (
-                      <div key={emp.niss} style={{ display: 'flex', alignItems: 'center', padding: 'var(--space-200) var(--space-300)', borderBottom: idx < matchQueue.length - 1 ? `1px solid ${P.border}` : 'none' }}>
+
+                    {/* Panel 2: Detail */}
+                    <div style={{ width: '50%', flexShrink: 0 }}>
+                      {/* Shared header (back + name/NISS + X) */}
+                      <div style={{ display: 'flex', alignItems: 'center', padding: 'var(--space-200) var(--space-300)', borderBottom: `1px solid ${P.border}`, gap: 'var(--space-150)' }}>
+                        <IconButton icon="arrow-left" onClick={() => {
+                          if (showLinkCombobox) { setShowLinkCombobox(false); setMatchSearch(''); }
+                          else { setSelectedPerson(null); setMatchSearch(''); setShowLinkSection(false); setShowLinkCombobox(false); }
+                        }} />
                         <div style={{ flex: 1 }}>
-                          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink }}>{emp.name}</div>
-                          <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginTop: 2, fontVariantNumeric: 'tabular-nums' }}>{emp.niss}</div>
+                          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 17, color: P.ink, letterSpacing: '-0.01em', lineHeight: 1.2 }}>{selectedPerson?.name}</div>
+                          <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, marginTop: 2, fontVariantNumeric: 'tabular-nums' }}>{selectedPerson?.niss}</div>
                         </div>
-                        <Button variant="secondary" onClick={() => { setSelectedPerson(emp); setMatchSearch(''); setShowLinkCombobox(false); }}>Resolve</Button>
+                        <IconButton icon="X" onClick={close} blur />
                       </div>
-                    ))}
-                  </div>
-                  <div style={{ padding: 'var(--space-150) var(--space-300)', borderTop: `1px solid ${P.border}`, textAlign: 'center' }}>
-                    <button onClick={() => { setFoodUnmatched(0); closeModal(); }} style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>
-                      Ignore all for this cycle
-                    </button>
+                      {/* Inner strip: step 1 body | step 2 body */}
+                      <div style={{ overflow: 'hidden', width: '100%' }}>
+                        <div style={{ display: 'flex', flexWrap: 'nowrap', width: '200%', transform: `translateX(${innerX})`, transition: slideTransition }}>
+                          {/* Step 1: action choice */}
+                          <div style={{ width: '50%', flexShrink: 0 }}>
+                            <div style={{ padding: 'var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-250)' }}>
+                              <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, lineHeight: '20px' }}>
+                                This person wasn't found in Payflip. Add them as a new employee, or assign this NISS to someone who's already in the system.
+                              </div>
+                              <Button variant="primary" icon="user-plus" style={{ justifyContent: 'center' }} onClick={() => {
+                                const parts = selectedPerson.name.trim().split(/\s+/);
+                                const pFirst = parts.slice(0, -1).join(' ') || parts[0];
+                                const pLast  = parts.length > 1 ? parts[parts.length - 1] : '';
+                                resolve(selectedPerson);
+                                closeModal();
+                                onAddEmployee && onAddEmployee({ firstName: pFirst, lastName: pLast, niss: selectedPerson.niss });
+                              }}>
+                                Add as new employee
+                              </Button>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)' }}>
+                                <div style={{ flex: 1, height: 1, background: P.border }} />
+                                <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkFaint }}>or</span>
+                                <div style={{ flex: 1, height: 1, background: P.border }} />
+                              </div>
+                              <Button variant="secondary" style={{ justifyContent: 'center' }} onClick={() => setShowLinkCombobox(true)}>
+                                Assign NISS to existing employee
+                              </Button>
+                              <div style={{ textAlign: 'center' }}>
+                                <button onClick={() => resolve(selectedPerson)} style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkFaint, background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>
+                                  Ignore for this cycle
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                          {/* Step 2: assign NISS combobox */}
+                          <div style={{ width: '50%', flexShrink: 0 }}>
+                            <div style={{ padding: 'var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-250)' }}>
+                              <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, lineHeight: '20px' }}>
+                                <strong style={{ fontWeight: 600 }}>Assign this NISS to an existing employee.</strong> Select the employee this number belongs to. Their record will be updated with this national insurance number.
+                              </div>
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-100)' }}>
+                                <MatchEmpCombobox employees={allPeople} value={matchSearch} onChange={setMatchSearch} suggestions={fuzzyMatches} />
+                                {pickedHasNiss && (
+                                  <div style={{ background: P.dangerBg, border: `1px solid ${P.dangerBorder}`, borderRadius: 8, padding: 'var(--space-125) var(--space-150)', display: 'flex', gap: 'var(--space-100)', alignItems: 'flex-start' }}>
+                                    <Icon name="alert-triangle" size={14} color={P.dangerDark} strokeWidth={1.75} style={{ flexShrink: 0, marginTop: 1 }} />
+                                    <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.dangerDark, lineHeight: '18px' }}>
+                                      {pickedEmployee.name} already has a NISS on file. It will be replaced.
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-100)' }}>
+                                <Button variant="primary" style={{ justifyContent: 'center', opacity: pickedEmployee ? 1 : 0.4 }} disabled={!pickedEmployee} onClick={() => { if (pickedEmployee) { const resolved = selectedPerson; const emp = pickedEmployee; resolve(resolved); onToast?.({ message: `NISS linked to ${emp.name}`, type: 'approve', onUndo: () => { setMatchQueue(q => [...q, resolved]); setFoodUnmatched(n => n + 1); setShowMatchModal(true); setSelectedPerson(resolved); } }); } }}>
+                                  {pickedEmployee ? `Add NISS to ${pickedEmployee.name}` : 'Select an employee above'}
+                                </Button>
+                                <Button variant="secondary" style={{ justifyContent: 'center' }} onClick={() => { setShowLinkCombobox(false); setMatchSearch(''); }}>
+                                  Cancel
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
                   </div>
                 </div>
               )}
