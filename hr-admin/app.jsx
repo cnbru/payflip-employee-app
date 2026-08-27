@@ -6901,7 +6901,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
           <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', padding: 'var(--space-300)', animation: PREFERS_REDUCED_MOTION ? 'none' : `stepDoneEnter 200ms ${EASE_OUT} 140ms both` }}>
             {stepBadgeEl(3)}
             <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.inkSoft }}>
-              {physicalCardsAllowed ? `Physical cards · to ${cardDelivery === 'office' ? 'company address' : 'employee address'}` : 'Virtual only'}
+              {physicalCardsAllowed ? `Physical cards · ${cardDelivery === 'office' ? 'company address' : 'employee address'}` : 'Virtual only'}
             </span>
             <a href="#" onClick={e => { e.preventDefault(); setStep(3); }} style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink, textDecoration: 'underline', marginLeft: 'auto' }}>Edit</a>
           </div>
