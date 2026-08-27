@@ -6501,6 +6501,14 @@ function ProtoDevPanel({ widgetMode, switchMode, ws, setWs }) {
                 {btn('Live', mobStep === 'live', () => setWs({ step: 5, mandateValidated: true, depositFailed: false, live: true, liveVisible: true, hidden: false }))}
               </div>
             </div>
+            <div style={{ padding: '10px 12px', borderBottom: `1px solid ${BORDER}` }}>
+              {section('Bank confirm')}
+              <div style={{ display: 'flex', gap: 3 }}>
+                {[{ label: '8s', val: 8 }, { label: '1m', val: 60 }, { label: '1h', val: 3600 }].map(({ label, val }) =>
+                  btn(label, (ws.bankConfirmDelay || 8) === val, () => setWs({ bankConfirmDelay: val, mandateValidated: false }), { key: label })
+                )}
+              </div>
+            </div>
             <div style={{ padding: '10px 12px' }}>
               {section('Simulate error')}
               <div style={{ display: 'flex', gap: 3 }}>
@@ -6544,6 +6552,14 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
   const [showInviteMoreModal, setShowInviteMoreModal] = useState(false);
   const [liveMenuOpen, setLiveMenuOpen] = useState(false);
   const { rendered: liveMenuRendered, visible: liveMenuVisible } = usePopoverTransition(liveMenuOpen);
+
+  // Auto-advance mandate validation after bankConfirmDelay seconds (prototype simulation)
+  React.useEffect(() => {
+    if (step !== 2 || mandateValidated || mandateDenied || depositFailed) return;
+    const delay = (ws.bankConfirmDelay || 8) * 1000;
+    const id = setTimeout(() => setMandateValidated(true), delay);
+    return () => clearTimeout(id);
+  }, [step, mandateValidated, mandateDenied, depositFailed, ws.bankConfirmDelay]);
 
   // Food-mode INSS state
   const [inssUploaded, setInssUploaded] = useState(false);
@@ -11984,6 +12000,7 @@ function App() {
     live: false,
     liveVisible: false,
     invitedKeys: [],
+    bankConfirmDelay: 8,
   });
   const [settingsDocuments, setSettingsDocuments] = useState([]);
 
