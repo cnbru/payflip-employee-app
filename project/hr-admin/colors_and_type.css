@@ -121,6 +121,7 @@
   --bg-status-light-selected:   var(--blue-100);
   --bg-status-strong-selected:  var(--blue-500);
   --bg-status-strong-neutral:   var(--gray-600);
+  --bg-brand:                   #F9E9FF;         /* brand tint — hero/preview panel backgrounds */
 
   /* Text */
   --text-default:               var(--gray-700);

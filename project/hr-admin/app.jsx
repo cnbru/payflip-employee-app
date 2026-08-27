@@ -6696,36 +6696,54 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
     if (live) return null;
     return (<>
       {/* Step 1 — Sign mandate */}
-      <div style={{ background: step === 1 ? P.white : inactiveBg, borderBottom: `1px solid ${P.border}`, transition: `background 260ms ${EASE_OUT}` }}>
-        <div style={{ display: 'grid', gridTemplateRows: step === 1 ? '1fr' : '0fr', transition: PREFERS_REDUCED_MOTION ? 'none' : `grid-template-rows 260ms ${EASE_OUT}`, overflow: 'hidden' }}>
+      <div style={{ background: (step === 1 || mandateDenied) ? P.white : inactiveBg, borderBottom: `1px solid ${P.border}`, transition: `background 260ms ${EASE_OUT}` }}>
+        <div style={{ display: 'grid', gridTemplateRows: (step === 1 || mandateDenied) ? '1fr' : '0fr', transition: PREFERS_REDUCED_MOTION ? 'none' : `grid-template-rows 260ms ${EASE_OUT}`, overflow: 'hidden' }}>
           <div style={{ overflow: 'hidden' }}>
-            <div style={{ padding: 'var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-250)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)' }}>
-                {stepBadgeEl(1)}
-                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.ink }}>Sign mandate</span>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-075)' }}>
-                <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
-                  Authorises Payflip to collect <strong style={{ color: P.ink }}>€{deposit.toLocaleString('de-DE')}</strong> for your {empCount} employees, and top up automatically when the balance runs low.
+            {mandateDenied ? (
+              <div style={{ padding: 'var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-200)', animation: PREFERS_REDUCED_MOTION ? `stepContentEnterReduced 200ms ${EASE_OUT} both` : `stepContentEnter 200ms ${EASE_OUT} both` }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)' }}>
+                  <span style={{ width: 24, height: 24, borderRadius: '50%', background: P.dangerBg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <Icon name="x" size={12} color={P.dangerDark} strokeWidth={2.5} />
+                  </span>
+                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.dangerDark }}>Mandate declined</span>
+                </div>
+                <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, lineHeight: '20px', margin: 0 }}>
+                  Your bank declined the mandate. Re-sign the mandate once your bank confirms the issue is resolved — this is usually an account setting or a limit on direct debits.
                 </p>
-                <button onClick={() => setShowCalcModal(true)} style={{ alignSelf: 'flex-start', background: 'none', border: 'none', padding: 0, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, textDecoration: 'underline', cursor: 'pointer' }}>
-                  How is this calculated?
-                </button>
+                <div style={{ display: 'flex', gap: 'var(--space-125)' }}>
+                  <Button variant="primary" onClick={() => { setWs({ mandateDenied: false, step: 2 }); }} style={{ justifyContent: 'center', fontSize: 'var(--fs-body-sm)', padding: 'var(--space-100) var(--space-250)' }}>Re-sign mandate</Button>
+                  <Button variant="secondary" onClick={() => { window.location.href = 'mailto:support@payflip.be?subject=Mobility%20card%20mandate%20declined'; }} style={{ justifyContent: 'center', fontSize: 'var(--fs-body-sm)', padding: 'var(--space-100) var(--space-200)' }}>Contact support</Button>
+                </div>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', padding: 'var(--space-125) var(--space-200)', border: `1px solid ${P.border}`, borderRadius: 10, background: P.bg }}>
-                <img src={TWIKEY_LOGO_IMG} alt="Twikey" style={{ width: 80, height: 35, display: 'block', objectFit: 'contain', flexShrink: 0 }} />
-                <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, lineHeight: '17px' }}>
-                  Secured by Twikey — funds arrive within 3 business days.
-                </span>
+            ) : (
+              <div style={{ padding: 'var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-250)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)' }}>
+                  {stepBadgeEl(1)}
+                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.ink }}>Sign mandate</span>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-075)' }}>
+                  <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
+                    Authorises Payflip to collect <strong style={{ color: P.ink }}>€{deposit.toLocaleString('de-DE')}</strong> for your {empCount} employees, and top up automatically when the balance runs low.
+                  </p>
+                  <button onClick={() => setShowCalcModal(true)} style={{ alignSelf: 'flex-start', background: 'none', border: 'none', padding: 0, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, textDecoration: 'underline', cursor: 'pointer' }}>
+                    How is this calculated?
+                  </button>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', padding: 'var(--space-125) var(--space-200)', border: `1px solid ${P.border}`, borderRadius: 10, background: P.bg }}>
+                  <img src={TWIKEY_LOGO_IMG} alt="Twikey" style={{ width: 80, height: 35, display: 'block', objectFit: 'contain', flexShrink: 0 }} />
+                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, lineHeight: '17px' }}>
+                    Secured by Twikey — funds arrive within 3 business days.
+                  </span>
+                </div>
+                <Button variant="primary" onClick={() => setStep(2)} style={{ width: '100%', justifyContent: 'center', fontSize: 'var(--fs-body-md)', padding: 'var(--space-125) var(--space-250)' }}>Sign with Twikey</Button>
               </div>
-              <Button variant="primary" onClick={() => setStep(2)} style={{ width: '100%', justifyContent: 'center', fontSize: 'var(--fs-body-md)', padding: 'var(--space-125) var(--space-250)' }}>Sign with Twikey</Button>
-            </div>
+            )}
           </div>
         </div>
         {step > 1 && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', padding: 'var(--space-300)', animation: PREFERS_REDUCED_MOTION ? 'none' : `stepDoneEnter 200ms ${EASE_OUT} 140ms both` }}>
             {stepBadgeEl(1)}
-            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.inkSoft }}>€{deposit.toLocaleString('de-DE')} · Mandate signed</span>
+            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.inkSoft }}>€{deposit.toLocaleString('de-BE')} · Mandate signed</span>
           </div>
         )}
       </div>
@@ -6734,29 +6752,13 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
       <div style={{ background: step === 2 ? P.white : inactiveBg, borderBottom: `1px solid ${P.border}`, transition: `background 260ms ${EASE_OUT}` }}>
         <div style={{ display: 'grid', gridTemplateRows: step === 2 ? '1fr' : '0fr', transition: PREFERS_REDUCED_MOTION ? 'none' : `grid-template-rows 260ms ${EASE_OUT}`, overflow: 'hidden' }}>
           <div style={{ overflow: 'hidden' }}>
-            {mandateDenied ? (
+            {depositFailed ? (
               <div style={{ padding: 'var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-200)', animation: PREFERS_REDUCED_MOTION ? `stepContentEnterReduced 200ms ${EASE_OUT} both` : `stepContentEnter 200ms ${EASE_OUT} both` }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)' }}>
-                  <span style={{ width: 24, height: 24, borderRadius: 4, background: P.danger, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    <Icon name="x" size={12} color="#fff" strokeWidth={2.5} />
+                  <span style={{ width: 24, height: 24, borderRadius: '50%', background: P.dangerBg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <Icon name="x" size={12} color={P.dangerDark} strokeWidth={2.5} />
                   </span>
-                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.danger }}>Mandate declined</span>
-                </div>
-                <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, lineHeight: '20px', margin: 0 }}>
-                  Your bank declined the mandate. This is usually due to account settings or an authorization limit on direct debits. Contact your bank to resolve it, then re-sign.
-                </p>
-                <div style={{ display: 'flex', gap: 'var(--space-125)' }}>
-                  <Button variant="primary" onClick={() => { setMandateDenied(false); setStep(1); }} style={{ justifyContent: 'center', fontSize: 'var(--fs-body-sm)', padding: 'var(--space-100) var(--space-250)' }}>Re-sign mandate</Button>
-                  <Button variant="secondary" onClick={() => { window.location.href = 'mailto:support@payflip.be?subject=Mobility%20card%20mandate%20declined'; }} style={{ justifyContent: 'center', fontSize: 'var(--fs-body-sm)', padding: 'var(--space-100) var(--space-200)' }}>Contact support</Button>
-                </div>
-              </div>
-            ) : depositFailed ? (
-              <div style={{ padding: 'var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-200)', animation: PREFERS_REDUCED_MOTION ? `stepContentEnterReduced 200ms ${EASE_OUT} both` : `stepContentEnter 200ms ${EASE_OUT} both` }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)' }}>
-                  <span style={{ width: 24, height: 24, borderRadius: 4, background: P.danger, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    <Icon name="x" size={12} color="#fff" strokeWidth={2.5} />
-                  </span>
-                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.danger }}>Collection failed</span>
+                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.dangerDark }}>Collection failed</span>
                 </div>
                 <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, lineHeight: '20px', margin: 0 }}>
                   We couldn't collect €{deposit.toLocaleString('de-DE')} from your account. This is usually a temporary issue — check your account balance and try again.
@@ -6786,7 +6788,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
                     {!mandateValidated && (
                       <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, lineHeight: '18px', marginTop: 2 }}>
                         Your bank is verifying the direct debit mandate — no action needed.{' '}
-                        <a href="#" onClick={e => { e.preventDefault(); setMandateDenied(true); }} style={{ color: P.inkSoft, textDecoration: 'underline' }}>Simulate denial ↗</a>
+                        <a href="#" onClick={e => { e.preventDefault(); setWs({ mandateDenied: true, step: 1 }); }} style={{ color: P.inkSoft, textDecoration: 'underline' }}>Simulate denial ↗</a>
                       </div>
                     )}
                   </div>
@@ -6823,8 +6825,13 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
         </div>
         {step > 2 && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', padding: 'var(--space-300)', animation: PREFERS_REDUCED_MOTION ? 'none' : `stepDoneEnter 200ms ${EASE_OUT} 140ms both` }}>
-            {stepBadgeEl(2, step === 3)}
-            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.inkSoft }}>€{deposit.toLocaleString('de-DE')} received</span>
+            {depositFailed
+              ? <span style={{ width: 24, height: 24, borderRadius: '50%', background: P.dangerBg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Icon name="x" size={12} color={P.dangerDark} strokeWidth={2.5} /></span>
+              : stepBadgeEl(2, step === 3)
+            }
+            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: depositFailed ? P.dangerDark : P.inkSoft }}>
+              {depositFailed ? 'Collection failed' : `€${deposit.toLocaleString('de-BE')} received`}
+            </span>
           </div>
         )}
       </div>
@@ -7050,8 +7057,8 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
         </span>
         {!live && (() => {
           const mobilityMeta = [
-            { label: mandateDenied ? 'Mandate declined' : 'Sign mandate', color: mandateDenied ? '#DC2626' : P.inkSoft, bg: mandateDenied ? '#FEF2F2' : P.bg },
-            { label: depositFailed ? 'Collection failed' : mandateValidated ? 'First collection' : 'Mandate confirmation', color: depositFailed ? '#DC2626' : '#D97706', bg: depositFailed ? '#FEF2F2' : '#FEF3C7' },
+            { label: mandateDenied ? 'Mandate declined' : 'Sign mandate', color: mandateDenied ? P.dangerDark : P.inkSoft, bg: mandateDenied ? P.dangerBg : P.bg },
+            { label: depositFailed ? 'Collection failed' : mandateValidated ? 'First collection' : 'Mandate confirmation', color: depositFailed ? P.dangerDark : P.inkSoft, bg: depositFailed ? P.dangerBg : P.bg },
             { label: 'Physical cards',   color: P.inkSoft,  bg: P.bg },
             { label: 'Send invites',     color: P.inkSoft,  bg: P.bg },
           ];
@@ -7061,12 +7068,11 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
             { label: 'Review payment',     color: P.inkSoft, bg: P.bg },
             { label: 'Notify employees',   color: P.inkSoft, bg: P.bg },
           ];
+          const metaIdx = (widgetMode === 'mobility' && mandateDenied) ? 0 : (step - 1);
           const meta = widgetMode === 'mobility'
-            ? (mobilityMeta[step - 1] || mobilityMeta[0])
+            ? (mobilityMeta[metaIdx] || mobilityMeta[0])
             : (foodMeta[step - 1] || foodMeta[0]);
-          const stepLabel = widgetMode === 'mobility'
-            ? `${meta.label} · ${step} of 4`
-            : `${meta.label} · ${step} of 4`;
+          const stepLabel = `${meta.label} · ${mandateDenied ? 1 : step} of 4`;
           return (
             <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)' }}>
               {!hidden ? (
@@ -7128,37 +7134,8 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
               <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
                 {mobilitySetupContent()}
               </div>
-              <div style={{ flex: 1, background: 'linear-gradient(140deg, #faf7fe 0%, #f0ebf8 40%, #ddd0f0 100%)', borderLeft: `1px solid ${P.border}`, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: 'var(--space-600) var(--space-400)', position: 'relative', overflow: 'hidden' }}>
-                <div className="gradient-drift" style={{ position: 'absolute', inset: 0, background: 'linear-gradient(200deg, #f5f0fe 0%, #e4d8f5 35%, #c8aee5 100%)', animation: 'gradientDrift 8s ease-in-out infinite alternate', pointerEvents: 'none' }} />
-                {/* Scattered mobility icons — texture layer */}
-                {[
-                  { icon: 'car',        x: 5,  y: 5,  r: -10, s: 18 },
-                  { icon: 'train',      x: 78, y: 4,  r:  15, s: 15 },
-                  { icon: 'bike',       x: 50, y: 9,  r: -8,  s: 16 },
-                  { icon: 'bus',        x: 22, y: 18, r:  12, s: 14 },
-                  { icon: 'bus',        x: 88, y: 16, r: -20, s: 17 },
-                  { icon: 'bike',       x: 68, y: 25, r:  18, s: 13 },
-                  { icon: 'car',        x: 38, y: 30, r: -25, s: 15 },
-                  { icon: 'train',      x: 10, y: 38, r:  10, s: 15 },
-                  { icon: 'bike',       x: 82, y: 38, r: -15, s: 14 },
-                  { icon: 'bus',        x: 55, y: 45, r:  22, s: 16 },
-                  { icon: 'car',        x: 25, y: 52, r: -18, s: 13 },
-                  { icon: 'train',      x: 90, y: 55, r:  28, s: 14 },
-                  { icon: 'car',        x: 12, y: 62, r:  14, s: 17 },
-                  { icon: 'train',      x: 70, y: 64, r: -20, s: 15 },
-                  { icon: 'bike',       x: 40, y: 70, r:  20, s: 16 },
-                  { icon: 'bus',        x: 78, y: 76, r: -12, s: 18 },
-                  { icon: 'bike',       x: 18, y: 80, r:  18, s: 13 },
-                  { icon: 'bus',        x: 58, y: 82, r: -16, s: 15 },
-                  { icon: 'car',        x: 88, y: 88, r:  10, s: 14 },
-                  { icon: 'train',      x: 35, y: 90, r: -22, s: 16 },
-                  { icon: 'bike',       x: 6,  y: 92, r:  16, s: 14 },
-                  { icon: 'bus',        x: 65, y: 93, r: -14, s: 15 },
-                ].map(({ icon, x, y, r, s }, i) => (
-                  <div key={i} style={{ position: 'absolute', left: `${x}%`, top: `${y}%`, transform: `rotate(${r}deg)`, opacity: 0.12, pointerEvents: 'none' }}>
-                    <Icon name={icon} size={s} color="#5b21b6" strokeWidth={1.5} />
-                  </div>
-                ))}
+              <div style={{ flex: 1, background: 'linear-gradient(140deg, #fdf4ff 0%, var(--bg-brand) 50%, #edd5ff 100%)', borderLeft: `1px solid ${P.border}`, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: 'var(--space-600) var(--space-400)', position: 'relative', overflow: 'hidden' }}>
+                <div className="gradient-drift" style={{ position: 'absolute', inset: 0, background: 'linear-gradient(200deg, var(--bg-brand) 0%, #e8ccff 35%, #d4adff 100%)', animation: 'gradientDrift 4s ease-in-out infinite alternate', pointerEvents: 'none' }} />
                 <CardTilt>
                   <img src={PAYFLIP_CARD_IMG} alt="Payflip Card" style={{ width: 270, height: 170, display: 'block', borderRadius: 14 }} />
                 </CardTilt>
@@ -7395,35 +7372,6 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
             </div>
             <div style={{ flex: 1, background: 'linear-gradient(140deg, #fff7f5 0%, #ffe8e2 40%, #ffd0c4 100%)', borderLeft: `1px solid ${P.border}`, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: 'var(--space-600) var(--space-400)', position: 'relative', overflow: 'hidden' }}>
               <div className="gradient-drift" style={{ position: 'absolute', inset: 0, background: 'linear-gradient(200deg, #fff5f2 0%, #ffddd4 35%, #ffc4b4 100%)', animation: 'gradientDrift 8s ease-in-out infinite alternate', pointerEvents: 'none' }} />
-              {/* Scattered food icons — texture layer */}
-              {[
-                { icon: 'utensils',   x: 5,  y: 5,  r: -18, s: 18 },
-                { icon: 'coffee',     x: 78, y: 4,  r:  22, s: 15 },
-                { icon: 'apple',      x: 52, y: 8,  r: -8,  s: 16 },
-                { icon: 'sandwich',   x: 22, y: 18, r:  14, s: 14 },
-                { icon: 'wheat',      x: 88, y: 16, r: -25, s: 17 },
-                { icon: 'egg',        x: 68, y: 25, r:  20, s: 13 },
-                { icon: 'utensils',   x: 38, y: 30, r: -30, s: 15 },
-                { icon: 'coffee',     x: 10, y: 38, r: -12, s: 15 },
-                { icon: 'apple',      x: 82, y: 38, r:  18, s: 14 },
-                { icon: 'wheat',      x: 55, y: 45, r:  10, s: 16 },
-                { icon: 'sandwich',   x: 25, y: 52, r: -20, s: 13 },
-                { icon: 'egg',        x: 90, y: 55, r:  30, s: 14 },
-                { icon: 'utensils',   x: 12, y: 62, r:  15, s: 17 },
-                { icon: 'coffee',     x: 70, y: 64, r: -22, s: 15 },
-                { icon: 'apple',      x: 40, y: 70, r:  25, s: 16 },
-                { icon: 'wheat',      x: 78, y: 76, r: -10, s: 18 },
-                { icon: 'sandwich',   x: 18, y: 80, r:  20, s: 13 },
-                { icon: 'egg',        x: 58, y: 82, r: -18, s: 15 },
-                { icon: 'utensils',   x: 88, y: 88, r:  12, s: 14 },
-                { icon: 'coffee',     x: 35, y: 90, r: -25, s: 16 },
-                { icon: 'apple',      x: 6,  y: 92, r:  18, s: 14 },
-                { icon: 'wheat',      x: 65, y: 93, r: -15, s: 15 },
-              ].map(({ icon, x, y, r, s }, i) => (
-                <div key={i} style={{ position: 'absolute', left: `${x}%`, top: `${y}%`, transform: `rotate(${r}deg)`, opacity: 0.12, pointerEvents: 'none' }}>
-                  <Icon name={icon} size={s} color="#9f3a20" strokeWidth={1.5} />
-                </div>
-              ))}
               <CardTilt>
                 <img src={PAYFLIP_CARD_IMG} alt="Payflip Card" style={{ width: 270, height: 170, display: 'block', borderRadius: 14 }} />
               </CardTilt>
