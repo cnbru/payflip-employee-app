@@ -7871,7 +7871,7 @@ function DashboardScreen({ requests, onNav, onToast, appEntity = null, physicalC
                     </div>
 
                     {/* Panel 2: Detail */}
-                    <div style={{ width: '50%', flexShrink: 0 }}>
+                    <div style={{ width: '50%', flexShrink: 0, display: 'flex', flexDirection: 'column' }}>
                       {/* Shared header (back + name/NISS + X) */}
                       <div style={{ display: 'flex', alignItems: 'center', padding: 'var(--space-200) var(--space-300)', borderBottom: `1px solid ${P.border}`, gap: 'var(--space-150)' }}>
                         <IconButton icon="arrow-left" onClick={() => {
@@ -7885,11 +7885,11 @@ function DashboardScreen({ requests, onNav, onToast, appEntity = null, physicalC
                         <IconButton icon="X" onClick={close} blur />
                       </div>
                       {/* Inner strip: step 1 body | step 2 body */}
-                      <div style={{ overflow: 'hidden', width: '100%' }}>
-                        <div style={{ display: 'flex', flexWrap: 'nowrap', width: '200%', transform: `translateX(${innerX})`, transition: slideTransition }}>
+                      <div style={{ overflow: 'hidden', width: '100%', flex: 1 }}>
+                        <div style={{ display: 'flex', flexWrap: 'nowrap', width: '200%', height: '100%', transform: `translateX(${innerX})`, transition: slideTransition }}>
                           {/* Step 1: action choice */}
-                          <div style={{ width: '50%', flexShrink: 0 }}>
-                            <div style={{ padding: 'var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-250)' }}>
+                          <div style={{ width: '50%', flexShrink: 0, height: '100%', display: 'flex', flexDirection: 'column' }}>
+                            <div style={{ padding: 'var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-250)', flex: 1 }}>
                               <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, lineHeight: '20px' }}>
                                 This person wasn't found in Payflip. Add them as a new employee, or assign this NISS to someone who's already in the system.
                               </div>
@@ -7919,8 +7919,8 @@ function DashboardScreen({ requests, onNav, onToast, appEntity = null, physicalC
                             </div>
                           </div>
                           {/* Step 2: assign NISS combobox */}
-                          <div style={{ width: '50%', flexShrink: 0 }}>
-                            <div style={{ padding: 'var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-250)' }}>
+                          <div style={{ width: '50%', flexShrink: 0, height: '100%', display: 'flex', flexDirection: 'column' }}>
+                            <div style={{ padding: 'var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-250)', flex: 1 }}>
                               <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, lineHeight: '20px' }}>
                                 <strong style={{ fontWeight: 600 }}>Assign this NISS to an existing employee.</strong> Select the employee this number belongs to. Their record will be updated with this national insurance number.
                               </div>
@@ -7935,7 +7935,7 @@ function DashboardScreen({ requests, onNav, onToast, appEntity = null, physicalC
                                   </div>
                                 )}
                               </div>
-                              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-100)' }}>
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-100)', marginTop: 'auto' }}>
                                 <Button variant="primary" style={{ justifyContent: 'center', opacity: pickedEmployee ? 1 : 0.4 }} disabled={!pickedEmployee} onClick={() => { if (pickedEmployee) { const resolved = selectedPerson; const emp = pickedEmployee; resolve(resolved); onToast?.({ message: `NISS linked to ${emp.name}`, type: 'approve', onUndo: () => { setMatchQueue(q => [...q, resolved]); setFoodUnmatched(n => n + 1); setShowMatchModal(true); setSelectedPerson(resolved); } }); } }}>
                                   {pickedEmployee ? `Add NISS to ${pickedEmployee.name}` : 'Select an employee above'}
                                 </Button>
