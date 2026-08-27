@@ -7746,6 +7746,25 @@ function UnmatchedMatchModal({ matchQueue, setMatchQueue, setFoodUnmatched, setS
     setMatchQueue([]);
   };
 
+  const [outerAnimating, setOuterAnimating] = React.useState(false);
+  const [innerAnimating, setInnerAnimating] = React.useState(false);
+  const outerFirst = React.useRef(true);
+  const innerFirst = React.useRef(true);
+
+  React.useEffect(() => {
+    if (outerFirst.current) { outerFirst.current = false; return; }
+    setOuterAnimating(true);
+    const id = setTimeout(() => setOuterAnimating(false), SLIDE_DUR + 20);
+    return () => clearTimeout(id);
+  }, [!!selectedPerson]);
+
+  React.useEffect(() => {
+    if (innerFirst.current) { innerFirst.current = false; return; }
+    setInnerAnimating(true);
+    const id = setTimeout(() => setInnerAnimating(false), SLIDE_DUR + 20);
+    return () => clearTimeout(id);
+  }, [showLinkCombobox]);
+
   const SLIDE_DUR = 300;
   const slideT = `transform ${SLIDE_DUR}ms ${EASE_DRAWER}`;
   const heightT = `height ${SLIDE_DUR}ms ${EASE_DRAWER}`;
@@ -7753,15 +7772,21 @@ function UnmatchedMatchModal({ matchQueue, setMatchQueue, setFoodUnmatched, setS
   const innerX = showLinkCombobox ? '-50%' : '0%';
   const outerContainerH = outerH.list > 0 ? (selectedPerson ? outerH.detail : outerH.list) : undefined;
   const innerContainerH = innerH.s1 > 0 ? (showLinkCombobox ? innerH.s2 : innerH.s1) : undefined;
+  const outerOverflow = outerAnimating ? 'hidden' : 'visible';
+  const innerOverflow = innerAnimating ? 'hidden' : 'visible';
+  const listVis = outerAnimating || !selectedPerson ? 'visible' : 'hidden';
+  const detailVis = outerAnimating || !!selectedPerson ? 'visible' : 'hidden';
+  const step1Vis = innerAnimating || !showLinkCombobox ? 'visible' : 'hidden';
+  const step2Vis = innerAnimating || showLinkCombobox ? 'visible' : 'hidden';
 
   return (
     <ModalShell onClose={closeModal} width={440}>
       {close => (
-        <div style={{ overflow: 'hidden', width: '100%', height: outerContainerH, transition: outerH.list > 0 ? heightT : 'none' }}>
+        <div style={{ overflow: outerOverflow, width: '100%', height: outerContainerH, transition: outerH.list > 0 ? heightT : 'none' }}>
           <div style={{ display: 'flex', flexWrap: 'nowrap', width: '200%', alignItems: 'flex-start', transform: `translateX(${outerX})`, transition: slideT }}>
 
             {/* Panel 1: List */}
-            <div ref={listRef} style={{ width: '50%', flexShrink: 0 }}>
+            <div ref={listRef} style={{ width: '50%', flexShrink: 0, visibility: listVis }}>
               <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', padding: 'var(--space-250) var(--space-300)', borderBottom: `1px solid ${P.border}` }}>
                 <div>
                   <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-md)', color: P.ink }}>Unmatched employees</div>
@@ -7790,7 +7815,7 @@ function UnmatchedMatchModal({ matchQueue, setMatchQueue, setFoodUnmatched, setS
             </div>
 
             {/* Panel 2: Detail */}
-            <div ref={detailRef} style={{ width: '50%', flexShrink: 0 }}>
+            <div ref={detailRef} style={{ width: '50%', flexShrink: 0, visibility: detailVis }}>
               <div style={{ display: 'flex', alignItems: 'center', padding: 'var(--space-200) var(--space-300)', borderBottom: `1px solid ${P.border}`, gap: 'var(--space-150)' }}>
                 <IconButton icon="arrow-left" onClick={() => {
                   if (showLinkCombobox) { setShowLinkCombobox(false); setMatchSearch(''); }
@@ -7803,9 +7828,9 @@ function UnmatchedMatchModal({ matchQueue, setMatchQueue, setFoodUnmatched, setS
                 <IconButton icon="X" onClick={close} blur />
               </div>
               {/* Inner strip: step 1 | step 2 */}
-              <div style={{ overflow: 'hidden', width: '100%', height: innerContainerH, transition: innerH.s1 > 0 ? heightT : 'none' }}>
+              <div style={{ overflow: innerOverflow, width: '100%', height: innerContainerH, transition: innerH.s1 > 0 ? heightT : 'none' }}>
                 <div style={{ display: 'flex', flexWrap: 'nowrap', width: '200%', alignItems: 'flex-start', transform: `translateX(${innerX})`, transition: slideT }}>
-                  <div ref={step1Ref} style={{ width: '50%', flexShrink: 0 }}>
+                  <div ref={step1Ref} style={{ width: '50%', flexShrink: 0, visibility: step1Vis }}>
                     <div style={{ padding: 'var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-250)' }}>
                       <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, lineHeight: '20px' }}>
                         This person wasn't found in Payflip. Add them as a new employee, or assign this NISS to someone who's already in the system.
@@ -7835,7 +7860,7 @@ function UnmatchedMatchModal({ matchQueue, setMatchQueue, setFoodUnmatched, setS
                       </div>
                     </div>
                   </div>
-                  <div ref={step2Ref} style={{ width: '50%', flexShrink: 0 }}>
+                  <div ref={step2Ref} style={{ width: '50%', flexShrink: 0, visibility: step2Vis }}>
                     <div style={{ padding: 'var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-250)' }}>
                       <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, lineHeight: '20px' }}>
                         <strong style={{ fontWeight: 600 }}>Assign this NISS to an existing employee.</strong> Select the employee this number belongs to. Their record will be updated with this national insurance number.
