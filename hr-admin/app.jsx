@@ -7713,7 +7713,7 @@ function UnmatchedModalInner({ showLinkCombobox, setShowLinkCombobox, matchSearc
 
   return (
     <div style={{ overflow: 'hidden', width: '100%', height: containerH, transition: heightTransition }}>
-      <div style={{ display: 'flex', flexWrap: 'nowrap', width: '200%', transform: `translateX(${innerX})`, transition: slideTransition }}>
+      <div style={{ display: 'flex', flexWrap: 'nowrap', width: '200%', alignItems: 'flex-start', transform: `translateX(${innerX})`, transition: slideTransition }}>
         {/* Step 1: action choice */}
         <div ref={step1Ref} style={{ width: '50%', flexShrink: 0 }}>
           <div style={{ padding: 'var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-250)' }}>
