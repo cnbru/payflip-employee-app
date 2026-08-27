@@ -6787,7 +6787,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
                     <div style={{ fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: mandateValidated ? P.inkSoft : P.ink, lineHeight: '20px', transition: `color 300ms ${EASE_OUT}` }}>Mandate confirmation</div>
                     {!mandateValidated && (
                       <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, lineHeight: '18px', marginTop: 2 }}>
-                        Twikey has sent you a signed copy of the mandate by email. Bank registration takes up to 24 hours.{' '}
+                        Your bank is registering the direct debit authorization — this typically takes up to 24 hours.{' '}
                         <a href="#" onClick={e => { e.preventDefault(); setWs({ mandateDenied: true, step: 1 }); }} style={{ color: P.inkSoft, textDecoration: 'underline' }}>Simulate denial ↗</a>
                       </div>
                     )}
