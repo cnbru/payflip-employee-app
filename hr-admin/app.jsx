@@ -6436,7 +6436,84 @@ function AnimatedNumber({ value }) {
   );
 }
 
-function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysicalCardsChange, mobilityWidgetState, onMobilityWidgetStateChange }) {
+function ProtoDevPanel({ widgetMode, switchMode, ws, setWs }) {
+  const [open, setOpen] = React.useState(false);
+  const [pos, setPos] = React.useState(null); // null = default bottom-right
+  const dragOffset = React.useRef(null);
+  const panelRef = React.useRef(null);
+
+  const BG = '#14142a';
+  const BORDER = 'rgba(255,255,255,0.08)';
+  const DIM = 'rgba(255,255,255,0.3)';
+  const ACTIVE_BG = '#5b21b6';
+  const INACTIVE_BG = 'rgba(255,255,255,0.06)';
+
+  const btn = (label, active, onClick) => (
+    <button onClick={onClick} style={{ flex: 1, padding: '4px 6px', borderRadius: 5, border: 'none', cursor: 'pointer', fontFamily: 'monospace', fontSize: 10, fontWeight: 700, background: active ? ACTIVE_BG : INACTIVE_BG, color: active ? '#fff' : DIM, transition: 'background 100ms, color 100ms', whiteSpace: 'nowrap' }}>{label}</button>
+  );
+  const section = (label) => (
+    <div style={{ fontFamily: 'monospace', fontSize: 9, fontWeight: 700, letterSpacing: '0.08em', color: DIM, textTransform: 'uppercase', marginBottom: 5 }}>{label}</div>
+  );
+
+  const onDragStart = (e) => {
+    if (e.target.tagName === 'BUTTON') return;
+    e.preventDefault();
+    e.currentTarget.setPointerCapture(e.pointerId);
+    const rect = panelRef.current.getBoundingClientRect();
+    dragOffset.current = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+  };
+  const onDragMove = (e) => {
+    if (!dragOffset.current) return;
+    setPos({ x: e.clientX - dragOffset.current.x, y: e.clientY - dragOffset.current.y });
+  };
+  const onDragEnd = () => { dragOffset.current = null; };
+
+  const posStyle = pos ? { left: pos.x, top: pos.y } : { bottom: 20, right: 20 };
+  const mobStep = ws.live ? 'live' : ws.step;
+
+  return (
+    <div ref={panelRef} style={{ position: 'fixed', ...posStyle, zIndex: 9999 }}>
+      {open ? (
+        <div style={{ background: BG, border: `1px solid ${BORDER}`, borderRadius: 10, width: 216, boxShadow: '0 12px 40px rgba(0,0,0,0.5)', overflow: 'hidden' }}>
+          <div
+            onPointerDown={onDragStart} onPointerMove={onDragMove} onPointerUp={onDragEnd}
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px 7px', borderBottom: `1px solid ${BORDER}`, cursor: 'grab', userSelect: 'none' }}>
+            <span style={{ fontFamily: 'monospace', fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', color: DIM, textTransform: 'uppercase' }}>Prototype controls</span>
+            <button onClick={() => setOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: DIM, fontSize: 13, lineHeight: 1, padding: 0, display: 'flex' }}>✕</button>
+          </div>
+
+          <div style={{ padding: '10px 12px', borderBottom: `1px solid ${BORDER}` }}>
+            {section('Widget')}
+            <div style={{ display: 'flex', gap: 4 }}>
+              {btn('Mobility', widgetMode === 'mobility', () => switchMode('mobility'))}
+              {btn('Food', widgetMode === 'food', () => switchMode('food'))}
+            </div>
+          </div>
+
+          {widgetMode === 'mobility' && (<>
+            <div style={{ padding: '10px 12px', borderBottom: `1px solid ${BORDER}` }}>
+              {section('Wizard step')}
+              <div style={{ display: 'flex', gap: 3 }}>
+                {btn('1', mobStep === 1, () => setWs({ step: 1, mandateValidated: false, depositFailed: false, live: false, liveVisible: false, hidden: false }))}
+                {btn('2', mobStep === 2, () => setWs({ step: 2, mandateValidated: false, depositFailed: false, live: false, liveVisible: false, hidden: false }))}
+                {btn('3', mobStep === 3, () => setWs({ step: 3, mandateValidated: true, depositFailed: false, live: false, liveVisible: false, hidden: false }))}
+                {btn('4', mobStep === 4, () => setWs({ step: 4, mandateValidated: true, depositFailed: false, live: false, liveVisible: false, hidden: false }))}
+                {btn('Live', mobStep === 'live', () => setWs({ step: 5, mandateValidated: true, depositFailed: false, live: true, liveVisible: true, hidden: false }))}
+              </div>
+            </div>
+
+          </>)}
+        </div>
+      ) : (
+        <button onClick={() => setOpen(true)} style={{ background: BG, border: `1px solid ${BORDER}`, borderRadius: 8, padding: '5px 9px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5, boxShadow: '0 4px 16px rgba(0,0,0,0.4)' }}>
+          <span style={{ fontFamily: 'monospace', fontSize: 9, fontWeight: 700, letterSpacing: '0.08em', color: DIM, textTransform: 'uppercase' }}>Proto</span>
+        </button>
+      )}
+    </div>
+  );
+}
+
+function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysicalCardsChange, cardDelivery = 'home', onCardDeliveryChange, mobilityWidgetState, onMobilityWidgetStateChange }) {
   const ws = mobilityWidgetState;
   const setWs = (updater) => onMobilityWidgetStateChange(prev => typeof updater === 'function' ? { ...prev, ...updater(prev) } : { ...prev, ...updater });
   const widgetMode = ws.widgetMode;
@@ -6762,22 +6839,40 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
                 <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.ink }}>Physical cards</span>
               </div>
               <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
-                Virtual cards are included automatically. Physical cards are optional — employees request their own from the app if you enable it here.
+                Allow employees to request a physical Payflip card from the app. Each card costs €10.
               </p>
-              <div style={{ border: `1px solid ${P.border}`, borderRadius: 10, overflow: 'hidden', background: physicalCardsAllowed ? '#faf8ff' : P.bg }}>
-                <div onClick={() => onPhysicalCardsChange && onPhysicalCardsChange(!physicalCardsAllowed)}
-                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: 'var(--space-150) var(--space-200)', cursor: 'pointer' }}>
-                  <div>
-                    <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink }}>Allow employees to request physical cards</div>
-                    <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginTop: 'var(--space-025)' }}>€10 per card</div>
+              <SettingsCard info="You can change this any time in Payflip Card settings.">
+                <SettingsRow
+                  label="Physical card requests"
+                  trailing={<Switch checked={!!physicalCardsAllowed} onChange={() => onPhysicalCardsChange && onPhysicalCardsChange(!physicalCardsAllowed)} />}
+                  onClick={() => onPhysicalCardsChange && onPhysicalCardsChange(!physicalCardsAllowed)}
+                  last={!physicalCardsAllowed}
+                />
+                <div style={{ display: 'grid', gridTemplateRows: physicalCardsAllowed ? '1fr' : '0fr', transition: PREFERS_REDUCED_MOTION ? 'none' : `grid-template-rows 220ms ${EASE_OUT}`, overflow: 'hidden' }}>
+                  <div style={{ overflow: 'hidden' }}>
+                    <div style={{ padding: 'var(--space-200)', display: 'flex', flexDirection: 'column', gap: 'var(--space-150)' }}>
+                      <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: P.ink }}>Where do we send physical cards?</div>
+                      <div style={{ display: 'flex', gap: 'var(--space-100)' }}>
+                        {[
+                          { value: 'home', label: 'Employee address' },
+                          { value: 'office', label: 'Company address' },
+                        ].map(opt => {
+                          const sel = cardDelivery === opt.value;
+                          return (
+                            <div key={opt.value} onClick={() => onCardDeliveryChange && onCardDeliveryChange(opt.value)}
+                              style={{ flex: 1, border: `1px solid ${sel ? P.action : P.border}`, borderRadius: 8, padding: 'var(--space-100) var(--space-150)', cursor: 'pointer', background: sel ? '#f3f0ff' : P.white, display: 'flex', alignItems: 'center', gap: 'var(--space-075)', transition: 'border-color 120ms ease, background 120ms ease' }}>
+                              <div style={{ width: 14, height: 14, borderRadius: '50%', border: `1.5px solid ${sel ? P.action : P.borderStrong}`, background: P.white, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'border-color 120ms ease' }}>
+                                {sel && <div style={{ width: 6, height: 6, borderRadius: '50%', background: P.action }} />}
+                              </div>
+                              <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: sel ? P.action : P.ink, fontWeight: sel ? 600 : 400 }}>{opt.label}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
                   </div>
-                  <Switch checked={!!physicalCardsAllowed} onChange={() => {}} />
                 </div>
-                <div style={{ borderTop: `1px solid ${P.border}`, padding: 'var(--space-125) var(--space-200)', display: 'flex', alignItems: 'flex-start', gap: 'var(--space-100)' }}>
-                  <Icon name="info" size={13} color={P.inkSoft} strokeWidth={2} style={{ flexShrink: 0, paddingTop: 'var(--space-025)' }} />
-                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>You can change this any time in Payflip Card settings.</span>
-                </div>
-              </div>
+              </SettingsCard>
               <Button variant="primary" onClick={() => setStep(4)} style={{ width: '100%', justifyContent: 'center', fontSize: 'var(--fs-body-md)', padding: 'var(--space-125) var(--space-250)' }}>Continue</Button>
             </div>
           </div>
@@ -6794,7 +6889,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
           <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', padding: 'var(--space-300)', animation: PREFERS_REDUCED_MOTION ? 'none' : `stepDoneEnter 200ms ${EASE_OUT} 140ms both` }}>
             {stepBadgeEl(3)}
             <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.inkSoft }}>
-              {physicalCardsAllowed ? 'Physical cards · €10/card' : 'Virtual only'}
+              {physicalCardsAllowed ? `Physical cards · to ${cardDelivery === 'office' ? 'company address' : 'employee address'}` : 'Virtual only'}
             </span>
             <a href="#" onClick={e => { e.preventDefault(); setStep(3); }} style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink, textDecoration: 'underline', marginLeft: 'auto' }}>Edit</a>
           </div>
@@ -6945,25 +7040,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
 
   return (
     <div style={{ marginBottom: 'var(--space-300)' }}>
-      {/* Prototype switcher */}
-      <div style={{ position: 'fixed', bottom: 20, right: 158, zIndex: 100, display: 'inline-flex', alignItems: 'center', gap: 'var(--space-075)', padding: 'var(--space-100) var(--space-125) var(--space-100) var(--space-150)', borderRadius: 20, background: P.action, boxShadow: 'rgba(15,13,40,0.2) 0px 2px 12px' }}>
-        <Icon name="wrench" size={12} color="#fff" strokeWidth={2} />
-        <div style={{ display: 'flex' }}>
-          {['mobility', 'food'].map(m => (
-            <button key={m} onClick={() => switchMode(m)} style={{
-              padding: 'var(--space-025) var(--space-100)', borderRadius: 12, border: 'none',
-              background: widgetMode === m ? 'rgba(255,255,255,0.18)' : 'transparent',
-              cursor: 'pointer',
-              fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)',
-              color: widgetMode === m ? '#fff' : 'rgba(255,255,255,0.55)',
-              transition: 'background 150ms ease, color 150ms ease',
-              textTransform: 'capitalize',
-            }}>
-              {m === 'mobility' ? 'Mobility' : 'Food'}
-            </button>
-          ))}
-        </div>
-      </div>
+      <ProtoDevPanel widgetMode={widgetMode} switchMode={switchMode} ws={ws} setWs={setWs} />
 
     <div style={{ background: P.white, borderRadius: 12, overflow: 'hidden', ...(live ? { border: `1px solid ${P.border}` } : { boxShadow: `0 0 0 1px rgba(15,13,40,0.07), 0 4px 24px rgba(15,13,40,0.08)` }) }}>
       {/* Header */}
@@ -7648,7 +7725,7 @@ function MatchEmpCombobox({ employees, value, onChange, suggestions = [] }) {
   );
 }
 
-function DashboardScreen({ requests, onNav, onToast, appEntity = null, physicalCardsAllowed, onPhysicalCardsChange, mobilityWidgetState, onMobilityWidgetStateChange, pendingRequests = 0, pendingExpenses = 0, pendingChoices = 0, activeBudgets = 0, onAddEmployee }) {
+function DashboardScreen({ requests, onNav, onToast, appEntity = null, physicalCardsAllowed, onPhysicalCardsChange, cardDelivery, onCardDeliveryChange, mobilityWidgetState, onMobilityWidgetStateChange, pendingRequests = 0, pendingExpenses = 0, pendingChoices = 0, activeBudgets = 0, onAddEmployee }) {
   const today = new Date(); today.setHours(0,0,0,0);
   const fundingIssue = mobilityWidgetState.live && !!mobilityWidgetState.fundingIssue;
   const foodLive = mobilityWidgetState.live && mobilityWidgetState.widgetMode === 'food';
@@ -7697,7 +7774,7 @@ function DashboardScreen({ requests, onNav, onToast, appEntity = null, physicalC
         {/* Full-width setup widget — always full-width until live */}
         {!mobilityWidgetState.live && (
           <div style={{ position: 'relative', zIndex: 2 }}>
-            <MobilityLaunchWidget onToast={onToast} onNav={onNav} physicalCardsAllowed={physicalCardsAllowed} onPhysicalCardsChange={onPhysicalCardsChange} mobilityWidgetState={mobilityWidgetState} onMobilityWidgetStateChange={onMobilityWidgetStateChange} />
+            <MobilityLaunchWidget onToast={onToast} onNav={onNav} physicalCardsAllowed={physicalCardsAllowed} onPhysicalCardsChange={onPhysicalCardsChange} cardDelivery={cardDelivery} onCardDeliveryChange={onCardDeliveryChange} mobilityWidgetState={mobilityWidgetState} onMobilityWidgetStateChange={onMobilityWidgetStateChange} />
           </div>
         )}
 
@@ -7722,7 +7799,7 @@ function DashboardScreen({ requests, onNav, onToast, appEntity = null, physicalC
         <div style={{ display: 'flex', gap: 'var(--space-250)', alignItems: 'flex-start', opacity: setupInProgress ? 0.35 : 1, transition: `opacity 250ms ${EASE_OUT}`, pointerEvents: setupInProgress ? 'none' : 'auto' }}>
           {mobilityWidgetState.live && mobilityWidgetState.widgetMode !== 'food' && mobilityWidgetState.fundingIssue && (
             <div style={{ width: 420, flexShrink: 0 }}>
-              <MobilityLaunchWidget onToast={onToast} onNav={onNav} physicalCardsAllowed={physicalCardsAllowed} onPhysicalCardsChange={onPhysicalCardsChange} mobilityWidgetState={mobilityWidgetState} onMobilityWidgetStateChange={onMobilityWidgetStateChange} />
+              <MobilityLaunchWidget onToast={onToast} onNav={onNav} physicalCardsAllowed={physicalCardsAllowed} onPhysicalCardsChange={onPhysicalCardsChange} cardDelivery={cardDelivery} onCardDeliveryChange={onCardDeliveryChange} mobilityWidgetState={mobilityWidgetState} onMobilityWidgetStateChange={onMobilityWidgetStateChange} />
             </div>
           )}
 
@@ -7844,21 +7921,25 @@ function DashboardScreen({ requests, onNav, onToast, appEntity = null, physicalC
                           <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, lineHeight: '20px' }}>
                             <strong style={{ fontWeight: 600 }}>Assign this NISS to an existing employee.</strong> Select the employee this number belongs to. Their record will be updated with this national insurance number.
                           </div>
-                          <MatchEmpCombobox employees={allPeople} value={matchSearch} onChange={setMatchSearch} suggestions={fuzzyMatches} />
-                          {pickedHasNiss && (
-                            <div style={{ background: P.dangerBg, border: `1px solid ${P.dangerBorder}`, borderRadius: 8, padding: 'var(--space-125) var(--space-150)', display: 'flex', gap: 'var(--space-100)', alignItems: 'flex-start' }}>
-                              <Icon name="alert-triangle" size={14} color={P.dangerDark} strokeWidth={1.75} style={{ flexShrink: 0, marginTop: 1 }} />
-                              <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.dangerDark, lineHeight: '18px' }}>
-                                {pickedEmployee.name} already has a NISS on file. It will be replaced.
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-100)' }}>
+                            <MatchEmpCombobox employees={allPeople} value={matchSearch} onChange={setMatchSearch} suggestions={fuzzyMatches} />
+                            {pickedHasNiss && (
+                              <div style={{ background: P.dangerBg, border: `1px solid ${P.dangerBorder}`, borderRadius: 8, padding: 'var(--space-125) var(--space-150)', display: 'flex', gap: 'var(--space-100)', alignItems: 'flex-start' }}>
+                                <Icon name="alert-triangle" size={14} color={P.dangerDark} strokeWidth={1.75} style={{ flexShrink: 0, marginTop: 1 }} />
+                                <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.dangerDark, lineHeight: '18px' }}>
+                                  {pickedEmployee.name} already has a NISS on file. It will be replaced.
+                                </div>
                               </div>
-                            </div>
-                          )}
-                          <Button variant="primary" style={{ justifyContent: 'center', opacity: pickedEmployee ? 1 : 0.4 }} disabled={!pickedEmployee} onClick={() => { if (pickedEmployee) resolve(selectedPerson); }}>
-                            {pickedEmployee ? `Add NISS to ${pickedEmployee.name}` : 'Select an employee above'}
-                          </Button>
-                          <Button variant="secondary" style={{ justifyContent: 'center' }} onClick={() => { setShowLinkCombobox(false); setMatchSearch(''); }}>
-                            Cancel
-                          </Button>
+                            )}
+                          </div>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-100)' }}>
+                            <Button variant="primary" style={{ justifyContent: 'center', opacity: pickedEmployee ? 1 : 0.4 }} disabled={!pickedEmployee} onClick={() => { if (pickedEmployee) { const resolved = selectedPerson; const emp = pickedEmployee; resolve(resolved); onToast?.({ message: `NISS linked to ${emp.name}`, type: 'approve', onUndo: () => { setMatchQueue(q => [...q, resolved]); setFoodUnmatched(n => n + 1); setShowMatchModal(true); setSelectedPerson(resolved); } }); } }}>
+                              {pickedEmployee ? `Add NISS to ${pickedEmployee.name}` : 'Select an employee above'}
+                            </Button>
+                            <Button variant="secondary" style={{ justifyContent: 'center' }} onClick={() => { setShowLinkCombobox(false); setMatchSearch(''); }}>
+                              Cancel
+                            </Button>
+                          </div>
                         </div>
                       </>
                     )}
@@ -7910,16 +7991,21 @@ function DashboardScreen({ requests, onNav, onToast, appEntity = null, physicalC
 }
 
 // ── Payflip Card settings ───────────────────────────────────────────────────
-function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, onToast, mobilityWidgetState, onMobilityWidgetStateChange, onNav }) {
+function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, cardDelivery = 'home', onCardDeliveryChange, onToast, mobilityWidgetState, onMobilityWidgetStateChange, onNav }) {
   const [draftPhysicalCards, setDraftPhysicalCards] = useState(physicalCardsAllowed);
+  const [draftCardDelivery, setDraftCardDelivery] = useState(cardDelivery);
   const [showResignModal, setShowResignModal] = useState(false);
+  const [showDeliveryModal, setShowDeliveryModal] = useState(false);
   const [resignSigning, setResignSigning] = useState(false);
   const [savedPhysicalCards, setSavedPhysicalCards] = useState(physicalCardsAllowed);
-  const isDirty = draftPhysicalCards !== savedPhysicalCards;
+  const [savedCardDelivery, setSavedCardDelivery] = useState(cardDelivery);
+  const isDirty = draftPhysicalCards !== savedPhysicalCards || draftCardDelivery !== savedCardDelivery;
 
   const handleSave = () => {
     onPhysicalCardsChange(draftPhysicalCards);
+    onCardDeliveryChange && onCardDeliveryChange(draftCardDelivery);
     setSavedPhysicalCards(draftPhysicalCards);
+    setSavedCardDelivery(draftCardDelivery);
     onToast && onToast({ message: 'Payflip Card settings saved', type: 'approve' });
   };
 
@@ -8100,15 +8186,36 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, onToas
         {/* Card issuance */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-250)' }}>
           <div style={SL}>Card issuance</div>
-          <SettingsCard info="Physical cards are shipped to the employee's address within 5–7 business days. A €9 shipping fee applies per card.">
+          <SettingsCard info={draftPhysicalCards ? (draftCardDelivery === 'office' ? 'Cards ship to your company address within 5–7 business days. You distribute them to employees. A €9 shipping fee applies per card.' : 'Employees enter their delivery address when requesting a card. Cards arrive within 5–7 business days. A €9 shipping fee applies per card.') : 'Physical cards are optional. Enable them to let employees request a card from the app.'}>
             <SettingsRow
               icon="credit-card"
               label="Physical card requests"
               subtitle="Allow employees to request a physical card from the app"
               trailing={<Switch size="sm" checked={draftPhysicalCards} onChange={() => setDraftPhysicalCards(v => !v)} />}
-              last
+              last={!draftPhysicalCards}
             />
+            {draftPhysicalCards && (
+              <SettingsRow
+                icon="map-pin"
+                label="Card delivery"
+                value={draftCardDelivery === 'office' ? 'Company address' : 'Employee address'}
+                onClick={() => setShowDeliveryModal(true)}
+                last
+              />
+            )}
           </SettingsCard>
+          {showDeliveryModal && (
+            <PickModal
+              title="Where do we send physical cards?"
+              options={[
+                { value: 'home', label: 'Employee address', hint: 'Employees enter their delivery address when requesting a card in the app.' },
+                { value: 'office', label: 'Company address', hint: 'All cards ship to your company address. You receive and distribute them to employees.' },
+              ]}
+              value={draftCardDelivery}
+              onSave={v => setDraftCardDelivery(v)}
+              onClose={() => setShowDeliveryModal(false)}
+            />
+          )}
         </div>
 
         {/* Footer */}
@@ -11913,6 +12020,7 @@ function App() {
   };
 
   const [physicalCardsAllowed, setPhysicalCardsAllowed] = useState(false);
+  const [cardDelivery, setCardDelivery] = useState('home');
   const [mobilityWidgetState, setMobilityWidgetState] = useState({
     widgetMode: 'mobility',
     hidden: false,
@@ -12215,7 +12323,7 @@ function App() {
       <Sidebar active={screen} onNav={handleNav} pendingCount={pendingCount} sidebarMode={sidebarMode} onSetSidebarMode={setSidebarMode} appEntity={appEntity} onSetAppEntity={setAppEntity} setupInProgress={screen === 'dashboard' && !mobilityWidgetState.live && !mobilityWidgetState.hidden} />
 
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, overflow: 'hidden' }}>
-        {screen === 'dashboard' && <DashboardScreen key={appEntity ?? 'all'} requests={entityFilteredRequests} onNav={setScreen} onToast={addToast} appEntity={appEntity} physicalCardsAllowed={physicalCardsAllowed} onPhysicalCardsChange={setPhysicalCardsAllowed} mobilityWidgetState={mobilityWidgetState} onMobilityWidgetStateChange={setMobilityWidgetState} pendingRequests={pendingRequestsCount} pendingExpenses={pendingExpensesCount} pendingChoices={pendingChoicesCount} activeBudgets={allowances.filter(a => a.active).length} onAddEmployee={(pf) => { setAddEmployeePrefill(pf); setAddEmployeeOpen(true); }} />}
+        {screen === 'dashboard' && <DashboardScreen key={appEntity ?? 'all'} requests={entityFilteredRequests} onNav={setScreen} onToast={addToast} appEntity={appEntity} physicalCardsAllowed={physicalCardsAllowed} onPhysicalCardsChange={setPhysicalCardsAllowed} cardDelivery={cardDelivery} onCardDeliveryChange={setCardDelivery} mobilityWidgetState={mobilityWidgetState} onMobilityWidgetStateChange={setMobilityWidgetState} pendingRequests={pendingRequestsCount} pendingExpenses={pendingExpensesCount} pendingChoices={pendingChoicesCount} activeBudgets={allowances.filter(a => a.active).length} onAddEmployee={(pf) => { setAddEmployeePrefill(pf); setAddEmployeeOpen(true); }} />}
         {screen === 'team-absences' && <TeamAbsencesScreen key={appEntity ?? 'all'} requests={entityFilteredRequests} pendingCount={pendingRequestsCount} onNav={setScreen} onShowDetail={setCalDetail} activeReqId={calDetail?.id} onSave={saveRequest} companyEvents={companyEvents} onCancelCompanyEvent={cancelCompanyEvent} initialDate={calendarJumpDate} initialDeptFilter={calendarDeptFilter} appEntity={appEntity} leaveTypes={leaveTypes} />}
         {screen === 'requests' && <RequestsScreen key={appEntity ?? 'all'} requests={entityFilteredRequests} onApprove={approve} onDecline={requestDecline} onSave={saveRequest} onCancel={requestCancel} onNav={setScreen} onViewInCalendar={(req) => { const d = req._selectedDates?.[0] || req.startDate; if (d) { const iso = typeof d === 'string' && d.match(/^\d{4}-/) ? d : null; setCalendarJumpDate(iso ? new Date(iso) : parseDisplayDate(d)); } setCalDetail(req); setScreen('team-absences'); }} appEntity={appEntity} />}
         {(screen === 'employees' || screen === 'employees:admin') && <EmployeesScreen key={appEntity ?? 'all'} requests={entityFilteredRequests} onNav={setScreen} initialRoleFilter={screen === 'employees:admin' ? 'Admin' : 'All'} adminAccess={adminAccess} appEntity={appEntity} onAddEmployee={() => setAddEmployeeOpen(true)} />}
@@ -12232,7 +12340,7 @@ function App() {
         {screen === 'settings-documents' && <DocumentsSettings key={appEntity ?? 'all'} appEntity={appEntity} documents={settingsDocuments} onDocumentsChange={setSettingsDocuments} />}
         {screen === 'settings-payroll' && <PayrollSettings companyRegime={companyRegime} onRegimeChange={setCompanyRegime} appEntity={appEntity} onToast={addToast} />}
         {screen === 'settings-benefits' && <BenefitsSettings key={appEntity ?? 'all'} appEntity={appEntity} />}
-        {screen === 'settings-cardrules' && <CardRulesSettings physicalCardsAllowed={physicalCardsAllowed} onPhysicalCardsChange={setPhysicalCardsAllowed} onToast={addToast} mobilityWidgetState={mobilityWidgetState} onMobilityWidgetStateChange={setMobilityWidgetState} onNav={handleNav} />}
+        {screen === 'settings-cardrules' && <CardRulesSettings physicalCardsAllowed={physicalCardsAllowed} onPhysicalCardsChange={setPhysicalCardsAllowed} cardDelivery={cardDelivery} onCardDeliveryChange={setCardDelivery} onToast={addToast} mobilityWidgetState={mobilityWidgetState} onMobilityWidgetStateChange={setMobilityWidgetState} onNav={handleNav} />}
         {screen === 'changelog' && <ChangelogScreen />}
         {screen === 'components' && <ComponentLibraryScreen />}
         {screen.startsWith('settings-') && screen !== 'settings-allowances' && screen !== 'settings-expenses' && screen !== 'settings-team' && screen !== 'settings-timeoff' && screen !== 'settings-entities' && screen !== 'settings-documents' && screen !== 'settings-payroll' && screen !== 'settings-benefits' && screen !== 'settings-cardrules' && <StubScreen title={SETTINGS_TITLES[screen] || 'Settings'} description={`Configure ${(SETTINGS_TITLES[screen] || 'settings').toLowerCase()}`} />}
