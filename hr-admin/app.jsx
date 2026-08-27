@@ -7694,86 +7694,181 @@ function MatchEmpCombobox({ employees, value, onChange, suggestions = [] }) {
   );
 }
 
-function UnmatchedModalInner({ showLinkCombobox, setShowLinkCombobox, matchSearch, setMatchSearch, selectedPerson, resolve, allPeople, fuzzyMatches, pickedEmployee, pickedHasNiss, onToast, setMatchQueue, setFoodUnmatched, setShowMatchModal, setSelectedPerson, closeModal, onAddEmployee }) {
+function UnmatchedMatchModal({ matchQueue, setMatchQueue, setFoodUnmatched, setShowMatchModal, onToast, onAddEmployee }) {
+  const [selectedPerson, setSelectedPerson] = React.useState(null);
+  const [showLinkSection, setShowLinkSection] = React.useState(false);
+  const [showLinkCombobox, setShowLinkCombobox] = React.useState(false);
+  const [matchSearch, setMatchSearch] = React.useState('');
+
+  const listRef = React.useRef(null);
+  const detailRef = React.useRef(null);
   const step1Ref = React.useRef(null);
   const step2Ref = React.useRef(null);
-  const [heights, setHeights] = React.useState({ s1: 0, s2: 0 });
+  const [outerH, setOuterH] = React.useState({ list: 0, detail: 0 });
+  const [innerH, setInnerH] = React.useState({ s1: 0, s2: 0 });
 
   React.useLayoutEffect(() => {
-    const s1 = step1Ref.current ? step1Ref.current.scrollHeight : 0;
-    const s2 = step2Ref.current ? step2Ref.current.scrollHeight : 0;
-    if (s1 || s2) setHeights({ s1, s2 });
+    const list = listRef.current?.scrollHeight || 0;
+    const detail = detailRef.current?.scrollHeight || 0;
+    const s1 = step1Ref.current?.scrollHeight || 0;
+    const s2 = step2Ref.current?.scrollHeight || 0;
+    if (list || detail) setOuterH({ list, detail });
+    if (s1 || s2) setInnerH({ s1, s2 });
   }, []);
 
+  const allPeople = Object.entries(EMPLOYEES)
+    .filter(([, e]) => e.isEmployee !== false)
+    .map(([id, e]) => ({ id, ...e }));
+  const pickedEmployee = matchSearch ? allPeople.find(p => p.id === matchSearch) : null;
+  const pickedHasNiss = pickedEmployee?.niss;
+  const fuzzyMatches = selectedPerson ? (() => {
+    const tokens = selectedPerson.name.toLowerCase().split(/\s+/).filter(t => t.length > 2);
+    return allPeople
+      .map(p => ({ ...p, score: tokens.filter(t => p.name.toLowerCase().includes(t)).length }))
+      .filter(p => p.score > 0)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 3);
+  })() : [];
+
+  const resolve = (emp) => {
+    const next = matchQueue.filter(e => e.niss !== emp.niss);
+    setMatchQueue(next);
+    setSelectedPerson(null);
+    setMatchSearch('');
+    setShowLinkSection(false);
+    setShowLinkCombobox(false);
+    setFoodUnmatched(n => Math.max(0, n - 1));
+    if (next.length === 0) setShowMatchModal(false);
+  };
+
+  const closeModal = () => {
+    setShowMatchModal(false);
+    setMatchQueue([]);
+  };
+
   const SLIDE_DUR = 300;
+  const slideT = `transform ${SLIDE_DUR}ms ${EASE_DRAWER}`;
+  const heightT = `height ${SLIDE_DUR}ms ${EASE_DRAWER}`;
+  const outerX = selectedPerson ? '-50%' : '0%';
   const innerX = showLinkCombobox ? '-50%' : '0%';
-  const containerH = heights.s1 > 0 ? (showLinkCombobox ? heights.s2 : heights.s1) : undefined;
-  const slideTransition = `transform ${SLIDE_DUR}ms ${EASE_DRAWER}`;
-  const heightTransition = heights.s1 > 0 ? `height ${SLIDE_DUR}ms ${EASE_DRAWER}` : 'none';
+  const outerContainerH = outerH.list > 0 ? (selectedPerson ? outerH.detail : outerH.list) : undefined;
+  const innerContainerH = innerH.s1 > 0 ? (showLinkCombobox ? innerH.s2 : innerH.s1) : undefined;
 
   return (
-    <div style={{ overflow: 'hidden', width: '100%', height: containerH, transition: heightTransition }}>
-      <div style={{ display: 'flex', flexWrap: 'nowrap', width: '200%', alignItems: 'flex-start', transform: `translateX(${innerX})`, transition: slideTransition }}>
-        {/* Step 1: action choice */}
-        <div ref={step1Ref} style={{ width: '50%', flexShrink: 0 }}>
-          <div style={{ padding: 'var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-250)' }}>
-            <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, lineHeight: '20px' }}>
-              This person wasn't found in Payflip. Add them as a new employee, or assign this NISS to someone who's already in the system.
-            </div>
-            <Button variant="primary" icon="user-plus" style={{ justifyContent: 'center' }} onClick={() => {
-              const parts = selectedPerson.name.trim().split(/\s+/);
-              const pFirst = parts.slice(0, -1).join(' ') || parts[0];
-              const pLast  = parts.length > 1 ? parts[parts.length - 1] : '';
-              resolve(selectedPerson);
-              closeModal();
-              onAddEmployee && onAddEmployee({ firstName: pFirst, lastName: pLast, niss: selectedPerson.niss });
-            }}>
-              Add as new employee
-            </Button>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)' }}>
-              <div style={{ flex: 1, height: 1, background: P.border }} />
-              <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkFaint }}>or</span>
-              <div style={{ flex: 1, height: 1, background: P.border }} />
-            </div>
-            <Button variant="secondary" style={{ justifyContent: 'center' }} onClick={() => setShowLinkCombobox(true)}>
-              Assign NISS to existing employee
-            </Button>
-            <div style={{ textAlign: 'center' }}>
-              <button onClick={() => resolve(selectedPerson)} style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkFaint, background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>
-                Ignore for this cycle
-              </button>
-            </div>
-          </div>
-        </div>
-        {/* Step 2: assign NISS combobox */}
-        <div ref={step2Ref} style={{ width: '50%', flexShrink: 0 }}>
-          <div style={{ padding: 'var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-250)' }}>
-            <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, lineHeight: '20px' }}>
-              <strong style={{ fontWeight: 600 }}>Assign this NISS to an existing employee.</strong> Select the employee this number belongs to. Their record will be updated with this national insurance number.
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-100)' }}>
-              <MatchEmpCombobox employees={allPeople} value={matchSearch} onChange={setMatchSearch} suggestions={fuzzyMatches} />
-              {pickedHasNiss && (
-                <div style={{ background: P.dangerBg, border: `1px solid ${P.dangerBorder}`, borderRadius: 8, padding: 'var(--space-125) var(--space-150)', display: 'flex', gap: 'var(--space-100)', alignItems: 'flex-start' }}>
-                  <Icon name="alert-triangle" size={14} color={P.dangerDark} strokeWidth={1.75} style={{ flexShrink: 0, marginTop: 1 }} />
-                  <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.dangerDark, lineHeight: '18px' }}>
-                    {pickedEmployee.name} already has a NISS on file. It will be replaced.
+    <ModalShell onClose={closeModal} width={440}>
+      {close => (
+        <div style={{ overflow: 'hidden', width: '100%', height: outerContainerH, transition: outerH.list > 0 ? heightT : 'none' }}>
+          <div style={{ display: 'flex', flexWrap: 'nowrap', width: '200%', alignItems: 'flex-start', transform: `translateX(${outerX})`, transition: slideT }}>
+
+            {/* Panel 1: List */}
+            <div ref={listRef} style={{ width: '50%', flexShrink: 0 }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', padding: 'var(--space-250) var(--space-300)', borderBottom: `1px solid ${P.border}` }}>
+                <div>
+                  <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-md)', color: P.ink }}>Unmatched employees</div>
+                  <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginTop: 2 }}>
+                    {matchQueue.length} {matchQueue.length === 1 ? 'person' : 'people'} from SD Worx not found in Payflip
                   </div>
                 </div>
-              )}
+                <IconButton icon="X" onClick={close} blur />
+              </div>
+              <div>
+                {matchQueue.map((emp, idx) => (
+                  <div key={emp.niss} style={{ display: 'flex', alignItems: 'center', padding: 'var(--space-200) var(--space-300)', borderBottom: idx < matchQueue.length - 1 ? `1px solid ${P.border}` : 'none' }}>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink }}>{emp.name}</div>
+                      <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginTop: 2, fontVariantNumeric: 'tabular-nums' }}>{emp.niss}</div>
+                    </div>
+                    <Button variant="secondary" onClick={() => { setSelectedPerson(emp); setMatchSearch(''); setShowLinkCombobox(false); }}>Resolve</Button>
+                  </div>
+                ))}
+              </div>
+              <div style={{ padding: 'var(--space-150) var(--space-300)', borderTop: `1px solid ${P.border}`, textAlign: 'center' }}>
+                <button onClick={() => { setFoodUnmatched(0); closeModal(); }} style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>
+                  Ignore all for this cycle
+                </button>
+              </div>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-100)' }}>
-              <Button variant="primary" style={{ justifyContent: 'center', opacity: pickedEmployee ? 1 : 0.4 }} disabled={!pickedEmployee} onClick={() => { if (pickedEmployee) { const resolved = selectedPerson; const emp = pickedEmployee; resolve(resolved); onToast?.({ message: `NISS linked to ${emp.name}`, type: 'approve', onUndo: () => { setMatchQueue(q => [...q, resolved]); setFoodUnmatched(n => n + 1); setShowMatchModal(true); setSelectedPerson(resolved); } }); } }}>
-                {pickedEmployee ? `Add NISS to ${pickedEmployee.name}` : 'Select an employee above'}
-              </Button>
-              <Button variant="secondary" style={{ justifyContent: 'center' }} onClick={() => { setShowLinkCombobox(false); setMatchSearch(''); }}>
-                Cancel
-              </Button>
+
+            {/* Panel 2: Detail */}
+            <div ref={detailRef} style={{ width: '50%', flexShrink: 0 }}>
+              <div style={{ display: 'flex', alignItems: 'center', padding: 'var(--space-200) var(--space-300)', borderBottom: `1px solid ${P.border}`, gap: 'var(--space-150)' }}>
+                <IconButton icon="arrow-left" onClick={() => {
+                  if (showLinkCombobox) { setShowLinkCombobox(false); setMatchSearch(''); }
+                  else { setSelectedPerson(null); setMatchSearch(''); setShowLinkSection(false); setShowLinkCombobox(false); }
+                }} />
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 17, color: P.ink, letterSpacing: '-0.01em', lineHeight: 1.2 }}>{selectedPerson?.name}</div>
+                  <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, marginTop: 2, fontVariantNumeric: 'tabular-nums' }}>{selectedPerson?.niss}</div>
+                </div>
+                <IconButton icon="X" onClick={close} blur />
+              </div>
+              {/* Inner strip: step 1 | step 2 */}
+              <div style={{ overflow: 'hidden', width: '100%', height: innerContainerH, transition: innerH.s1 > 0 ? heightT : 'none' }}>
+                <div style={{ display: 'flex', flexWrap: 'nowrap', width: '200%', alignItems: 'flex-start', transform: `translateX(${innerX})`, transition: slideT }}>
+                  <div ref={step1Ref} style={{ width: '50%', flexShrink: 0 }}>
+                    <div style={{ padding: 'var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-250)' }}>
+                      <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, lineHeight: '20px' }}>
+                        This person wasn't found in Payflip. Add them as a new employee, or assign this NISS to someone who's already in the system.
+                      </div>
+                      <Button variant="primary" icon="user-plus" style={{ justifyContent: 'center' }} onClick={() => {
+                        const parts = selectedPerson.name.trim().split(/\s+/);
+                        const pFirst = parts.slice(0, -1).join(' ') || parts[0];
+                        const pLast  = parts.length > 1 ? parts[parts.length - 1] : '';
+                        resolve(selectedPerson);
+                        closeModal();
+                        onAddEmployee && onAddEmployee({ firstName: pFirst, lastName: pLast, niss: selectedPerson.niss });
+                      }}>
+                        Add as new employee
+                      </Button>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)' }}>
+                        <div style={{ flex: 1, height: 1, background: P.border }} />
+                        <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkFaint }}>or</span>
+                        <div style={{ flex: 1, height: 1, background: P.border }} />
+                      </div>
+                      <Button variant="secondary" style={{ justifyContent: 'center' }} onClick={() => setShowLinkCombobox(true)}>
+                        Assign NISS to existing employee
+                      </Button>
+                      <div style={{ textAlign: 'center' }}>
+                        <button onClick={() => resolve(selectedPerson)} style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkFaint, background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>
+                          Ignore for this cycle
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  <div ref={step2Ref} style={{ width: '50%', flexShrink: 0 }}>
+                    <div style={{ padding: 'var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-250)' }}>
+                      <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, lineHeight: '20px' }}>
+                        <strong style={{ fontWeight: 600 }}>Assign this NISS to an existing employee.</strong> Select the employee this number belongs to. Their record will be updated with this national insurance number.
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-100)' }}>
+                        <MatchEmpCombobox employees={allPeople} value={matchSearch} onChange={setMatchSearch} suggestions={fuzzyMatches} />
+                        {pickedHasNiss && (
+                          <div style={{ background: P.dangerBg, border: `1px solid ${P.dangerBorder}`, borderRadius: 8, padding: 'var(--space-125) var(--space-150)', display: 'flex', gap: 'var(--space-100)', alignItems: 'flex-start' }}>
+                            <Icon name="alert-triangle" size={14} color={P.dangerDark} strokeWidth={1.75} style={{ flexShrink: 0, marginTop: 1 }} />
+                            <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.dangerDark, lineHeight: '18px' }}>
+                              {pickedEmployee.name} already has a NISS on file. It will be replaced.
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-100)' }}>
+                        <Button variant="primary" style={{ justifyContent: 'center', opacity: pickedEmployee ? 1 : 0.4 }} disabled={!pickedEmployee} onClick={() => { if (pickedEmployee) { const resolved = selectedPerson; const emp = pickedEmployee; resolve(resolved); onToast?.({ message: `NISS linked to ${emp.name}`, type: 'approve', onUndo: () => { setMatchQueue(q => [...q, resolved]); setFoodUnmatched(n => n + 1); setShowMatchModal(true); } }); } }}>
+                          {pickedEmployee ? `Add NISS to ${pickedEmployee.name}` : 'Select an employee above'}
+                        </Button>
+                        <Button variant="secondary" style={{ justifyContent: 'center' }} onClick={() => { setShowLinkCombobox(false); setMatchSearch(''); }}>
+                          Cancel
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
+
           </div>
         </div>
-      </div>
-    </div>
+      )}
+    </ModalShell>
   );
 }
 
@@ -7784,10 +7879,6 @@ function DashboardScreen({ requests, onNav, onToast, appEntity = null, physicalC
   const [foodUnmatched, setFoodUnmatched] = useState(2);
   const [showMatchModal, setShowMatchModal] = useState(false);
   const [matchQueue, setMatchQueue] = useState([]);
-  const [matchSearch, setMatchSearch] = useState('');
-  const [selectedPerson, setSelectedPerson] = useState(null);
-  const [showLinkSection, setShowLinkSection] = useState(false);
-  const [showLinkCombobox, setShowLinkCombobox] = useState(false);
   const socialSecretariat = 'SD Worx';
   const UNMATCHED_EMPLOYEES = [
     { name: 'Thomas Vandenberghe', niss: '92.11.03-567.89' },
@@ -7802,7 +7893,7 @@ function DashboardScreen({ requests, onNav, onToast, appEntity = null, physicalC
 
   const attentionItems = [
     fundingIssue && { icon: 'alert-circle', label: 'Mobility top-up failed', count: '!', screen: 'settings-cardrules', iconBg: P.dangerBg, iconColor: P.danger, badgeBg: P.danger },
-    foodMode && foodUnmatched > 0 && { icon: 'user-x', label: 'Unmatched employees — Meal vouchers', count: foodUnmatched, iconBg: '#FEF3C7', iconColor: '#D97706', badgeBg: '#D97706', onClick: () => { setMatchQueue([...UNMATCHED_EMPLOYEES]); setShowMatchModal(true); setSelectedPerson(null); } },
+    foodMode && foodUnmatched > 0 && { icon: 'user-x', label: 'Unmatched employees — Meal vouchers', count: foodUnmatched, iconBg: '#FEF3C7', iconColor: '#D97706', badgeBg: '#D97706', onClick: () => { setMatchQueue([...UNMATCHED_EMPLOYEES]); setShowMatchModal(true); } },
     pendingRequests > 0 && { icon: 'calendar-days', label: 'Time-off requests', count: pendingRequests, screen: 'requests', iconBg: '#e8f0fe', iconColor: '#2563eb' },
     pendingExpenses > 0 && { icon: 'receipt', label: 'Expense requests', count: pendingExpenses, screen: 'expenses', iconBg: P.warningBg, iconColor: '#b45309' },
     pendingChoices > 0 && { icon: 'list-checks', label: 'Choices to approve', count: pendingChoices, screen: 'choices', iconBg: '#ede9fe', iconColor: '#6d28d9' },
@@ -7872,128 +7963,16 @@ function DashboardScreen({ requests, onNav, onToast, appEntity = null, physicalC
         </div>
 
         {/* Unmatched employees modal (food live) */}
-        {showMatchModal && matchQueue.length > 0 && (() => {
-          // selectedPerson = unmatched employee being resolved (null = list view)
-          // matchSearch = selected Payflip employee ID in the dropdown
-
-          const allPeople = Object.entries(EMPLOYEES)
-            .filter(([, e]) => e.isEmployee !== false)
-            .map(([id, e]) => ({ id, ...e }));
-
-          const pickedEmployee = matchSearch ? allPeople.find(p => p.id === matchSearch) : null;
-          const pickedHasNiss = pickedEmployee?.niss;
-
-          const fuzzyMatches = selectedPerson ? (() => {
-            const tokens = selectedPerson.name.toLowerCase().split(/\s+/).filter(t => t.length > 2);
-            return allPeople
-              .map(p => ({ ...p, score: tokens.filter(t => p.name.toLowerCase().includes(t)).length }))
-              .filter(p => p.score > 0)
-              .sort((a, b) => b.score - a.score)
-              .slice(0, 3);
-          })() : [];
-
-          const resolve = (emp) => {
-            const next = matchQueue.filter(e => e.niss !== emp.niss);
-            setMatchQueue(next);
-            setSelectedPerson(null);
-            setMatchSearch('');
-            setShowLinkSection(false);
-            setShowLinkCombobox(false);
-            setFoodUnmatched(n => Math.max(0, n - 1));
-            if (next.length === 0) setShowMatchModal(false);
-          };
-
-          const closeModal = () => {
-            setShowMatchModal(false);
-            setMatchQueue([]);
-            setSelectedPerson(null);
-            setMatchSearch('');
-            setShowLinkSection(false);
-            setShowLinkCombobox(false);
-          };
-
-          const SLIDE_DUR = 300;
-          const slideTransition = `transform ${SLIDE_DUR}ms ${EASE_DRAWER}`;
-          const outerX = selectedPerson ? '-50%' : '0%';
-
-          return (
-            <ModalShell onClose={closeModal} width={440}>
-              {close => (
-                <div style={{ overflow: 'hidden', width: '100%' }}>
-                  {/* Outer strip: list panel | detail panel */}
-                  <div style={{ display: 'flex', flexWrap: 'nowrap', width: '200%', transform: `translateX(${outerX})`, transition: slideTransition }}>
-
-                    {/* Panel 1: List */}
-                    <div style={{ width: '50%', flexShrink: 0 }}>
-                      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', padding: 'var(--space-250) var(--space-300)', borderBottom: `1px solid ${P.border}` }}>
-                        <div>
-                          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-md)', color: P.ink }}>Unmatched employees</div>
-                          <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginTop: 2 }}>
-                            {matchQueue.length} {matchQueue.length === 1 ? 'person' : 'people'} from SD Worx not found in Payflip
-                          </div>
-                        </div>
-                        <IconButton icon="X" onClick={close} blur />
-                      </div>
-                      <div>
-                        {matchQueue.map((emp, idx) => (
-                          <div key={emp.niss} style={{ display: 'flex', alignItems: 'center', padding: 'var(--space-200) var(--space-300)', borderBottom: idx < matchQueue.length - 1 ? `1px solid ${P.border}` : 'none' }}>
-                            <div style={{ flex: 1 }}>
-                              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink }}>{emp.name}</div>
-                              <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginTop: 2, fontVariantNumeric: 'tabular-nums' }}>{emp.niss}</div>
-                            </div>
-                            <Button variant="secondary" onClick={() => { setSelectedPerson(emp); setMatchSearch(''); setShowLinkCombobox(false); }}>Resolve</Button>
-                          </div>
-                        ))}
-                      </div>
-                      <div style={{ padding: 'var(--space-150) var(--space-300)', borderTop: `1px solid ${P.border}`, textAlign: 'center' }}>
-                        <button onClick={() => { setFoodUnmatched(0); closeModal(); }} style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>
-                          Ignore all for this cycle
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Panel 2: Detail */}
-                    <div style={{ width: '50%', flexShrink: 0 }}>
-                      {/* Shared header (back + name/NISS + X) */}
-                      <div style={{ display: 'flex', alignItems: 'center', padding: 'var(--space-200) var(--space-300)', borderBottom: `1px solid ${P.border}`, gap: 'var(--space-150)' }}>
-                        <IconButton icon="arrow-left" onClick={() => {
-                          if (showLinkCombobox) { setShowLinkCombobox(false); setMatchSearch(''); }
-                          else { setSelectedPerson(null); setMatchSearch(''); setShowLinkSection(false); setShowLinkCombobox(false); }
-                        }} />
-                        <div style={{ flex: 1 }}>
-                          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 17, color: P.ink, letterSpacing: '-0.01em', lineHeight: 1.2 }}>{selectedPerson?.name}</div>
-                          <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft, marginTop: 2, fontVariantNumeric: 'tabular-nums' }}>{selectedPerson?.niss}</div>
-                        </div>
-                        <IconButton icon="X" onClick={close} blur />
-                      </div>
-                      {/* Inner strip: step 1 body | step 2 body */}
-                      <UnmatchedModalInner
-                        showLinkCombobox={showLinkCombobox}
-                        setShowLinkCombobox={setShowLinkCombobox}
-                        matchSearch={matchSearch}
-                        setMatchSearch={setMatchSearch}
-                        selectedPerson={selectedPerson}
-                        resolve={resolve}
-                        allPeople={allPeople}
-                        fuzzyMatches={fuzzyMatches}
-                        pickedEmployee={pickedEmployee}
-                        pickedHasNiss={pickedHasNiss}
-                        onToast={onToast}
-                        setMatchQueue={setMatchQueue}
-                        setFoodUnmatched={setFoodUnmatched}
-                        setShowMatchModal={setShowMatchModal}
-                        setSelectedPerson={setSelectedPerson}
-                        closeModal={closeModal}
-                        onAddEmployee={onAddEmployee}
-                      />
-                    </div>
-
-                  </div>
-                </div>
-              )}
-            </ModalShell>
-          );
-        })()}
+        {showMatchModal && matchQueue.length > 0 && (
+          <UnmatchedMatchModal
+            matchQueue={matchQueue}
+            setMatchQueue={setMatchQueue}
+            setFoodUnmatched={setFoodUnmatched}
+            setShowMatchModal={setShowMatchModal}
+            onToast={onToast}
+            onAddEmployee={onAddEmployee}
+          />
+        )}
 
       </div>
       </div>
@@ -12034,7 +12013,7 @@ function App() {
   const [cardDelivery, setCardDelivery] = useState('home');
   const [mobilityWidgetState, setMobilityWidgetState] = useState({
     widgetMode: 'mobility',
-    hidden: false,
+    hidden: new URLSearchParams(location.search).get('setup') === 'collapsed',
     step: 1,
     mandateDenied: false,
     mandateValidated: false,
