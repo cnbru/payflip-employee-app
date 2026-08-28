@@ -7712,6 +7712,8 @@ function UnmatchedMatchModal({ matchQueue, setMatchQueue, setFoodUnmatched, setS
   const [showLinkSection, setShowLinkSection] = React.useState(false);
   const [showLinkCombobox, setShowLinkCombobox] = React.useState(false);
   const [matchSearch, setMatchSearch] = React.useState('');
+  const [allDone, setAllDone] = React.useState(false);
+  const resolvedCount = React.useRef(matchQueue.length);
 
   const listRef = React.useRef(null);
   const detailRef = React.useRef(null);
@@ -7757,8 +7759,9 @@ function UnmatchedMatchModal({ matchQueue, setMatchQueue, setFoodUnmatched, setS
     setShowLinkSection(false);
     setShowLinkCombobox(false);
     setFoodUnmatched(n => Math.max(0, n - 1));
-    if (next.length === 0) setShowMatchModal(false);
+    if (next.length === 0) setAllDone(true);
   };
+
 
   const closeModal = () => {
     setShowMatchModal(false);
@@ -7815,7 +7818,25 @@ function UnmatchedMatchModal({ matchQueue, setMatchQueue, setFoodUnmatched, setS
 
   return (
     <ModalShell onClose={closeModal} width={440}>
-      {close => (
+      {close => allDone ? (
+        <div>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', padding: 'var(--space-250) var(--space-300)', borderBottom: `1px solid ${P.border}` }}>
+            <IconButton icon="X" onClick={close} blur />
+          </div>
+          <div style={{ padding: 'var(--space-500) var(--space-300)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 'var(--space-150)', textAlign: 'center' }}>
+            <div style={{ width: 40, height: 40, borderRadius: '50%', background: P.successBg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Icon name="Check" size={18} color={P.successDark} strokeWidth={2} />
+            </div>
+            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-md)', color: P.ink }}>All resolved</div>
+            <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, maxWidth: 280 }}>
+              {resolvedCount.current} {resolvedCount.current === 1 ? 'person' : 'people'} from SD Worx {resolvedCount.current === 1 ? 'has' : 'have'} been matched — meal voucher eligibility is confirmed for the September cycle.
+            </div>
+            <div style={{ marginTop: 'var(--space-100)' }}>
+              <Button variant="secondary" onClick={close}>Done</Button>
+            </div>
+          </div>
+        </div>
+      ) : (
         <div style={{ overflow: outerOverflow, width: '100%', height: outerContainerH, transition: outerH.list > 0 ? heightT : 'none' }}>
           <div style={{ display: 'flex', flexWrap: 'nowrap', width: '200%', alignItems: 'flex-start', transform: `translateX(${outerX})`, transition: slideT }}>
 
@@ -7873,9 +7894,8 @@ function UnmatchedMatchModal({ matchQueue, setMatchQueue, setFoodUnmatched, setS
                         const parts = selectedPerson.name.trim().split(/\s+/);
                         const pFirst = parts.slice(0, -1).join(' ') || parts[0];
                         const pLast  = parts.length > 1 ? parts[parts.length - 1] : '';
-                        resolve(selectedPerson);
-                        closeModal();
                         onAddEmployee && onAddEmployee({ firstName: pFirst, lastName: pLast, niss: selectedPerson.niss });
+                        resolve(selectedPerson);
                       }}>
                         Add as new employee
                       </Button>
@@ -8022,7 +8042,7 @@ function DashboardScreen({ requests, onNav, onToast, appEntity = null, physicalC
         </div>
 
         {/* Unmatched employees modal (food live) */}
-        {showMatchModal && matchQueue.length > 0 && (
+        {showMatchModal && (
           <UnmatchedMatchModal
             matchQueue={matchQueue}
             setMatchQueue={setMatchQueue}
