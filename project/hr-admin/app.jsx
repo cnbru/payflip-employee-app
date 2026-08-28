@@ -7163,8 +7163,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
               <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
                 {mobilitySetupContent()}
               </div>
-              <div style={{ flex: 1, background: 'linear-gradient(140deg, #fdf4ff 0%, var(--bg-brand) 50%, #edd5ff 100%)', borderLeft: `1px solid ${P.border}`, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: 'var(--space-600) var(--space-400)', position: 'relative', overflow: 'hidden' }}>
-                <div className="gradient-drift" style={{ position: 'absolute', inset: 0, background: 'linear-gradient(200deg, var(--bg-brand) 0%, #e8ccff 35%, #d4adff 100%)', animation: 'gradientDrift 4s ease-in-out infinite alternate', pointerEvents: 'none' }} />
+              <div style={{ flex: 1, background: 'var(--bg-brand)', borderLeft: `1px solid ${P.border}`, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: 'var(--space-600) var(--space-400)', position: 'relative', overflow: 'hidden' }}>
                 <CardTilt>
                   <img src={PAYFLIP_CARD_IMG} alt="Payflip Card" style={{ width: 270, height: 170, display: 'block', borderRadius: 14 }} />
                 </CardTilt>
