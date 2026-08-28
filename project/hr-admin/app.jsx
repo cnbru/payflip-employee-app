@@ -446,7 +446,7 @@ function ChoiceCard({ type = 'radio', selected, onClick, label, description }) {
       }}>
         {selected && (type === 'radio'
           ? <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#fff' }} />
-          : <Icon name="check" size={11} color="#fff" strokeWidth={3} />
+          : <Icon name="Check" size={11} color="#fff" strokeWidth={3} />
         )}
       </div>
     </div>
