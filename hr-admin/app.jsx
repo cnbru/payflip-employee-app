@@ -8814,6 +8814,15 @@ const ADMIN_AREAS = [
 function AdminAccessModal({ admin, access, onSave, onClose }) {
   const [step, setStep] = useState(Array.isArray(access) ? 2 : 1);
   const [selectedAreas, setSelectedAreas] = useState(Array.isArray(access) ? access : []);
+  const step1Ref = useRef(null);
+  const step2Ref = useRef(null);
+  const [panelH, setPanelH] = useState({ s1: 0, s2: 0 });
+
+  React.useLayoutEffect(() => {
+    const s1 = step1Ref.current?.scrollHeight || 0;
+    const s2 = step2Ref.current?.scrollHeight || 0;
+    setPanelH({ s1, s2 });
+  }, [selectedAreas.length]);
 
   const AREA_LABELS = { 'time-off': 'Time off', 'expenses': 'Expenses', 'payroll': 'Payroll' };
   const SLIDE_DUR = 300;
@@ -8821,6 +8830,7 @@ function AdminAccessModal({ admin, access, onSave, onClose }) {
   const step1Slide = onStep2 ? 'translateX(-100%)' : 'translateX(0)';
   const step2Slide = onStep2 ? 'translateX(0)' : 'translateX(100%)';
   const slideTransition = `transform ${SLIDE_DUR}ms ${EASE_DRAWER}`;
+  const containerH = onStep2 ? panelH.s2 : panelH.s1;
 
   const toggleArea = (value) => {
     setSelectedAreas(prev => prev.includes(value) ? prev.filter(a => a !== value) : [...prev, value]);
@@ -8859,10 +8869,10 @@ function AdminAccessModal({ admin, access, onSave, onClose }) {
       {close => (
         <>
         {/* Sliding content area — height morphs between step 1 and step 2 natural heights */}
-        <div style={{ position: 'relative', overflow: 'hidden', height: onStep2 ? 240 : 132, transition: `height ${SLIDE_DUR}ms ${EASE_DRAWER}` }}>
+        <div style={{ position: 'relative', overflow: 'hidden', height: containerH || undefined, transition: `height ${SLIDE_DUR}ms ${EASE_DRAWER}` }}>
 
           {/* Step 1: access type */}
-          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, transform: step1Slide, transition: slideTransition }}>
+          <div ref={step1Ref} style={{ position: 'absolute', top: 0, left: 0, right: 0, transform: step1Slide, transition: slideTransition }}>
             <div style={{ padding: 'var(--space-100) var(--space-200) var(--space-050)' }}>
               <div onClick={() => { onSave('full'); close(); }}
                 style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-125)', padding: '11px var(--space-125)', cursor: 'pointer', borderRadius: 8 }}>
@@ -8888,7 +8898,7 @@ function AdminAccessModal({ admin, access, onSave, onClose }) {
           </div>
 
           {/* Step 2: area checkboxes */}
-          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, transform: step2Slide, transition: slideTransition }}>
+          <div ref={step2Ref} style={{ position: 'absolute', top: 0, left: 0, right: 0, transform: step2Slide, transition: slideTransition }}>
             <div style={{ padding: 'var(--space-200)', display: 'flex', flexDirection: 'column', gap: 'var(--space-100)' }}>
               {ADMIN_AREAS.map(area => (
                 <ChoiceCard key={area.value} type="checkbox" selected={selectedAreas.includes(area.value)} onClick={() => toggleArea(area.value)}
