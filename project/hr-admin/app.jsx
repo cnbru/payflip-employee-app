@@ -878,7 +878,7 @@ function SalaryTab({ empId, emp, companyRegime, onEmployeeUpdate }) {
     if (onEmployeeUpdate) onEmployeeUpdate(empId, { fte: localFte, workSchedule: next });
   };
   const fieldStyle = { background: P.white, border: `1px solid ${P.border}`, borderRadius: 8, padding: 'var(--space-125) var(--space-200)', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink };
-  const labelStyle = { display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink, marginBottom: 'var(--space-075)' };
+  const labelStyle = { display: 'block', fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: P.ink, marginBottom: 'var(--space-075)' };
   const th = { textAlign: 'left', padding: 'var(--space-100) var(--space-200)', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em', whiteSpace: 'nowrap' };
   const SalSecHead = ({ title, onAdd }) => (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-125)' }}>
@@ -1017,7 +1017,7 @@ function DetailsTab({ emp, empId, onNav, adminAccess, onAdminSave, companyRegime
   const parts = emp.name.split(' ');
   const first = parts[0], last = parts.slice(1).join(' ');
   const fieldStyle = { background: P.white, border: `1px solid ${P.border}`, borderRadius: 8, padding: 'var(--space-125) var(--space-200)', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink };
-  const labelStyle = { display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink, marginBottom: 'var(--space-075)' };
+  const labelStyle = { display: 'block', fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: P.ink, marginBottom: 'var(--space-075)' };
   return (
     <div style={{ maxWidth: 740 }}>
       <div style={{ marginBottom: 'var(--space-400)' }}>
@@ -4032,7 +4032,7 @@ function AddExpenseModal({ categories, onClose, onSave, receiptRequired = false 
     background: P.white, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)',
     color: P.ink, outline: 'none', boxSizing: 'border-box',
   });
-  const labelStyle = { fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginBottom: 'var(--space-075)', display: 'block' };
+  const labelStyle = { fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: P.ink, marginBottom: 'var(--space-075)', display: 'block' };
   const sortedEmps = Object.entries(EMPLOYEES).sort((a,b) => a[1].name.localeCompare(b[1].name));
 
   return (
@@ -6561,6 +6561,14 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
     return () => clearTimeout(id);
   }, [step, mandateValidated, mandateDenied, depositFailed, ws.bankConfirmDelay]);
 
+  // After mandate validates, auto-advance "Collection scheduled" → step 3 after bankConfirmDelay
+  React.useEffect(() => {
+    if (step !== 2 || !mandateValidated || depositFailed) return;
+    const delay = (ws.bankConfirmDelay || 8) * 1000;
+    const id = setTimeout(() => setStep(3), delay);
+    return () => clearTimeout(id);
+  }, [step, mandateValidated, depositFailed, ws.bankConfirmDelay]);
+
   // Food-mode INSS state
   const [inssUploaded, setInssUploaded] = useState(false);
   const [inssUploading, setInssUploading] = useState(false);
@@ -6751,13 +6759,13 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
                     How is this calculated?
                   </button>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', padding: 'var(--space-125) var(--space-200)', border: `1px solid ${P.border}`, borderRadius: 10, background: P.bg }}>
-                  <img src={TWIKEY_LOGO_IMG} alt="Twikey" style={{ width: 80, height: 35, display: 'block', objectFit: 'contain', flexShrink: 0 }} />
-                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, lineHeight: '17px' }}>
-                    Secured by Twikey — funds arrive within 3 business days.
+                <Button variant="primary" onClick={() => setStep(2)} style={{ width: '100%', justifyContent: 'center', fontSize: 'var(--fs-body-md)', padding: 'var(--space-125) var(--space-250)' }}>Sign with Twikey</Button>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 'var(--space-100)', width: '100%' }}>
+                  <img src={TWIKEY_LOGO_IMG} alt="Twikey" style={{ width: 44, height: 16, display: 'block', objectFit: 'contain', flexShrink: 0 }} />
+                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, lineHeight: '17px', opacity: 0.65 }}>
+                    ISO 27001 &amp; PCI-DSS certified · GDPR compliant
                   </span>
                 </div>
-                <Button variant="primary" onClick={() => setStep(2)} style={{ width: '100%', justifyContent: 'center', fontSize: 'var(--fs-body-md)', padding: 'var(--space-125) var(--space-250)' }}>Sign with Twikey</Button>
               </div>
             )}
           </div>
@@ -6993,7 +7001,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
                   <div style={{ padding: 'var(--space-300)', borderBottom: `1px solid ${P.border}` }}>
                     <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: '20px' }}>
-                      {socialSecretariat} sent {UNMATCHED_EMPLOYEES.length} NISS {UNMATCHED_EMPLOYEES.length === 1 ? 'number' : 'numbers'} that don't match any employee in your People directory. Match them to an existing employee, add them to People, or ignore them for this cycle.
+                      {socialSecretariat} sent {UNMATCHED_EMPLOYEES.length} INSS {UNMATCHED_EMPLOYEES.length === 1 ? 'number' : 'numbers'} that don't match any employee in your People directory. Match them to an existing employee, add them to People, or ignore them for this cycle.
                     </span>
                   </div>
                   <div style={{ flex: 1, overflowY: 'auto' }} className="hide-scrollbar">
@@ -7004,7 +7012,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
                         </div>
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: P.ink }}>{emp.name}</div>
-                          <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>NISS {emp.niss}</div>
+                          <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>INSS {emp.niss}</div>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-075)', flexShrink: 0 }}>
                           <Button variant="secondary" style={{ fontSize: 'var(--fs-body-xs)', padding: 'var(--space-050) var(--space-125)' }} onClick={() => setFoodUnmatched(n => Math.max(0, n - 1))}>Match</Button>
@@ -7561,7 +7569,7 @@ function FoodLiveWidget({ socialSecretariat = 'SD Worx', empCount = 23, onNav })
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
               <div style={{ padding: 'var(--space-300)', borderBottom: `1px solid ${P.border}` }}>
                 <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: '20px' }}>
-                  {socialSecretariat} sent {UNMATCHED.length} NISS {UNMATCHED.length === 1 ? 'number' : 'numbers'} that don't match any employee in your People directory. Match them to an existing employee, add them to People, or ignore them for this cycle.
+                  {socialSecretariat} sent {UNMATCHED.length} INSS {UNMATCHED.length === 1 ? 'number' : 'numbers'} that don't match any employee in your People directory. Match them to an existing employee, add them to People, or ignore them for this cycle.
                 </span>
               </div>
               <div style={{ flex: 1, overflowY: 'auto' }} className="hide-scrollbar">
@@ -7572,7 +7580,7 @@ function FoodLiveWidget({ socialSecretariat = 'SD Worx', empCount = 23, onNav })
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: P.ink }}>{emp.name}</div>
-                      <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>NISS {emp.niss}</div>
+                      <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>INSS {emp.niss}</div>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-075)', flexShrink: 0 }}>
                       <Button variant="secondary" style={{ fontSize: 'var(--fs-body-xs)', padding: 'var(--space-050) var(--space-125)' }} onClick={() => setUnmatched(n => Math.max(0, n - 1))}>Match</Button>
@@ -7638,7 +7646,10 @@ function MatchEmpCombobox({ employees, value, onChange, suggestions = [] }) {
       onMouseLeave={e => e.currentTarget.style.background = emp.id === value ? P.bg : P.white}
     >
       <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink }}>{emp.name}</div>
-      <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: emp.niss ? P.inkSoft : P.inkFaint, fontVariantNumeric: 'tabular-nums', flexShrink: 0, marginLeft: 8 }}>{emp.niss || 'No NISS'}</div>
+      {emp.niss
+        ? <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, fontVariantNumeric: 'tabular-nums', flexShrink: 0, marginLeft: 8 }}>{emp.niss}</div>
+        : <DotPill dot={false} size={11} bg={P.bg} color={P.inkSoft} border={P.border}>No INSS</DotPill>
+      }
     </div>
   );
 
@@ -7660,8 +7671,11 @@ function MatchEmpCombobox({ employees, value, onChange, suggestions = [] }) {
         />
         {selected && (
           <>
-            <div style={{ position: 'absolute', right: 30, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
-              <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>{selected.niss || 'No NISS'}</span>
+            <div style={{ position: 'absolute', right: 30, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', display: 'flex', alignItems: 'center' }}>
+              {selected.niss
+                ? <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>{selected.niss}</span>
+                : <DotPill dot={false} size={11} bg={P.bg} color={P.inkSoft} border={P.border}>No INSS</DotPill>
+              }
             </div>
             <button onMouseDown={handleClear} style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', padding: 2, display: 'flex', alignItems: 'center' }}>
               <Icon name="x" size={14} color={P.inkSoft} strokeWidth={2} />
@@ -7721,6 +7735,12 @@ function UnmatchedMatchModal({ matchQueue, setMatchQueue, setFoodUnmatched, setS
     .map(([id, e]) => ({ id, ...e }));
   const pickedEmployee = matchSearch ? allPeople.find(p => p.id === matchSearch) : null;
   const pickedHasNiss = pickedEmployee?.niss;
+
+  React.useLayoutEffect(() => {
+    if (!step2Ref.current) return;
+    const newS2 = step2Ref.current.scrollHeight;
+    setInnerH(prev => newS2 === prev.s2 ? prev : { ...prev, s2: newS2 });
+  }, [!!pickedHasNiss]);
   const fuzzyMatches = selectedPerson ? (() => {
     const tokens = selectedPerson.name.toLowerCase().split(/\s+/).filter(t => t.length > 2);
     return allPeople
@@ -7751,14 +7771,24 @@ function UnmatchedMatchModal({ matchQueue, setMatchQueue, setFoodUnmatched, setS
   const outerFirst = React.useRef(true);
   const innerFirst = React.useRef(true);
 
-  React.useEffect(() => {
+  React.useLayoutEffect(() => {
     if (outerFirst.current) { outerFirst.current = false; return; }
     setOuterAnimating(true);
     const id = setTimeout(() => setOuterAnimating(false), SLIDE_DUR + 20);
     return () => clearTimeout(id);
   }, [!!selectedPerson]);
 
-  React.useEffect(() => {
+  // Re-measure outerH.detail whenever the selected person changes — the header
+  // renders with empty name/INSS at mount (selectedPerson = null), so the mount
+  // measurement underestimates the header height by ~10–15px. Re-measuring on
+  // first entry into the detail panel captures the real rendered header height.
+  React.useLayoutEffect(() => {
+    if (!selectedPerson || !detailRef.current) return;
+    const newDetail = detailRef.current.scrollHeight;
+    setOuterH(prev => newDetail === prev.detail ? prev : { ...prev, detail: newDetail });
+  }, [selectedPerson]);
+
+  React.useLayoutEffect(() => {
     if (innerFirst.current) { innerFirst.current = false; return; }
     setInnerAnimating(true);
     const id = setTimeout(() => setInnerAnimating(false), SLIDE_DUR + 20);
@@ -7770,14 +7800,19 @@ function UnmatchedMatchModal({ matchQueue, setMatchQueue, setFoodUnmatched, setS
   const heightT = `height ${SLIDE_DUR}ms ${EASE_DRAWER}`;
   const outerX = selectedPerson ? '-50%' : '0%';
   const innerX = showLinkCombobox ? '-50%' : '0%';
-  const outerContainerH = outerH.list > 0 ? (selectedPerson ? outerH.detail : outerH.list) : undefined;
+  const innerCurrentH = showLinkCombobox ? innerH.s2 : innerH.s1;
+  const outerDetailH = outerH.detail > 0 && innerH.s1 > 0
+    ? outerH.detail - Math.max(innerH.s1, innerH.s2) + innerCurrentH
+    : outerH.detail;
+  const outerContainerH = outerH.list > 0 ? (selectedPerson ? outerDetailH : outerH.list) : undefined;
   const innerContainerH = innerH.s1 > 0 ? (showLinkCombobox ? innerH.s2 : innerH.s1) : undefined;
   const outerOverflow = outerAnimating ? 'hidden' : 'visible';
   const innerOverflow = innerAnimating ? 'hidden' : 'visible';
   const listVis = outerAnimating || !selectedPerson ? 'visible' : 'hidden';
   const detailVis = outerAnimating || !!selectedPerson ? 'visible' : 'hidden';
-  const step1Vis = innerAnimating || !showLinkCombobox ? 'visible' : 'hidden';
-  const step2Vis = innerAnimating || showLinkCombobox ? 'visible' : 'hidden';
+  const detailActive = outerAnimating || !!selectedPerson;
+  const step1Vis = detailActive ? (innerAnimating || !showLinkCombobox ? 'visible' : 'hidden') : undefined;
+  const step2Vis = detailActive ? (innerAnimating || showLinkCombobox ? 'visible' : 'hidden') : undefined;
 
   return (
     <ModalShell onClose={closeModal} width={440}>
@@ -7832,8 +7867,8 @@ function UnmatchedMatchModal({ matchQueue, setMatchQueue, setFoodUnmatched, setS
                 <div style={{ display: 'flex', flexWrap: 'nowrap', width: '200%', alignItems: 'flex-start', transform: `translateX(${innerX})`, transition: slideT }}>
                   <div ref={step1Ref} style={{ width: '50%', flexShrink: 0, visibility: step1Vis }}>
                     <div style={{ padding: 'var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-250)' }}>
-                      <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, lineHeight: '20px' }}>
-                        This person wasn't found in Payflip. Add them as a new employee, or assign this NISS to someone who's already in the system.
+                      <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: '20px' }}>
+                        Not found in your People directory. Add them as a new employee, or assign their INSS to someone already in Payflip.
                       </div>
                       <Button variant="primary" icon="user-plus" style={{ justifyContent: 'center' }} onClick={() => {
                         const parts = selectedPerson.name.trim().split(/\s+/);
@@ -7851,19 +7886,18 @@ function UnmatchedMatchModal({ matchQueue, setMatchQueue, setFoodUnmatched, setS
                         <div style={{ flex: 1, height: 1, background: P.border }} />
                       </div>
                       <Button variant="secondary" style={{ justifyContent: 'center' }} onClick={() => setShowLinkCombobox(true)}>
-                        Assign NISS to existing employee
+                        Assign INSS to existing employee
                       </Button>
                       <div style={{ textAlign: 'center' }}>
-                        <button onClick={() => resolve(selectedPerson)} style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkFaint, background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>
-                          Ignore for this cycle
-                        </button>
+                        <AppLink onClick={() => resolve(selectedPerson)} style={{ fontSize: 'var(--fs-body-xs)' }}>Ignore for this cycle</AppLink>
                       </div>
                     </div>
                   </div>
                   <div ref={step2Ref} style={{ width: '50%', flexShrink: 0, visibility: step2Vis }}>
                     <div style={{ padding: 'var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-250)' }}>
-                      <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, lineHeight: '20px' }}>
-                        <strong style={{ fontWeight: 600 }}>Assign this NISS to an existing employee.</strong> Select the employee this number belongs to. Their record will be updated with this national insurance number.
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-075)' }}>
+                      <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: P.ink }}>
+                        Which employee does this INSS belong to?
                       </div>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-100)' }}>
                         <MatchEmpCombobox employees={allPeople} value={matchSearch} onChange={setMatchSearch} suggestions={fuzzyMatches} />
@@ -7871,14 +7905,15 @@ function UnmatchedMatchModal({ matchQueue, setMatchQueue, setFoodUnmatched, setS
                           <div style={{ background: P.dangerBg, border: `1px solid ${P.dangerBorder}`, borderRadius: 8, padding: 'var(--space-125) var(--space-150)', display: 'flex', gap: 'var(--space-100)', alignItems: 'flex-start' }}>
                             <Icon name="alert-triangle" size={14} color={P.dangerDark} strokeWidth={1.75} style={{ flexShrink: 0, marginTop: 1 }} />
                             <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.dangerDark, lineHeight: '18px' }}>
-                              {pickedEmployee.name} already has a NISS on file. It will be replaced.
+                              {pickedEmployee.name} already has an INSS on file. It will be replaced.
                             </div>
                           </div>
                         )}
                       </div>
+                      </div>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-100)' }}>
-                        <Button variant="primary" style={{ justifyContent: 'center', opacity: pickedEmployee ? 1 : 0.4 }} disabled={!pickedEmployee} onClick={() => { if (pickedEmployee) { const resolved = selectedPerson; const emp = pickedEmployee; resolve(resolved); onToast?.({ message: `NISS linked to ${emp.name}`, type: 'approve', onUndo: () => { setMatchQueue(q => [...q, resolved]); setFoodUnmatched(n => n + 1); setShowMatchModal(true); } }); } }}>
-                          {pickedEmployee ? `Add NISS to ${pickedEmployee.name}` : 'Select an employee above'}
+                        <Button variant="primary" style={{ justifyContent: 'center', opacity: pickedEmployee ? 1 : 0.4 }} disabled={!pickedEmployee} onClick={() => { if (pickedEmployee) { const resolved = selectedPerson; const emp = pickedEmployee; resolve(resolved); onToast?.({ message: `INSS linked to ${emp.name}`, type: 'approve', onUndo: () => { setMatchQueue(q => [...q, resolved]); setFoodUnmatched(n => n + 1); setShowMatchModal(true); } }); } }}>
+                          {pickedEmployee ? `Link INSS to ${pickedEmployee.name}` : 'Select an employee above'}
                         </Button>
                         <Button variant="secondary" style={{ justifyContent: 'center' }} onClick={() => { setShowLinkCombobox(false); setMatchSearch(''); }}>
                           Cancel
@@ -10701,7 +10736,7 @@ function BenefitTypeDrawer({ config, onSave, onDelete, onClose }) {
     return () => document.removeEventListener('keydown', handler);
   }, [onClose]);
 
-  const labelStyle = { display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.inkSoft, marginBottom: 'var(--space-075)' };
+  const labelStyle = { display: 'block', fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: P.ink, marginBottom: 'var(--space-075)' };
   const inputStyle = { width: '100%', border: `1px solid ${P.border}`, borderRadius: 8, padding: 'var(--space-100) var(--space-150)', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, outline: 'none', boxSizing: 'border-box' };
   const toggleRow = (rowLabel, rowHint, checked, onChange, last) => (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 'var(--space-200)', padding: 'var(--space-200) 0', borderBottom: last ? 'none' : `1px solid ${P.border}` }}>
@@ -11682,7 +11717,7 @@ function AddEmployeeWizard({ onClose, onCreated, companyRegime, mobilityLive, pr
   };
 
   const inputStyle = { width: '100%', border: `1px solid ${P.border}`, borderRadius: 8, padding: 'var(--space-100) var(--space-150)', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, outline: 'none', boxSizing: 'border-box', background: P.white };
-  const labelStyle = { display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginBottom: 'var(--space-075)', letterSpacing: '0.01em' };
+  const labelStyle = { display: 'block', fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: P.ink, marginBottom: 'var(--space-075)' };
   const SL2        = { fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-xs)', color: P.inkSoft, letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 'var(--space-250)' };
   const StepHeading = ({ title, sub }) => (
     <div style={{ marginBottom: 'var(--space-400)' }}>
@@ -11768,7 +11803,7 @@ function AddEmployeeWizard({ onClose, onCreated, companyRegime, mobilityLive, pr
                 </select>
               </div>
               <div style={fieldIn(3)}>
-                <label style={labelStyle}>NISS number</label>
+                <label style={labelStyle}>INSS number</label>
                 <input autoComplete="off" value={niss} onChange={e => setNiss(e.target.value)} placeholder="XX.XX.XX-XXX.XX" style={inputStyle} />
                 <div style={hint}>National registry number — required for Dimona declaration.</div>
               </div>
