@@ -8859,7 +8859,7 @@ function AdminAccessModal({ admin, access, onSave, onClose }) {
       {close => (
         <>
         {/* Sliding content area — height morphs between step 1 and step 2 natural heights */}
-        <div style={{ position: 'relative', overflow: 'hidden', height: onStep2 ? 180 : 132, transition: `height ${SLIDE_DUR}ms ${EASE_DRAWER}` }}>
+        <div style={{ position: 'relative', overflow: 'hidden', height: onStep2 ? 240 : 132, transition: `height ${SLIDE_DUR}ms ${EASE_DRAWER}` }}>
 
           {/* Step 1: access type */}
           <div style={{ position: 'absolute', top: 0, left: 0, right: 0, transform: step1Slide, transition: slideTransition }}>
