@@ -458,11 +458,13 @@ function ChoiceCard({ type = 'radio', selected, onClick, label, description }) {
 // panel, and optional title/close header; body/footer are supplied as
 // children/footer, either a plain node or a function receiving `close` (for
 // buttons that need to save-then-close). See CLAUDE.md "Shared components".
-function ModalShell({ onClose, title, width = 420, maxHeight, zIndex = 300, footer, children }) {
+const MODAL_SIZES = { sm: 380, md: 460, lg: 560 };
+function ModalShell({ onClose, title, width, size, maxHeight, zIndex = 300, footer, children }) {
+  const resolvedWidth = width ?? (size ? MODAL_SIZES[size] : 420);
   const { visible, close } = useModalTransition(onClose);
   return (
     <div onClick={close} style={{ position: 'fixed', inset: 0, zIndex, background: 'rgba(15,13,40,0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center', ...modalBackdropStyle(visible) }}>
-      <div onClick={e => e.stopPropagation()} style={{ background: P.white, borderRadius: 14, width, maxHeight, boxShadow: '0 8px 40px rgba(15,13,40,0.2)', display: 'flex', flexDirection: 'column', ...modalPanelStyle(visible) }}>
+      <div onClick={e => e.stopPropagation()} style={{ background: P.white, borderRadius: 14, width: resolvedWidth, maxHeight, boxShadow: '0 8px 40px rgba(15,13,40,0.2)', display: 'flex', flexDirection: 'column', ...modalPanelStyle(visible) }}>
         {title && (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: 'var(--space-250) var(--space-300)', borderBottom: `1px solid ${P.border}` }}>
             <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-md)', color: P.ink }}>{title}</span>
@@ -748,6 +750,13 @@ function genChoices(id) {
     return { ...c, status };
   });
 }
+const UNMATCHED_EMPLOYEES = [
+  { name: 'Thomas Vandenberghe', niss: '92.11.03-567.89' },
+  { name: 'Lasse Willems', niss: '95.07.18-123.45' },
+  { name: 'Charlotte Pieters', niss: '01.08.14-432.17' },
+  { name: 'Zara Oumarou', niss: '88.04.22-999.11' },
+];
+
 const CHOICES_SEED = (() => {
   const hardcoded = [
     { id: 'tablet-coolblue-approved', empId: 'charlotte-pieters', name: 'Tablet via Coolblue', price: '369,00 EUR', cDate: '13/05/2026', sDate: '13/05/2026', eDate: '13/05/2028', status: 'approved', illustration: 'assets/benefit-tablet.png', productName: 'Apple iPad (2025) 11 Pouces 128 Go Wifi Argent', productUrl: 'https://www.coolblue.be/nl/product/960489', productNumber: '960489', orderId: '97190251', orderDate: '13/05/2026', depreciation: 24, transactions: [{ label: 'Home office budget', amount: '233,73 EUR', date: '13/05/2026' }, { label: 'End of year premium', amount: '180,55 EUR', date: '13/05/2026' }] },
@@ -1011,13 +1020,15 @@ function SalaryTab({ empId, emp, companyRegime, onEmployeeUpdate }) {
     </div>
   );
 }
-function DetailsTab({ emp, empId, onNav, adminAccess, onAdminSave, companyRegime, onEmployeeUpdate }) {
+function DetailsTab({ emp, empId, onNav, adminAccess, onAdminSave, companyRegime, onEmployeeUpdate, unmatchedRecord, onConfirmInss, onDismissInss }) {
   const [isEmployeeLocal, setIsEmployeeLocal] = React.useState(emp.isEmployee !== false);
+  const [selectedInss, setSelectedInss] = React.useState('payflip');
   const ex = EMP_EXTRA[empId] || {};
   const parts = emp.name.split(' ');
   const first = parts[0], last = parts.slice(1).join(' ');
   const fieldStyle = { background: P.white, border: `1px solid ${P.border}`, borderRadius: 8, padding: 'var(--space-125) var(--space-200)', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink };
   const labelStyle = { display: 'block', fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: P.ink, marginBottom: 'var(--space-075)' };
+  const displayInss = emp.inssNumber || ex.inssNumber || '—';
   return (
     <div style={{ maxWidth: 740 }}>
       <div style={{ marginBottom: 'var(--space-400)' }}>
@@ -1039,7 +1050,42 @@ function DetailsTab({ emp, empId, onNav, adminAccess, onAdminSave, companyRegime
         </div>
         <div style={{ display: 'flex', gap: 'var(--space-200)' }}>
           <div style={{ flex: 1 }}><label style={labelStyle}>Employee Payroll ID *</label><div style={fieldStyle}>{ex.payrollId || '—'}</div></div>
-          <div style={{ flex: 1 }}><label style={labelStyle}>INSS number</label><div style={fieldStyle}>{ex.inssNumber || '—'}</div></div>
+          <div style={{ flex: 1 }}>
+            <label style={labelStyle}>INSS number</label>
+            {unmatchedRecord && unmatchedRecord.type === 'conflict' ? (
+              <div>
+                <div style={{ border: `1.5px solid #FECACA`, borderRadius: 8, overflow: 'hidden', marginBottom: 'var(--space-100)' }} role="radiogroup" aria-label="Choose the correct INSS number">
+                  {[{ id: 'payflip', label: 'Payflip', value: unmatchedRecord.existingInss }, { id: 'sdworx', label: 'SD Worx', value: unmatchedRecord.niss }].map((opt, i) => (
+                    <div key={opt.id} onClick={() => setSelectedInss(opt.id)} style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', padding: 'var(--space-125) var(--space-175)', background: selectedInss === opt.id ? '#FEF2F2' : P.white, borderTop: i > 0 ? `1px solid #FECACA` : 'none', cursor: 'pointer' }}>
+                      <div style={{ width: 16, height: 16, borderRadius: '50%', border: `1.5px solid ${selectedInss === opt.id ? '#DC2626' : P.border}`, background: selectedInss === opt.id ? '#DC2626' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'border-color 100ms, background 100ms' }}>
+                        {selectedInss === opt.id && <div style={{ width: 6, height: 6, borderRadius: '50%', background: P.white }} />}
+                      </div>
+                      <span style={{ width: 54, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, flexShrink: 0 }}>{opt.label}</span>
+                      <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, fontVariantNumeric: 'tabular-nums' }}>{opt.value}</span>
+                    </div>
+                  ))}
+                </div>
+                <Button variant={selectedInss === 'payflip' ? 'secondary' : 'danger'} onClick={selectedInss === 'payflip' ? onDismissInss : onConfirmInss}>
+                  {selectedInss === 'payflip' ? "Keep Payflip’s" : "Use SD Worx’s"}
+                </Button>
+              </div>
+            ) : unmatchedRecord && unmatchedRecord.type === 'new' ? (
+              <div>
+                <div style={{ border: `1.5px solid #BFDBFE`, borderRadius: 8, overflow: 'hidden', marginBottom: 'var(--space-100)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', padding: 'var(--space-125) var(--space-175)', background: '#EFF6FF' }}>
+                    <span style={{ width: 54, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: '#3B82F6', flexShrink: 0 }}>SD Worx</span>
+                    <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, fontVariantNumeric: 'tabular-nums' }}>{unmatchedRecord.niss}</span>
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: 'var(--space-100)' }}>
+                  <Button variant="primary" onClick={onConfirmInss}>Assign INSS</Button>
+                  <Button variant="secondary" onClick={onDismissInss}>Not a match</Button>
+                </div>
+              </div>
+            ) : (
+              <div style={fieldStyle}>{displayInss}</div>
+            )}
+          </div>
         </div>
       </div>
       {(() => {
@@ -4127,7 +4173,7 @@ function AddExpenseModal({ categories, onClose, onSave, receiptRequired = false 
 }
 
 // ── Expense row ────────────────────────────────────────────────────────────
-function ExpenseRow({ exp, onApprove, onDetail, onRejectDirectly, showStatus, showEntity, selected, onToggle, showApproveActions = true }) {
+function ExpenseRow({ exp, onApprove, onDetail, onRejectDirectly, showStatus, showEntity, selected, onToggle, showApproveActions = true, removing }) {
   const emp = EMPLOYEES[exp.employee] || { name: exp.employee, initials: '?', color: P.border };
   const [hover, setHover] = useState(false);
   const cb = showApproveActions ? '32px ' : '';
@@ -4138,14 +4184,23 @@ function ExpenseRow({ exp, onApprove, onDetail, onRejectDirectly, showStatus, sh
   const amountStr = `€ ${exp.amount.toFixed(2).replace('.', ',')}`;
 
   return (
-    <div onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)} onClick={() => onDetail(exp)}
+    <div style={{
+      display: 'grid',
+      gridTemplateRows: removing ? '0fr' : '1fr',
+      transition: PREFERS_REDUCED_MOTION ? 'none' : `grid-template-rows 200ms ${EASE_OUT}`,
+      overflow: removing ? 'hidden' : 'visible',
+    }}>
+    <div style={{ minHeight: 0 }}>
+    <div onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)} onClick={() => { if (!removing) onDetail(exp); }}
       style={{
         display: 'grid', gridTemplateColumns: gridCols,
         alignItems: 'center', gap: 'var(--space-150)', padding: '0 var(--space-250)', minHeight: 52,
         borderBottom: `1px solid ${P.border}`,
         background: selected ? '#f5f3ff' : hover ? P.bg : P.white,
-        cursor: 'pointer',
-        transition: `background 0.1s`,
+        cursor: removing ? 'default' : 'pointer',
+        transition: PREFERS_REDUCED_MOTION ? 'background 0.1s, opacity 100ms linear' : `background 0.1s, opacity 150ms ${EASE_OUT}`,
+        opacity: removing ? 0 : 1,
+        pointerEvents: removing ? 'none' : 'auto',
       }}>
       {showApproveActions && <input type="checkbox" checked={!!selected} onClick={e => e.stopPropagation()} onChange={() => onToggle && onToggle(exp.id)} style={{ cursor: 'pointer', accentColor: P.action }} />}
       <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-100)', minWidth: 0 }}>
@@ -4175,6 +4230,8 @@ function ExpenseRow({ exp, onApprove, onDetail, onRejectDirectly, showStatus, sh
         </>)}
       </div>
     </div>
+    </div>
+    </div>
   );
 }
 
@@ -4191,6 +4248,23 @@ function ExpensesScreen({ expenses, categories, onApprove, onDetail, onRejectDir
   const [addOpen, setAddOpen] = useState(false);
   const [selected, setSelected] = useState(new Set());
   const [pillLeaving, setPillLeaving] = useState(false);
+  const prevPendingIdsRef = useRef(new Set());
+  const removalTimersRef = useRef(new Set());
+  const [removingIds, setRemovingIds] = useState(() => new Set());
+  useEffect(() => {
+    const currentPendingIds = new Set(expenses.filter(e => e.status === 'pending').map(e => e.id));
+    const justLeft = [...prevPendingIdsRef.current].filter(id => !currentPendingIds.has(id));
+    if (justLeft.length > 0) {
+      setRemovingIds(prev => new Set([...prev, ...justLeft]));
+      const t = setTimeout(() => {
+        setRemovingIds(prev => { const next = new Set(prev); justLeft.forEach(id => next.delete(id)); return next; });
+        removalTimersRef.current.delete(t);
+      }, 220);
+      removalTimersRef.current.add(t);
+    }
+    prevPendingIdsRef.current = currentPendingIds;
+  }, [expenses]);
+  useEffect(() => () => { removalTimersRef.current.forEach(clearTimeout); }, []);
   const [searchText, setSearchText] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [deptFilter, setDeptFilter] = useState('all');
@@ -4282,8 +4356,11 @@ function ExpensesScreen({ expenses, categories, onApprove, onDetail, onRejectDir
               <Icon name="receipt" size={32} color={P.border} style={{ marginBottom: 'var(--space-150)' }} />
               <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.inkFaint }}>No {tab === 'pending' ? 'pending ' : tab === 'approved' ? 'approved ' : tab === 'declined' ? 'declined ' : ''}expenses</div>
             </div>
-          ) : paginated.map(exp => (
-            <ExpenseRow key={exp.id} exp={exp} onApprove={onApprove} onDetail={onDetail} onRejectDirectly={onRejectDirectly} showStatus={showStatus} showEntity={showEntity} selected={selected.has(exp.id)} onToggle={toggleSelect} showApproveActions={requireApproval} />
+          ) : (tab === 'pending'
+            ? [...paginated, ...[...removingIds].filter(id => !paginated.some(e => e.id === id)).map(id => expenses.find(e => e.id === id)).filter(Boolean)]
+            : paginated
+          ).map(exp => (
+            <ExpenseRow key={exp.id} exp={exp} onApprove={onApprove} onDetail={onDetail} onRejectDirectly={onRejectDirectly} showStatus={showStatus} showEntity={showEntity} selected={selected.has(exp.id)} onToggle={toggleSelect} showApproveActions={requireApproval} removing={removingIds.has(exp.id)} />
           ))}
         </div>
         {totalPages > 1 && (
@@ -5372,11 +5449,12 @@ function fmtBudget(n) {
   return n.toLocaleString('fr-BE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' EUR';
 }
 
-function EmployeeRow({ emp, onNav }) {
+function EmployeeRow({ emp, onNav, hasInssReview }) {
   const [hover, setHover] = useState(false);
+
   return (
     <tr
-      onClick={() => onNav('employee-detail:' + emp.id)}
+      onClick={() => onNav('employee-detail:' + emp.id + (hasInssReview ? ':details' : ''))}
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
       style={{ borderBottom: `1px solid ${P.border}`, cursor: 'pointer', background: hover ? '#f7f8f7' : 'transparent', transition: `background 120ms ${EASE_OUT}`, height: 52 }}>
@@ -5385,18 +5463,22 @@ function EmployeeRow({ emp, onNav }) {
       </td>
       <td style={{ padding: 'var(--space-125) var(--space-200)', color: P.inkSoft }}>{emp.email}</td>
       <td style={{ padding: 'var(--space-125) var(--space-200)', color: P.inkSoft }}>{emp.entity}</td>
-      <td style={{ padding: 'var(--space-125) var(--space-200)', textAlign: 'right', color: P.ink, fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>{fmtBudget(emp.budget)}</td>
       <td style={{ padding: 'var(--space-125) var(--space-200)', textAlign: 'right' }}>
-        <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', fontWeight: 500, color: P.inkSoft }}>
-          See details
-        </span>
+        <span style={{ color: P.ink, fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>{fmtBudget(emp.budget)}</span>
+      </td>
+      <td style={{ padding: 'var(--space-125) var(--space-200)', textAlign: 'right' }}>
+        {hasInssReview ? (
+          <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', fontWeight: 600, color: '#D97706' }}>Review INSS →</span>
+        ) : (
+          <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', fontWeight: 500, color: P.inkSoft }}>See details</span>
+        )}
       </td>
     </tr>
   );
 }
 
 // ── Employees screen ──────────────────────────────────────────────────────
-function EmployeesScreen({ requests, onNav, initialRoleFilter = 'All', adminAccess = {}, appEntity = null, onAddEmployee }) {
+function EmployeesScreen({ requests, onNav, initialRoleFilter = 'All', adminAccess = {}, appEntity = null, onAddEmployee, onToast, matchedEmpInssMap = new Map() }) {
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState(initialRoleFilter);
   const [statusFilter, setStatusFilter] = useState('Active');
@@ -5430,7 +5512,7 @@ function EmployeesScreen({ requests, onNav, initialRoleFilter = 'All', adminAcce
           <button style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-075)', padding: 'var(--space-100) var(--space-200)', border: `1px solid ${P.border}`, borderRadius: 8, background: P.white, color: P.ink, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', fontWeight: 500, cursor: 'pointer' }}>
             <Icon name="Settings2" size={14} /> Bulk actions
           </button>
-          <button onClick={onAddEmployee} style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-075)', padding: 'var(--space-100) var(--space-200)', border: 'none', borderRadius: 8, background: P.action, color: P.white, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', fontWeight: 600, cursor: 'pointer' }}>
+          <button onClick={() => onAddEmployee()} style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-075)', padding: 'var(--space-100) var(--space-200)', border: 'none', borderRadius: 8, background: P.action, color: P.white, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', fontWeight: 600, cursor: 'pointer' }}>
             <Icon name="Plus" size={14} color={P.white} /> Add a user
           </button>
         </div>
@@ -5467,7 +5549,7 @@ function EmployeesScreen({ requests, onNav, initialRoleFilter = 'All', adminAcce
             </thead>
             <tbody>
               {filtered.map(emp => (
-                <EmployeeRow key={emp.id} emp={emp} onNav={onNav} />
+                <EmployeeRow key={emp.id} emp={emp} onNav={onNav} hasInssReview={matchedEmpInssMap.has(emp.id)} />
               ))}
             </tbody>
           </table>
@@ -5610,7 +5692,7 @@ function EditBalancesModal({ emp, balances, onSave, onClose, isNewEmployee, onCo
 }
 
 // ── Employee detail screen ────────────────────────────────────────────────
-function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, onApprove, onDecline, onViewTeamCalendar, employeeBalance, onUpdateBalance, needsSetup, confirmedDate, onConfirmBalances, onToast, adminAccess, onAdminSave, companyRegime, onEmployeeUpdate, getEmpWithOverrides, physicalCardsAllowed, mobilityWidgetState, initialTab = 'choices' }) {
+function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, onApprove, onDecline, onViewTeamCalendar, employeeBalance, onUpdateBalance, needsSetup, confirmedDate, onConfirmBalances, onToast, adminAccess, onAdminSave, companyRegime, onEmployeeUpdate, getEmpWithOverrides, physicalCardsAllowed, mobilityWidgetState, initialTab = 'choices', unmatchedRecord, onResolveUnmatched }) {
   const emp = getEmpWithOverrides ? getEmpWithOverrides(employeeId) : EMPLOYEES[employeeId];
   const [activeTab, setActiveTab] = useState(initialTab);
   const tabMountedRef = useRef(false);
@@ -5927,7 +6009,7 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, o
         ) : activeTab === 'salary' ? (
           <div><SalaryTab empId={employeeId} emp={emp} companyRegime={companyRegime || COMPANY_REGIME_DEFAULTS} onEmployeeUpdate={onEmployeeUpdate} /></div>
         ) : activeTab === 'details' ? (
-          <div><DetailsTab emp={emp} empId={employeeId} onNav={onNav} adminAccess={adminAccess} onAdminSave={onAdminSave} companyRegime={companyRegime || COMPANY_REGIME_DEFAULTS} onEmployeeUpdate={onEmployeeUpdate} /></div>
+          <div><DetailsTab emp={emp} empId={employeeId} onNav={onNav} adminAccess={adminAccess} onAdminSave={onAdminSave} companyRegime={companyRegime || COMPANY_REGIME_DEFAULTS} onEmployeeUpdate={onEmployeeUpdate} unmatchedRecord={unmatchedRecord} onConfirmInss={() => { onEmployeeUpdate(employeeId, { inssNumber: unmatchedRecord.niss }); onResolveUnmatched(unmatchedRecord); onToast({ message: `INSS assigned to ${emp.name.split(' ')[0]}`, type: 'approve' }); }} onDismissInss={() => { onResolveUnmatched(unmatchedRecord); onToast({ message: 'Record dismissed', type: 'decline' }); }} /></div>
         ) : (
           <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 12, padding: 'var(--space-300)', maxWidth: 480, color: P.inkFaint, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)' }}>
             Coming soon
@@ -6527,7 +6609,7 @@ function ProtoDevPanel({ widgetMode, switchMode, ws, setWs }) {
   );
 }
 
-function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysicalCardsChange, cardDelivery = 'home', onCardDeliveryChange, mobilityWidgetState, onMobilityWidgetStateChange }) {
+function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysicalCardsChange, cardDelivery = 'home', onCardDeliveryChange, mobilityWidgetState, onMobilityWidgetStateChange, foodUnmatched = 0, unmatchedQueue = [] }) {
   const ws = mobilityWidgetState;
   const setWs = (updater) => onMobilityWidgetStateChange(prev => typeof updater === 'function' ? { ...prev, ...updater(prev) } : { ...prev, ...updater });
   const widgetMode = ws.widgetMode;
@@ -6576,9 +6658,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
   const [inssUploadError, setInssUploadError] = useState(null);
   const inssFileInputRef = React.useRef(null);
 
-  // Food live state
-  const [foodUnmatched, setFoodUnmatched] = useState(2);
-  const [showUnmatchedDrawer, setShowUnmatchedDrawer] = useState(false);
+  // Food live state (counts come from App via props)
 
   // Food-mode state (untouched)
   const [socialSecretariat, setSocialSecretariat] = useState('SD Worx');
@@ -6970,10 +7050,6 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
     if (!live) return null;
 
     if (widgetMode === 'food') {
-      const UNMATCHED_EMPLOYEES = [
-        { name: 'Thomas Vandenberghe', niss: '92.11.03-567.89' },
-        { name: 'Lasse Willems', niss: '95.07.18-123.45' },
-      ];
       return (
         <div style={{ display: 'flex', flexDirection: 'column', opacity: liveVisible ? 1 : 0, transition: `opacity 250ms ${EASE_OUT}` }}>
           {/* Unmatched employees warning */}
@@ -6983,7 +7059,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
               <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, flex: 1, lineHeight: '18px' }}>
                 {foodUnmatched} {foodUnmatched === 1 ? 'employee' : 'employees'} from {socialSecretariat} couldn't be matched
               </span>
-              <button onClick={() => setShowUnmatchedDrawer(true)} style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.ink, textDecoration: 'underline', background: 'none', border: 'none', cursor: 'pointer', padding: 0, whiteSpace: 'nowrap' }}>Resolve →</button>
+              <button onClick={() => onNav('employees')} style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.ink, textDecoration: 'underline', background: 'none', border: 'none', cursor: 'pointer', padding: 0, whiteSpace: 'nowrap' }}>View in People →</button>
             </div>
           )}
           {/* Stats row */}
@@ -6994,38 +7070,6 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
             </div>
             <a href="#" onClick={e => e.preventDefault()} style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink, textDecoration: 'underline', whiteSpace: 'nowrap' }}>Manage →</a>
           </div>
-          {/* Unmatched drawer */}
-          {showUnmatchedDrawer && (
-            <DrawerShell title="Unmatched employees" onClose={() => setShowUnmatchedDrawer(false)}>
-              {close => (
-                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-                  <div style={{ padding: 'var(--space-300)', borderBottom: `1px solid ${P.border}` }}>
-                    <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: '20px' }}>
-                      {socialSecretariat} sent {UNMATCHED_EMPLOYEES.length} INSS {UNMATCHED_EMPLOYEES.length === 1 ? 'number' : 'numbers'} that don't match any employee in your People directory. Match them to an existing employee, add them to People, or ignore them for this cycle.
-                    </span>
-                  </div>
-                  <div style={{ flex: 1, overflowY: 'auto' }} className="hide-scrollbar">
-                    {UNMATCHED_EMPLOYEES.map((emp, i) => (
-                      <div key={i} style={{ padding: 'var(--space-200) var(--space-300)', borderBottom: `1px solid ${P.border}`, display: 'flex', alignItems: 'center', gap: 'var(--space-150)' }}>
-                        <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#FEF3C7', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                          <Icon name="user-x" size={14} color="#D97706" strokeWidth={1.75} />
-                        </div>
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: P.ink }}>{emp.name}</div>
-                          <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>INSS {emp.niss}</div>
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-075)', flexShrink: 0 }}>
-                          <Button variant="secondary" style={{ fontSize: 'var(--fs-body-xs)', padding: 'var(--space-050) var(--space-125)' }} onClick={() => setFoodUnmatched(n => Math.max(0, n - 1))}>Match</Button>
-                          <Button variant="secondary" style={{ fontSize: 'var(--fs-body-xs)', padding: 'var(--space-050) var(--space-125)' }} onClick={() => setFoodUnmatched(n => Math.max(0, n - 1))}>Add to People</Button>
-                          <button onClick={() => setFoodUnmatched(n => Math.max(0, n - 1))} style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, background: 'none', border: 'none', cursor: 'pointer', padding: 'var(--space-050) var(--space-075)' }}>Ignore</button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </DrawerShell>
-          )}
         </div>
       );
     }
@@ -7514,15 +7558,78 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
   );
 }
 
+function InssReviewDetail({ rec, empId, matchedRec, onResolve, onAsk, onBack, onClose }) {
+  const [selected, setSelected] = useState('sdworx');
+  const isConflict = matchedRec.type === 'conflict';
+  const options = isConflict ? [
+    { id: 'payflip', label: 'Current (Payflip)', value: matchedRec.existingInss },
+    { id: 'sdworx', label: 'From SD Worx file', value: rec.niss },
+  ] : null;
+  return (
+    <div>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: 'var(--space-200) var(--space-300)', borderBottom: `1px solid ${P.border}` }}>
+        <IconButton icon="arrow-left" onClick={onBack} />
+        <IconButton icon="X" onClick={onClose} blur />
+      </div>
+      <div style={{ padding: 'var(--space-300)' }}>
+        <div style={{ marginBottom: 'var(--space-200)' }}>
+          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.ink, marginBottom: 'var(--space-025)' }}>
+            {isConflict ? `Which INSS for ${rec.name} is correct?` : `Assign INSS to ${rec.name}?`}
+          </div>
+          <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>
+            {isConflict ? 'Payflip and SD Worx have different INSS numbers on file.' : 'No INSS number is on file for this employee in Payflip.'}
+          </div>
+        </div>
+        {isConflict ? (
+          <div>
+            {options.map((opt) => (
+              <div key={opt.id} onClick={() => setSelected(opt.id)}
+                style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', padding: 'var(--space-150) var(--space-200)', border: `1.5px solid ${selected === opt.id ? P.action : P.border}`, borderRadius: 8, cursor: 'pointer', marginBottom: 'var(--space-100)', background: selected === opt.id ? P.bgSubtle : P.white, transition: `border-color 120ms ${EASE_OUT}, background 120ms ${EASE_OUT}` }}>
+                <div style={{ width: 16, height: 16, borderRadius: '50%', border: `1.5px solid ${selected === opt.id ? P.action : P.border}`, background: selected === opt.id ? P.action : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: `all 120ms ${EASE_OUT}` }}>
+                  {selected === opt.id && <div style={{ width: 6, height: 6, borderRadius: '50%', background: P.white }} />}
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>{opt.label}</div>
+                  <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, fontVariantNumeric: 'tabular-nums' }}>{opt.value}</div>
+                </div>
+              </div>
+            ))}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-100)', marginTop: 'var(--space-200)' }}>
+              <Button variant="primary" style={{ width: '100%', justifyContent: 'center' }} onClick={() => onResolve(selected === 'sdworx')}>Assign INSS</Button>
+              <Button variant="secondary" style={{ width: '100%', justifyContent: 'center' }} onClick={onAsk}>Ask employee to confirm INSS</Button>
+            </div>
+          </div>
+        ) : (
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', padding: 'var(--space-150) var(--space-200)', border: `1.5px solid ${P.border}`, borderRadius: 8, marginBottom: 'var(--space-250)' }}>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>From SD Worx file</div>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, fontVariantNumeric: 'tabular-nums' }}>{rec.niss}</div>
+              </div>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-100)' }}>
+              <Button variant="primary" style={{ width: '100%', justifyContent: 'center' }} onClick={() => onResolve(true)}>Assign INSS</Button>
+              <Button variant="secondary" style={{ width: '100%', justifyContent: 'center' }} onClick={onAsk}>Ask employee to confirm INSS</Button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function AttentionRow({ item, last, onNav }) {
   const [hovered, setHovered] = useState(false);
   return (
     <div onClick={() => item.onClick ? item.onClick() : onNav(item.screen)} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
       style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', padding: 'var(--space-150) var(--space-250)', borderBottom: last ? 'none' : `1px solid ${P.border}`, cursor: 'pointer', background: hovered ? P.bgSubtle : 'transparent', transition: `background 150ms ${EASE_OUT}` }}>
-      <div style={{ width: 32, height: 32, borderRadius: 8, background: item.iconBg ?? P.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-        <Icon name={item.icon} size={15} color={item.iconColor ?? '#3d4047'} strokeWidth={1.5} />
+      <div style={{ width: 32, height: 32, borderRadius: 8, background: P.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+        <Icon name={item.icon} size={15} color={P.ink} strokeWidth={1.5} />
       </div>
-      <span style={{ flex: 1, fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: P.ink }}>{item.label}</span>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 1, minWidth: 0 }}>
+        <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: P.ink }}>{item.label}</span>
+        {item.subtitle && <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: item.subtitleColor ?? P.inkSoft }}>{item.subtitle}</span>}
+      </div>
       <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.white, background: item.badgeBg ?? P.action, borderRadius: 20, padding: 'var(--space-025) var(--space-100)', flexShrink: 0 }}>{item.count}</span>
       <Icon name="chevron-right" size={15} color={P.inkSoft} strokeWidth={1.75} />
     </div>
@@ -7709,7 +7816,6 @@ function MatchEmpCombobox({ employees, value, onChange, suggestions = [] }) {
 
 function UnmatchedMatchModal({ matchQueue, setMatchQueue, setFoodUnmatched, setShowMatchModal, onToast, onAddEmployee }) {
   const [selectedPerson, setSelectedPerson] = React.useState(null);
-  const [showLinkSection, setShowLinkSection] = React.useState(false);
   const [showLinkCombobox, setShowLinkCombobox] = React.useState(false);
   const [matchSearch, setMatchSearch] = React.useState('');
   const [allDone, setAllDone] = React.useState(false);
@@ -7717,18 +7823,12 @@ function UnmatchedMatchModal({ matchQueue, setMatchQueue, setFoodUnmatched, setS
 
   const listRef = React.useRef(null);
   const detailRef = React.useRef(null);
-  const step1Ref = React.useRef(null);
-  const step2Ref = React.useRef(null);
   const [outerH, setOuterH] = React.useState({ list: 0, detail: 0 });
-  const [innerH, setInnerH] = React.useState({ s1: 0, s2: 0 });
 
   React.useLayoutEffect(() => {
     const list = listRef.current?.scrollHeight || 0;
     const detail = detailRef.current?.scrollHeight || 0;
-    const s1 = step1Ref.current?.scrollHeight || 0;
-    const s2 = step2Ref.current?.scrollHeight || 0;
     if (list || detail) setOuterH({ list, detail });
-    if (s1 || s2) setInnerH({ s1, s2 });
   }, []);
 
   const allPeople = Object.entries(EMPLOYEES)
@@ -7737,11 +7837,6 @@ function UnmatchedMatchModal({ matchQueue, setMatchQueue, setFoodUnmatched, setS
   const pickedEmployee = matchSearch ? allPeople.find(p => p.id === matchSearch) : null;
   const pickedHasNiss = pickedEmployee?.niss;
 
-  React.useLayoutEffect(() => {
-    if (!step2Ref.current) return;
-    const newS2 = step2Ref.current.scrollHeight;
-    setInnerH(prev => newS2 === prev.s2 ? prev : { ...prev, s2: newS2 });
-  }, [!!pickedHasNiss]);
   const fuzzyMatches = selectedPerson ? (() => {
     const tokens = selectedPerson.name.toLowerCase().split(/\s+/).filter(t => t.length > 2);
     return allPeople
@@ -7756,7 +7851,6 @@ function UnmatchedMatchModal({ matchQueue, setMatchQueue, setFoodUnmatched, setS
     setMatchQueue(next);
     setSelectedPerson(null);
     setMatchSearch('');
-    setShowLinkSection(false);
     setShowLinkCombobox(false);
     setFoodUnmatched(n => Math.max(0, n - 1));
     if (next.length === 0) setAllDone(true);
@@ -7769,9 +7863,7 @@ function UnmatchedMatchModal({ matchQueue, setMatchQueue, setFoodUnmatched, setS
   };
 
   const [outerAnimating, setOuterAnimating] = React.useState(false);
-  const [innerAnimating, setInnerAnimating] = React.useState(false);
   const outerFirst = React.useRef(true);
-  const innerFirst = React.useRef(true);
 
   React.useLayoutEffect(() => {
     if (outerFirst.current) { outerFirst.current = false; return; }
@@ -7788,33 +7880,19 @@ function UnmatchedMatchModal({ matchQueue, setMatchQueue, setFoodUnmatched, setS
     if (!selectedPerson || !detailRef.current) return;
     const newDetail = detailRef.current.scrollHeight;
     setOuterH(prev => newDetail === prev.detail ? prev : { ...prev, detail: newDetail });
-  }, [selectedPerson]);
+  }, [selectedPerson, showLinkCombobox, !!pickedHasNiss]);
 
-  React.useLayoutEffect(() => {
-    if (innerFirst.current) { innerFirst.current = false; return; }
-    setInnerAnimating(true);
-    const id = setTimeout(() => setInnerAnimating(false), SLIDE_DUR + 20);
-    return () => clearTimeout(id);
-  }, [showLinkCombobox]);
-
-  const SLIDE_DUR = 300;
+  const SLIDE_DUR = 240;
+  const FADE_DUR = 180;
   const slideT = `transform ${SLIDE_DUR}ms ${EASE_DRAWER}`;
-  const heightT = `height ${SLIDE_DUR}ms ${EASE_DRAWER}`;
+  const heightT = `height ${SLIDE_DUR}ms ${EASE_OUT}`;
+  const opacityT = PREFERS_REDUCED_MOTION ? 'none' : `opacity ${FADE_DUR}ms ${EASE_OUT}`;
   const outerX = selectedPerson ? '-50%' : '0%';
-  const innerX = showLinkCombobox ? '-50%' : '0%';
-  const innerCurrentH = showLinkCombobox ? innerH.s2 : innerH.s1;
-  const outerDetailH = outerH.detail > 0 && innerH.s1 > 0
-    ? outerH.detail - Math.max(innerH.s1, innerH.s2) + innerCurrentH
-    : outerH.detail;
+  const outerDetailH = outerH.detail;
   const outerContainerH = outerH.list > 0 ? (selectedPerson ? outerDetailH : outerH.list) : undefined;
-  const innerContainerH = innerH.s1 > 0 ? (showLinkCombobox ? innerH.s2 : innerH.s1) : undefined;
   const outerOverflow = outerAnimating ? 'hidden' : 'visible';
-  const innerOverflow = innerAnimating ? 'hidden' : 'visible';
   const listVis = outerAnimating || !selectedPerson ? 'visible' : 'hidden';
   const detailVis = outerAnimating || !!selectedPerson ? 'visible' : 'hidden';
-  const detailActive = outerAnimating || !!selectedPerson;
-  const step1Vis = detailActive ? (innerAnimating || !showLinkCombobox ? 'visible' : 'hidden') : undefined;
-  const step2Vis = detailActive ? (innerAnimating || showLinkCombobox ? 'visible' : 'hidden') : undefined;
 
   return (
     <ModalShell onClose={closeModal} width={440}>
@@ -7841,7 +7919,7 @@ function UnmatchedMatchModal({ matchQueue, setMatchQueue, setFoodUnmatched, setS
           <div style={{ display: 'flex', flexWrap: 'nowrap', width: '200%', alignItems: 'flex-start', transform: `translateX(${outerX})`, transition: slideT }}>
 
             {/* Panel 1: List */}
-            <div ref={listRef} style={{ width: '50%', flexShrink: 0, visibility: listVis }}>
+            <div ref={listRef} style={{ width: '50%', flexShrink: 0, visibility: listVis, opacity: outerAnimating && !!selectedPerson ? 0 : 1, transition: opacityT }}>
               <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', padding: 'var(--space-250) var(--space-300)', borderBottom: `1px solid ${P.border}` }}>
                 <div>
                   <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-md)', color: P.ink }}>Unmatched employees</div>
@@ -7870,11 +7948,10 @@ function UnmatchedMatchModal({ matchQueue, setMatchQueue, setFoodUnmatched, setS
             </div>
 
             {/* Panel 2: Detail */}
-            <div ref={detailRef} style={{ width: '50%', flexShrink: 0, visibility: detailVis }}>
+            <div ref={detailRef} style={{ width: '50%', flexShrink: 0, visibility: detailVis, opacity: outerAnimating && !selectedPerson ? 0 : 1, transition: opacityT }}>
               <div style={{ display: 'flex', alignItems: 'center', padding: 'var(--space-200) var(--space-300)', borderBottom: `1px solid ${P.border}`, gap: 'var(--space-150)' }}>
                 <IconButton icon="arrow-left" onClick={() => {
-                  if (showLinkCombobox) { setShowLinkCombobox(false); setMatchSearch(''); }
-                  else { setSelectedPerson(null); setMatchSearch(''); setShowLinkSection(false); setShowLinkCombobox(false); }
+                  setSelectedPerson(null); setMatchSearch(''); setShowLinkCombobox(false);
                 }} />
                 <div style={{ flex: 1 }}>
                   <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 17, color: P.ink, letterSpacing: '-0.01em', lineHeight: 1.2 }}>{selectedPerson?.name}</div>
@@ -7882,64 +7959,52 @@ function UnmatchedMatchModal({ matchQueue, setMatchQueue, setFoodUnmatched, setS
                 </div>
                 <IconButton icon="X" onClick={close} blur />
               </div>
-              {/* Inner strip: step 1 | step 2 */}
-              <div style={{ overflow: innerOverflow, width: '100%', height: innerContainerH, transition: innerH.s1 > 0 ? heightT : 'none' }}>
-                <div style={{ display: 'flex', flexWrap: 'nowrap', width: '200%', alignItems: 'flex-start', transform: `translateX(${innerX})`, transition: slideT }}>
-                  <div ref={step1Ref} style={{ width: '50%', flexShrink: 0, visibility: step1Vis }}>
-                    <div style={{ padding: 'var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-250)' }}>
-                      <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: '20px' }}>
-                        Not found in your People directory. Add them as a new employee, or assign their INSS to someone already in Payflip.
-                      </div>
-                      <Button variant="primary" icon="user-plus" style={{ justifyContent: 'center' }} onClick={() => {
-                        const parts = selectedPerson.name.trim().split(/\s+/);
-                        const pFirst = parts.slice(0, -1).join(' ') || parts[0];
-                        const pLast  = parts.length > 1 ? parts[parts.length - 1] : '';
-                        onAddEmployee && onAddEmployee({ firstName: pFirst, lastName: pLast, niss: selectedPerson.niss });
-                        resolve(selectedPerson);
-                      }}>
-                        Add as new employee
-                      </Button>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)' }}>
-                        <div style={{ flex: 1, height: 1, background: P.border }} />
-                        <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkFaint }}>or</span>
-                        <div style={{ flex: 1, height: 1, background: P.border }} />
-                      </div>
-                      <Button variant="secondary" style={{ justifyContent: 'center' }} onClick={() => setShowLinkCombobox(true)}>
-                        Assign INSS to existing employee
-                      </Button>
-                      <div style={{ textAlign: 'center' }}>
-                        <AppLink onClick={() => resolve(selectedPerson)} style={{ fontSize: 'var(--fs-body-xs)' }}>Ignore for this cycle</AppLink>
-                      </div>
+              {/* Single body — combobox expands inline */}
+              <div style={{ padding: 'var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-250)' }}>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: '20px' }}>
+                  Not found in your People directory. Add them as a new employee, or assign their INSS to someone already in Payflip.
+                </div>
+                <Button variant="primary" icon="user-plus" style={{ justifyContent: 'center' }} onClick={() => {
+                  const parts = selectedPerson.name.trim().split(/\s+/);
+                  const pFirst = parts.slice(0, -1).join(' ') || parts[0];
+                  const pLast  = parts.length > 1 ? parts[parts.length - 1] : '';
+                  onAddEmployee && onAddEmployee({ firstName: pFirst, lastName: pLast, niss: selectedPerson.niss });
+                  resolve(selectedPerson);
+                }}>
+                  Add as new employee
+                </Button>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)' }}>
+                  <div style={{ flex: 1, height: 1, background: P.border }} />
+                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkFaint }}>or</span>
+                  <div style={{ flex: 1, height: 1, background: P.border }} />
+                </div>
+                {!showLinkCombobox ? (
+                  <Button variant="secondary" style={{ justifyContent: 'center' }} onClick={() => { setShowLinkCombobox(true); setMatchSearch(''); }}>
+                    Assign INSS to existing employee
+                  </Button>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-100)' }}>
+                    <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: P.ink }}>
+                      Which employee does this INSS belong to?
                     </div>
-                  </div>
-                  <div ref={step2Ref} style={{ width: '50%', flexShrink: 0, visibility: step2Vis }}>
-                    <div style={{ padding: 'var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-250)' }}>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-075)' }}>
-                      <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: P.ink }}>
-                        Which employee does this INSS belong to?
-                      </div>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-100)' }}>
-                        <MatchEmpCombobox employees={allPeople} value={matchSearch} onChange={setMatchSearch} suggestions={fuzzyMatches} />
-                        {pickedHasNiss && (
-                          <div style={{ background: P.dangerBg, border: `1px solid ${P.dangerBorder}`, borderRadius: 8, padding: 'var(--space-125) var(--space-150)', display: 'flex', gap: 'var(--space-100)', alignItems: 'flex-start' }}>
-                            <Icon name="alert-triangle" size={14} color={P.dangerDark} strokeWidth={1.75} style={{ flexShrink: 0, marginTop: 1 }} />
-                            <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.dangerDark, lineHeight: '18px' }}>
-                              {pickedEmployee.name} already has an INSS on file. It will be replaced.
-                            </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-100)' }}>
+                      <MatchEmpCombobox employees={allPeople} value={matchSearch} onChange={setMatchSearch} suggestions={fuzzyMatches} />
+                      {pickedHasNiss && (
+                        <div style={{ background: P.dangerBg, border: `1px solid ${P.dangerBorder}`, borderRadius: 8, padding: 'var(--space-125) var(--space-150)', display: 'flex', gap: 'var(--space-100)', alignItems: 'flex-start' }}>
+                          <Icon name="alert-triangle" size={14} color={P.dangerDark} strokeWidth={1.75} style={{ flexShrink: 0, marginTop: 1 }} />
+                          <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.dangerDark, lineHeight: '18px' }}>
+                            {pickedEmployee.name} already has an INSS on file. It will be replaced.
                           </div>
-                        )}
-                      </div>
-                      </div>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-100)' }}>
-                        <Button variant="primary" style={{ justifyContent: 'center', opacity: pickedEmployee ? 1 : 0.4 }} disabled={!pickedEmployee} onClick={() => { if (pickedEmployee) { const resolved = selectedPerson; const emp = pickedEmployee; resolve(resolved); onToast?.({ message: `INSS linked to ${emp.name}`, type: 'approve', onUndo: () => { setMatchQueue(q => [...q, resolved]); setFoodUnmatched(n => n + 1); setShowMatchModal(true); } }); } }}>
-                          {pickedEmployee ? `Link INSS to ${pickedEmployee.name}` : 'Select an employee above'}
-                        </Button>
-                        <Button variant="secondary" style={{ justifyContent: 'center' }} onClick={() => { setShowLinkCombobox(false); setMatchSearch(''); }}>
-                          Cancel
-                        </Button>
-                      </div>
+                        </div>
+                      )}
                     </div>
+                    <Button variant="primary" style={{ justifyContent: 'center', opacity: pickedEmployee ? 1 : 0.4 }} disabled={!pickedEmployee} onClick={() => { if (pickedEmployee) { const resolved = selectedPerson; const emp = pickedEmployee; resolve(resolved); onToast?.({ message: `INSS linked to ${emp.name}`, type: 'approve', onUndo: () => { setMatchQueue(q => [...q, resolved]); setFoodUnmatched(n => n + 1); setShowMatchModal(true); } }); } }}>
+                      {pickedEmployee ? `Link INSS to ${pickedEmployee.name}` : 'Select an employee above'}
+                    </Button>
                   </div>
+                )}
+                <div style={{ textAlign: 'center' }}>
+                  <AppLink onClick={() => resolve(selectedPerson)} style={{ fontSize: 'var(--fs-body-xs)' }}>Ignore for this cycle</AppLink>
                 </div>
               </div>
             </div>
@@ -7951,34 +8016,40 @@ function UnmatchedMatchModal({ matchQueue, setMatchQueue, setFoodUnmatched, setS
   );
 }
 
-function DashboardScreen({ requests, onNav, onToast, appEntity = null, physicalCardsAllowed, onPhysicalCardsChange, cardDelivery, onCardDeliveryChange, mobilityWidgetState, onMobilityWidgetStateChange, pendingRequests = 0, pendingExpenses = 0, pendingChoices = 0, activeBudgets = 0, onAddEmployee }) {
+function DashboardScreen({ requests, onNav, onToast, appEntity = null, physicalCardsAllowed, onPhysicalCardsChange, cardDelivery, onCardDeliveryChange, mobilityWidgetState, onMobilityWidgetStateChange, pendingRequests = 0, pendingExpenses = 0, pendingChoices = 0, activeBudgets = 0, onAddEmployee, foodUnmatched = 0, setFoodUnmatched, unmatchedQueue = [], setUnmatchedQueue, matchedEmpInssMap = new Map() }) {
+  const [showInssQueue, setShowInssQueue] = useState(false);
+  const [inssReviewItem, setInssReviewItem] = useState(null);
+  const [inssMenuNiss, setInssMenuNiss] = useState(null);
+  const inssMenuRef = useRef(null);
+  useEffect(() => {
+    if (!inssMenuNiss) return;
+    const handler = (e) => { if (inssMenuRef.current && !inssMenuRef.current.contains(e.target)) setInssMenuNiss(null); };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [inssMenuNiss]);
   const today = new Date(); today.setHours(0,0,0,0);
   const fundingIssue = mobilityWidgetState.live && !!mobilityWidgetState.fundingIssue;
   const foodLive = mobilityWidgetState.live && mobilityWidgetState.widgetMode === 'food';
-  const [foodUnmatched, setFoodUnmatched] = useState(2);
-  const [showMatchModal, setShowMatchModal] = useState(false);
-  const [matchQueue, setMatchQueue] = useState([]);
   const socialSecretariat = 'SD Worx';
-  const UNMATCHED_EMPLOYEES = [
-    { name: 'Thomas Vandenberghe', niss: '92.11.03-567.89' },
-    { name: 'Lasse Willems', niss: '95.07.18-123.45' },
-  ];
   const foodMode = mobilityWidgetState.widgetMode === 'food';
-  const totalPending = pendingRequests + pendingExpenses + pendingChoices + (fundingIssue ? 1 : 0) + (foodMode && foodUnmatched > 0 ? 1 : 0);
+  const totalPending = pendingRequests + pendingExpenses + pendingChoices + (fundingIssue ? 1 : 0) + (unmatchedQueue.length > 0 ? 1 : 0);
   const employeeCount = Object.keys(EMPLOYEES).length;
   const activeBenefits = BENEFIT_TYPES_SEED.filter(b => b.active).length;
   const firstName = CURRENT_USER.name.split(' ')[0];
   const setupInProgress = !mobilityWidgetState.live && !mobilityWidgetState.hidden;
 
-  const attentionItems = [
+  const systemItems = [
     fundingIssue && { icon: 'alert-circle', label: 'Mobility top-up failed', count: '!', screen: 'settings-cardrules', iconBg: P.dangerBg, iconColor: P.danger, badgeBg: P.danger },
-    foodMode && foodUnmatched > 0 && { icon: 'user-x', label: 'Unmatched employees — Meal vouchers', count: foodUnmatched, iconBg: '#FEF3C7', iconColor: '#D97706', badgeBg: '#D97706', onClick: () => { setMatchQueue([...UNMATCHED_EMPLOYEES]); setShowMatchModal(true); } },
+    unmatchedQueue.length > 0 && { icon: 'user-x', label: unmatchedQueue.length === 1 ? 'Employee with unresolved INSS' : 'Employees with unresolved INSS', count: unmatchedQueue.length, onClick: () => { setShowInssQueue(true); if (unmatchedQueue.length === 1) { const rec = unmatchedQueue[0]; const matchedEntry = Array.from(matchedEmpInssMap.entries()).find(([, r]) => r.niss === rec.niss); if (matchedEntry) setInssReviewItem({ rec, empId: matchedEntry[0], matchedRec: matchedEntry[1] }); } } },
+  ].filter(Boolean);
+  const approvalItems = [
     pendingRequests > 0 && { icon: 'calendar-days', label: 'Time-off requests', count: pendingRequests, screen: 'requests', iconBg: '#e8f0fe', iconColor: '#2563eb' },
-    pendingExpenses > 0 && { icon: 'receipt', label: 'Expense requests', count: pendingExpenses, screen: 'expenses', iconBg: P.warningBg, iconColor: '#b45309' },
+    pendingExpenses > 0 && { icon: 'receipt', label: 'Expense requests', count: pendingExpenses, screen: 'expenses', iconBg: P.warningBg, iconColor: '#b45309', subtitle: 'Due before Sep 1 payroll close', subtitleColor: '#b45309' },
     pendingChoices > 0 && { icon: 'list-checks', label: 'Choices to approve', count: pendingChoices, screen: 'choices', iconBg: '#ede9fe', iconColor: '#6d28d9' },
   ].filter(Boolean);
 
   return (
+    <>
     <div style={{ flex: 1, overflow: 'auto', animation: `screenEnter 180ms ${EASE_OUT}` }}>
       <div style={{ opacity: setupInProgress ? 0.35 : 1, transition: `opacity 250ms ${EASE_OUT}`, pointerEvents: setupInProgress ? 'none' : 'auto' }}>
         <PageHeader
@@ -7996,7 +8067,7 @@ function DashboardScreen({ requests, onNav, onToast, appEntity = null, physicalC
         {/* Full-width setup widget — always full-width until live */}
         {!mobilityWidgetState.live && (
           <div style={{ position: 'relative', zIndex: 2 }}>
-            <MobilityLaunchWidget onToast={onToast} onNav={onNav} physicalCardsAllowed={physicalCardsAllowed} onPhysicalCardsChange={onPhysicalCardsChange} cardDelivery={cardDelivery} onCardDeliveryChange={onCardDeliveryChange} mobilityWidgetState={mobilityWidgetState} onMobilityWidgetStateChange={onMobilityWidgetStateChange} />
+            <MobilityLaunchWidget onToast={onToast} onNav={onNav} physicalCardsAllowed={physicalCardsAllowed} onPhysicalCardsChange={onPhysicalCardsChange} cardDelivery={cardDelivery} onCardDeliveryChange={onCardDeliveryChange} mobilityWidgetState={mobilityWidgetState} onMobilityWidgetStateChange={onMobilityWidgetStateChange} foodUnmatched={foodUnmatched} unmatchedQueue={unmatchedQueue} />
           </div>
         )}
 
@@ -8021,41 +8092,151 @@ function DashboardScreen({ requests, onNav, onToast, appEntity = null, physicalC
         <div style={{ display: 'flex', gap: 'var(--space-250)', alignItems: 'flex-start', opacity: setupInProgress ? 0.35 : 1, transition: `opacity 250ms ${EASE_OUT}`, pointerEvents: setupInProgress ? 'none' : 'auto' }}>
           {mobilityWidgetState.live && mobilityWidgetState.widgetMode !== 'food' && mobilityWidgetState.fundingIssue && (
             <div style={{ width: 420, flexShrink: 0 }}>
-              <MobilityLaunchWidget onToast={onToast} onNav={onNav} physicalCardsAllowed={physicalCardsAllowed} onPhysicalCardsChange={onPhysicalCardsChange} cardDelivery={cardDelivery} onCardDeliveryChange={onCardDeliveryChange} mobilityWidgetState={mobilityWidgetState} onMobilityWidgetStateChange={onMobilityWidgetStateChange} />
+              <MobilityLaunchWidget onToast={onToast} onNav={onNav} physicalCardsAllowed={physicalCardsAllowed} onPhysicalCardsChange={onPhysicalCardsChange} cardDelivery={cardDelivery} onCardDeliveryChange={onCardDeliveryChange} mobilityWidgetState={mobilityWidgetState} onMobilityWidgetStateChange={onMobilityWidgetStateChange} foodUnmatched={foodUnmatched} unmatchedQueue={unmatchedQueue} />
             </div>
           )}
 
-          {/* Needs attention */}
-          <div style={{ flex: 1, border: `1px solid ${P.border}`, borderRadius: 12, background: P.white, overflow: 'hidden', minWidth: 0 }}>
-            <div style={{ padding: 'var(--space-200) var(--space-300)', borderBottom: `1px solid ${P.border}` }}>
-              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.ink }}>Needs attention</span>
-            </div>
-            {totalPending === 0 ? (
-              <div style={{ padding: 'var(--space-500) var(--space-250)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 'var(--space-100)' }}>
-                <Icon name="check-circle" size={20} color="#008556" strokeWidth={1.75} />
-                <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft }}>You're all caught up</span>
+          {/* Two stacked cards: system alerts + pending approvals */}
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'row', alignItems: 'flex-start', gap: 'var(--space-250)', minWidth: 0 }}>
+
+            {/* Needs attention — system/data issues; hidden when none */}
+            {systemItems.length > 0 && (
+              <div style={{ flex: 1, border: `1px solid ${P.border}`, borderRadius: 12, background: P.white, overflow: 'hidden' }}>
+                <div style={{ padding: 'var(--space-200) var(--space-300)', borderBottom: `1px solid ${P.border}` }}>
+                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.ink }}>Needs attention</span>
+                </div>
+                {systemItems.map((item, i) => (
+                  <AttentionRow key={item.label} item={item} last={i === systemItems.length - 1} onNav={onNav} />
+                ))}
               </div>
-            ) : attentionItems.map((item, i) => (
-              <AttentionRow key={item.label} item={item} last={i === attentionItems.length - 1} onNav={onNav} />
-            ))}
+            )}
+
+            {/* Pending approvals — employee-initiated requests */}
+            <div style={{ flex: 1, border: `1px solid ${P.border}`, borderRadius: 12, background: P.white, overflow: 'hidden' }}>
+              <div style={{ padding: 'var(--space-200) var(--space-300)', borderBottom: `1px solid ${P.border}` }}>
+                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.ink }}>Pending approvals</span>
+              </div>
+              {approvalItems.length === 0 ? (
+                <div style={{ padding: 'var(--space-500) var(--space-250)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 'var(--space-100)' }}>
+                  <Icon name="check-circle" size={20} color="#008556" strokeWidth={1.75} />
+                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft }}>You're all caught up</span>
+                </div>
+              ) : approvalItems.map((item, i) => (
+                <AttentionRow key={item.label} item={item} last={i === approvalItems.length - 1} onNav={onNav} />
+              ))}
+            </div>
+
           </div>
         </div>
 
-        {/* Unmatched employees modal (food live) */}
-        {showMatchModal && (
-          <UnmatchedMatchModal
-            matchQueue={matchQueue}
-            setMatchQueue={setMatchQueue}
-            setFoodUnmatched={setFoodUnmatched}
-            setShowMatchModal={setShowMatchModal}
-            onToast={onToast}
-            onAddEmployee={onAddEmployee}
-          />
-        )}
 
       </div>
       </div>
     </div>
+    {showInssQueue && (
+      <ModalShell onClose={() => { setShowInssQueue(false); setInssReviewItem(null); }} width={inssReviewItem ? 420 : 500}>
+        {close => {
+          const matchedRows = unmatchedQueue.filter(rec => Array.from(matchedEmpInssMap.entries()).some(([, r]) => r.niss === rec.niss));
+          const notFoundRows = unmatchedQueue.filter(rec => !Array.from(matchedEmpInssMap.entries()).some(([, r]) => r.niss === rec.niss));
+          const rowStyle = { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 'var(--space-150)', padding: 'var(--space-200) var(--space-300)' };
+          const sectionLabel = { ...SL, padding: 'var(--space-150) var(--space-300) var(--space-100)', borderBottom: `1px solid ${P.border}` };
+
+          const advanceOrBack = () => { setInssReviewItem(null); };
+
+          if (inssReviewItem) {
+            const { rec, matchedRec } = inssReviewItem;
+            const remaining = matchedRows.filter(r => r.niss !== rec.niss).length;
+            const removeFromQueue = () => {
+              setUnmatchedQueue(q => q.filter(e => e.niss !== rec.niss));
+              setFoodUnmatched(n => Math.max(0, n - 1));
+              advanceOrBack();
+            };
+            const doResolve = (showToast) => {
+              if (showToast) onToast({ message: `INSS assigned to ${rec.name.split(' ')[0]}`, type: 'approve' });
+              removeFromQueue();
+            };
+            const doAsk = () => {
+              onToast({ message: `Request sent to ${rec.name.split(' ')[0]}`, type: 'info' });
+              removeFromQueue();
+            };
+            return <InssReviewDetail rec={rec} empId={inssReviewItem.empId} matchedRec={matchedRec} onResolve={doResolve} onAsk={doAsk} onBack={() => setInssReviewItem(null)} onClose={() => { close(); setInssReviewItem(null); }} />;
+          }
+
+          return (
+            <div>
+              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', padding: 'var(--space-250) var(--space-300)', borderBottom: `1px solid ${P.border}` }}>
+                <div>
+                  <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-md)', color: P.ink }}>INSS review</div>
+                  <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginTop: 2 }}>
+                    {(() => {
+                      const conflicts = unmatchedQueue.filter(r => { const e = Array.from(matchedEmpInssMap.entries()).find(([, m]) => m.niss === r.niss); return e && e[1].type === 'conflict'; }).length;
+                      const toAssign = unmatchedQueue.filter(r => { const e = Array.from(matchedEmpInssMap.entries()).find(([, m]) => m.niss === r.niss); return e && e[1].type === 'new'; }).length;
+                      const notFound = unmatchedQueue.length - conflicts - toAssign;
+                      const parts = [];
+                      if (conflicts > 0) parts.push(`${conflicts} ${conflicts === 1 ? 'conflict' : 'conflicts'}`);
+                      if (toAssign > 0) parts.push(`${toAssign} missing INSS`);
+                      if (notFound > 0) parts.push(`${notFound} not found`);
+                      return parts.join(' · ');
+                    })()}
+                  </div>
+                </div>
+                <IconButton icon="X" onClick={close} blur />
+              </div>
+              <div style={{ paddingBottom: 'var(--space-250)' }}>
+                {matchedRows.length > 0 && (
+                  <div>
+                    <div style={sectionLabel}>INSS to resolve · {matchedRows.length}</div>
+                    {matchedRows.map((rec) => {
+                      const matchedEntry = Array.from(matchedEmpInssMap.entries()).find(([, r]) => r.niss === rec.niss);
+                      if (!matchedEntry) return null;
+                      const [empId, matchedRec] = matchedEntry;
+                      const isConflict = matchedRec.type === 'conflict';
+                      const dismissFn = () => { setUnmatchedQueue(q => q.filter(e => e.niss !== rec.niss)); setFoodUnmatched(n => Math.max(0, n - 1)); };
+                      return (
+                        <div key={rec.niss} style={rowStyle}>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink, marginBottom: 2 }}>{rec.name}</div>
+                            <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>{isConflict ? 'Has a different INSS on file' : 'No INSS on file'}</div>
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', flexShrink: 0 }}>
+                            <Button variant="secondary" onClick={() => setInssReviewItem({ rec, empId, matchedRec })}>Review</Button>
+                            <button title="Skip for this cycle" onClick={dismissFn} onMouseEnter={e => e.currentTarget.style.opacity = '1'} onMouseLeave={e => e.currentTarget.style.opacity = '0.45'} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: P.inkSoft, display: 'flex', alignItems: 'center', opacity: 0.45, transition: 'opacity 120ms' }}><Icon name="X" size={14} /></button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+                {notFoundRows.length > 0 && (
+                  <div>
+                    <div style={{ ...sectionLabel, borderTop: matchedRows.length > 0 ? `1px solid ${P.border}` : 'none' }}>Not in Payflip · {notFoundRows.length}</div>
+                    {notFoundRows.map((rec) => {
+                      const nameParts = rec.name.trim().split(' ');
+                      const prefillFirst = nameParts.slice(0, -1).join(' ') || nameParts[0];
+                      const prefillLast = nameParts.length > 1 ? nameParts[nameParts.length - 1] : '';
+                      const dismissNfFn = () => { setUnmatchedQueue(q => q.filter(e => e.niss !== rec.niss)); setFoodUnmatched(n => Math.max(0, n - 1)); };
+                      return (
+                        <div key={rec.niss} style={rowStyle}>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink, marginBottom: 2 }}>{rec.name}</div>
+                            <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, fontVariantNumeric: 'tabular-nums' }}>{rec.niss}</div>
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', flexShrink: 0 }}>
+                            <Button variant="secondary" onClick={() => { close(); onAddEmployee({ firstName: prefillFirst, lastName: prefillLast, niss: rec.niss }); }}>Add to Payflip</Button>
+                            <button title="Skip for this cycle" onClick={dismissNfFn} onMouseEnter={e => e.currentTarget.style.opacity = '1'} onMouseLeave={e => e.currentTarget.style.opacity = '0.45'} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: P.inkSoft, display: 'flex', alignItems: 'center', opacity: 0.45, transition: 'opacity 120ms' }}><Icon name="X" size={14} /></button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        }}
+      </ModalShell>
+    )}
+    </>
   );
 }
 
@@ -12051,6 +12232,30 @@ function App() {
   const [toasts, setToasts] = useState([]);
   const addToast = (t) => setToasts(prev => [{ id: `t-${prev.length}-${Date.now()}`, ...t }, ...prev]);
   const removeToast = () => setToasts([]);
+  const [foodUnmatched, setFoodUnmatched] = useState(UNMATCHED_EMPLOYEES.length);
+  const [unmatchedQueue, setUnmatchedQueue] = useState([...UNMATCHED_EMPLOYEES]);
+
+  const matchedEmpInssMap = useMemo(() => {
+    const allPeople = Object.entries(EMPLOYEES).filter(([, e]) => e.isEmployee !== false).map(([id, e]) => ({ id, ...e }));
+    const map = new Map();
+    unmatchedQueue.forEach(rec => {
+      const tokens = rec.name.toLowerCase().split(/\s+/).filter(t => t.length > 2);
+      const top = allPeople
+        .map(p => ({ ...p, score: tokens.filter(t => p.name.toLowerCase().includes(t)).length }))
+        .filter(p => p.score > 0).sort((a, b) => b.score - a.score)[0];
+      if (top) {
+        const existingInss = (employeeOverrides[top.id]?.inssNumber) || EMP_EXTRA[top.id]?.inssNumber || EMPLOYEES[top.id]?.niss || null;
+        const type = !existingInss ? 'new' : existingInss === rec.niss ? 'same' : 'conflict';
+        if (type !== 'same') map.set(top.id, { ...rec, type, existingInss });
+      }
+    });
+    return map;
+  }, [unmatchedQueue, employeeOverrides]);
+
+  const resolveUnmatched = (rec) => {
+    setUnmatchedQueue(q => q.filter(e => e.niss !== rec.niss));
+    setFoodUnmatched(n => Math.max(0, n - 1));
+  };
   const [addEmployeeOpen, setAddEmployeeOpen] = useState(false);
   const [addEmployeePrefill, setAddEmployeePrefill] = useState({});
   const [freshEmployeeId, setFreshEmployeeId] = useState(null);
@@ -12403,11 +12608,11 @@ function App() {
       <Sidebar active={screen} onNav={handleNav} pendingCount={pendingCount} sidebarMode={sidebarMode} onSetSidebarMode={setSidebarMode} appEntity={appEntity} onSetAppEntity={setAppEntity} setupInProgress={screen === 'dashboard' && !mobilityWidgetState.live && !mobilityWidgetState.hidden} />
 
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, overflow: 'hidden' }}>
-        {screen === 'dashboard' && <DashboardScreen key={appEntity ?? 'all'} requests={entityFilteredRequests} onNav={setScreen} onToast={addToast} appEntity={appEntity} physicalCardsAllowed={physicalCardsAllowed} onPhysicalCardsChange={setPhysicalCardsAllowed} cardDelivery={cardDelivery} onCardDeliveryChange={setCardDelivery} mobilityWidgetState={mobilityWidgetState} onMobilityWidgetStateChange={setMobilityWidgetState} pendingRequests={pendingRequestsCount} pendingExpenses={pendingExpensesCount} pendingChoices={pendingChoicesCount} activeBudgets={allowances.filter(a => a.active).length} onAddEmployee={(pf) => { setAddEmployeePrefill(pf); setAddEmployeeOpen(true); }} />}
+        {screen === 'dashboard' && <DashboardScreen key={appEntity ?? 'all'} requests={entityFilteredRequests} onNav={setScreen} onToast={addToast} appEntity={appEntity} physicalCardsAllowed={physicalCardsAllowed} onPhysicalCardsChange={setPhysicalCardsAllowed} cardDelivery={cardDelivery} onCardDeliveryChange={setCardDelivery} mobilityWidgetState={mobilityWidgetState} onMobilityWidgetStateChange={setMobilityWidgetState} pendingRequests={pendingRequestsCount} pendingExpenses={pendingExpensesCount} pendingChoices={pendingChoicesCount} activeBudgets={allowances.filter(a => a.active).length} onAddEmployee={(pf) => { setAddEmployeePrefill(pf); setAddEmployeeOpen(true); }} foodUnmatched={foodUnmatched} setFoodUnmatched={setFoodUnmatched} unmatchedQueue={unmatchedQueue} setUnmatchedQueue={setUnmatchedQueue} matchedEmpInssMap={matchedEmpInssMap} />}
         {screen === 'team-absences' && <TeamAbsencesScreen key={appEntity ?? 'all'} requests={entityFilteredRequests} pendingCount={pendingRequestsCount} onNav={setScreen} onShowDetail={setCalDetail} activeReqId={calDetail?.id} onSave={saveRequest} companyEvents={companyEvents} onCancelCompanyEvent={cancelCompanyEvent} initialDate={calendarJumpDate} initialDeptFilter={calendarDeptFilter} appEntity={appEntity} leaveTypes={leaveTypes} />}
         {screen === 'requests' && <RequestsScreen key={appEntity ?? 'all'} requests={entityFilteredRequests} onApprove={approve} onDecline={requestDecline} onSave={saveRequest} onCancel={requestCancel} onNav={setScreen} onViewInCalendar={(req) => { const d = req._selectedDates?.[0] || req.startDate; if (d) { const iso = typeof d === 'string' && d.match(/^\d{4}-/) ? d : null; setCalendarJumpDate(iso ? new Date(iso) : parseDisplayDate(d)); } setCalDetail(req); setScreen('team-absences'); }} appEntity={appEntity} />}
-        {(screen === 'employees' || screen === 'employees:admin') && <EmployeesScreen key={appEntity ?? 'all'} requests={entityFilteredRequests} onNav={setScreen} initialRoleFilter={screen === 'employees:admin' ? 'Admin' : 'All'} adminAccess={adminAccess} appEntity={appEntity} onAddEmployee={() => setAddEmployeeOpen(true)} />}
-        {screen.startsWith('employee-detail:') && (() => { const [, detailEmpId, detailTab] = screen.split(':'); return <EmployeeDetailScreen employeeId={detailEmpId} requests={requests} onNav={setScreen} onSave={saveRequest} onCancel={cancelRequest} onApprove={approve} onDecline={requestDecline} onViewTeamCalendar={(dept) => { setCalendarDeptFilter(dept || null); setScreen('team-absences'); }} employeeBalance={employeeBalances[detailEmpId]} onUpdateBalance={(newBal) => updateBalances(detailEmpId, newBal)} needsSetup={needsBalanceSetup.has(detailEmpId)} confirmedDate={balanceConfirmedDates[detailEmpId]} onConfirmBalances={() => confirmBalancesFor(detailEmpId)} onToast={addToast} adminAccess={adminAccess} onAdminSave={handleAdminSave} companyRegime={companyRegime} onEmployeeUpdate={handleEmployeeUpdate} getEmpWithOverrides={getEmpWithOverrides} physicalCardsAllowed={physicalCardsAllowed} mobilityWidgetState={mobilityWidgetState} initialTab={detailTab || (freshEmployeeId === detailEmpId ? 'details' : 'choices')} />; })()}
+        {(screen === 'employees' || screen === 'employees:admin') && <EmployeesScreen key={appEntity ?? 'all'} requests={entityFilteredRequests} onNav={setScreen} initialRoleFilter={screen === 'employees:admin' ? 'Admin' : 'All'} adminAccess={adminAccess} appEntity={appEntity} onAddEmployee={(pf) => { if (pf) setAddEmployeePrefill(pf); setAddEmployeeOpen(true); }} onToast={addToast} matchedEmpInssMap={matchedEmpInssMap} />}
+        {screen.startsWith('employee-detail:') && (() => { const [, detailEmpId, detailTab] = screen.split(':'); return <EmployeeDetailScreen employeeId={detailEmpId} requests={requests} onNav={setScreen} onSave={saveRequest} onCancel={cancelRequest} onApprove={approve} onDecline={requestDecline} onViewTeamCalendar={(dept) => { setCalendarDeptFilter(dept || null); setScreen('team-absences'); }} employeeBalance={employeeBalances[detailEmpId]} onUpdateBalance={(newBal) => updateBalances(detailEmpId, newBal)} needsSetup={needsBalanceSetup.has(detailEmpId)} confirmedDate={balanceConfirmedDates[detailEmpId]} onConfirmBalances={() => confirmBalancesFor(detailEmpId)} onToast={addToast} adminAccess={adminAccess} onAdminSave={handleAdminSave} companyRegime={companyRegime} onEmployeeUpdate={handleEmployeeUpdate} getEmpWithOverrides={getEmpWithOverrides} physicalCardsAllowed={physicalCardsAllowed} mobilityWidgetState={mobilityWidgetState} initialTab={detailTab || (freshEmployeeId === detailEmpId ? 'details' : 'choices')} unmatchedRecord={matchedEmpInssMap.get(detailEmpId)} onResolveUnmatched={resolveUnmatched} />; })()}
         {screen === 'expenses' && <ExpensesScreen key={appEntity ?? 'all'} expenses={entityFilteredExpenses} categories={expenseCategories} onApprove={approveExpense} onDetail={(exp) => { setExpDetailRejectMode(false); setExpDetail(exp); }} onRejectDirectly={(exp) => { setExpDetailRejectMode(true); setExpDetail(exp); }} onAdd={addExpense} appEntity={appEntity} receiptAlwaysRequired={receiptAlwaysRequired} requireApproval={requireApproval} onGoToSettings={() => setScreen('settings-expenses')} />}
         {screen === 'choices' && <ChoicesScreen key={appEntity ?? 'all'} choices={entityFilteredChoices} onApprove={approveChoice} onDecline={declineChoice} onDetail={setChoiceDetail} appEntity={appEntity} />}
         {screen === 'payroll-overview' && <StubScreen title="Payroll Overview" description="Monthly payroll run and submission" />}
