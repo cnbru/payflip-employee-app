@@ -8099,17 +8099,18 @@ function DashboardScreen({ requests, onNav, onToast, appEntity = null, physicalC
           {/* Two stacked cards: system alerts + pending approvals */}
           <div style={{ flex: 1, display: 'flex', flexDirection: 'row', alignItems: 'flex-start', gap: 'var(--space-250)', minWidth: 0 }}>
 
-            {/* Needs attention — system/data issues; hidden when none */}
-            {systemItems.length > 0 && (
-              <div style={{ flex: 1, border: `1px solid ${P.border}`, borderRadius: 12, background: P.white, overflow: 'hidden' }}>
-                <div style={{ padding: 'var(--space-200) var(--space-300)', borderBottom: `1px solid ${P.border}` }}>
-                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.ink }}>Needs attention</span>
-                </div>
-                {systemItems.map((item, i) => (
-                  <AttentionRow key={item.label} item={item} last={i === systemItems.length - 1} onNav={onNav} />
-                ))}
+            {/* Needs attention — system/data issues */}
+            <div style={{ flex: 1, border: `1px solid ${P.border}`, borderRadius: 12, background: P.white, overflow: 'hidden' }}>
+              <div style={{ padding: 'var(--space-200) var(--space-300)', borderBottom: `1px solid ${P.border}` }}>
+                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.ink }}>Needs attention</span>
               </div>
-            )}
+              {systemItems.length > 0
+                ? systemItems.map((item, i) => (
+                    <AttentionRow key={item.label} item={item} last={i === systemItems.length - 1} onNav={onNav} />
+                  ))
+                : <EmptyState icon="check-circle" title="All clear" description="No issues to review right now." />
+              }
+            </div>
 
             {/* Pending approvals — employee-initiated requests */}
             <div style={{ flex: 1, border: `1px solid ${P.border}`, borderRadius: 12, background: P.white, overflow: 'hidden' }}>
@@ -8222,7 +8223,7 @@ function DashboardScreen({ requests, onNav, onToast, appEntity = null, physicalC
                             <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, fontVariantNumeric: 'tabular-nums' }}>{rec.niss}</div>
                           </div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', flexShrink: 0 }}>
-                            <Button variant="secondary" onClick={() => { close(); onAddEmployee({ firstName: prefillFirst, lastName: prefillLast, niss: rec.niss }); }}>Add to Payflip</Button>
+                            <Button variant="secondary" onClick={() => { dismissNfFn(); close(); onAddEmployee({ firstName: prefillFirst, lastName: prefillLast, niss: rec.niss }); }}>Add to Payflip</Button>
                             <button title="Skip for this cycle" onClick={dismissNfFn} onMouseEnter={e => e.currentTarget.style.opacity = '1'} onMouseLeave={e => e.currentTarget.style.opacity = '0.45'} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: P.inkSoft, display: 'flex', alignItems: 'center', opacity: 0.45, transition: 'opacity 120ms' }}><Icon name="X" size={14} /></button>
                           </div>
                         </div>
