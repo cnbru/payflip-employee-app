@@ -521,6 +521,26 @@ function Switch({ checked, onChange, size = 'md', disabled = false }) {
   );
 }
 
+// ── Shared tooltip ────────────────────────────────────────────────────────────
+function HoverTooltip({ label, children }) {
+  const [pos, setPos] = React.useState(null);
+  return (
+    <span
+      onMouseEnter={e => { const r = e.currentTarget.getBoundingClientRect(); setPos({ x: r.left + r.width / 2, y: r.top }); }}
+      onMouseLeave={() => setPos(null)}
+      style={{ display: 'inline-flex' }}
+    >
+      {children}
+      {pos && ReactDOM.createPortal(
+        <span style={{ position: 'fixed', left: pos.x, top: pos.y - 6, transform: 'translateX(-50%) translateY(-100%)', padding: 'var(--space-050) var(--space-100)', borderRadius: 6, background: P.action, color: '#fff', fontSize: 'var(--fs-body-sm)', fontWeight: 600, fontFamily: 'var(--font-display)', whiteSpace: 'nowrap', pointerEvents: 'none', zIndex: 9999 }}>
+          {label}
+        </span>,
+        document.body
+      )}
+    </span>
+  );
+}
+
 // ── Shared empty state ───────────────────────────────────────────────────────
 function EmptyState({ icon, title, description, action }) {
   return (
@@ -8201,7 +8221,7 @@ function DashboardScreen({ requests, onNav, onToast, appEntity = null, physicalC
                           </div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', flexShrink: 0 }}>
                             <Button variant="secondary" onClick={() => setInssReviewItem({ rec, empId, matchedRec })}>Review</Button>
-                            <button title="Skip for this cycle" onClick={dismissFn} onMouseEnter={e => e.currentTarget.style.opacity = '1'} onMouseLeave={e => e.currentTarget.style.opacity = '0.45'} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: P.inkSoft, display: 'flex', alignItems: 'center', opacity: 0.45, transition: 'opacity 120ms' }}><Icon name="X" size={14} /></button>
+                            <HoverTooltip label="Skip for this cycle"><button onClick={dismissFn} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: P.inkSoft, display: 'flex', alignItems: 'center', opacity: 0.45, transition: 'opacity 120ms' }} onMouseEnter={e => e.currentTarget.style.opacity = '1'} onMouseLeave={e => e.currentTarget.style.opacity = '0.45'}><Icon name="X" size={14} /></button></HoverTooltip>
                           </div>
                         </div>
                       );
@@ -8224,7 +8244,7 @@ function DashboardScreen({ requests, onNav, onToast, appEntity = null, physicalC
                           </div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', flexShrink: 0 }}>
                             <Button variant="secondary" onClick={() => { dismissNfFn(); close(); onAddEmployee({ firstName: prefillFirst, lastName: prefillLast, niss: rec.niss }); }}>Add to Payflip</Button>
-                            <button title="Skip for this cycle" onClick={dismissNfFn} onMouseEnter={e => e.currentTarget.style.opacity = '1'} onMouseLeave={e => e.currentTarget.style.opacity = '0.45'} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: P.inkSoft, display: 'flex', alignItems: 'center', opacity: 0.45, transition: 'opacity 120ms' }}><Icon name="X" size={14} /></button>
+                            <HoverTooltip label="Skip for this cycle"><button onClick={dismissNfFn} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: P.inkSoft, display: 'flex', alignItems: 'center', opacity: 0.45, transition: 'opacity 120ms' }} onMouseEnter={e => e.currentTarget.style.opacity = '1'} onMouseLeave={e => e.currentTarget.style.opacity = '0.45'}><Icon name="X" size={14} /></button></HoverTooltip>
                           </div>
                         </div>
                       );
