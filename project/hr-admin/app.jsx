@@ -8038,6 +8038,9 @@ function UnmatchedMatchModal({ matchQueue, setMatchQueue, setFoodUnmatched, setS
 
 function DashboardScreen({ requests, onNav, onToast, appEntity = null, physicalCardsAllowed, onPhysicalCardsChange, cardDelivery, onCardDeliveryChange, mobilityWidgetState, onMobilityWidgetStateChange, pendingRequests = 0, pendingExpenses = 0, pendingChoices = 0, activeBudgets = 0, onAddEmployee, foodUnmatched = 0, setFoodUnmatched, unmatchedQueue = [], setUnmatchedQueue, matchedEmpInssMap = new Map() }) {
   const [showInssQueue, setShowInssQueue] = useState(false);
+  useEffect(() => {
+    if (unmatchedQueue.length === 0 && showInssQueue) { setShowInssQueue(false); setInssReviewItem(null); }
+  }, [unmatchedQueue.length]);
   const [inssReviewItem, setInssReviewItem] = useState(null);
   const [inssMenuNiss, setInssMenuNiss] = useState(null);
   const inssMenuRef = useRef(null);
