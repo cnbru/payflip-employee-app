@@ -7605,11 +7605,19 @@ function InssReviewDetail({ rec, empId, matchedRec, onResolve, onAsk, onBack, on
         <IconButton icon="arrow-left" onClick={onBack} />
         <div style={{ flex: 1 }}>
           <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-md)', color: P.ink }}>{rec.name}</div>
-          <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginTop: 1 }}>{isConflict ? 'Payflip and SD Worx have different INSS numbers on file.' : 'No INSS number is on file for this employee in Payflip.'}</div>
+          <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginTop: 1 }}>{isConflict ? 'INSS conflict' : 'Missing INSS'}</div>
         </div>
         <IconButton icon="X" onClick={onClose} blur />
       </div>
       <div style={{ padding: 'var(--space-300)' }}>
+        <div style={{ marginBottom: 'var(--space-200)' }}>
+          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.ink, marginBottom: 'var(--space-025)' }}>
+            {isConflict ? `Which INSS for ${rec.name} is correct?` : `Assign INSS to ${rec.name}?`}
+          </div>
+          <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>
+            {isConflict ? 'Payflip and SD Worx have different INSS numbers on file.' : 'No INSS number is on file for this employee in Payflip.'}
+          </div>
+        </div>
         {isConflict ? (
           <div>
             {options.map((opt) => (
