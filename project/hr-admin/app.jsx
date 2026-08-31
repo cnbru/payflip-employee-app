@@ -5555,9 +5555,6 @@ function EmployeesScreen({ requests, onNav, initialRoleFilter = 'All', adminAcce
       <PageHeader title="Employees" subtitle="Overview" badge={appEntity ? (ENTITIES.find(e => e.id === appEntity)?.name) : null}>
         <div style={{ display: 'flex', gap: 'var(--space-100)', paddingTop: 'var(--space-050)' }}>
           <button style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-075)', padding: 'var(--space-100) var(--space-200)', border: `1px solid ${P.border}`, borderRadius: 8, background: P.white, color: P.ink, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', fontWeight: 500, cursor: 'pointer' }}>
-            <Icon name="Mail" size={14} /> Invite users
-          </button>
-          <button style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-075)', padding: 'var(--space-100) var(--space-200)', border: `1px solid ${P.border}`, borderRadius: 8, background: P.white, color: P.ink, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', fontWeight: 500, cursor: 'pointer' }}>
             <Icon name="Settings2" size={14} /> Bulk actions
           </button>
           <button onClick={() => onAddEmployee()} style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-075)', padding: 'var(--space-100) var(--space-200)', border: 'none', borderRadius: 8, background: P.action, color: P.white, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', fontWeight: 600, cursor: 'pointer' }}>
@@ -8260,7 +8257,7 @@ function DashboardScreen({ requests, onNav, onToast, appEntity = null, physicalC
           const matchedRows = unmatchedQueue.filter(rec => Array.from(matchedEmpInssMap.entries()).some(([, r]) => r.niss === rec.niss));
           const notFoundRows = unmatchedQueue.filter(rec => !Array.from(matchedEmpInssMap.entries()).some(([, r]) => r.niss === rec.niss));
           const rowStyle = { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 'var(--space-150)', padding: 'var(--space-100) var(--space-300)' };
-          const sectionLabel = { ...SL, padding: 'var(--space-150) var(--space-300)', background: P.bgSubtle, borderBottom: `1px solid ${P.border}` };
+          const sectionLabel = { padding: 'var(--space-200) var(--space-300) var(--space-075)', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.inkSoft };
 
           const inDetailView = !!inssReviewItem;
           const slideT = PREFERS_REDUCED_MOTION ? 'none' : `transform 300ms ${EASE_DRAWER}`;
@@ -8289,7 +8286,7 @@ function DashboardScreen({ requests, onNav, onToast, appEntity = null, physicalC
                   <div style={{ paddingBottom: 'var(--space-250)' }}>
                     {matchedRows.length > 0 && (
                       <div>
-                        <div style={sectionLabel}>INSS to resolve · {matchedRows.length}</div>
+                        <div style={sectionLabel}>INSS to resolve</div>
                         {matchedRows.map((rec) => {
                           const matchedEntry = Array.from(matchedEmpInssMap.entries()).find(([, r]) => r.niss === rec.niss);
                           if (!matchedEntry) return null;
@@ -8311,7 +8308,8 @@ function DashboardScreen({ requests, onNav, onToast, appEntity = null, physicalC
                     )}
                     {notFoundRows.length > 0 && (
                       <div>
-                        <div style={{ ...sectionLabel, borderTop: matchedRows.length > 0 ? `1px solid ${P.border}` : 'none', marginTop: 'var(--space-300)' }}>Not in Payflip · {notFoundRows.length}</div>
+                        {matchedRows.length > 0 && <div style={{ borderTop: `1px solid ${P.border}`, marginTop: 'var(--space-150)' }} />}
+                        <div style={sectionLabel}>Not in Payflip</div>
                         {notFoundRows.map((rec) => {
                           const nameParts = rec.name.trim().split(' ');
                           const prefillFirst = nameParts.slice(0, -1).join(' ') || nameParts[0];
@@ -8321,7 +8319,7 @@ function DashboardScreen({ requests, onNav, onToast, appEntity = null, physicalC
                             <div key={rec.niss} style={rowStyle}>
                               <div style={{ flex: 1, minWidth: 0 }}>
                                 <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink, marginBottom: 2 }}>{rec.name}</div>
-                                <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, fontVariantNumeric: 'tabular-nums' }}>{rec.niss}</div>
+                                <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>Found in SD Worx file</div>
                               </div>
                               <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', flexShrink: 0 }}>
                                 <Button variant="secondary" onClick={() => { dismissNfFn(); close(); onAddEmployee({ firstName: prefillFirst, lastName: prefillLast, niss: rec.niss }); }} style={{ padding: '5px 10px', fontSize: 'var(--fs-body-xs)' }}>Add to Payflip</Button>
@@ -11981,7 +11979,7 @@ function OnboardingScreen({ onboardingIds, drafts = new Map(), onSendInvite, onN
                       <td style={{ padding: 'var(--space-150) var(--space-200)', whiteSpace: 'nowrap' }}>
                         {emp.isDraft
                           ? <span style={{ padding: '1px 7px', borderRadius: 99, border: `1px solid ${P.border}`, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.inkSoft, background: P.bg }}>Draft</span>
-                          : <span style={{ padding: '1px 7px', borderRadius: 99, border: '1px solid #bbf7d0', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: '#16a34a', background: '#f0fdf4' }}>Pending invite</span>
+                          : <DotPill bg={P.successBorder} color={P.successDark} size={11}>Pending invite</DotPill>
                         }
                       </td>
                       <td style={{ padding: 'var(--space-150) var(--space-200)', whiteSpace: 'nowrap' }}>
