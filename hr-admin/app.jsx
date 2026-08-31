@@ -1614,7 +1614,9 @@ function EntitySwitcher({ value, onChange, mode }) {
   );
 }
 
-function AppModeSidebar({ active, onNav, pendingCount, onEnterSettings, setupInProgress }) {
+function AppModeSidebar({ active, onNav, pendingCount, onEnterSettings, setupInProgress, onboardingCount = 0, offboardingCount = 0 }) {
+  const isPeopleActive = active === 'employees' || active === 'employees:admin' || active === 'people-onboarding' || active === 'people-offboarding' || active?.startsWith('employee-detail');
+  const [peopleOpen, setPeopleOpen] = useState(isPeopleActive);
   const [timeoffOpen, setTimeoffOpen] = useState(active === 'requests' || active === 'team-absences');
   const [payrollOpen, setPayrollOpen] = useState(active === 'payroll-overview' || active === 'payroll-reports');
 
@@ -1624,7 +1626,14 @@ function AppModeSidebar({ active, onNav, pendingCount, onEnterSettings, setupInP
       <nav style={{ flex: 1, padding: 'var(--space-200) 0 var(--space-125)', display: 'flex', flexDirection: 'column', gap: 'var(--space-050)', overflow: 'auto' }}>
         <SidebarItem icon="house" label="Home" isActive={active === 'dashboard'} onClick={() => onNav('dashboard')} />
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 'var(--space-050)', opacity: setupInProgress ? 0.35 : 1, pointerEvents: setupInProgress ? 'none' : 'auto', transition: `opacity 250ms ${EASE_OUT}` }}>
-          <SidebarItem icon="users" label="People" isActive={active === 'employees' || active === 'employees:admin' || active?.startsWith('employee-detail')} onClick={() => onNav('employees')} />
+          <SidebarItem icon="users" label="People" isActive={isPeopleActive} onClick={() => setPeopleOpen(o => !o)} chevron chevronOpen={peopleOpen} />
+          <SidebarAccordion open={peopleOpen}>
+            <SidebarSub active={active} onNav={onNav} items={[
+              { id: 'employees', label: 'Team overview' },
+              { id: 'people-onboarding', label: 'Onboarding', badge: onboardingCount > 0 ? onboardingCount : undefined },
+              { id: 'people-offboarding', label: 'Offboarding', badge: offboardingCount > 0 ? offboardingCount : undefined },
+            ]} />
+          </SidebarAccordion>
           <SidebarItem icon="list-checks" label="Choices" isActive={active === 'choices'} onClick={() => onNav('choices')} badgeDot={pendingCount?.choices || null} />
 
           <SidebarItem icon="calendar-days" label="Time off" onClick={() => setTimeoffOpen(o => !o)} chevron chevronOpen={timeoffOpen} isActive={active === 'requests' || active === 'team-absences'} badgeDot={!timeoffOpen && (pendingCount?.requests ?? pendingCount) > 0 ? (pendingCount?.requests ?? pendingCount) : null} />
@@ -1665,6 +1674,8 @@ const ROUTE_MAP = [
   { screen: 'requests',               path: '/hr-admin/time-off' },
   { screen: 'team-absences',          path: '/hr-admin/time-off/calendar' },
   { screen: 'employees',              path: '/hr-admin/people' },
+  { screen: 'people-onboarding',      path: '/hr-admin/people/onboarding' },
+  { screen: 'people-offboarding',     path: '/hr-admin/people/offboarding' },
   { screen: 'expenses',               path: '/hr-admin/expenses' },
   { screen: 'choices',                path: '/hr-admin/choices' },
   { screen: 'payroll-overview',       path: '/hr-admin/payroll' },
@@ -1716,10 +1727,11 @@ function pathToScreen(path) {
   let clean = path;
   if (BASE_PATH && clean.startsWith(BASE_PATH)) clean = clean.slice(BASE_PATH.length);
   clean = clean.replace(/\/$/, '') || '/hr-admin';
+  const entry = ROUTE_MAP.find(r => r.path === clean);
+  if (entry) return entry.screen;
   const empMatch = clean.match(/^\/hr-admin\/people\/([^/]+)(?:\/([^/]+))?$/);
   if (empMatch) return 'employee-detail:' + empMatch[1] + (empMatch[2] ? ':' + empMatch[2] : '');
-  const entry = ROUTE_MAP.find(r => r.path === clean);
-  return entry ? entry.screen : 'dashboard';
+  return 'dashboard';
 }
 
 function SettingsModeSidebar({ active, onNav }) {
@@ -1761,7 +1773,7 @@ function SettingsModeSidebar({ active, onNav }) {
 }
 
 const PANEL_DUR = 280;
-function Sidebar({ active, onNav, pendingCount, sidebarMode, onSetSidebarMode, appEntity, onSetAppEntity, setupInProgress }) {
+function Sidebar({ active, onNav, pendingCount, sidebarMode, onSetSidebarMode, appEntity, onSetAppEntity, setupInProgress, onboardingCount = 0, offboardingCount = 0 }) {
   const inSettings = sidebarMode === 'settings';
   const panelStyle = (offset) => ({
     position: 'absolute', inset: 0,
@@ -1802,6 +1814,8 @@ function Sidebar({ active, onNav, pendingCount, sidebarMode, onSetSidebarMode, a
             pendingCount={pendingCount}
             onEnterSettings={() => { onSetSidebarMode('settings'); onNav('settings-notifications'); }}
             setupInProgress={setupInProgress}
+            onboardingCount={onboardingCount}
+            offboardingCount={offboardingCount}
           />
         </div>
         <div style={panelStyle(inSettings ? '0%' : '100%')}>
@@ -5726,7 +5740,7 @@ function EditBalancesModal({ emp, balances, onSave, onClose, isNewEmployee, onCo
 }
 
 // ── Employee detail screen ────────────────────────────────────────────────
-function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, onApprove, onDecline, onViewTeamCalendar, employeeBalance, onUpdateBalance, needsSetup, confirmedDate, onConfirmBalances, onToast, adminAccess, onAdminSave, companyRegime, onEmployeeUpdate, getEmpWithOverrides, physicalCardsAllowed, mobilityWidgetState, initialTab = 'choices', unmatchedRecord, onResolveUnmatched }) {
+function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, onApprove, onDecline, onViewTeamCalendar, employeeBalance, onUpdateBalance, needsSetup, confirmedDate, onConfirmBalances, onToast, adminAccess, onAdminSave, companyRegime, onEmployeeUpdate, getEmpWithOverrides, physicalCardsAllowed, mobilityWidgetState, initialTab = 'choices', unmatchedRecord, onResolveUnmatched, onStartOffboarding }) {
   const emp = getEmpWithOverrides ? getEmpWithOverrides(employeeId) : EMPLOYEES[employeeId];
   const [activeTab, setActiveTab] = useState(initialTab);
   const tabMountedRef = useRef(false);
@@ -5833,7 +5847,7 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, o
                   width: '100%', padding: 'var(--space-100) var(--space-150)', border: 'none', background: 'transparent', cursor: 'pointer', textAlign: 'left',
                 }} onMouseEnter={e => e.currentTarget.style.background = P.dangerBg} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                   <Icon name="user-x" size={14} color={P.danger} strokeWidth={1.75} />
-                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.danger }}>Deactivate employee</span>
+                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.danger }}>Start offboarding</span>
                 </button>
               </div>
             )}
@@ -6098,16 +6112,16 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, o
           {close => (
             <div style={{ padding: 'var(--space-400) var(--space-400) var(--space-300)' }}>
               <div style={{ width: 40, height: 40, borderRadius: 10, background: P.dangerBg, border: '1px solid var(--alert-200)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 'var(--space-200)' }}>
-                <Icon name="user-x" size={18} color={P.danger} strokeWidth={1.75} />
+                <Icon name="log-out" size={18} color={P.danger} strokeWidth={1.75} />
               </div>
-              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-md)', color: P.ink, marginBottom: 'var(--space-075)' }}>Deactivate {emp.name}?</div>
+              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-md)', color: P.ink, marginBottom: 'var(--space-075)' }}>Start offboarding {emp.name}?</div>
               <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, marginBottom: 'var(--space-300)', lineHeight: 1.5 }}>
-                {emp.name.split(' ')[0]} will lose access to Payflip immediately. Their data and history will be preserved.
+                {emp.name.split(' ')[0]} will be moved to the offboarding queue. Their access can be revoked and final steps completed from there.
               </div>
               <div style={{ display: 'flex', gap: 'var(--space-100)', justifyContent: 'flex-end' }}>
                 <Button variant="secondary" onClick={close} style={{ padding: 'var(--space-100) var(--space-200)', color: P.inkSoft }}>Cancel</Button>
-                <Button variant="primary" onClick={() => { close(); onToast && onToast({ message: `${emp.name.split(' ')[0]} deactivated`, type: 'decline' }); }} style={{ padding: 'var(--space-100) var(--space-200)', background: P.danger }}>
-                  Deactivate
+                <Button variant="primary" onClick={() => { close(); setDeactivateConfirm(false); onStartOffboarding && onStartOffboarding(employeeId); }} style={{ padding: 'var(--space-100) var(--space-200)', background: P.danger }}>
+                  Start offboarding
                 </Button>
               </div>
             </div>
@@ -6762,8 +6776,8 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
     const done = n < step || live;
     const active = n === step && !live;
     if (done) return (
-      <span style={{ width: 24, height: 24, borderRadius: '50%', background: '#e8f5f0', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, animation: pop ? `badgePopIn 400ms cubic-bezier(0.34, 1.36, 0.64, 1)` : undefined }}>
-        <Icon name="check" size={12} color="#008556" strokeWidth={2.5} />
+      <span style={{ width: 24, height: 24, borderRadius: '50%', background: '#22c55e', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, animation: pop ? `badgePopIn 400ms cubic-bezier(0.34, 1.36, 0.64, 1)` : undefined }}>
+        <Icon name="check" size={12} color="#fff" strokeWidth={2.5} />
       </span>
     );
     if (active) return (
@@ -6922,7 +6936,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
                 <div style={{ display: 'flex', gap: 'var(--space-200)' }}>
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: 24, flexShrink: 0 }}>
                     {mandateValidated
-                      ? <div style={{ width: 14, height: 14, borderRadius: '50%', background: '#e8f5f0', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 3 }}><Icon name="check" size={8} color="#008556" strokeWidth={2.5} /></div>
+                      ? <div style={{ width: 14, height: 14, borderRadius: '50%', background: '#22c55e', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 3 }}><Icon name="check" size={8} color="#fff" strokeWidth={2.5} /></div>
                       : <div style={{ width: 14, height: 14, borderRadius: '50%', flexShrink: 0, border: '2px solid transparent', borderTopColor: P.ink, borderRightColor: P.border, borderBottomColor: P.border, borderLeftColor: P.border, animation: PREFERS_REDUCED_MOTION ? 'none' : 'spinCW 3000ms linear infinite', boxSizing: 'border-box', marginTop: 3 }} />
                     }
                     <div style={{ width: 1.5, flex: 1, background: P.border, marginTop: 3 }} />
@@ -7592,11 +7606,19 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
   );
 }
 
+function decodeInssDob(niss) {
+  const digits = (niss || '').replace(/\D/g, '');
+  if (digits.length < 6) return null;
+  return `born ${digits.slice(4, 6)}/${digits.slice(2, 4)}/${digits.slice(0, 2)}`;
+}
+
 function InssReviewDetail({ rec, empId, matchedRec, onResolve, onAsk, onBack, onClose }) {
-  const [selected, setSelected] = useState('sdworx');
+  const [copied, setCopied] = useState(false);
+  const [selectedInss, setSelectedInss] = useState('sdworx');
   const isConflict = matchedRec.type === 'conflict';
-  const options = isConflict ? [
-    { id: 'payflip', label: 'Current (Payflip)', value: matchedRec.existingInss },
+  const needsPick = isConflict && matchedRec.source === 'manual';
+  const options = needsPick ? [
+    { id: 'payflip', label: 'Entered manually (Payflip)', value: matchedRec.existingInss },
     { id: 'sdworx', label: 'From SD Worx file', value: rec.niss },
   ] : null;
   return (
@@ -7604,51 +7626,87 @@ function InssReviewDetail({ rec, empId, matchedRec, onResolve, onAsk, onBack, on
       <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', padding: 'var(--space-200) var(--space-300)', borderBottom: `1px solid ${P.border}` }}>
         <IconButton icon="arrow-left" onClick={onBack} />
         <div style={{ flex: 1 }}>
-          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-md)', color: P.ink }}>{rec.name}</div>
-          <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginTop: 1 }}>{isConflict ? 'INSS conflict' : 'Missing INSS'}</div>
+          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink }}>{rec.name}</div>
+          <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginTop: 1 }}>
+            {isConflict ? (matchedRec.source === 'itsme' ? 'Payflip · itsme-verified' : 'Review required') : 'No INSS assigned'}
+          </div>
         </div>
         <IconButton icon="X" onClick={onClose} blur />
       </div>
       <div style={{ padding: 'var(--space-300)' }}>
         <div style={{ marginBottom: 'var(--space-200)' }}>
           <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.ink, marginBottom: 'var(--space-025)' }}>
-            {isConflict ? `Which INSS for ${rec.name} is correct?` : `Assign INSS to ${rec.name}?`}
+            {isConflict ? (matchedRec.source === 'itsme' ? `${rec.name.split(' ')[0]}'s INSS was verified via itsme` : 'Which INSS is correct?') : `Assign INSS to ${rec.name}?`}
           </div>
           <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>
-            {isConflict ? 'SD Worx imported a different INSS number than what Payflip has.' : 'This employee has no INSS number in Payflip.'}
+            {isConflict
+              ? (matchedRec.source === 'itsme'
+                  ? 'Meal voucher attribution is not affected. Payflip has the verified number. Update SD Worx to keep both systems in sync.'
+                  : 'Both records differ. Select which INSS is correct before the next payroll run.')
+              : 'SD Worx has an INSS for this employee that isn\'t saved in Payflip yet.'}
           </div>
         </div>
         {isConflict ? (
           <div>
-            {options.map((opt) => (
-              <div key={opt.id} onClick={() => setSelected(opt.id)}
-                style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', padding: 'var(--space-150) var(--space-200)', border: `1.5px solid ${selected === opt.id ? P.action : P.border}`, borderRadius: 8, cursor: 'pointer', marginBottom: 'var(--space-100)', background: selected === opt.id ? P.bgSubtle : P.white, transition: `border-color 120ms ${EASE_OUT}, background 120ms ${EASE_OUT}` }}>
-                <div style={{ width: 16, height: 16, borderRadius: '50%', border: `1.5px solid ${selected === opt.id ? P.action : P.border}`, background: selected === opt.id ? P.action : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: `all 120ms ${EASE_OUT}` }}>
-                  {selected === opt.id && <div style={{ width: 6, height: 6, borderRadius: '50%', background: P.white }} />}
-                </div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>{opt.label}</div>
-                  <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, fontVariantNumeric: 'tabular-nums' }}>{opt.value}</div>
+            {needsPick ? (
+              <div>
+                {options.map((opt) => (
+                  <div key={opt.id} onClick={() => setSelectedInss(opt.id)}
+                    style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', padding: 'var(--space-150) var(--space-200)', border: `1.5px solid ${selectedInss === opt.id ? P.action : P.border}`, borderRadius: 8, cursor: 'pointer', marginBottom: 'var(--space-100)', background: selectedInss === opt.id ? P.bgSubtle : P.white, transition: `border-color 120ms ${EASE_OUT}, background 120ms ${EASE_OUT}` }}>
+                    <div style={{ width: 16, height: 16, borderRadius: '50%', border: `1.5px solid ${selectedInss === opt.id ? P.action : P.border}`, background: selectedInss === opt.id ? P.action : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: `all 120ms ${EASE_OUT}` }}>
+                      {selectedInss === opt.id && <div style={{ width: 6, height: 6, borderRadius: '50%', background: P.white }} />}
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>{opt.label}</div>
+                      <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, fontVariantNumeric: 'tabular-nums' }}>{opt.value}</div>
+                    </div>
+                  </div>
+                ))}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-100)', marginTop: 'var(--space-200)' }}>
+                  <Button variant="primary" style={{ width: '100%', justifyContent: 'center' }} onClick={() => onResolve(selectedInss === 'sdworx')}>Assign INSS</Button>
+                  <Button variant="secondary" style={{ width: '100%', justifyContent: 'center' }} onClick={onAsk}>Ask employee to confirm INSS</Button>
                 </div>
               </div>
-            ))}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-100)', marginTop: 'var(--space-200)' }}>
-              <Button variant="primary" style={{ width: '100%', justifyContent: 'center' }} onClick={() => onResolve(selected === 'sdworx')}>Assign INSS</Button>
-              <Button variant="secondary" style={{ width: '100%', justifyContent: 'center' }} onClick={onAsk}>Ask employee to confirm INSS</Button>
-            </div>
+            ) : (
+              <div>
+                <div style={{ border: `1px solid ${P.border}`, borderRadius: 10, overflow: 'hidden', marginBottom: 'var(--space-200)' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', padding: 'var(--space-100) var(--space-150)', background: P.bgSubtle, borderBottom: `1px solid ${P.border}` }}>
+                    <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkSoft, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Source</span>
+                    <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkSoft, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.06em' }}>INSS number</span>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', alignItems: 'center', padding: 'var(--space-150)', borderBottom: `1px solid ${P.border}` }}>
+                    <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>{`${rec.name.split(' ')[0]} via itsme`}</span>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', fontVariantNumeric: 'tabular-nums', color: P.ink }}>{matchedRec.existingInss}</span>
+                      <button onClick={() => { navigator.clipboard.writeText(matchedRec.existingInss); setCopied(true); setTimeout(() => setCopied(false), 2000); }} style={{ background: 'none', border: 'none', padding: 2, cursor: 'pointer', color: copied ? '#00A890' : P.inkSoft, display: 'flex', alignItems: 'center', transition: 'color 150ms ease' }}>
+                        <Icon name={copied ? 'check' : 'copy'} size={13} strokeWidth={1.75} />
+                      </button>
+                    </div>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', alignItems: 'center', padding: 'var(--space-150)' }}>
+                    <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>SD Worx file</span>
+                    <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', fontVariantNumeric: 'tabular-nums', color: P.ink }}>{rec.niss}</span>
+                  </div>
+                </div>
+                <Button variant="primary" style={{ width: '100%', justifyContent: 'center' }} onClick={() => onResolve(false)}>Mark as resolved</Button>
+              </div>
+            )}
           </div>
         ) : (
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', padding: 'var(--space-150) var(--space-200)', border: `1.5px solid ${P.border}`, borderRadius: 8, marginBottom: 'var(--space-250)' }}>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>From SD Worx file</div>
-                <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, fontVariantNumeric: 'tabular-nums' }}>{rec.niss}</div>
+            <div style={{ border: `1px solid ${P.border}`, borderRadius: 10, overflow: 'hidden', marginBottom: 'var(--space-200)' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', padding: 'var(--space-100) var(--space-150)', background: P.bgSubtle, borderBottom: `1px solid ${P.border}` }}>
+                <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkSoft, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Source</span>
+                <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkSoft, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.06em' }}>INSS number</span>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', alignItems: 'center', padding: 'var(--space-150)' }}>
+                <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>SD Worx file</span>
+                <div>
+                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, fontVariantNumeric: 'tabular-nums' }}>{rec.niss}</span>
+                </div>
               </div>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-100)' }}>
-              <Button variant="primary" style={{ width: '100%', justifyContent: 'center' }} onClick={() => onResolve(true)}>Assign INSS</Button>
-              <Button variant="secondary" style={{ width: '100%', justifyContent: 'center' }} onClick={onAsk}>Ask employee to confirm INSS</Button>
-            </div>
+            <Button variant="primary" style={{ width: '100%', justifyContent: 'center' }} onClick={() => onResolve(true)}>Assign INSS</Button>
           </div>
         )}
       </div>
@@ -8058,13 +8116,30 @@ function UnmatchedMatchModal({ matchQueue, setMatchQueue, setFoodUnmatched, setS
   );
 }
 
-function DashboardScreen({ requests, onNav, onToast, appEntity = null, physicalCardsAllowed, onPhysicalCardsChange, cardDelivery, onCardDeliveryChange, mobilityWidgetState, onMobilityWidgetStateChange, pendingRequests = 0, pendingExpenses = 0, pendingChoices = 0, activeBudgets = 0, onAddEmployee, foodUnmatched = 0, setFoodUnmatched, unmatchedQueue = [], setUnmatchedQueue, matchedEmpInssMap = new Map() }) {
+function DashboardScreen({ requests, onNav, onToast, appEntity = null, physicalCardsAllowed, onPhysicalCardsChange, cardDelivery, onCardDeliveryChange, mobilityWidgetState, onMobilityWidgetStateChange, pendingRequests = 0, pendingExpenses = 0, pendingChoices = 0, activeBudgets = 0, onAddEmployee, foodUnmatched = 0, setFoodUnmatched, unmatchedQueue = [], setUnmatchedQueue, matchedEmpInssMap = new Map(), onboardingCount = 0, offboardingCount = 0 }) {
   const [showInssQueue, setShowInssQueue] = useState(false);
   const [recentActivity] = useState(RECENT_ACTIVITY_SEED);
   useEffect(() => {
     if (unmatchedQueue.length === 0 && showInssQueue) { setShowInssQueue(false); setInssReviewItem(null); }
   }, [unmatchedQueue.length]);
   const [inssReviewItem, setInssReviewItem] = useState(null);
+  const inssListRef = useRef(null);
+  const inssDetailRef = useRef(null);
+  const [inssOuterH, setInssOuterH] = useState({ list: 0, detail: 0 });
+  const [inssOuterAnimating, setInssOuterAnimating] = useState(false);
+  const inssOuterFirst = useRef(true);
+  useLayoutEffect(() => {
+    if (inssOuterFirst.current) { inssOuterFirst.current = false; return; }
+    setInssOuterAnimating(true);
+    const id = setTimeout(() => setInssOuterAnimating(false), 320);
+    return () => clearTimeout(id);
+  }, [!!inssReviewItem]);
+  useLayoutEffect(() => {
+    if (!showInssQueue) return;
+    const list = inssListRef.current?.scrollHeight || 0;
+    const detail = inssDetailRef.current?.scrollHeight || 0;
+    setInssOuterH(prev => ({ list: list || prev.list, detail: detail || prev.detail }));
+  }, [showInssQueue, !!inssReviewItem]);
   const [inssMenuNiss, setInssMenuNiss] = useState(null);
   const inssMenuRef = useRef(null);
   useEffect(() => {
@@ -8087,6 +8162,8 @@ function DashboardScreen({ requests, onNav, onToast, appEntity = null, physicalC
   const systemItems = [
     fundingIssue && { icon: 'alert-circle', label: 'Mobility top-up failed', count: '!', screen: 'settings-cardrules', iconBg: P.dangerBg, iconColor: P.danger, badgeBg: P.danger },
     unmatchedQueue.length > 0 && { icon: 'user-x', label: unmatchedQueue.length === 1 ? 'Employee with unresolved INSS' : 'Employees with unresolved INSS', count: unmatchedQueue.length, iconBg: '#FEF9EE', iconColor: '#D97706', onClick: () => { setShowInssQueue(true); if (unmatchedQueue.length === 1) { const rec = unmatchedQueue[0]; const matchedEntry = Array.from(matchedEmpInssMap.entries()).find(([, r]) => r.niss === rec.niss); if (matchedEntry) setInssReviewItem({ rec, empId: matchedEntry[0], matchedRec: matchedEntry[1] }); } } },
+    onboardingCount > 0 && { icon: 'user-plus', label: onboardingCount === 1 ? 'Employee pending invite' : 'Employees pending invite', count: onboardingCount, screen: 'people-onboarding', iconBg: '#F0FDF4', iconColor: '#16a34a' },
+    offboardingCount > 0 && { icon: 'log-out', label: offboardingCount === 1 ? 'Employee in offboarding' : 'Employees in offboarding', count: offboardingCount, screen: 'people-offboarding', iconBg: '#FEF9EE', iconColor: '#D97706' },
   ].filter(Boolean);
   const approvalItems = [
     pendingRequests > 0 && { icon: 'calendar-days', label: 'Time-off requests', count: pendingRequests, screen: 'requests', iconBg: '#EEF4FF', iconColor: '#2563EB' },
@@ -8178,91 +8255,106 @@ function DashboardScreen({ requests, onNav, onToast, appEntity = null, physicalC
       </div>
     </div>
     {showInssQueue && (
-      <ModalShell onClose={() => { setShowInssQueue(false); setInssReviewItem(null); }} width={inssReviewItem ? 420 : 500}>
+      <ModalShell onClose={() => { setShowInssQueue(false); setInssReviewItem(null); }} width={500}>
         {close => {
           const matchedRows = unmatchedQueue.filter(rec => Array.from(matchedEmpInssMap.entries()).some(([, r]) => r.niss === rec.niss));
           const notFoundRows = unmatchedQueue.filter(rec => !Array.from(matchedEmpInssMap.entries()).some(([, r]) => r.niss === rec.niss));
           const rowStyle = { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 'var(--space-150)', padding: 'var(--space-100) var(--space-300)' };
           const sectionLabel = { ...SL, padding: 'var(--space-150) var(--space-300)', background: P.bgSubtle, borderBottom: `1px solid ${P.border}` };
 
-          const advanceOrBack = () => { setInssReviewItem(null); };
-
-          if (inssReviewItem) {
-            const { rec, matchedRec } = inssReviewItem;
-            const remaining = matchedRows.filter(r => r.niss !== rec.niss).length;
-            const removeFromQueue = () => {
-              setUnmatchedQueue(q => q.filter(e => e.niss !== rec.niss));
-              setFoodUnmatched(n => Math.max(0, n - 1));
-              advanceOrBack();
-            };
-            const doResolve = (showToast) => {
-              if (showToast) onToast({ message: `INSS assigned to ${rec.name.split(' ')[0]}`, type: 'approve' });
-              removeFromQueue();
-            };
-            const doAsk = () => {
-              onToast({ message: `Request sent to ${rec.name.split(' ')[0]}`, type: 'info' });
-              removeFromQueue();
-            };
-            return <InssReviewDetail rec={rec} empId={inssReviewItem.empId} matchedRec={matchedRec} onResolve={doResolve} onAsk={doAsk} onBack={() => setInssReviewItem(null)} onClose={() => { close(); setInssReviewItem(null); }} />;
-          }
+          const inDetailView = !!inssReviewItem;
+          const slideT = PREFERS_REDUCED_MOTION ? 'none' : `transform 300ms ${EASE_DRAWER}`;
+          const heightT = PREFERS_REDUCED_MOTION ? 'none' : `height 300ms ${EASE_OUT}`;
+          const outerX = inDetailView ? '-50%' : '0%';
+          const outerContainerH = inssOuterH.list > 0 ? (inDetailView ? inssOuterH.detail : inssOuterH.list) : undefined;
+          const outerOverflow = inssOuterAnimating ? 'hidden' : 'visible';
+          const listVis = inssOuterAnimating || !inDetailView ? 'visible' : 'hidden';
+          const detailVis = inssOuterAnimating || inDetailView ? 'visible' : 'hidden';
 
           return (
-            <div>
-              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', padding: 'var(--space-250) var(--space-300)', borderBottom: `1px solid ${P.border}` }}>
-                <div>
-                  <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-md)', color: P.ink }}>INSS review</div>
-                  <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginTop: 2 }}>
-                    {unmatchedQueue.length} {unmatchedQueue.length === 1 ? 'employee needs review' : 'employees need review'}
+            <div style={{ overflow: outerOverflow, width: '100%', height: outerContainerH, transition: inssOuterH.list > 0 ? heightT : 'none' }}>
+              <div style={{ display: 'flex', flexWrap: 'nowrap', width: '200%', alignItems: 'flex-start', transform: `translateX(${outerX})`, transition: slideT }}>
+
+                {/* Panel 1: INSS queue list */}
+                <div ref={inssListRef} style={{ width: '50%', flexShrink: 0, visibility: listVis }}>
+                  <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', padding: 'var(--space-250) var(--space-300)', borderBottom: `1px solid ${P.border}` }}>
+                    <div>
+                      <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-md)', color: P.ink }}>INSS review</div>
+                      <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginTop: 2 }}>
+                        {unmatchedQueue.length} {unmatchedQueue.length === 1 ? 'employee needs review' : 'employees need review'}
+                      </div>
+                    </div>
+                    <IconButton icon="X" onClick={close} blur />
+                  </div>
+                  <div style={{ paddingBottom: 'var(--space-250)' }}>
+                    {matchedRows.length > 0 && (
+                      <div>
+                        <div style={sectionLabel}>INSS to resolve · {matchedRows.length}</div>
+                        {matchedRows.map((rec) => {
+                          const matchedEntry = Array.from(matchedEmpInssMap.entries()).find(([, r]) => r.niss === rec.niss);
+                          if (!matchedEntry) return null;
+                          const [empId, matchedRec] = matchedEntry;
+                          const isConflict = matchedRec.type === 'conflict';
+                          return (
+                            <div key={rec.niss} style={rowStyle}>
+                              <div style={{ flex: 1, minWidth: 0 }}>
+                                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink, marginBottom: 2 }}>{rec.name}</div>
+                                <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>{isConflict ? 'Conflicts with SD Worx record' : 'No INSS assigned'}</div>
+                              </div>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', flexShrink: 0 }}>
+                                <Button variant="secondary" onClick={() => setInssReviewItem({ rec, empId, matchedRec })} style={{ padding: '5px 10px', fontSize: 'var(--fs-body-xs)' }}>Review</Button>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                    {notFoundRows.length > 0 && (
+                      <div>
+                        <div style={{ ...sectionLabel, borderTop: matchedRows.length > 0 ? `1px solid ${P.border}` : 'none', marginTop: 'var(--space-300)' }}>Not in Payflip · {notFoundRows.length}</div>
+                        {notFoundRows.map((rec) => {
+                          const nameParts = rec.name.trim().split(' ');
+                          const prefillFirst = nameParts.slice(0, -1).join(' ') || nameParts[0];
+                          const prefillLast = nameParts.length > 1 ? nameParts[nameParts.length - 1] : '';
+                          const dismissNfFn = () => { setUnmatchedQueue(q => q.filter(e => e.niss !== rec.niss)); setFoodUnmatched(n => Math.max(0, n - 1)); };
+                          return (
+                            <div key={rec.niss} style={rowStyle}>
+                              <div style={{ flex: 1, minWidth: 0 }}>
+                                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink, marginBottom: 2 }}>{rec.name}</div>
+                                <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, fontVariantNumeric: 'tabular-nums' }}>{rec.niss}</div>
+                              </div>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', flexShrink: 0 }}>
+                                <Button variant="secondary" onClick={() => { dismissNfFn(); close(); onAddEmployee({ firstName: prefillFirst, lastName: prefillLast, niss: rec.niss }); }} style={{ padding: '5px 10px', fontSize: 'var(--fs-body-xs)' }}>Add to Payflip</Button>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
                 </div>
-                <IconButton icon="X" onClick={close} blur />
-              </div>
-              <div style={{ paddingBottom: 'var(--space-250)' }}>
-                {matchedRows.length > 0 && (
-                  <div>
-                    <div style={sectionLabel}>INSS to resolve · {matchedRows.length}</div>
-                    {matchedRows.map((rec) => {
-                      const matchedEntry = Array.from(matchedEmpInssMap.entries()).find(([, r]) => r.niss === rec.niss);
-                      if (!matchedEntry) return null;
-                      const [empId, matchedRec] = matchedEntry;
-                      const isConflict = matchedRec.type === 'conflict';
-                      const dismissFn = () => { setUnmatchedQueue(q => q.filter(e => e.niss !== rec.niss)); setFoodUnmatched(n => Math.max(0, n - 1)); };
-                      return (
-                        <div key={rec.niss} style={rowStyle}>
-                          <div style={{ flex: 1, minWidth: 0 }}>
-                            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink, marginBottom: 2 }}>{rec.name}</div>
-                            <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>{isConflict ? 'Conflicts with SD Worx record' : 'Missing INSS number'}</div>
-                          </div>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', flexShrink: 0 }}>
-                            <Button variant="secondary" onClick={() => setInssReviewItem({ rec, empId, matchedRec })} style={{ padding: '5px 10px', fontSize: 'var(--fs-body-xs)' }}>Review</Button>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-                {notFoundRows.length > 0 && (
-                  <div>
-                    <div style={{ ...sectionLabel, borderTop: matchedRows.length > 0 ? `1px solid ${P.border}` : 'none', marginTop: 'var(--space-300)' }}>Not in Payflip · {notFoundRows.length}</div>
-                    {notFoundRows.map((rec) => {
-                      const nameParts = rec.name.trim().split(' ');
-                      const prefillFirst = nameParts.slice(0, -1).join(' ') || nameParts[0];
-                      const prefillLast = nameParts.length > 1 ? nameParts[nameParts.length - 1] : '';
-                      const dismissNfFn = () => { setUnmatchedQueue(q => q.filter(e => e.niss !== rec.niss)); setFoodUnmatched(n => Math.max(0, n - 1)); };
-                      return (
-                        <div key={rec.niss} style={rowStyle}>
-                          <div style={{ flex: 1, minWidth: 0 }}>
-                            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink, marginBottom: 2 }}>{rec.name}</div>
-                            <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, fontVariantNumeric: 'tabular-nums' }}>{rec.niss}</div>
-                          </div>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', flexShrink: 0 }}>
-                            <Button variant="secondary" onClick={() => { dismissNfFn(); close(); onAddEmployee({ firstName: prefillFirst, lastName: prefillLast, niss: rec.niss }); }} style={{ padding: '5px 10px', fontSize: 'var(--fs-body-xs)' }}>Add to Payflip</Button>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
+
+                {/* Panel 2: INSS detail */}
+                <div ref={inssDetailRef} style={{ width: '50%', flexShrink: 0, visibility: detailVis }}>
+                  {inssReviewItem && (() => {
+                    const { rec, matchedRec } = inssReviewItem;
+                    const removeFromQueue = () => {
+                      setUnmatchedQueue(q => q.filter(e => e.niss !== rec.niss));
+                      setFoodUnmatched(n => Math.max(0, n - 1));
+                      setInssReviewItem(null);
+                    };
+                    const doResolve = (showToast) => {
+                      if (showToast) onToast({ message: `INSS assigned to ${rec.name.split(' ')[0]}`, type: 'approve' });
+                      removeFromQueue();
+                    };
+                    const doAsk = () => {
+                      onToast({ message: `Request sent to ${rec.name.split(' ')[0]}`, type: 'info' });
+                      removeFromQueue();
+                    };
+                    return <InssReviewDetail rec={rec} empId={inssReviewItem.empId} matchedRec={matchedRec} onResolve={doResolve} onAsk={doAsk} onBack={() => setInssReviewItem(null)} onClose={() => { close(); setInssReviewItem(null); }} />;
+                  })()}
+                </div>
+
               </div>
             </div>
           );
@@ -11823,6 +11915,162 @@ function FollowUpBanner({ prompt, onLog, onDismiss }) {
   );
 }
 
+// ── Onboarding Screen ──────────────────────────────────────────────────────
+function OnboardingScreen({ onboardingIds, drafts = new Map(), onSendInvite, onNav, onAddEmployee, onContinueDraft, appEntity }) {
+  const employees = [...onboardingIds]
+    .map(id => ({ id, ...EMPLOYEES[id], isDraft: false }))
+    .filter(e => e.name && (!appEntity || e.entityId === appEntity))
+    .sort((a, b) => a.name.localeCompare(b.name));
+
+  const draftEntries = [...drafts.entries()]
+    .map(([draftId, d]) => ({
+      id: draftId,
+      isDraft: true,
+      name: [d.firstName, d.lastName].filter(Boolean).join(' ') || 'Unnamed draft',
+      initials: [d.firstName?.[0], d.lastName?.[0]].filter(Boolean).join('') || '?',
+      color: '#e2e8f0',
+      email: d.workEmail || '',
+      entity: ENTITIES.find(e => e.id === d.entityId)?.name || '',
+      entityId: d.entityId,
+      department: d.department || '',
+      startDate: d.startDate || '',
+    }))
+    .filter(e => !appEntity || !e.entityId || e.entityId === appEntity);
+
+  const allEntries = [...draftEntries, ...employees];
+
+  return (
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, overflow: 'hidden', animation: `screenEnter 180ms ${EASE_OUT}` }}>
+      <PageHeader title="Onboarding" subtitle={`${allEntries.length} employee${allEntries.length !== 1 ? 's' : ''} in onboarding`} />
+
+      <div style={{ flex: 1, overflow: 'auto', padding: 'var(--space-250)' }}>
+        {allEntries.length === 0 ? (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', paddingBottom: 'var(--space-800)' }}>
+            <EmptyState icon="users" title="No employees in onboarding" description="Add an employee to start their onboarding."
+              action={<Button variant="primary" onClick={onAddEmployee}>Add employee</Button>} />
+          </div>
+        ) : (
+          <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 12, overflow: 'hidden' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)' }}>
+              <thead>
+                <tr style={{ borderBottom: `1px solid ${P.border}`, background: P.bg }}>
+                  {['NAME', 'ENTITY', 'DEPARTMENT', 'START DATE', 'STATUS', ''].map((h, i) => (
+                    <th key={i} style={{ padding: 'var(--space-100) var(--space-200)', textAlign: 'left', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.inkSoft, whiteSpace: 'nowrap', width: h === '' ? 1 : 'auto' }}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {allEntries.map((emp, i) => {
+                  const extra = EMP_EXTRA[emp.id] || {};
+                  return (
+                    <tr key={emp.id} style={{ borderTop: i > 0 ? `1px solid ${P.border}` : 'none', background: emp.isDraft ? '#fafafa' : 'transparent' }}>
+                      <td style={{ padding: 'var(--space-150) var(--space-200)' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)' }}>
+                          <div style={{ width: 32, height: 32, borderRadius: '50%', background: emp.color || P.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, opacity: emp.isDraft ? 0.5 : 1 }}>
+                            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 11, color: P.ink }}>{emp.initials}</span>
+                          </div>
+                          <div>
+                            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, color: emp.isDraft ? P.inkSoft : P.ink }}>{emp.name}</div>
+                            {emp.email && <div style={{ fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>{emp.email}</div>}
+                          </div>
+                        </div>
+                      </td>
+                      <td style={{ padding: 'var(--space-150) var(--space-200)', color: P.inkSoft }}>{emp.entity || '—'}</td>
+                      <td style={{ padding: 'var(--space-150) var(--space-200)', color: P.inkSoft }}>{emp.department || '—'}</td>
+                      <td style={{ padding: 'var(--space-150) var(--space-200)', color: P.inkSoft, whiteSpace: 'nowrap' }}>{emp.isDraft ? (emp.startDate || '—') : (extra.hireDate || '—')}</td>
+                      <td style={{ padding: 'var(--space-150) var(--space-200)', whiteSpace: 'nowrap' }}>
+                        {emp.isDraft
+                          ? <span style={{ padding: '1px 7px', borderRadius: 99, border: `1px solid ${P.border}`, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.inkSoft, background: P.bg }}>Draft</span>
+                          : <span style={{ padding: '1px 7px', borderRadius: 99, border: '1px solid #bbf7d0', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: '#16a34a', background: '#f0fdf4' }}>Pending invite</span>
+                        }
+                      </td>
+                      <td style={{ padding: 'var(--space-150) var(--space-200)', whiteSpace: 'nowrap' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-100)' }}>
+                          {emp.isDraft ? (
+                            <button onClick={() => onContinueDraft?.(emp.id)} style={{ padding: 'var(--space-075) var(--space-150)', borderRadius: 7, border: 'none', background: P.action, color: P.white, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', cursor: 'pointer' }}>Continue</button>
+                          ) : (
+                            <>
+                              <button onClick={() => onNav('employee-detail:' + emp.id)} style={{ padding: 'var(--space-075) var(--space-150)', borderRadius: 7, border: `1px solid ${P.border}`, background: P.white, color: P.ink, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', cursor: 'pointer' }}>View profile</button>
+                              <button onClick={() => onSendInvite(emp.id)} style={{ padding: 'var(--space-075) var(--space-150)', borderRadius: 7, border: 'none', background: P.action, color: P.white, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', cursor: 'pointer' }}>Send invite</button>
+                            </>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── Offboarding Screen ─────────────────────────────────────────────────────
+function OffboardingScreen({ offboardingIds = new Set(), onCompleteOffboarding, onNav, appEntity }) {
+  const employees = [...offboardingIds]
+    .map(id => ({ id, ...EMPLOYEES[id] }))
+    .filter(e => e.name && (!appEntity || e.entityId === appEntity))
+    .sort((a, b) => a.name.localeCompare(b.name));
+
+  return (
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, overflow: 'hidden', animation: `screenEnter 180ms ${EASE_OUT}` }}>
+      <PageHeader title="Offboarding" subtitle={employees.length > 0 ? `${employees.length} employee${employees.length !== 1 ? 's' : ''} in progress` : 'Employees leaving the organisation'} />
+
+      <div style={{ flex: 1, overflow: 'auto', padding: 'var(--space-250)' }}>
+        {employees.length === 0 ? (
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', gap: 'var(--space-150)', paddingBottom: 'var(--space-800)' }}>
+            <div style={{ width: 48, height: 48, borderRadius: '50%', background: P.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Icon name="log-out" size={22} color={P.inkFaint} strokeWidth={1.5} />
+            </div>
+            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.ink }}>No active offboardings</div>
+            <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft }}>Start an offboarding from an employee's profile.</div>
+          </div>
+        ) : (
+          <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 12, overflow: 'hidden' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)' }}>
+              <thead>
+                <tr style={{ borderBottom: `1px solid ${P.border}`, background: P.bg }}>
+                  {['NAME', 'ENTITY', 'DEPARTMENT', ''].map((h, i) => (
+                    <th key={i} style={{ padding: 'var(--space-100) var(--space-200)', textAlign: 'left', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.inkSoft, whiteSpace: 'nowrap', width: h === '' ? 1 : 'auto' }}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {employees.map((emp, i) => (
+                  <tr key={emp.id} style={{ borderTop: i > 0 ? `1px solid ${P.border}` : 'none' }}>
+                    <td style={{ padding: 'var(--space-150) var(--space-200)' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)' }}>
+                        <div style={{ width: 32, height: 32, borderRadius: '50%', background: emp.color || P.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                          <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 11, color: P.ink }}>{emp.initials}</span>
+                        </div>
+                        <div>
+                          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, color: P.ink }}>{emp.name}</div>
+                          <div style={{ fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>{emp.email}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td style={{ padding: 'var(--space-150) var(--space-200)', color: P.inkSoft }}>{emp.entity || '—'}</td>
+                    <td style={{ padding: 'var(--space-150) var(--space-200)', color: P.inkSoft }}>{emp.department || '—'}</td>
+                    <td style={{ padding: 'var(--space-150) var(--space-200)', whiteSpace: 'nowrap' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-100)' }}>
+                        <button onClick={() => onNav('employee-detail:' + emp.id)} style={{ padding: 'var(--space-075) var(--space-150)', borderRadius: 7, border: `1px solid ${P.border}`, background: P.white, color: P.ink, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', cursor: 'pointer' }}>View profile</button>
+                        <button onClick={() => onCompleteOffboarding && onCompleteOffboarding(emp.id)} style={{ padding: 'var(--space-075) var(--space-150)', borderRadius: 7, border: 'none', background: P.dangerBg, color: P.danger, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', cursor: 'pointer' }}>Complete offboarding</button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ── Add Employee Wizard ────────────────────────────────────────────────────
 const ENTITY_DOMAINS = {
   'lumio-group':  'lumiogroup.be',
@@ -11830,14 +12078,20 @@ const ENTITY_DOMAINS = {
   'lumio-nl':     'lumio.nl',
 };
 
-function AddEmployeeWizard({ onClose, onCreated, companyRegime, mobilityLive, prefill = {} }) {
+function AddEmployeeWizard({ onClose, onCreated, companyRegime, mobilityLive, prefill = {}, draftId, onAutosave, onRemoveDraft }) {
   const { visible, close } = useModalTransition(onClose, SHEET_CLOSE_DUR);
   const [step, setStep] = useState(1);
   const stepDirRef = React.useRef('forward');
   const [emailFlash, setEmailFlash] = useState(false);
+  const [returnToReview, setReturnToReview] = useState(false);
+  const draftIdRef = React.useRef(draftId != null ? draftId : ('draft-' + Date.now()));
 
-  const goForward = () => { stepDirRef.current = 'forward';  setStep(s => s + 1); };
-  const goBack    = () => { stepDirRef.current = 'backward'; setStep(s => s - 1); };
+  const goForward = () => {
+    stepDirRef.current = 'forward';
+    if (returnToReview) { setReturnToReview(false); setStep(totalSteps); }
+    else { setStep(s => s + 1); }
+  };
+  const goBack = () => { stepDirRef.current = 'backward'; setReturnToReview(false); setStep(s => s - 1); };
 
   // Inject CSS keyframes once
   React.useEffect(() => {
@@ -11849,6 +12103,7 @@ function AddEmployeeWizard({ onClose, onCreated, companyRegime, mobilityLive, pr
         @keyframes wizSlideFromLeft  { from { opacity:0; transform:translateX(-28px); } to { opacity:1; transform:translateX(0); } }
         @keyframes wizFadeUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
         @keyframes wizEmailFlash { 0%,20% { background:#f3f0ff; } 100% { background:#fff; } }
+        @keyframes wizCheckPop { from { opacity:0; transform:scale(0.75); } to { opacity:1; transform:scale(1); } }
       `;
       document.head.appendChild(s);
     }
@@ -11857,28 +12112,27 @@ function AddEmployeeWizard({ onClose, onCreated, companyRegime, mobilityLive, pr
   // Step 1 — Personal info
   const [firstName, setFirstName]       = useState(prefill.firstName ?? '');
   const [lastName,  setLastName]        = useState(prefill.lastName  ?? '');
-  const [dob,       setDob]             = useState('');
-  const [gender,    setGender]          = useState('');
-  const [lang,      setLang]            = useState('Dutch');
+  const [dob,       setDob]             = useState(prefill.dob ?? '');
+  const [gender,    setGender]          = useState(prefill.gender ?? '');
+  const [lang,      setLang]            = useState(prefill.lang ?? 'Dutch');
   const [niss,      setNiss]            = useState(prefill.niss      ?? '');
-  const [iban,      setIban]            = useState('');
+  const [iban,      setIban]            = useState(prefill.iban ?? '');
 
   // Step 2 — Employment
-  const [entityId,        setEntityId]        = useState('lumio-group');
-  const [department,      setDepartment]      = useState('');
-  const [startDate,       setStartDate]       = useState('08/08/2026');
+  const [entityId,        setEntityId]        = useState(prefill.entityId ?? 'lumio-group');
+  const [department,      setDepartment]      = useState(prefill.department ?? '');
+  const [startDate,       setStartDate]       = useState(prefill.startDate ?? '08/08/2026');
   const [roles,           setRoles]           = useState(['Employee']);
-  const [contractType,    setContractType]    = useState('cdi');
-  const [contractEndDate, setContractEndDate] = useState('');
+  const [contractType,    setContractType]    = useState(prefill.contractType ?? 'cdi');
+  const [contractEndDate, setContractEndDate] = useState(prefill.contractEndDate ?? '');
 
   // Step 3 — Schedule
-  const [fte,          setFte]          = useState(1.0);
-  const [workSchedule, setWorkSchedule] = useState([1,2,3,4,5]);
+  const [fte,          setFte]          = useState(prefill.fte ?? 1.0);
+  const [workSchedule, setWorkSchedule] = useState(prefill.workSchedule ?? [1,2,3,4,5]);
 
-  // Step 4 — invite + Step 5 — Card access
-  const [sendInvite, setSendInvite] = useState(true);
-  const totalSteps = mobilityLive ? 5 : 4;
-  const [inviteToCard, setInviteToCard] = useState(true);
+  // Step 5 — Card access
+  const totalSteps = mobilityLive ? 6 : 5;
+  const [inviteToCard, setInviteToCard] = useState(prefill.inviteToCard ?? true);
 
   // Step 4 — Compensation
   const suggestedWorkEmail = React.useMemo(() => {
@@ -11887,11 +12141,11 @@ function AddEmployeeWizard({ onClose, onCreated, companyRegime, mobilityLive, pr
     const l = lastName.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z-]/g, '');
     return f && l ? `${f}.${l}@${domain}` : '';
   }, [firstName, lastName, entityId]);
-  const [workEmail,      setWorkEmail]      = useState('');
-  const [grossSalary,    setGrossSalary]    = useState('');
+  const [workEmail,      setWorkEmail]      = useState(prefill.workEmail ?? '');
+  const [grossSalary,    setGrossSalary]    = useState(prefill.grossSalary ?? '');
   const [employerNsso,   setEmployerNsso]   = useState('25.00');
   const [employeeNsso,   setEmployeeNsso]   = useState('13.07');
-  const [components,     setComponents]     = useState(['meal-vouchers']);
+  const [components,     setComponents]     = useState(prefill.components ?? ['meal-vouchers']);
 
   // Auto-populate work email when reaching step 2
   React.useEffect(() => {
@@ -11904,6 +12158,15 @@ function AddEmployeeWizard({ onClose, onCreated, companyRegime, mobilityLive, pr
   }, [step]);
 
   const regime = companyRegime || COMPANY_REGIME_DEFAULTS;
+
+  const [draftSaved, setDraftSaved] = useState(false);
+  const draftSaveTimerRef = React.useRef(null);
+  const handleSaveDraft = () => {
+    onAutosave?.(draftIdRef.current, { firstName, lastName, dob, gender, lang, niss, iban, entityId, department, startDate, contractType, contractEndDate, fte, workSchedule, workEmail, grossSalary, components, inviteToCard });
+    setDraftSaved(true);
+    clearTimeout(draftSaveTimerRef.current);
+    draftSaveTimerRef.current = setTimeout(() => setDraftSaved(false), 2000);
+  };
 
   React.useEffect(() => {
     const handler = (e) => { if (e.key === 'Escape') close(); };
@@ -11955,7 +12218,8 @@ function AddEmployeeWizard({ onClose, onCreated, companyRegime, mobilityLive, pr
       payrollId: String(100000 + id.split('').reduce((a, c) => a + c.charCodeAt(0), 0) % 900000),
       hireDate: startDate,
       lang,
-    }, fullName, sendInvite, mobilityLive && inviteToCard);
+    }, fullName, mobilityLive && inviteToCard);
+    onRemoveDraft?.(draftIdRef.current);
     close();
   };
 
@@ -11969,22 +12233,35 @@ function AddEmployeeWizard({ onClose, onCreated, companyRegime, mobilityLive, pr
     </div>
   );
   const hint       = { fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginTop: 'var(--space-075)' };
-  const fieldIn    = (i) => ({ animation: 'wizFadeUp 220ms ease-out both', animationDelay: `${i * 50}ms` });
-  const segBtn     = (active) => ({ flex: 1, padding: 'var(--space-100) var(--space-200)', borderRadius: 8, border: `1.5px solid ${active ? P.action : P.border}`, background: active ? '#f3f0ff' : 'transparent', color: active ? P.action : P.ink, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', cursor: 'pointer', transition: 'all 120ms ease' });
+  const fieldIn    = (i) => ({ animation: `wizFadeUp 220ms ${EASE_OUT} both`, animationDelay: `${i * 50}ms` });
+  const segBtn     = (active) => ({ flex: 1, padding: 'var(--space-100) var(--space-200)', borderRadius: 8, border: `1.5px solid ${active ? P.action : P.border}`, background: active ? '#f3f0ff' : 'transparent', color: active ? P.action : P.ink, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', cursor: 'pointer', transition: `background 120ms ease, border-color 120ms ease, color 120ms ease` });
   const chevron    = { ...inputStyle, appearance: 'none', backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b6b80' stroke-width='2.5'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 12px center', paddingRight: 'var(--space-400)', cursor: 'pointer' };
 
-  const StepDots = () => (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-100)' }}>
-      {Array.from({ length: totalSteps }, (_, i) => i + 1).map((s, i) => (
-        <React.Fragment key={s}>
-          {i > 0 && (
-            <div style={{ width: 20, height: 1, background: P.border, position: 'relative', overflow: 'hidden' }}>
-              <div style={{ position: 'absolute', inset: 0, background: P.action, transformOrigin: 'left center', transform: s <= step ? 'scaleX(1)' : 'scaleX(0)', transition: 'transform 280ms ease-out' }} />
+  const STEP_NAMES = mobilityLive
+    ? ['Personal info', 'Employment', 'Schedule', 'Compensation', 'Card access', 'Review']
+    : ['Personal info', 'Employment', 'Schedule', 'Compensation', 'Review'];
+
+  const WizSidebar = () => (
+    <div style={{ width: 220, flexShrink: 0, borderRight: `1px solid ${P.border}`, padding: 'var(--space-500) var(--space-300)', display: 'flex', flexDirection: 'column', gap: 0 }}>
+      {STEP_NAMES.map((name, i) => {
+        const s = i + 1;
+        const done   = s < step;
+        const active = s === step;
+        return (
+          <div key={s} style={{ display: 'flex', gap: 'var(--space-200)', alignItems: 'flex-start' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexShrink: 0 }}>
+              <div style={{ width: 20, height: 20, borderRadius: '50%', background: active ? P.action : done ? '#22c55e' : 'transparent', border: active || done ? 'none' : `1.5px solid ${P.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 280ms ease, border-color 280ms ease', flexShrink: 0 }}>
+                {done   && <span style={{ display: 'inline-flex', animation: 'wizCheckPop 200ms cubic-bezier(0.34,1.56,0.64,1) both' }}><Icon name="Check" size={11} color="#fff" strokeWidth={2.5} /></span>}
+                {active && <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#fff' }} />}
+              </div>
+              {s < totalSteps && <div style={{ width: 1, height: 28, background: s < step ? '#22c55e' : P.border, transition: 'background 280ms ease', marginTop: 2 }} />}
             </div>
-          )}
-          <div style={{ width: s === step ? 8 : 6, height: s === step ? 8 : 6, borderRadius: '50%', background: s <= step ? P.action : P.border, transition: 'all 280ms cubic-bezier(0.34,1.56,0.64,1)' }} />
-        </React.Fragment>
-      ))}
+            <div style={{ paddingTop: 1, paddingBottom: s < totalSteps ? 30 : 0 }}>
+              <div style={{ fontFamily: 'var(--font-display)', fontWeight: active ? 600 : 400, fontSize: 'var(--fs-body-sm)', color: active ? P.ink : done ? P.inkSoft : P.inkSoft, opacity: active ? 1 : done ? 0.7 : 0.5, transition: 'opacity 280ms ease, color 280ms ease' }}>{name}</div>
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 
@@ -11992,13 +12269,11 @@ function AddEmployeeWizard({ onClose, onCreated, companyRegime, mobilityLive, pr
     <div style={{ position: 'fixed', inset: 0, zIndex: 201, background: P.bg, display: 'flex', flexDirection: 'column', opacity: visible ? 1 : 0, transform: visible ? 'none' : 'translateY(16px)', transition: `opacity ${SHEET_CLOSE_DUR}ms ${EASE_OUT}, transform ${SHEET_CLOSE_DUR}ms ${EASE_OUT}` }}>
 
       {/* Header */}
-      <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 var(--space-400)', height: 60, borderBottom: `1px solid ${P.border}` }}>
-        <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-lg)', color: P.ink, minWidth: 140 }}>Add employee</div>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 'var(--space-075)' }}>
-          <StepDots />
-          <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>Step {step} of {totalSteps}</div>
-        </div>
-        <div style={{ minWidth: 140, display: 'flex', justifyContent: 'flex-end' }}>
+      <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 var(--space-400)', height: 60, borderBottom: `1px solid ${P.border}`, background: P.white }}>
+        <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-lg)', color: P.ink }}>Add employee</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-200)' }}>
+          <button onClick={handleSaveDraft} style={{ padding: 'var(--space-075) var(--space-150)', borderRadius: 7, border: `1px solid ${P.border}`, background: draftSaved ? P.bg : P.white, color: draftSaved ? P.inkSoft : P.ink, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', cursor: 'pointer', transition: 'color 150ms ease, background 150ms ease' }}>{draftSaved ? 'Saved' : 'Save draft'}</button>
+          <div style={{ width: 1, height: 16, background: P.border }} />
           <button onClick={close} style={{ border: 'none', cursor: 'pointer', width: 30, height: 30, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(60,60,67,0.1)' }}>
             <Icon name="X" size={14} color={P.ink} strokeWidth={2.5} />
           </button>
@@ -12006,9 +12281,11 @@ function AddEmployeeWizard({ onClose, onCreated, companyRegime, mobilityLive, pr
       </div>
 
       {/* Body */}
-      <div style={{ flex: 1, overflowY: 'auto', padding: '0 var(--space-400)' }}>
+      <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
+        {WizSidebar()}
+        <div style={{ flex: 1, overflowY: 'auto', padding: '0 var(--space-400)' }}>
         <form autoComplete="off" onSubmit={e => e.preventDefault()} style={{ maxWidth: 560, margin: '0 auto', padding: 'var(--space-600) 0 var(--space-1000)' }}>
-        <div key={step} style={{ animation: `${stepDirRef.current === 'forward' ? 'wizSlideFromRight' : 'wizSlideFromLeft'} 200ms ease-out both` }}>
+        <div key={step} style={{ animation: `${stepDirRef.current === 'forward' ? 'wizSlideFromRight' : 'wizSlideFromLeft'} 200ms ${EASE_OUT} both` }}>
 
           {step === 1 && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-250)' }}>
@@ -12143,7 +12420,7 @@ function AddEmployeeWizard({ onClose, onCreated, companyRegime, mobilityLive, pr
             </div>
           )}
 
-          {step === 5 && (
+          {mobilityLive && step === 5 && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-300)' }}>
               <StepHeading title="Card access" sub="Invite this employee to request a Payflip Card for mobility expenses." />
               <div style={{ ...fieldIn(0), border: `1px solid ${P.border}`, borderRadius: 12, background: P.white }}>
@@ -12201,32 +12478,74 @@ function AddEmployeeWizard({ onClose, onCreated, companyRegime, mobilityLive, pr
             </div>
           )}
 
-        </div>
-        </form>
-      </div>
-
-      {/* Footer */}
-      <div style={{ flexShrink: 0, padding: 'var(--space-200) var(--space-400)', borderTop: `1px solid ${P.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: P.white }}>
-        {step > 1
-          ? <button onClick={goBack} style={{ padding: 'var(--space-100) var(--space-250)', borderRadius: 8, border: `1px solid ${P.border}`, background: 'transparent', color: P.ink, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)' }}>Back</button>
-          : <div />
-        }
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-200)' }}>
-          {step === 4 && (
-            <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-100)', cursor: 'pointer' }}>
-              <div onClick={() => setSendInvite(v => !v)}
-                style={{ width: 18, height: 18, borderRadius: 4, border: `1.5px solid ${sendInvite ? P.action : P.border}`, background: sendInvite ? P.action : P.white, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 120ms ease' }}>
-                {sendInvite && <Icon name="Check" size={11} color={P.white} strokeWidth={3} />}
+          {step === totalSteps && (() => {
+const reviewSection = (title, targetStep, rows) => (
+              <div style={{ marginBottom: 'var(--space-300)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-150)' }}>
+                  <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink }}>{title}</div>
+                  <button onClick={() => { stepDirRef.current = 'backward'; setReturnToReview(true); setStep(targetStep); }} style={{ border: 'none', background: 'none', padding: 0, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink, textDecoration: 'underline', cursor: 'pointer' }}>Edit</button>
+                </div>
+                <SettingsCard>
+                  {rows.map(([l, v], i) => (
+                    <SettingsRow key={i} label={l} value={v || '—'} valueColor={v ? P.ink : P.inkFaint} trailing={null} last={i === rows.length - 1} />
+                  ))}
+                </SettingsCard>
               </div>
-              <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink }}>Send invite email</span>
-            </label>
-          )}
-          {step < totalSteps
-            ? <button onClick={goForward} style={{ padding: 'var(--space-100) var(--space-250)', borderRadius: 8, border: 'none', background: P.action, color: P.white, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', transition: 'background 150ms ease' }}>Next</button>
-            : <button onClick={handleCreate} style={{ padding: 'var(--space-100) var(--space-250)', borderRadius: 8, border: 'none', background: P.action, color: P.white, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)' }}>
-                {inviteToCard ? 'Create & invite to card' : sendInvite ? 'Create & send invite' : 'Create employee'}
-              </button>
+            );
+            const dayNames = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+            const entity = ENTITIES.find(e => e.id === entityId);
+            return (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+                <StepHeading title="Review" sub="Check everything before creating the employee." />
+                {reviewSection('Personal info', 1, [
+                  ['Name', `${firstName} ${lastName}`],
+                  ['Date of birth', dob],
+                  ['Gender', gender === 'M' ? 'Male' : gender === 'F' ? 'Female' : ''],
+                  ['Language', lang],
+                  ['INSS number', niss],
+                  ['Bank account (IBAN)', iban],
+                ])}
+                {reviewSection('Employment', 2, [
+                  ['Entity', entity?.name || entityId],
+                  ['Department', department],
+                  ['Start date', startDate],
+                  ['Contract', contractType === 'cdi' ? 'Open-ended (CDI)' : `Fixed-term (CDD)${contractEndDate ? ' — ' + contractEndDate : ''}`],
+                  ['Role', roles.join(', ')],
+                  ['Work email', workEmail],
+                ])}
+                {reviewSection('Schedule', 3, [
+                  ['FTE', `${Math.round(fte * 100)}%`],
+                  ['Work days', workSchedule.map(d => dayNames[d - 1]).join(', ')],
+                ])}
+                {reviewSection('Compensation', 4, [
+                  ['Gross salary', grossSalary ? `€${parseFloat(grossSalary).toLocaleString('fr-BE', { minimumFractionDigits: 2 })}` : ''],
+                  ['Components', components.length ? components.map(c => ({ 'meal-vouchers': 'Meal vouchers', 'eco-vouchers': 'Eco vouchers', 'hospitalization': 'Hospitalization', 'group-insurance': 'Group insurance', 'car': 'Company car' })[c] || c).join(', ') : 'None'],
+                ])}
+                {mobilityLive && reviewSection('Card access', 5, [
+                  ['Invite to Payflip Card', inviteToCard ? 'Yes' : 'No'],
+                ])}
+              </div>
+            );
+          })()}
+
+        </div>
+
+        <div style={{ marginTop: 'var(--space-500)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          {step > 1
+            ? <button onClick={goBack} style={{ padding: 'var(--space-100) var(--space-250)', borderRadius: 8, border: `1px solid ${P.border}`, background: 'transparent', color: P.ink, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)' }}>Back</button>
+            : <div />
           }
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-200)' }}>
+            {step < totalSteps
+              ? <button onClick={goForward} style={{ padding: 'var(--space-100) var(--space-250)', borderRadius: 8, border: 'none', background: P.action, color: P.white, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', transition: 'background 150ms ease' }}>{returnToReview ? 'Back to review' : 'Next'}</button>
+              : <button onClick={handleCreate} style={{ padding: 'var(--space-100) var(--space-250)', borderRadius: 8, border: 'none', background: P.action, color: P.white, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)' }}>
+                  Save to onboarding
+                </button>
+            }
+          </div>
+        </div>
+
+        </form>
         </div>
       </div>
     </div>
@@ -12279,7 +12598,8 @@ function App() {
       if (top) {
         const existingInss = (employeeOverrides[top.id]?.inssNumber) || EMP_EXTRA[top.id]?.inssNumber || EMPLOYEES[top.id]?.niss || null;
         const type = !existingInss ? 'new' : existingInss === rec.niss ? 'same' : 'conflict';
-        if (type !== 'same') map.set(top.id, { ...rec, type, existingInss });
+        const source = (employeeOverrides[top.id]?.inssNumber || EMP_EXTRA[top.id]?.inssNumber) ? 'itsme' : 'manual';
+        if (type !== 'same') map.set(top.id, { ...rec, type, existingInss, source });
       }
     });
     return map;
@@ -12289,21 +12609,62 @@ function App() {
     setUnmatchedQueue(q => q.filter(e => e.niss !== rec.niss));
     setFoodUnmatched(n => Math.max(0, n - 1));
   };
+  const [onboardingIds, setOnboardingIds] = useState(() => new Set());
+  const [offboardingIds, setOffboardingIds] = useState(() => new Set());
+  const [drafts, setDrafts] = useState(() => new Map());
   const [addEmployeeOpen, setAddEmployeeOpen] = useState(false);
   const [addEmployeePrefill, setAddEmployeePrefill] = useState({});
   const [freshEmployeeId, setFreshEmployeeId] = useState(null);
-  const handleAddEmployee = (id, emp, extra, fullName, sendInvite, inviteToCard) => {
-    EMPLOYEES[id] = emp;
+  const handleAddEmployee = (id, emp, extra, fullName, inviteToCard) => {
+    EMPLOYEES[id] = { ...emp, status: 'Onboarding' };
     EMP_EXTRA[id] = extra;
     setFreshEmployeeId(id);
+    setOnboardingIds(prev => { const next = new Set(prev); next.add(id); return next; });
     if (inviteToCard) {
+      EMPLOYEES[id]._pendingCardInvite = true;
+    }
+    handleNav('people-onboarding');
+    addToast({ message: `${fullName} added to onboarding`, type: 'approve' });
+  };
+  const handleAutosave = (draftId, formData) => {
+    setDrafts(prev => { const next = new Map(prev); next.set(draftId, formData); return next; });
+  };
+  const handleRemoveDraft = (draftId) => {
+    setDrafts(prev => { const next = new Map(prev); next.delete(draftId); return next; });
+  };
+  const handleContinueDraft = (draftId) => {
+    const draft = drafts.get(draftId);
+    if (!draft) return;
+    setAddEmployeePrefill({ ...draft, _draftId: draftId });
+    setAddEmployeeOpen(true);
+  };
+  const handleStartOffboarding = (id) => {
+    const emp = EMPLOYEES[id];
+    if (!emp) return;
+    EMPLOYEES[id] = { ...emp, status: 'Offboarding' };
+    setOffboardingIds(prev => { const next = new Set(prev); next.add(id); return next; });
+    const name = emp.name?.split(' ')[0] || emp.name;
+    handleNav('people-offboarding');
+    addToast({ message: `${name} moved to offboarding`, type: 'decline' });
+  };
+  const handleCompleteOffboarding = (id) => {
+    const emp = EMPLOYEES[id];
+    if (!emp) return;
+    EMPLOYEES[id] = { ...emp, status: 'Inactive' };
+    setOffboardingIds(prev => { const next = new Set(prev); next.delete(id); return next; });
+    const name = emp.name?.split(' ')[0] || emp.name;
+    addToast({ message: `${name} offboarded`, type: 'decline' });
+  };
+  const handleSendOnboardingInvite = (id) => {
+    const emp = EMPLOYEES[id];
+    if (!emp) return;
+    EMPLOYEES[id] = { ...emp, status: 'Active' };
+    if (emp._pendingCardInvite) {
       setMobilityWidgetState(prev => ({ ...prev, invitedKeys: [...(prev.invitedKeys || []), id] }));
     }
-    setScreen('employee-detail:' + id);
-    const msg = inviteToCard ? `${fullName} added — invite & card access sent`
-      : sendInvite ? `${fullName} added — invite sent`
-      : `${fullName} added`;
-    addToast({ message: msg, type: 'approve' });
+    setOnboardingIds(prev => { const next = new Set(prev); next.delete(id); return next; });
+    const name = emp.name?.split(' ')[0] || emp.name;
+    addToast({ message: `Invite sent to ${name}`, type: 'approve' });
   };
   const [calDetail, setCalDetail] = useState(null);
   const [calendarJumpDate, setCalendarJumpDate] = useState(null);
@@ -12638,14 +12999,16 @@ function App() {
         <div onClick={() => setMobilityWidgetState(prev => ({ ...prev, hidden: true }))} style={{ position: 'fixed', inset: 0, zIndex: 1, cursor: 'pointer' }} />
       )}
 
-      <Sidebar active={screen} onNav={handleNav} pendingCount={pendingCount} sidebarMode={sidebarMode} onSetSidebarMode={setSidebarMode} appEntity={appEntity} onSetAppEntity={setAppEntity} setupInProgress={screen === 'dashboard' && !mobilityWidgetState.live && !mobilityWidgetState.hidden} />
+      <Sidebar active={screen} onNav={handleNav} pendingCount={pendingCount} sidebarMode={sidebarMode} onSetSidebarMode={setSidebarMode} appEntity={appEntity} onSetAppEntity={setAppEntity} setupInProgress={screen === 'dashboard' && !mobilityWidgetState.live && !mobilityWidgetState.hidden} onboardingCount={onboardingIds.size + drafts.size} offboardingCount={offboardingIds.size} />
 
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, overflow: 'hidden' }}>
-        {screen === 'dashboard' && <DashboardScreen key={appEntity ?? 'all'} requests={entityFilteredRequests} onNav={setScreen} onToast={addToast} appEntity={appEntity} physicalCardsAllowed={physicalCardsAllowed} onPhysicalCardsChange={setPhysicalCardsAllowed} cardDelivery={cardDelivery} onCardDeliveryChange={setCardDelivery} mobilityWidgetState={mobilityWidgetState} onMobilityWidgetStateChange={setMobilityWidgetState} pendingRequests={pendingRequestsCount} pendingExpenses={pendingExpensesCount} pendingChoices={pendingChoicesCount} activeBudgets={allowances.filter(a => a.active).length} onAddEmployee={(pf) => { setAddEmployeePrefill(pf); setAddEmployeeOpen(true); }} foodUnmatched={foodUnmatched} setFoodUnmatched={setFoodUnmatched} unmatchedQueue={unmatchedQueue} setUnmatchedQueue={setUnmatchedQueue} matchedEmpInssMap={matchedEmpInssMap} />}
+        {screen === 'dashboard' && <DashboardScreen key={appEntity ?? 'all'} requests={entityFilteredRequests} onNav={handleNav} onToast={addToast} appEntity={appEntity} physicalCardsAllowed={physicalCardsAllowed} onPhysicalCardsChange={setPhysicalCardsAllowed} cardDelivery={cardDelivery} onCardDeliveryChange={setCardDelivery} mobilityWidgetState={mobilityWidgetState} onMobilityWidgetStateChange={setMobilityWidgetState} pendingRequests={pendingRequestsCount} pendingExpenses={pendingExpensesCount} pendingChoices={pendingChoicesCount} activeBudgets={allowances.filter(a => a.active).length} onAddEmployee={(pf) => { setAddEmployeePrefill({ ...(pf||{}), _draftId: 'draft-' + Date.now() }); setAddEmployeeOpen(true); }} foodUnmatched={foodUnmatched} setFoodUnmatched={setFoodUnmatched} unmatchedQueue={unmatchedQueue} setUnmatchedQueue={setUnmatchedQueue} matchedEmpInssMap={matchedEmpInssMap} onboardingCount={[...onboardingIds].filter(id => !appEntity || EMPLOYEES[id]?.entityId === appEntity).length} offboardingCount={[...offboardingIds].filter(id => !appEntity || EMPLOYEES[id]?.entityId === appEntity).length} />}
         {screen === 'team-absences' && <TeamAbsencesScreen key={appEntity ?? 'all'} requests={entityFilteredRequests} pendingCount={pendingRequestsCount} onNav={setScreen} onShowDetail={setCalDetail} activeReqId={calDetail?.id} onSave={saveRequest} companyEvents={companyEvents} onCancelCompanyEvent={cancelCompanyEvent} initialDate={calendarJumpDate} initialDeptFilter={calendarDeptFilter} appEntity={appEntity} leaveTypes={leaveTypes} />}
         {screen === 'requests' && <RequestsScreen key={appEntity ?? 'all'} requests={entityFilteredRequests} onApprove={approve} onDecline={requestDecline} onSave={saveRequest} onCancel={requestCancel} onNav={setScreen} onViewInCalendar={(req) => { const d = req._selectedDates?.[0] || req.startDate; if (d) { const iso = typeof d === 'string' && d.match(/^\d{4}-/) ? d : null; setCalendarJumpDate(iso ? new Date(iso) : parseDisplayDate(d)); } setCalDetail(req); setScreen('team-absences'); }} appEntity={appEntity} />}
-        {(screen === 'employees' || screen === 'employees:admin') && <EmployeesScreen key={appEntity ?? 'all'} requests={entityFilteredRequests} onNav={setScreen} initialRoleFilter={screen === 'employees:admin' ? 'Admin' : 'All'} adminAccess={adminAccess} appEntity={appEntity} onAddEmployee={(pf) => { if (pf) setAddEmployeePrefill(pf); setAddEmployeeOpen(true); }} onToast={addToast} matchedEmpInssMap={matchedEmpInssMap} />}
-        {screen.startsWith('employee-detail:') && (() => { const [, detailEmpId, detailTab] = screen.split(':'); return <EmployeeDetailScreen employeeId={detailEmpId} requests={requests} onNav={setScreen} onSave={saveRequest} onCancel={cancelRequest} onApprove={approve} onDecline={requestDecline} onViewTeamCalendar={(dept) => { setCalendarDeptFilter(dept || null); setScreen('team-absences'); }} employeeBalance={employeeBalances[detailEmpId]} onUpdateBalance={(newBal) => updateBalances(detailEmpId, newBal)} needsSetup={needsBalanceSetup.has(detailEmpId)} confirmedDate={balanceConfirmedDates[detailEmpId]} onConfirmBalances={() => confirmBalancesFor(detailEmpId)} onToast={addToast} adminAccess={adminAccess} onAdminSave={handleAdminSave} companyRegime={companyRegime} onEmployeeUpdate={handleEmployeeUpdate} getEmpWithOverrides={getEmpWithOverrides} physicalCardsAllowed={physicalCardsAllowed} mobilityWidgetState={mobilityWidgetState} initialTab={detailTab || (freshEmployeeId === detailEmpId ? 'details' : 'choices')} unmatchedRecord={matchedEmpInssMap.get(detailEmpId)} onResolveUnmatched={resolveUnmatched} />; })()}
+        {(screen === 'employees' || screen === 'employees:admin') && <EmployeesScreen key={appEntity ?? 'all'} requests={entityFilteredRequests} onNav={setScreen} initialRoleFilter={screen === 'employees:admin' ? 'Admin' : 'All'} adminAccess={adminAccess} appEntity={appEntity} onAddEmployee={(pf) => { setAddEmployeePrefill({ ...(pf||{}), _draftId: 'draft-' + Date.now() }); setAddEmployeeOpen(true); }} onToast={addToast} matchedEmpInssMap={matchedEmpInssMap} />}
+        {screen === 'people-onboarding' && <OnboardingScreen onboardingIds={onboardingIds} drafts={drafts} onSendInvite={handleSendOnboardingInvite} onNav={handleNav} onAddEmployee={() => { setAddEmployeePrefill({ _draftId: 'draft-' + Date.now() }); setAddEmployeeOpen(true); }} onContinueDraft={handleContinueDraft} appEntity={appEntity} />}
+        {screen === 'people-offboarding' && <OffboardingScreen offboardingIds={offboardingIds} onCompleteOffboarding={handleCompleteOffboarding} onNav={handleNav} appEntity={appEntity} />}
+        {screen.startsWith('employee-detail:') && (() => { const [, detailEmpId, detailTab] = screen.split(':'); return <EmployeeDetailScreen employeeId={detailEmpId} requests={requests} onNav={setScreen} onSave={saveRequest} onCancel={cancelRequest} onApprove={approve} onDecline={requestDecline} onViewTeamCalendar={(dept) => { setCalendarDeptFilter(dept || null); setScreen('team-absences'); }} employeeBalance={employeeBalances[detailEmpId]} onUpdateBalance={(newBal) => updateBalances(detailEmpId, newBal)} needsSetup={needsBalanceSetup.has(detailEmpId)} confirmedDate={balanceConfirmedDates[detailEmpId]} onConfirmBalances={() => confirmBalancesFor(detailEmpId)} onToast={addToast} adminAccess={adminAccess} onAdminSave={handleAdminSave} companyRegime={companyRegime} onEmployeeUpdate={handleEmployeeUpdate} getEmpWithOverrides={getEmpWithOverrides} physicalCardsAllowed={physicalCardsAllowed} mobilityWidgetState={mobilityWidgetState} initialTab={detailTab || (freshEmployeeId === detailEmpId ? 'details' : 'choices')} unmatchedRecord={matchedEmpInssMap.get(detailEmpId)} onResolveUnmatched={resolveUnmatched} onStartOffboarding={handleStartOffboarding} />; })()}
         {screen === 'expenses' && <ExpensesScreen key={appEntity ?? 'all'} expenses={entityFilteredExpenses} categories={expenseCategories} onApprove={approveExpense} onDetail={(exp) => { setExpDetailRejectMode(false); setExpDetail(exp); }} onRejectDirectly={(exp) => { setExpDetailRejectMode(true); setExpDetail(exp); }} onAdd={addExpense} appEntity={appEntity} receiptAlwaysRequired={receiptAlwaysRequired} requireApproval={requireApproval} onGoToSettings={() => setScreen('settings-expenses')} />}
         {screen === 'choices' && <ChoicesScreen key={appEntity ?? 'all'} choices={entityFilteredChoices} onApprove={approveChoice} onDecline={declineChoice} onDetail={setChoiceDetail} appEntity={appEntity} />}
         {screen === 'payroll-overview' && <StubScreen title="Payroll Overview" description="Monthly payroll run and submission" />}
@@ -12723,7 +13086,29 @@ function App() {
         />
       )}
 
-      {addEmployeeOpen && <AddEmployeeWizard onClose={() => { setAddEmployeeOpen(false); setAddEmployeePrefill({}); }} onCreated={handleAddEmployee} companyRegime={companyRegime} mobilityLive={mobilityWidgetState.live} prefill={addEmployeePrefill} />}
+      {addEmployeeOpen && <AddEmployeeWizard
+        draftId={addEmployeePrefill._draftId}
+        onClose={() => {
+          const draftId = addEmployeePrefill._draftId;
+          setAddEmployeeOpen(false);
+          setAddEmployeePrefill({});
+          if (draftId) {
+            setDrafts(prev => {
+              const draft = prev.get(draftId);
+              if (!draft || (!draft.firstName && !draft.lastName)) {
+                const next = new Map(prev); next.delete(draftId); return next;
+              }
+              return prev;
+            });
+          }
+        }}
+        onCreated={handleAddEmployee}
+        onAutosave={handleAutosave}
+        onRemoveDraft={handleRemoveDraft}
+        companyRegime={companyRegime}
+        mobilityLive={mobilityWidgetState.live}
+        prefill={addEmployeePrefill}
+      />}
       <ToastStack toasts={toasts} onRemove={removeToast} />
       {followUpPrompt && !followUpModalOpen && (
         <FollowUpBanner
