@@ -8235,7 +8235,7 @@ function DashboardScreen({ requests, onNav, onToast, appEntity = null, physicalC
                           </div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', flexShrink: 0 }}>
                             <Button variant="secondary" onClick={() => setInssReviewItem({ rec, empId, matchedRec })} style={{ padding: '5px 10px', fontSize: 'var(--fs-body-xs)' }}>Review</Button>
-                            <HoverTooltip label="Skip for this cycle"><button onClick={dismissFn} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: P.inkSoft, display: 'flex', alignItems: 'center', opacity: 0.45, transition: 'opacity 120ms' }} onMouseEnter={e => e.currentTarget.style.opacity = '1'} onMouseLeave={e => e.currentTarget.style.opacity = '0.45'}><Icon name="X" size={14} /></button></HoverTooltip>
+                            <Button variant="text" onClick={dismissFn} style={{ padding: '5px 10px', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>Skip for this cycle</Button>
                           </div>
                         </div>
                       );
@@ -8258,7 +8258,7 @@ function DashboardScreen({ requests, onNav, onToast, appEntity = null, physicalC
                           </div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', flexShrink: 0 }}>
                             <Button variant="secondary" onClick={() => { dismissNfFn(); close(); onAddEmployee({ firstName: prefillFirst, lastName: prefillLast, niss: rec.niss }); }} style={{ padding: '5px 10px', fontSize: 'var(--fs-body-xs)' }}>Add to Payflip</Button>
-                            <HoverTooltip label="Skip for now"><button onClick={dismissNfFn} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: P.inkSoft, display: 'flex', alignItems: 'center', opacity: 0.45, transition: 'opacity 120ms' }} onMouseEnter={e => e.currentTarget.style.opacity = '1'} onMouseLeave={e => e.currentTarget.style.opacity = '0.45'}><Icon name="X" size={14} /></button></HoverTooltip>
+                            <Button variant="text" onClick={dismissNfFn} style={{ padding: '5px 10px', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>Ignore</Button>
                           </div>
                         </div>
                       );
