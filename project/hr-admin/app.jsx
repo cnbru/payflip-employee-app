@@ -7601,8 +7601,12 @@ function InssReviewDetail({ rec, empId, matchedRec, onResolve, onAsk, onBack, on
   ] : null;
   return (
     <div>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: 'var(--space-200) var(--space-300)', borderBottom: `1px solid ${P.border}` }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', padding: 'var(--space-200) var(--space-300)', borderBottom: `1px solid ${P.border}` }}>
         <IconButton icon="arrow-left" onClick={onBack} />
+        <div style={{ flex: 1 }}>
+          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-md)', color: P.ink }}>{rec.name}</div>
+          <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginTop: 1 }}>{isConflict ? 'INSS conflict' : 'Missing INSS'}</div>
+        </div>
         <IconButton icon="X" onClick={onClose} blur />
       </div>
       <div style={{ padding: 'var(--space-300)' }}>
