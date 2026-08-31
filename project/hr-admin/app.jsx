@@ -1321,8 +1321,16 @@ const RECENT_ACTIVITY_SEED = [
 
 // ── localStorage bridge ────────────────────────────────────────────────────
 const LS_KEY = 'payflip_hr_requests';
+const LS_VERSION = '3';
 function readLS() {
-  try { return JSON.parse(localStorage.getItem(LS_KEY) || '[]'); } catch { return []; }
+  try {
+    if (localStorage.getItem('payflip_hr_v') !== LS_VERSION) {
+      localStorage.removeItem(LS_KEY);
+      localStorage.setItem('payflip_hr_v', LS_VERSION);
+      return [];
+    }
+    return JSON.parse(localStorage.getItem(LS_KEY) || '[]');
+  } catch { return []; }
 }
 function writeLS(reqs) {
   try { localStorage.setItem(LS_KEY, JSON.stringify(reqs.filter(r => r.employee === 'david' && r.id.startsWith('req-')))); } catch {}
@@ -7648,7 +7656,7 @@ function AttentionRow({ item, last, onNav }) {
   const [hovered, setHovered] = useState(false);
   return (
     <div onClick={() => item.onClick ? item.onClick() : onNav(item.screen)} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
-      style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', padding: 'var(--space-150) var(--space-250)', borderBottom: last ? 'none' : `1px solid ${P.border}`, cursor: 'pointer', background: hovered ? P.bgSubtle : 'transparent', transition: `background 150ms ${EASE_OUT}` }}>
+      style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', padding: 'var(--space-150) var(--space-250)', cursor: 'pointer', background: hovered ? P.bgSubtle : 'transparent', transition: `background 150ms ${EASE_OUT}` }}>
       <div style={{ position: 'relative', flexShrink: 0 }}>
         <div style={{ width: 32, height: 32, borderRadius: 8, background: item.iconBg ?? P.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <Icon name={item.icon} size={15} color={item.iconColor ?? P.ink} strokeWidth={1.5} />
