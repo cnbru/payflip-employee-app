@@ -8234,7 +8234,7 @@ function DashboardScreen({ requests, onNav, onToast, appEntity = null, physicalC
                             <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>{isConflict ? 'Conflicts with SD Worx record' : 'Missing INSS number'}</div>
                           </div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', flexShrink: 0 }}>
-                            <Button variant="secondary" onClick={() => setInssReviewItem({ rec, empId, matchedRec })}>Review</Button>
+                            <Button variant="secondary" onClick={() => setInssReviewItem({ rec, empId, matchedRec })} style={{ padding: '5px 10px', fontSize: 'var(--fs-body-xs)' }}>Review</Button>
                             <HoverTooltip label="Skip for this cycle"><button onClick={dismissFn} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: P.inkSoft, display: 'flex', alignItems: 'center', opacity: 0.45, transition: 'opacity 120ms' }} onMouseEnter={e => e.currentTarget.style.opacity = '1'} onMouseLeave={e => e.currentTarget.style.opacity = '0.45'}><Icon name="X" size={14} /></button></HoverTooltip>
                           </div>
                         </div>
