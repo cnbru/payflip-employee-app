@@ -1313,6 +1313,12 @@ const EXPENSES_SEED = [
   { id: 'exp-35', employee: 'jana-goossens',     category: 'Taxi',            amount:  21.00, currency: 'EUR', expenseDate:  '8 Jan', submittedAt:  '9 Jan', description: 'Taxi after late team event',                           receipt: 'taxi_jan.pdf',    status: 'approved' },
 ];
 
+const RECENT_ACTIVITY_SEED = [
+  { id: 'ra-itsme',  type: 'itsme_inss',      empIds: ['thomas-vandenberghe', 'bram-goossens', 'sara-verbeke'], action: 'INSS confirmed via itsme', time: '2h ago' },
+  { id: 'ra-invite', type: 'invite_accepted',  empIds: ['emma-martens'],                                        action: 'Accepted Payflip invite',   time: '5h ago' },
+  { id: 'ra-card',   type: 'card_activated',   empIds: ['charlotte-pieters'],                                   action: 'Activated Payflip card',    time: '2d ago' },
+];
+
 // ── localStorage bridge ────────────────────────────────────────────────────
 const LS_KEY = 'payflip_hr_requests';
 function readLS() {
@@ -7643,14 +7649,18 @@ function AttentionRow({ item, last, onNav }) {
   return (
     <div onClick={() => item.onClick ? item.onClick() : onNav(item.screen)} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
       style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', padding: 'var(--space-150) var(--space-250)', borderBottom: last ? 'none' : `1px solid ${P.border}`, cursor: 'pointer', background: hovered ? P.bgSubtle : 'transparent', transition: `background 150ms ${EASE_OUT}` }}>
-      <div style={{ width: 32, height: 32, borderRadius: 8, background: P.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-        <Icon name={item.icon} size={15} color={P.ink} strokeWidth={1.5} />
+      <div style={{ position: 'relative', flexShrink: 0 }}>
+        <div style={{ width: 32, height: 32, borderRadius: 8, background: item.iconBg ?? P.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Icon name={item.icon} size={15} color={item.iconColor ?? P.ink} strokeWidth={1.5} />
+        </div>
+        {item.count !== undefined && (
+          <span style={{ position: 'absolute', top: -5, right: -6, fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 10, lineHeight: '16px', color: '#fff', background: item.badgeBg ?? P.action, borderRadius: 20, minWidth: 16, height: 16, padding: '0 4px', textAlign: 'center', boxShadow: '0 0 0 2px #fff' }}>{item.count}</span>
+        )}
       </div>
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 1, minWidth: 0 }}>
         <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: P.ink }}>{item.label}</span>
         {item.subtitle && <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: item.subtitleColor ?? P.inkSoft }}>{item.subtitle}</span>}
       </div>
-      <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.white, background: item.badgeBg ?? P.action, borderRadius: 20, padding: 'var(--space-025) var(--space-100)', flexShrink: 0 }}>{item.count}</span>
       <Icon name="chevron-right" size={15} color={P.inkSoft} strokeWidth={1.75} />
     </div>
   );
@@ -8038,6 +8048,7 @@ function UnmatchedMatchModal({ matchQueue, setMatchQueue, setFoodUnmatched, setS
 
 function DashboardScreen({ requests, onNav, onToast, appEntity = null, physicalCardsAllowed, onPhysicalCardsChange, cardDelivery, onCardDeliveryChange, mobilityWidgetState, onMobilityWidgetStateChange, pendingRequests = 0, pendingExpenses = 0, pendingChoices = 0, activeBudgets = 0, onAddEmployee, foodUnmatched = 0, setFoodUnmatched, unmatchedQueue = [], setUnmatchedQueue, matchedEmpInssMap = new Map() }) {
   const [showInssQueue, setShowInssQueue] = useState(false);
+  const [recentActivity] = useState(RECENT_ACTIVITY_SEED);
   useEffect(() => {
     if (unmatchedQueue.length === 0 && showInssQueue) { setShowInssQueue(false); setInssReviewItem(null); }
   }, [unmatchedQueue.length]);
@@ -8063,12 +8074,12 @@ function DashboardScreen({ requests, onNav, onToast, appEntity = null, physicalC
 
   const systemItems = [
     fundingIssue && { icon: 'alert-circle', label: 'Mobility top-up failed', count: '!', screen: 'settings-cardrules', iconBg: P.dangerBg, iconColor: P.danger, badgeBg: P.danger },
-    unmatchedQueue.length > 0 && { icon: 'user-x', label: unmatchedQueue.length === 1 ? 'Employee with unresolved INSS' : 'Employees with unresolved INSS', count: unmatchedQueue.length, onClick: () => { setShowInssQueue(true); if (unmatchedQueue.length === 1) { const rec = unmatchedQueue[0]; const matchedEntry = Array.from(matchedEmpInssMap.entries()).find(([, r]) => r.niss === rec.niss); if (matchedEntry) setInssReviewItem({ rec, empId: matchedEntry[0], matchedRec: matchedEntry[1] }); } } },
+    unmatchedQueue.length > 0 && { icon: 'user-x', label: unmatchedQueue.length === 1 ? 'Employee with unresolved INSS' : 'Employees with unresolved INSS', count: unmatchedQueue.length, iconBg: '#FEF9EE', iconColor: '#D97706', onClick: () => { setShowInssQueue(true); if (unmatchedQueue.length === 1) { const rec = unmatchedQueue[0]; const matchedEntry = Array.from(matchedEmpInssMap.entries()).find(([, r]) => r.niss === rec.niss); if (matchedEntry) setInssReviewItem({ rec, empId: matchedEntry[0], matchedRec: matchedEntry[1] }); } } },
   ].filter(Boolean);
   const approvalItems = [
-    pendingRequests > 0 && { icon: 'calendar-days', label: 'Time-off requests', count: pendingRequests, screen: 'requests', iconBg: '#e8f0fe', iconColor: '#2563eb' },
-    pendingExpenses > 0 && { icon: 'receipt', label: 'Expense requests', count: pendingExpenses, screen: 'expenses', iconBg: P.warningBg, iconColor: '#b45309', subtitle: 'Due before Sep 1 payroll close', subtitleColor: '#b45309' },
-    pendingChoices > 0 && { icon: 'list-checks', label: 'Choices to approve', count: pendingChoices, screen: 'choices', iconBg: '#ede9fe', iconColor: '#6d28d9' },
+    pendingRequests > 0 && { icon: 'calendar-days', label: 'Time-off requests', count: pendingRequests, screen: 'requests', iconBg: '#EEF4FF', iconColor: '#2563EB' },
+    pendingExpenses > 0 && { icon: 'receipt', label: 'Expense requests', count: pendingExpenses, screen: 'expenses', iconBg: '#EEF4FF', iconColor: '#2563EB', subtitle: 'Due before Sep 1 payroll close', subtitleColor: '#b45309' },
+    pendingChoices > 0 && { icon: 'list-checks', label: 'Choices to approve', count: pendingChoices, screen: 'choices', iconBg: '#EEF4FF', iconColor: '#2563EB' },
   ].filter(Boolean);
 
   return (
@@ -8141,10 +8152,7 @@ function DashboardScreen({ requests, onNav, onToast, appEntity = null, physicalC
                 <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.ink }}>Pending approvals</span>
               </div>
               {approvalItems.length === 0 ? (
-                <div style={{ padding: 'var(--space-500) var(--space-250)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 'var(--space-100)' }}>
-                  <Icon name="check-circle" size={20} color="#008556" strokeWidth={1.75} />
-                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft }}>You're all caught up</span>
-                </div>
+                <EmptyState icon="check-circle" title="You're all caught up" description="No pending approvals right now." />
               ) : approvalItems.map((item, i) => (
                 <AttentionRow key={item.label} item={item} last={i === approvalItems.length - 1} onNav={onNav} />
               ))}
@@ -8163,7 +8171,7 @@ function DashboardScreen({ requests, onNav, onToast, appEntity = null, physicalC
           const matchedRows = unmatchedQueue.filter(rec => Array.from(matchedEmpInssMap.entries()).some(([, r]) => r.niss === rec.niss));
           const notFoundRows = unmatchedQueue.filter(rec => !Array.from(matchedEmpInssMap.entries()).some(([, r]) => r.niss === rec.niss));
           const rowStyle = { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 'var(--space-150)', padding: 'var(--space-200) var(--space-300)' };
-          const sectionLabel = { ...SL, padding: 'var(--space-150) var(--space-300) var(--space-100)', borderBottom: `1px solid ${P.border}` };
+          const sectionLabel = { ...SL, padding: 'var(--space-150) var(--space-300)', background: P.bgSubtle, borderBottom: `1px solid ${P.border}` };
 
           const advanceOrBack = () => { setInssReviewItem(null); };
 
@@ -8192,16 +8200,7 @@ function DashboardScreen({ requests, onNav, onToast, appEntity = null, physicalC
                 <div>
                   <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-md)', color: P.ink }}>INSS review</div>
                   <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginTop: 2 }}>
-                    {(() => {
-                      const conflicts = unmatchedQueue.filter(r => { const e = Array.from(matchedEmpInssMap.entries()).find(([, m]) => m.niss === r.niss); return e && e[1].type === 'conflict'; }).length;
-                      const toAssign = unmatchedQueue.filter(r => { const e = Array.from(matchedEmpInssMap.entries()).find(([, m]) => m.niss === r.niss); return e && e[1].type === 'new'; }).length;
-                      const notFound = unmatchedQueue.length - conflicts - toAssign;
-                      const parts = [];
-                      if (conflicts > 0) parts.push(`${conflicts} ${conflicts === 1 ? 'conflict' : 'conflicts'}`);
-                      if (toAssign > 0) parts.push(`${toAssign} missing INSS`);
-                      if (notFound > 0) parts.push(`${notFound} not found`);
-                      return parts.join(' · ');
-                    })()}
+                    {unmatchedQueue.length} {unmatchedQueue.length === 1 ? 'employee needs review' : 'employees need review'}
                   </div>
                 </div>
                 <IconButton icon="X" onClick={close} blur />
