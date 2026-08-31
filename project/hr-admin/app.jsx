@@ -7615,7 +7615,7 @@ function InssReviewDetail({ rec, empId, matchedRec, onResolve, onAsk, onBack, on
             {isConflict ? `Which INSS for ${rec.name} is correct?` : `Assign INSS to ${rec.name}?`}
           </div>
           <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>
-            {isConflict ? 'Payflip and SD Worx have different INSS numbers on file.' : 'No INSS number is on file for this employee in Payflip.'}
+            {isConflict ? 'SD Worx imported a different INSS number than what Payflip has.' : 'This employee has no INSS number in Payflip.'}
           </div>
         </div>
         {isConflict ? (
@@ -8035,7 +8035,7 @@ function UnmatchedMatchModal({ matchQueue, setMatchQueue, setFoodUnmatched, setS
                         <div style={{ background: P.dangerBg, border: `1px solid ${P.dangerBorder}`, borderRadius: 8, padding: 'var(--space-125) var(--space-150)', display: 'flex', gap: 'var(--space-100)', alignItems: 'flex-start' }}>
                           <Icon name="alert-triangle" size={14} color={P.dangerDark} strokeWidth={1.75} style={{ flexShrink: 0, marginTop: 1 }} />
                           <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.dangerDark, lineHeight: '18px' }}>
-                            {pickedEmployee.name} already has an INSS on file. It will be replaced.
+                            {pickedEmployee.name} already has an INSS number saved in Payflip. It will be replaced.
                           </div>
                         </div>
                       )}
@@ -8231,7 +8231,7 @@ function DashboardScreen({ requests, onNav, onToast, appEntity = null, physicalC
                         <div key={rec.niss} style={rowStyle}>
                           <div style={{ flex: 1, minWidth: 0 }}>
                             <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink, marginBottom: 2 }}>{rec.name}</div>
-                            <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>{isConflict ? 'Has a different INSS on file' : 'No INSS on file'}</div>
+                            <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>{isConflict ? 'Conflicts with SD Worx record' : 'Missing INSS number'}</div>
                           </div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', flexShrink: 0 }}>
                             <Button variant="secondary" onClick={() => setInssReviewItem({ rec, empId, matchedRec })}>Review</Button>
