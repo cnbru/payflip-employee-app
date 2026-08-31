@@ -8182,7 +8182,7 @@ function DashboardScreen({ requests, onNav, onToast, appEntity = null, physicalC
         {close => {
           const matchedRows = unmatchedQueue.filter(rec => Array.from(matchedEmpInssMap.entries()).some(([, r]) => r.niss === rec.niss));
           const notFoundRows = unmatchedQueue.filter(rec => !Array.from(matchedEmpInssMap.entries()).some(([, r]) => r.niss === rec.niss));
-          const rowStyle = { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 'var(--space-150)', padding: 'var(--space-200) var(--space-300)' };
+          const rowStyle = { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 'var(--space-150)', padding: 'var(--space-100) var(--space-300)' };
           const sectionLabel = { ...SL, padding: 'var(--space-150) var(--space-300)', background: P.bgSubtle, borderBottom: `1px solid ${P.border}` };
 
           const advanceOrBack = () => { setInssReviewItem(null); };
@@ -8235,7 +8235,6 @@ function DashboardScreen({ requests, onNav, onToast, appEntity = null, physicalC
                           </div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', flexShrink: 0 }}>
                             <Button variant="secondary" onClick={() => setInssReviewItem({ rec, empId, matchedRec })} style={{ padding: '5px 10px', fontSize: 'var(--fs-body-xs)' }}>Review</Button>
-                            <Button variant="text" onClick={dismissFn} style={{ padding: '5px 10px', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>Skip for this cycle</Button>
                           </div>
                         </div>
                       );
@@ -8244,7 +8243,7 @@ function DashboardScreen({ requests, onNav, onToast, appEntity = null, physicalC
                 )}
                 {notFoundRows.length > 0 && (
                   <div>
-                    <div style={{ ...sectionLabel, borderTop: matchedRows.length > 0 ? `1px solid ${P.border}` : 'none' }}>Not in Payflip · {notFoundRows.length}</div>
+                    <div style={{ ...sectionLabel, borderTop: matchedRows.length > 0 ? `1px solid ${P.border}` : 'none', marginTop: 'var(--space-300)' }}>Not in Payflip · {notFoundRows.length}</div>
                     {notFoundRows.map((rec) => {
                       const nameParts = rec.name.trim().split(' ');
                       const prefillFirst = nameParts.slice(0, -1).join(' ') || nameParts[0];
@@ -8258,7 +8257,6 @@ function DashboardScreen({ requests, onNav, onToast, appEntity = null, physicalC
                           </div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', flexShrink: 0 }}>
                             <Button variant="secondary" onClick={() => { dismissNfFn(); close(); onAddEmployee({ firstName: prefillFirst, lastName: prefillLast, niss: rec.niss }); }} style={{ padding: '5px 10px', fontSize: 'var(--fs-body-xs)' }}>Add to Payflip</Button>
-                            <Button variant="text" onClick={dismissNfFn} style={{ padding: '5px 10px', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>Ignore</Button>
                           </div>
                         </div>
                       );
