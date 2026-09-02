@@ -603,9 +603,9 @@ const HOLIDAY_ICON = {
 
 // ── Entity data ───────────────────────────────────────────────────────────
 const ENTITIES = [
-  { id: 'lumio-group',  name: 'Lumio Group',       jc: 'PC 200', payrollProvider: 'SD Worx', integrationId: 'SDWX-4821',  country: 'Belgium',     employeeCount: 15 },
-  { id: 'lumio-france', name: 'Lumio France',      jc: 'CCN 66', payrollProvider: 'ADP',     integrationId: 'ADP-FR-1192', country: 'France',      employeeCount: 4,  emailDomain: 'lumio.fr' },
-  { id: 'lumio-nl',     name: 'Lumio Netherlands', jc: null,     payrollProvider: 'Visma',   integrationId: null,          country: 'Netherlands', employeeCount: 4,  emailDomain: 'lumio.nl' },
+  { id: 'lumio-group',  name: 'Lumio Group',       jc: 'PC 200', payrollProvider: 'SD Worx', integrationId: 'SDWX-4821',  country: 'Belgium',     employeeCount: 15, legalAddress: 'Rue de la Loi 42, 1040 Brussels' },
+  { id: 'lumio-france', name: 'Lumio France',      jc: 'CCN 66', payrollProvider: 'ADP',     integrationId: 'ADP-FR-1192', country: 'France',      employeeCount: 4,  emailDomain: 'lumio.fr', legalAddress: '15 Rue du Faubourg Saint-Honoré, 75008 Paris' },
+  { id: 'lumio-nl',     name: 'Lumio Netherlands', jc: null,     payrollProvider: 'Visma',   integrationId: null,          country: 'Netherlands', employeeCount: 4,  emailDomain: 'lumio.nl', legalAddress: 'Herengracht 420, 1017 BZ Amsterdam' },
 ];
 
 // ── Employee data ──────────────────────────────────────────────────────────
@@ -5083,7 +5083,7 @@ function TeamAbsencesScreen({ requests, pendingCount, onNav, onShowDetail, activ
       {/* Filter toolbar — full width */}
       <FilterToolbar
         searchText={searchText} onSearch={setSearchText}
-        leaveFilter={leaveFilter} onLeaveFilter={setLeaveFilter}
+        filter={leaveFilter} onFilter={setLeaveFilter}
         deptFilter={deptFilter} onDeptFilter={setDeptFilter}
       />
 
@@ -6631,7 +6631,6 @@ function ProtoDevPanel({ widgetMode, switchMode, ws, setWs }) {
                 {btn('1', mobStep === 1, () => setWs({ step: 1, mandateValidated: false, depositFailed: false, live: false, liveVisible: false, hidden: false }))}
                 {btn('2', mobStep === 2, () => setWs({ step: 2, mandateValidated: false, depositFailed: false, live: false, liveVisible: false, hidden: false }))}
                 {btn('3', mobStep === 3, () => setWs({ step: 3, mandateValidated: true, depositFailed: false, live: false, liveVisible: false, hidden: false }))}
-                {btn('4', mobStep === 4, () => setWs({ step: 4, mandateValidated: true, depositFailed: false, live: false, liveVisible: false, hidden: false }))}
                 {btn('Live', mobStep === 'live', () => setWs({ step: 5, mandateValidated: true, depositFailed: false, live: true, liveVisible: true, hidden: false }))}
               </div>
             </div>
@@ -6997,80 +6996,13 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
         )}
       </div>
 
-      {/* Step 3 — Physical cards */}
+      {/* Step 3 — Send invites */}
       <div style={{ background: step === 3 ? P.white : inactiveBg, borderBottom: `1px solid ${P.border}`, transition: `background 260ms ${EASE_OUT}` }}>
         <div style={{ display: 'grid', gridTemplateRows: step === 3 ? '1fr' : '0fr', transition: PREFERS_REDUCED_MOTION ? 'none' : `grid-template-rows 260ms ${EASE_OUT}`, overflow: 'hidden' }}>
           <div style={{ overflow: 'hidden' }}>
             <div style={{ padding: 'var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-200)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)' }}>
                 {stepBadgeEl(3)}
-                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.ink }}>Physical cards</span>
-              </div>
-              <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
-                Allow employees to request a physical Payflip card from the app. Each card costs €10.
-              </p>
-              <SettingsCard info="You can change this any time in Payflip Card settings.">
-                <SettingsRow
-                  label="Physical card requests"
-                  trailing={<Switch checked={!!physicalCardsAllowed} onChange={() => onPhysicalCardsChange && onPhysicalCardsChange(!physicalCardsAllowed)} />}
-                  onClick={() => onPhysicalCardsChange && onPhysicalCardsChange(!physicalCardsAllowed)}
-                  last={!physicalCardsAllowed}
-                />
-                <div style={{ display: 'grid', gridTemplateRows: physicalCardsAllowed ? '1fr' : '0fr', transition: PREFERS_REDUCED_MOTION ? 'none' : `grid-template-rows 220ms ${EASE_OUT}`, overflow: 'hidden' }}>
-                  <div style={{ overflow: 'hidden' }}>
-                    <div style={{ padding: 'var(--space-200)', display: 'flex', flexDirection: 'column', gap: 'var(--space-150)' }}>
-                      <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: P.ink }}>Where do we send physical cards?</div>
-                      <div style={{ display: 'flex', gap: 'var(--space-100)' }}>
-                        {[
-                          { value: 'home', label: 'Employee address' },
-                          { value: 'office', label: 'Company address' },
-                        ].map(opt => {
-                          const sel = cardDelivery === opt.value;
-                          return (
-                            <div key={opt.value} onClick={() => onCardDeliveryChange && onCardDeliveryChange(opt.value)}
-                              style={{ flex: 1, border: `1px solid ${sel ? P.action : P.border}`, borderRadius: 8, padding: 'var(--space-100) var(--space-150)', cursor: 'pointer', background: sel ? '#f3f0ff' : P.white, display: 'flex', alignItems: 'center', gap: 'var(--space-075)', transition: 'border-color 120ms ease, background 120ms ease' }}>
-                              <div style={{ width: 14, height: 14, borderRadius: '50%', border: `1.5px solid ${sel ? P.action : P.borderStrong}`, background: P.white, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'border-color 120ms ease' }}>
-                                {sel && <div style={{ width: 6, height: 6, borderRadius: '50%', background: P.action }} />}
-                              </div>
-                              <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: sel ? P.action : P.ink, fontWeight: sel ? 600 : 400 }}>{opt.label}</span>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </SettingsCard>
-              <Button variant="primary" onClick={() => setStep(4)} style={{ width: '100%', justifyContent: 'center', fontSize: 'var(--fs-body-md)', padding: 'var(--space-125) var(--space-250)' }}>Continue</Button>
-            </div>
-          </div>
-        </div>
-        <div style={{ display: 'grid', gridTemplateRows: step < 3 ? '1fr' : '0fr', transition: PREFERS_REDUCED_MOTION ? 'none' : `grid-template-rows 260ms ${EASE_OUT}`, overflow: 'hidden' }}>
-          <div style={{ overflow: 'hidden' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', padding: 'var(--space-300)', opacity: 0.55 }}>
-              {stepBadgeEl(3)}
-              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-md)', color: P.inkSoft }}>Physical cards</span>
-            </div>
-          </div>
-        </div>
-        {step > 3 && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', padding: 'var(--space-300)', animation: PREFERS_REDUCED_MOTION ? 'none' : `stepDoneEnter 200ms ${EASE_OUT} 140ms both` }}>
-            {stepBadgeEl(3)}
-            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.inkSoft }}>
-              {physicalCardsAllowed ? `Physical cards · ${cardDelivery === 'office' ? 'company address' : 'employee address'}` : 'Virtual only'}
-            </span>
-            <a href="#" onClick={e => { e.preventDefault(); setStep(3); }} style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink, textDecoration: 'underline', marginLeft: 'auto' }}>Edit</a>
-          </div>
-        )}
-      </div>
-
-      {/* Step 4 — Send invites */}
-      <div style={{ background: step === 4 ? P.white : inactiveBg, borderBottom: `1px solid ${P.border}`, transition: `background 260ms ${EASE_OUT}` }}>
-        <div style={{ display: 'grid', gridTemplateRows: step === 4 ? '1fr' : '0fr', transition: PREFERS_REDUCED_MOTION ? 'none' : `grid-template-rows 260ms ${EASE_OUT}`, overflow: 'hidden' }}>
-          <div style={{ overflow: 'hidden' }}>
-            <div style={{ padding: 'var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-200)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)' }}>
-                {stepBadgeEl(4)}
                 <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.ink }}>Send invites</span>
               </div>
               <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
@@ -7086,10 +7018,10 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
             </div>
           </div>
         </div>
-        <div style={{ display: 'grid', gridTemplateRows: step < 4 ? '1fr' : '0fr', transition: PREFERS_REDUCED_MOTION ? 'none' : `grid-template-rows 260ms ${EASE_OUT}`, overflow: 'hidden' }}>
+        <div style={{ display: 'grid', gridTemplateRows: step < 3 ? '1fr' : '0fr', transition: PREFERS_REDUCED_MOTION ? 'none' : `grid-template-rows 260ms ${EASE_OUT}`, overflow: 'hidden' }}>
           <div style={{ overflow: 'hidden' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', padding: 'var(--space-300)', opacity: 0.55 }}>
-              {stepBadgeEl(4)}
+              {stepBadgeEl(3)}
               <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-md)', color: P.inkSoft }}>Send invites</span>
             </div>
           </div>
@@ -8376,6 +8308,9 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, cardDe
   const [resignSigning, setResignSigning] = useState(false);
   const [savedPhysicalCards, setSavedPhysicalCards] = useState(physicalCardsAllowed);
   const [savedCardDelivery, setSavedCardDelivery] = useState(cardDelivery);
+  const [entityCardAddresses, setEntityCardAddresses] = useState({ 'lumio-group': 'Rue de la Loi 42, 1040 Brussels', 'lumio-france': '', 'lumio-nl': '' });
+  const [editingEntityAddr, setEditingEntityAddr] = useState(null);
+  const [addrInput, setAddrInput] = useState('');
   const isDirty = draftPhysicalCards !== savedPhysicalCards || draftCardDelivery !== savedCardDelivery;
 
   const handleSave = () => {
@@ -8586,7 +8521,7 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, cardDe
               title="Where do we send physical cards?"
               options={[
                 { value: 'home', label: 'Employee address', hint: 'Employees enter their delivery address when requesting a card in the app.' },
-                { value: 'office', label: 'Company address', hint: 'All cards ship to your company address. You receive and distribute them to employees.' },
+                { value: 'office', label: 'Company address', hint: 'Cards ship to each entity\'s registered delivery address. You receive and distribute them to employees.' },
               ]}
               value={draftCardDelivery}
               onSave={v => setDraftCardDelivery(v)}
@@ -8594,6 +8529,37 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, cardDe
             />
           )}
         </div>
+
+        {/* Per-entity delivery addresses — only shown when physical cards + company address */}
+        {draftPhysicalCards && draftCardDelivery === 'office' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-250)' }}>
+            <div style={SL}>Delivery addresses</div>
+            <SettingsCard info="Cards are shipped to each entity's delivery address. You receive and distribute them to employees.">
+              {ENTITIES.map((ent, idx) => {
+                const addr = entityCardAddresses[ent.id] || '';
+                const missing = !addr;
+                return (
+                  <SettingsRow
+                    key={ent.id}
+                    icon="map-pin"
+                    label={ent.name}
+                    subtitle={missing ? undefined : addr}
+                    trailing={
+                      missing
+                        ? <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-100)' }}>
+                            <DotPill bg={P.warningBorder} color={P.warningDark} size={11}>Address required</DotPill>
+                            <Icon name="chevron-right" size={14} color={P.inkFaint} strokeWidth={1.75} />
+                          </div>
+                        : <Icon name="chevron-right" size={14} color={P.inkFaint} strokeWidth={1.75} />
+                    }
+                    onClick={() => { setEditingEntityAddr(ent.id); setAddrInput(addr); }}
+                    last={idx === ENTITIES.length - 1}
+                  />
+                );
+              })}
+            </SettingsCard>
+          </div>
+        )}
 
         {/* Footer */}
         <div style={{ paddingTop: 'var(--space-100)', display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-125)' }}>
@@ -8626,6 +8592,36 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, cardDe
         )}
 
       </div>
+
+      {editingEntityAddr && (
+        <ModalShell
+          title={`Delivery address — ${ENTITIES.find(e => e.id === editingEntityAddr)?.name}`}
+          onClose={() => setEditingEntityAddr(null)}
+          width={440}
+          footer={close => (
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-150)', padding: 'var(--space-200) var(--space-300)', borderTop: `1px solid ${P.border}` }}>
+              <Button variant="secondary" onClick={close}>Cancel</Button>
+              <Button variant="primary" onClick={() => { setEntityCardAddresses(prev => ({ ...prev, [editingEntityAddr]: addrInput.trim() })); close(); }}>Save</Button>
+            </div>
+          )}
+        >
+          <div style={{ padding: 'var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-200)' }}>
+            <div>
+              <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginBottom: 'var(--space-075)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Delivery address</label>
+              <input
+                autoFocus
+                value={addrInput}
+                onChange={e => setAddrInput(e.target.value)}
+                placeholder="Street, postal code, city"
+                style={{ width: '100%', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, border: `1px solid ${P.border}`, borderRadius: 8, padding: 'var(--space-150) var(--space-200)', outline: 'none', boxSizing: 'border-box' }}
+              />
+              <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginTop: 'var(--space-075)', lineHeight: '18px' }}>
+                Cards will be shipped to this address. This is separate from the entity's registered legal address.
+              </div>
+            </div>
+          </div>
+        </ModalShell>
+      )}
 
       {showResignModal && (
         <ModalShell
@@ -10636,6 +10632,7 @@ function EntitiesSettings({ onNav, appEntity = null, companyRegime = COMPANY_REG
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-150) var(--space-300)' }}>
                         {[
                           ['Country', ent.country],
+                          ['Legal address', ent.legalAddress || '—'],
                           ['Joint committee', ent.jc || '—'],
                           ['Payroll provider', ent.payrollProvider],
                           ['Integration ID', ent.integrationId || '—'],
