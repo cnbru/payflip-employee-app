@@ -459,7 +459,7 @@ function ChoiceCard({ type = 'radio', selected, onClick, label, description }) {
 // children/footer, either a plain node or a function receiving `close` (for
 // buttons that need to save-then-close). See CLAUDE.md "Shared components".
 const MODAL_SIZES = { sm: 380, md: 460, lg: 560 };
-function ModalShell({ onClose, title, width, size, maxHeight, zIndex = 300, footer, children }) {
+function ModalShell({ onClose, title, subtitle, width, size, maxHeight, zIndex = 300, footer, children }) {
   const resolvedWidth = width ?? (size ? MODAL_SIZES[size] : 420);
   const { visible, close } = useModalTransition(onClose);
   return (
@@ -467,7 +467,10 @@ function ModalShell({ onClose, title, width, size, maxHeight, zIndex = 300, foot
       <div onClick={e => e.stopPropagation()} style={{ background: P.white, borderRadius: 14, width: resolvedWidth, maxHeight, boxShadow: '0 8px 40px rgba(15,13,40,0.2)', display: 'flex', flexDirection: 'column', ...modalPanelStyle(visible) }}>
         {title && (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: 'var(--space-250) var(--space-300)', borderBottom: `1px solid ${P.border}` }}>
-            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-md)', color: P.ink }}>{title}</span>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-025)' }}>
+              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-md)', color: P.ink }}>{title}</span>
+              {subtitle && <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>{subtitle}</span>}
+            </div>
             <IconButton icon="X" onClick={close} blur />
           </div>
         )}
@@ -638,6 +641,9 @@ const EMPLOYEES = {
   'sarah-de-smedt':    { name: 'Sarah De Smedt',     initials: 'SD', color: '#fecdd3', entitlement: 23, department: 'Marketing',   email: 'sarah.de-smedt@lumio.nl',         entity: 'Lumio Netherlands', entityId: 'lumio-nl', budget: 2750,  budgetUsed: 2750, role: 'Employee', status: 'Active', gender: 'f' },
   'julie-goossens':    { name: 'Julie Goossens',     initials: 'JG', color: '#fed7aa', entitlement: 20, department: 'Marketing',   email: 'julie.goossens@lumio.nl',         entity: 'Lumio Netherlands', entityId: 'lumio-nl', budget: 5000,  budgetUsed: 5000, role: 'Admin',  status: 'Active', gender: 'f' },
   'noor-de-smedt':     { name: 'Noor De Smedt',      initials: 'ND', color: P.warningBorder, entitlement: 20, department: 'Marketing',   email: 'noor.de-smedt@lumio.nl',          entity: 'Lumio Netherlands', entityId: 'lumio-nl', budget: 0,     role: 'Employee', status: 'Active', gender: 'f', fte: 0.8, workSchedule: [1,2,4,5] },
+  // ── Onboarding demo employees (no card, no choices, not yet active) ────────
+  'clara-wouters':     { name: 'Clara Wouters',      initials: 'CW', color: '#e9d5ff', entitlement: 20, department: 'Design',      email: 'clara.wouters@lumiogroup.be',     entity: 'Lumio Group', entityId: 'lumio-group', role: 'Employee', status: 'Pending', gender: 'f', startDate: '08/09/2026', _isNew: true },
+  'emile-godart':      { name: 'Emile Godart',       initials: 'EG', color: '#bfdbfe', entitlement: 20, department: 'Product',     email: 'emile.godart@lumiogroup.be',      entity: 'Lumio Group', entityId: 'lumio-group', role: 'Employee', status: 'Pending', gender: 'm', startDate: '01/09/2026', _isNew: true },
 };
 const CURRENT_USER = EMPLOYEES['bruno-coen'];
 
@@ -781,8 +787,8 @@ const CHOICES_SEED = (() => {
   const hardcoded = [
     { id: 'tablet-coolblue-approved', empId: 'charlotte-pieters', name: 'Tablet via Coolblue', price: '369,00 EUR', cDate: '13/05/2026', sDate: '13/05/2026', eDate: '13/05/2028', status: 'approved', illustration: 'assets/benefit-tablet.png', productName: 'Apple iPad (2025) 11 Pouces 128 Go Wifi Argent', productUrl: 'https://www.coolblue.be/nl/product/960489', productNumber: '960489', orderId: '97190251', orderDate: '13/05/2026', depreciation: 24, transactions: [{ label: 'Home office budget', amount: '233,73 EUR', date: '13/05/2026' }, { label: 'End of year premium', amount: '180,55 EUR', date: '13/05/2026' }] },
   ];
-  const generated = Object.entries(EMPLOYEES).flatMap(([empId]) =>
-    genChoices(empId).map((c, i) => ({ ...c, empId, id: `${empId}-cho-${i}` }))
+  const generated = Object.entries(EMPLOYEES).flatMap(([empId, emp]) =>
+    emp._isNew ? [] : genChoices(empId).map((c, i) => ({ ...c, empId, id: `${empId}-cho-${i}` }))
   );
   const all = [...hardcoded, ...generated];
   let pendingCount = 0;
@@ -5737,7 +5743,7 @@ function EditBalancesModal({ emp, balances, onSave, onClose, isNewEmployee, onCo
 }
 
 // ── Employee detail screen ────────────────────────────────────────────────
-function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, onApprove, onDecline, onViewTeamCalendar, employeeBalance, onUpdateBalance, needsSetup, confirmedDate, onConfirmBalances, onToast, adminAccess, onAdminSave, companyRegime, onEmployeeUpdate, getEmpWithOverrides, physicalCardsAllowed, mobilityWidgetState, initialTab = 'choices', unmatchedRecord, onResolveUnmatched, onStartOffboarding }) {
+function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, onApprove, onDecline, onViewTeamCalendar, employeeBalance, onUpdateBalance, needsSetup, confirmedDate, onConfirmBalances, onToast, adminAccess, onAdminSave, companyRegime, onEmployeeUpdate, getEmpWithOverrides, physicalCardsAllowed, mobilityWidgetState, initialTab = 'choices', unmatchedRecord, onResolveUnmatched, onStartOffboarding, isOnboarding = false }) {
   const emp = getEmpWithOverrides ? getEmpWithOverrides(employeeId) : EMPLOYEES[employeeId];
   const [activeTab, setActiveTab] = useState(initialTab);
   const tabMountedRef = useRef(false);
@@ -5814,6 +5820,7 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, o
           <div>
             <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 28, color: P.ink, margin: 0, letterSpacing: '-0.02em' }}>{emp.name}</h1>
             <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, margin: 'var(--space-025) 0 0' }}>{emp.department}</p>
+            {isOnboarding && <div style={{ marginTop: 'var(--space-150)' }}><DotPill bg={P.successBorder} color={P.successDark} size={11}>Pending invite</DotPill></div>}
           </div>
           <div ref={empMenuRef} style={{ position: 'relative', marginTop: 'var(--space-050)' }}>
             <button onClick={() => setEmpMenuOpen(o => !o)} style={{
@@ -7615,7 +7622,7 @@ function InssReviewDetail({ rec, empId, matchedRec, onResolve, onAsk, onBack, on
   const isConflict = matchedRec.type === 'conflict';
   const needsPick = isConflict && matchedRec.source === 'manual';
   const options = needsPick ? [
-    { id: 'payflip', label: 'Entered manually (Payflip)', value: matchedRec.existingInss },
+    { id: 'payflip', label: `Entered manually by ${CURRENT_USER.name.split(' ')[0]}`, value: matchedRec.existingInss },
     { id: 'sdworx', label: 'From SD Worx file', value: rec.niss },
   ] : null;
   return (
@@ -8277,9 +8284,6 @@ function DashboardScreen({ requests, onNav, onToast, appEntity = null, physicalC
                   <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', padding: 'var(--space-250) var(--space-300)', borderBottom: `1px solid ${P.border}` }}>
                     <div>
                       <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-md)', color: P.ink }}>INSS review</div>
-                      <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginTop: 2 }}>
-                        {unmatchedQueue.length} {unmatchedQueue.length === 1 ? 'employee needs review' : 'employees need review'}
-                      </div>
                     </div>
                     <IconButton icon="X" onClick={close} blur />
                   </div>
@@ -9075,7 +9079,7 @@ function PersonPickerModal({ title, value, candidates, sections, singleSelect, o
               <div key={`${activeTab}-${safePage}`} style={{ animation: PREFERS_REDUCED_MOTION ? 'tableEnterReduced 150ms ' + EASE_OUT : 'tableEnter 150ms ' + EASE_OUT }}>
                 {paginated.length > 0
                   ? paginated.map((emp, idx) => renderRow(emp, close, idx === paginated.length - 1, showEntity, hasHints))
-                  : <div style={{ padding: 'var(--space-250) var(--space-125)', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, textAlign: 'center' }}>No results</div>
+                  : <EmptyState icon="moon" title="No results" description="Nothing to show here yet." />
                 }
               </div>
               {pageCount > 1 && (
@@ -11914,7 +11918,33 @@ function FollowUpBanner({ prompt, onLog, onDismiss }) {
 }
 
 // ── Onboarding Screen ──────────────────────────────────────────────────────
-function OnboardingScreen({ onboardingIds, drafts = new Map(), onSendInvite, onNav, onAddEmployee, onContinueDraft, appEntity }) {
+function OnboardingScreen({ onboardingIds, drafts = new Map(), onSendInvite, onAddWithoutInvite, onRemoveFromOnboarding, onNav, onAddEmployee, onContinueDraft, onEditEmployee, appEntity }) {
+  const [openMenuId, setOpenMenuId] = React.useState(null);
+  const [menuPos, setMenuPos] = React.useState({ right: 0, top: 0 });
+  const { rendered: menuRendered, visible: menuVisible } = usePopoverTransition(openMenuId !== null);
+  const openMenu = (e, empId) => {
+    e.stopPropagation();
+    if (openMenuId === empId) { setOpenMenuId(null); return; }
+    const rect = e.currentTarget.getBoundingClientRect();
+    setMenuPos({ right: window.innerWidth - rect.right, top: rect.bottom + 4 });
+    setOpenMenuId(empId);
+  };
+  React.useEffect(() => {
+    if (!openMenuId) return;
+    const handler = () => setOpenMenuId(null);
+    document.addEventListener('click', handler);
+    return () => document.removeEventListener('click', handler);
+  }, [openMenuId]);
+
+  const [inviteModal, setInviteModal] = React.useState(null);
+  const [inviteMessage, setInviteMessage] = React.useState('');
+  const openInviteModal = (empId) => {
+    const emp = EMPLOYEES[empId];
+    setInviteMessage('');
+    setInviteModal({ empId, name: emp?.name || '', email: emp?.email || '' });
+    setOpenMenuId(null);
+  };
+
   const employees = [...onboardingIds]
     .map(id => ({ id, ...EMPLOYEES[id], isDraft: false }))
     .filter(e => e.name && (!appEntity || e.entityId === appEntity))
@@ -11943,7 +11973,7 @@ function OnboardingScreen({ onboardingIds, drafts = new Map(), onSendInvite, onN
 
       <div style={{ flex: 1, overflow: 'auto', padding: 'var(--space-250)' }}>
         {allEntries.length === 0 ? (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', paddingBottom: 'var(--space-800)' }}>
+          <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 12, overflow: 'hidden' }}>
             <EmptyState icon="users" title="No employees in onboarding" description="Add an employee to start their onboarding."
               action={<Button variant="primary" onClick={onAddEmployee}>Add employee</Button>} />
           </div>
@@ -11952,7 +11982,7 @@ function OnboardingScreen({ onboardingIds, drafts = new Map(), onSendInvite, onN
             <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)' }}>
               <thead>
                 <tr style={{ borderBottom: `1px solid ${P.border}`, background: P.bg }}>
-                  {['NAME', 'ENTITY', 'DEPARTMENT', 'START DATE', 'STATUS', ''].map((h, i) => (
+                  {['NAME', 'START DATE', 'STATUS', ''].map((h, i) => (
                     <th key={i} style={{ padding: 'var(--space-100) var(--space-200)', textAlign: 'left', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.inkSoft, whiteSpace: 'nowrap', width: h === '' ? 1 : 'auto' }}>{h}</th>
                   ))}
                 </tr>
@@ -11973,23 +12003,24 @@ function OnboardingScreen({ onboardingIds, drafts = new Map(), onSendInvite, onN
                           </div>
                         </div>
                       </td>
-                      <td style={{ padding: 'var(--space-150) var(--space-200)', color: P.inkSoft }}>{emp.entity || '—'}</td>
-                      <td style={{ padding: 'var(--space-150) var(--space-200)', color: P.inkSoft }}>{emp.department || '—'}</td>
                       <td style={{ padding: 'var(--space-150) var(--space-200)', color: P.inkSoft, whiteSpace: 'nowrap' }}>{emp.isDraft ? (emp.startDate || '—') : (extra.hireDate || '—')}</td>
                       <td style={{ padding: 'var(--space-150) var(--space-200)', whiteSpace: 'nowrap' }}>
                         {emp.isDraft
-                          ? <span style={{ padding: '1px 7px', borderRadius: 99, border: `1px solid ${P.border}`, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.inkSoft, background: P.bg }}>Draft</span>
-                          : <DotPill bg={P.successBorder} color={P.successDark} size={11}>Pending invite</DotPill>
+                          ? <DotPill bg={P.bg} color={P.inkSoft} border={P.border} size={11} dot={false}>Draft</DotPill>
+                          : <DotPill bg={P.warningBorder} color={P.warningDark} size={11}>Invite pending</DotPill>
                         }
                       </td>
                       <td style={{ padding: 'var(--space-150) var(--space-200)', whiteSpace: 'nowrap' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-100)' }}>
                           {emp.isDraft ? (
-                            <button onClick={() => onContinueDraft?.(emp.id)} style={{ padding: 'var(--space-075) var(--space-150)', borderRadius: 7, border: 'none', background: P.action, color: P.white, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', cursor: 'pointer' }}>Continue</button>
+                            <>
+                              <button onClick={() => onContinueDraft?.(emp.id)} style={{ padding: 'var(--space-075) var(--space-150)', borderRadius: 7, border: 'none', background: P.action, color: P.white, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', cursor: 'pointer' }}>Continue editing</button>
+                              <button onClick={e => openMenu(e, emp.id)} style={{ width: 28, height: 28, borderRadius: 6, border: `1px solid ${openMenuId === emp.id ? P.ink : P.border}`, background: openMenuId === emp.id ? '#eff3ff' : P.white, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}><Icon name="Ellipsis" size={14} color={openMenuId === emp.id ? P.ink : P.inkSoft} /></button>
+                            </>
                           ) : (
                             <>
-                              <button onClick={() => onNav('employee-detail:' + emp.id)} style={{ padding: 'var(--space-075) var(--space-150)', borderRadius: 7, border: `1px solid ${P.border}`, background: P.white, color: P.ink, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', cursor: 'pointer' }}>View profile</button>
-                              <button onClick={() => onSendInvite(emp.id)} style={{ padding: 'var(--space-075) var(--space-150)', borderRadius: 7, border: 'none', background: P.action, color: P.white, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', cursor: 'pointer' }}>Send invite</button>
+                              <button onClick={() => openInviteModal(emp.id)} style={{ padding: 'var(--space-075) var(--space-150)', borderRadius: 7, border: 'none', background: P.action, color: P.white, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', cursor: 'pointer' }}>Send invite</button>
+                              <button onClick={e => openMenu(e, emp.id)} style={{ width: 28, height: 28, borderRadius: 6, border: `1px solid ${openMenuId === emp.id ? P.ink : P.border}`, background: openMenuId === emp.id ? '#eff3ff' : P.white, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}><Icon name="Ellipsis" size={14} color={openMenuId === emp.id ? P.ink : P.inkSoft} /></button>
                             </>
                           )}
                         </div>
@@ -12002,6 +12033,67 @@ function OnboardingScreen({ onboardingIds, drafts = new Map(), onSendInvite, onN
           </div>
         )}
       </div>
+      {inviteModal && (
+        <ModalShell
+          title={`Invite ${inviteModal.name}`}
+          subtitle={inviteModal.email || undefined}
+          onClose={() => setInviteModal(null)}
+          width={480}
+          footer={close => (
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-150)', padding: 'var(--space-200) var(--space-300)', borderTop: `1px solid ${P.border}` }}>
+              <Button variant="secondary" onClick={close}>Cancel</Button>
+              <Button variant="primary" onClick={() => { onSendInvite(inviteModal.empId); close(); }}>Send invite</Button>
+            </div>
+          )}
+        >
+          <div style={{ padding: 'var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-250)' }}>
+            <div>
+              <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginBottom: 'var(--space-100)' }}>PERSONAL MESSAGE <span style={{ fontWeight: 400 }}>— optional</span></label>
+              <textarea
+                value={inviteMessage}
+                onChange={e => setInviteMessage(e.target.value)}
+                placeholder={`Hi ${inviteModal.name.split(' ')[0]}, welcome to the team! You'll receive access to Payflip shortly.`}
+                rows={4}
+                style={{ width: '100%', padding: 'var(--space-150)', borderRadius: 8, border: `1px solid ${P.border}`, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, resize: 'vertical', boxSizing: 'border-box', outline: 'none', lineHeight: 1.5 }}
+              />
+              <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginTop: 'var(--space-075)' }}>Included in the invite email alongside the account setup link.</div>
+            </div>
+          </div>
+        </ModalShell>
+      )}
+      {menuRendered && (() => {
+        const menuEmp = allEntries.find(e => e.id === openMenuId);
+        if (!menuEmp) return null;
+        const itemStyle = { display: 'flex', alignItems: 'center', gap: 'var(--space-100)', width: '100%', padding: 'var(--space-100) var(--space-150)', border: 'none', background: 'transparent', cursor: 'pointer', textAlign: 'left' };
+        const labelStyle = { fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink };
+        const dangerLabelStyle = { ...labelStyle, color: '#dc2626' };
+        return (
+          <div onClick={e => e.stopPropagation()} style={{ position: 'fixed', right: menuPos.right, top: menuPos.top, background: P.white, border: `1px solid ${P.border}`, borderRadius: 10, boxShadow: '0 4px 20px rgba(0,0,0,0.10)', minWidth: 180, zIndex: 500, overflow: 'hidden', ...popoverStyle(menuVisible, 'top right') }}>
+            {menuEmp.isDraft ? (
+              <button onClick={() => { onRemoveFromOnboarding?.(openMenuId, true); setOpenMenuId(null); }} style={{ ...itemStyle }} onMouseEnter={e => e.currentTarget.style.background = P.bg} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                <Icon name="Trash2" size={14} color="#dc2626" strokeWidth={1.75} />
+                <span style={dangerLabelStyle}>Remove</span>
+              </button>
+            ) : (
+              <>
+                <button onClick={() => { onEditEmployee?.(openMenuId); setOpenMenuId(null); }} style={{ ...itemStyle }} onMouseEnter={e => e.currentTarget.style.background = P.bg} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                  <Icon name="Pencil" size={14} color={P.ink} strokeWidth={1.75} />
+                  <span style={labelStyle}>Edit details</span>
+                </button>
+                <button onClick={() => { onAddWithoutInvite?.(openMenuId); setOpenMenuId(null); }} style={{ ...itemStyle }} onMouseEnter={e => e.currentTarget.style.background = P.bg} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                  <Icon name="Plus" size={14} color={P.ink} strokeWidth={1.75} />
+                  <span style={labelStyle}>Add without invite</span>
+                </button>
+                <div style={{ height: 1, background: P.border }} />
+                <button onClick={() => { onRemoveFromOnboarding?.(openMenuId, false); setOpenMenuId(null); }} style={{ ...itemStyle }} onMouseEnter={e => e.currentTarget.style.background = P.bg} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                  <Icon name="Trash2" size={14} color="#dc2626" strokeWidth={1.75} />
+                  <span style={dangerLabelStyle}>Remove</span>
+                </button>
+              </>
+            )}
+          </div>
+        );
+      })()}
     </div>
   );
 }
@@ -12130,6 +12222,7 @@ function AddEmployeeWizard({ onClose, onCreated, companyRegime, mobilityLive, pr
 
   // Step 5 — Card access
   const totalSteps = mobilityLive ? 6 : 5;
+  React.useEffect(() => { if (prefill._startAtReview) setStep(totalSteps); }, []);
   const [inviteToCard, setInviteToCard] = useState(prefill.inviteToCard ?? true);
 
   // Step 4 — Compensation
@@ -12270,8 +12363,10 @@ function AddEmployeeWizard({ onClose, onCreated, companyRegime, mobilityLive, pr
       <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 var(--space-400)', height: 60, borderBottom: `1px solid ${P.border}`, background: P.white }}>
         <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-lg)', color: P.ink }}>Add employee</div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-200)' }}>
-          <button onClick={handleSaveDraft} style={{ padding: 'var(--space-075) var(--space-150)', borderRadius: 7, border: `1px solid ${P.border}`, background: draftSaved ? P.bg : P.white, color: draftSaved ? P.inkSoft : P.ink, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', cursor: 'pointer', transition: 'color 150ms ease, background 150ms ease' }}>{draftSaved ? 'Saved' : 'Save draft'}</button>
-          <div style={{ width: 1, height: 16, background: P.border }} />
+          {step < totalSteps && <>
+            <button onClick={handleSaveDraft} style={{ padding: 'var(--space-075) var(--space-150)', borderRadius: 7, border: `1px solid ${P.border}`, background: draftSaved ? P.bg : P.white, color: draftSaved ? P.inkSoft : P.ink, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', cursor: 'pointer', transition: 'color 150ms ease, background 150ms ease' }}>{draftSaved ? 'Saved' : 'Save draft'}</button>
+            <div style={{ width: 1, height: 16, background: P.border }} />
+          </>}
           <button onClick={close} style={{ border: 'none', cursor: 'pointer', width: 30, height: 30, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(60,60,67,0.1)' }}>
             <Icon name="X" size={14} color={P.ink} strokeWidth={2.5} />
           </button>
@@ -12494,7 +12589,12 @@ const reviewSection = (title, targetStep, rows) => (
             const entity = ENTITIES.find(e => e.id === entityId);
             return (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-                <StepHeading title="Review" sub="Check everything before creating the employee." />
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', paddingTop: 'var(--space-300)', paddingBottom: 'var(--space-300)' }}>
+                  <div style={{ width: 40, height: 40, borderRadius: '50%', background: P.successBorder, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Icon name="Check" size={20} color={P.successDark} strokeWidth={2.5} />
+                  </div>
+                </div>
+                <StepHeading title={`${firstName} ${lastName} saved as draft`} sub="Review the details below, then go to onboarding to invite or add them." />
                 {reviewSection('Personal info', 1, [
                   ['Name', `${firstName} ${lastName}`],
                   ['Date of birth', dob],
@@ -12537,7 +12637,7 @@ const reviewSection = (title, targetStep, rows) => (
             {step < totalSteps
               ? <button onClick={goForward} style={{ padding: 'var(--space-100) var(--space-250)', borderRadius: 8, border: 'none', background: P.action, color: P.white, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', transition: 'background 150ms ease' }}>{returnToReview ? 'Back to review' : 'Next'}</button>
               : <button onClick={handleCreate} style={{ padding: 'var(--space-100) var(--space-250)', borderRadius: 8, border: 'none', background: P.action, color: P.white, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)' }}>
-                  Save to onboarding
+                  Go to onboarding
                 </button>
             }
           </div>
@@ -12607,8 +12707,8 @@ function App() {
     setUnmatchedQueue(q => q.filter(e => e.niss !== rec.niss));
     setFoodUnmatched(n => Math.max(0, n - 1));
   };
-  const [onboardingIds, setOnboardingIds] = useState(() => new Set());
-  const [offboardingIds, setOffboardingIds] = useState(() => new Set());
+  const [onboardingIds, setOnboardingIds] = useState(() => new Set(['clara-wouters', 'emile-godart']));
+  const [offboardingIds, setOffboardingIds] = useState(() => new Set(['joachim-nijs']));
   const [drafts, setDrafts] = useState(() => new Map());
   const [addEmployeeOpen, setAddEmployeeOpen] = useState(false);
   const [addEmployeePrefill, setAddEmployeePrefill] = useState({});
@@ -12634,6 +12734,12 @@ function App() {
     const draft = drafts.get(draftId);
     if (!draft) return;
     setAddEmployeePrefill({ ...draft, _draftId: draftId });
+    setAddEmployeeOpen(true);
+  };
+  const handleEditOnboardingEmployee = (id) => {
+    const emp = EMPLOYEES[id];
+    if (!emp) return;
+    setAddEmployeePrefill({ ...emp, _draftId: id, _startAtReview: true });
     setAddEmployeeOpen(true);
   };
   const handleStartOffboarding = (id) => {
@@ -12663,6 +12769,21 @@ function App() {
     setOnboardingIds(prev => { const next = new Set(prev); next.delete(id); return next; });
     const name = emp.name?.split(' ')[0] || emp.name;
     addToast({ message: `Invite sent to ${name}`, type: 'approve' });
+  };
+  const handleAddWithoutInvite = (id) => {
+    const emp = EMPLOYEES[id];
+    if (!emp) return;
+    EMPLOYEES[id] = { ...emp, status: 'Active' };
+    setOnboardingIds(prev => { const next = new Set(prev); next.delete(id); return next; });
+    const name = emp.name?.split(' ')[0] || emp.name;
+    addToast({ message: `${name} added to employees`, type: 'approve' });
+  };
+  const handleRemoveFromOnboarding = (id, isDraft) => {
+    if (isDraft) {
+      handleRemoveDraft(id);
+    } else {
+      setOnboardingIds(prev => { const next = new Set(prev); next.delete(id); return next; });
+    }
   };
   const [calDetail, setCalDetail] = useState(null);
   const [calendarJumpDate, setCalendarJumpDate] = useState(null);
@@ -13004,9 +13125,9 @@ function App() {
         {screen === 'team-absences' && <TeamAbsencesScreen key={appEntity ?? 'all'} requests={entityFilteredRequests} pendingCount={pendingRequestsCount} onNav={setScreen} onShowDetail={setCalDetail} activeReqId={calDetail?.id} onSave={saveRequest} companyEvents={companyEvents} onCancelCompanyEvent={cancelCompanyEvent} initialDate={calendarJumpDate} initialDeptFilter={calendarDeptFilter} appEntity={appEntity} leaveTypes={leaveTypes} />}
         {screen === 'requests' && <RequestsScreen key={appEntity ?? 'all'} requests={entityFilteredRequests} onApprove={approve} onDecline={requestDecline} onSave={saveRequest} onCancel={requestCancel} onNav={setScreen} onViewInCalendar={(req) => { const d = req._selectedDates?.[0] || req.startDate; if (d) { const iso = typeof d === 'string' && d.match(/^\d{4}-/) ? d : null; setCalendarJumpDate(iso ? new Date(iso) : parseDisplayDate(d)); } setCalDetail(req); setScreen('team-absences'); }} appEntity={appEntity} />}
         {(screen === 'employees' || screen === 'employees:admin') && <EmployeesScreen key={appEntity ?? 'all'} requests={entityFilteredRequests} onNav={setScreen} initialRoleFilter={screen === 'employees:admin' ? 'Admin' : 'All'} adminAccess={adminAccess} appEntity={appEntity} onAddEmployee={(pf) => { setAddEmployeePrefill({ ...(pf||{}), _draftId: 'draft-' + Date.now() }); setAddEmployeeOpen(true); }} onToast={addToast} matchedEmpInssMap={matchedEmpInssMap} />}
-        {screen === 'people-onboarding' && <OnboardingScreen onboardingIds={onboardingIds} drafts={drafts} onSendInvite={handleSendOnboardingInvite} onNav={handleNav} onAddEmployee={() => { setAddEmployeePrefill({ _draftId: 'draft-' + Date.now() }); setAddEmployeeOpen(true); }} onContinueDraft={handleContinueDraft} appEntity={appEntity} />}
+        {screen === 'people-onboarding' && <OnboardingScreen onboardingIds={onboardingIds} drafts={drafts} onSendInvite={handleSendOnboardingInvite} onAddWithoutInvite={handleAddWithoutInvite} onRemoveFromOnboarding={handleRemoveFromOnboarding} onNav={handleNav} onAddEmployee={() => { setAddEmployeePrefill({ _draftId: 'draft-' + Date.now() }); setAddEmployeeOpen(true); }} onContinueDraft={handleContinueDraft} onEditEmployee={handleEditOnboardingEmployee} appEntity={appEntity} />}
         {screen === 'people-offboarding' && <OffboardingScreen offboardingIds={offboardingIds} onCompleteOffboarding={handleCompleteOffboarding} onNav={handleNav} appEntity={appEntity} />}
-        {screen.startsWith('employee-detail:') && (() => { const [, detailEmpId, detailTab] = screen.split(':'); return <EmployeeDetailScreen employeeId={detailEmpId} requests={requests} onNav={setScreen} onSave={saveRequest} onCancel={cancelRequest} onApprove={approve} onDecline={requestDecline} onViewTeamCalendar={(dept) => { setCalendarDeptFilter(dept || null); setScreen('team-absences'); }} employeeBalance={employeeBalances[detailEmpId]} onUpdateBalance={(newBal) => updateBalances(detailEmpId, newBal)} needsSetup={needsBalanceSetup.has(detailEmpId)} confirmedDate={balanceConfirmedDates[detailEmpId]} onConfirmBalances={() => confirmBalancesFor(detailEmpId)} onToast={addToast} adminAccess={adminAccess} onAdminSave={handleAdminSave} companyRegime={companyRegime} onEmployeeUpdate={handleEmployeeUpdate} getEmpWithOverrides={getEmpWithOverrides} physicalCardsAllowed={physicalCardsAllowed} mobilityWidgetState={mobilityWidgetState} initialTab={detailTab || (freshEmployeeId === detailEmpId ? 'details' : 'choices')} unmatchedRecord={matchedEmpInssMap.get(detailEmpId)} onResolveUnmatched={resolveUnmatched} onStartOffboarding={handleStartOffboarding} />; })()}
+        {screen.startsWith('employee-detail:') && (() => { const [, detailEmpId, detailTab] = screen.split(':'); return <EmployeeDetailScreen employeeId={detailEmpId} requests={requests} onNav={setScreen} onSave={saveRequest} onCancel={cancelRequest} onApprove={approve} onDecline={requestDecline} onViewTeamCalendar={(dept) => { setCalendarDeptFilter(dept || null); setScreen('team-absences'); }} employeeBalance={employeeBalances[detailEmpId]} onUpdateBalance={(newBal) => updateBalances(detailEmpId, newBal)} needsSetup={needsBalanceSetup.has(detailEmpId)} confirmedDate={balanceConfirmedDates[detailEmpId]} onConfirmBalances={() => confirmBalancesFor(detailEmpId)} onToast={addToast} adminAccess={adminAccess} onAdminSave={handleAdminSave} companyRegime={companyRegime} onEmployeeUpdate={handleEmployeeUpdate} getEmpWithOverrides={getEmpWithOverrides} physicalCardsAllowed={physicalCardsAllowed} mobilityWidgetState={mobilityWidgetState} initialTab={detailTab || (freshEmployeeId === detailEmpId ? 'details' : 'choices')} unmatchedRecord={matchedEmpInssMap.get(detailEmpId)} onResolveUnmatched={resolveUnmatched} onStartOffboarding={handleStartOffboarding} isOnboarding={onboardingIds.has(detailEmpId)} />; })()}
         {screen === 'expenses' && <ExpensesScreen key={appEntity ?? 'all'} expenses={entityFilteredExpenses} categories={expenseCategories} onApprove={approveExpense} onDetail={(exp) => { setExpDetailRejectMode(false); setExpDetail(exp); }} onRejectDirectly={(exp) => { setExpDetailRejectMode(true); setExpDetail(exp); }} onAdd={addExpense} appEntity={appEntity} receiptAlwaysRequired={receiptAlwaysRequired} requireApproval={requireApproval} onGoToSettings={() => setScreen('settings-expenses')} />}
         {screen === 'choices' && <ChoicesScreen key={appEntity ?? 'all'} choices={entityFilteredChoices} onApprove={approveChoice} onDecline={declineChoice} onDetail={setChoiceDetail} appEntity={appEntity} />}
         {screen === 'payroll-overview' && <StubScreen title="Payroll Overview" description="Monthly payroll run and submission" />}
