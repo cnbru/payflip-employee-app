@@ -603,9 +603,9 @@ const HOLIDAY_ICON = {
 
 // ── Entity data ───────────────────────────────────────────────────────────
 const ENTITIES = [
-  { id: 'lumio-group',  name: 'Lumio Group',       jc: 'PC 200', payrollProvider: 'SD Worx', integrationId: 'SDWX-4821',  country: 'Belgium',     employeeCount: 15, legalAddress: 'Rue de la Loi 42, 1040 Brussels' },
-  { id: 'lumio-france', name: 'Lumio France',      jc: 'CCN 66', payrollProvider: 'ADP',     integrationId: 'ADP-FR-1192', country: 'France',      employeeCount: 4,  emailDomain: 'lumio.fr', legalAddress: '15 Rue du Faubourg Saint-Honoré, 75008 Paris' },
-  { id: 'lumio-nl',     name: 'Lumio Netherlands', jc: null,     payrollProvider: 'Visma',   integrationId: null,          country: 'Netherlands', employeeCount: 4,  emailDomain: 'lumio.nl', legalAddress: 'Herengracht 420, 1017 BZ Amsterdam' },
+  { id: 'lumio-group',  name: 'Lumio Group',      jc: 'PC 200', payrollProvider: 'SD Worx', integrationId: 'SDWX-4821',  employeeCount: 15, legalAddress: 'Rue de la Loi 42, 1040 Brussels' },
+  { id: 'lumio-france', name: 'Lumio Consulting', jc: 'PC 218', payrollProvider: 'ADP',     integrationId: 'ADP-BE-1192', employeeCount: 4,  emailDomain: 'lumio-consulting.be', legalAddress: 'Avenue Louise 149, 1050 Brussels' },
+  { id: 'lumio-nl',     name: 'Lumio Digital',    jc: 'PC 304', payrollProvider: 'Partena', integrationId: null,          employeeCount: 4,  emailDomain: 'lumiodigital.be', legalAddress: 'Antwerpsesteenweg 124, 2000 Antwerp' },
 ];
 
 // ── Employee data ──────────────────────────────────────────────────────────
@@ -632,15 +632,15 @@ const EMPLOYEES = {
   'amber-claes':         { name: 'Amber Claes',         initials: 'AC', color: P.dangerBorder, entitlement: 20, department: 'Design',    email: 'amber.claes@lumiogroup.be',     entity: 'Lumio Group', entityId: 'lumio-group', budget: 2900, budgetUsed: 2900, role: 'Employee', status: 'Active', gender: 'f' },
   'pieter-verheyen':     { name: 'Pieter Verheyen',     initials: 'PV', color: '#d9f99d', entitlement: 25, department: 'Design',    email: 'pieter.verheyen@lumiogroup.be', entity: 'Lumio Group', entityId: 'lumio-group', budget: 6000, budgetUsed: 6000, role: 'Admin',  status: 'Active', gender: 'm' },
   // Engineering → Lumio France
-  'david':             { name: 'David Laurent',      initials: 'DL', color: '#fecdd3', entitlement: 20, department: 'Engineering', email: 'david.laurent@lumio.fr',          entity: 'Lumio France', entityId: 'lumio-france', budget: 4500,  budgetUsed: 4500, role: 'Employee', status: 'Active', gender: 'm', photo: true },
-  'stijn-laurent':     { name: 'Stijn Laurent',      initials: 'SL', color: '#a7f3d0', entitlement: 29, department: 'Engineering', email: 'stijn.laurent@lumio.fr',          entity: 'Lumio France', entityId: 'lumio-france', budget: 1500,  budgetUsed: 1500, role: 'Employee', status: 'Active', gender: 'm' },
-  'jana-goossens':     { name: 'Jana Goossens',      initials: 'JG', color: '#c7d2fe', entitlement: 20, department: 'Engineering', email: 'jana.goossens@lumio.fr',          entity: 'Lumio France', entityId: 'lumio-france', budget: 2000,  budgetUsed: 2000, role: 'Employee', status: 'Active', gender: 'f' },
-  'laura-mertens':     { name: 'Laura Mertens',      initials: 'LM', color: P.dangerBorder, entitlement: 20, department: 'Engineering', email: 'laura.mertens@lumio.fr',          entity: 'Lumio France', entityId: 'lumio-france', budget: 750,   budgetUsed: 750,  role: 'Employee', status: 'Active', gender: 'f' },
+  'david':             { name: 'David Laurent',      initials: 'DL', color: '#fecdd3', entitlement: 20, department: 'Engineering', email: 'david.laurent@lumio-consulting.be',          entity: 'Lumio Consulting', entityId: 'lumio-france', budget: 4500,  budgetUsed: 4500, role: 'Employee', status: 'Active', gender: 'm', photo: true },
+  'stijn-laurent':     { name: 'Stijn Laurent',      initials: 'SL', color: '#a7f3d0', entitlement: 29, department: 'Engineering', email: 'stijn.laurent@lumio-consulting.be',          entity: 'Lumio Consulting', entityId: 'lumio-france', budget: 1500,  budgetUsed: 1500, role: 'Employee', status: 'Active', gender: 'm' },
+  'jana-goossens':     { name: 'Jana Goossens',      initials: 'JG', color: '#c7d2fe', entitlement: 20, department: 'Engineering', email: 'jana.goossens@lumio-consulting.be',          entity: 'Lumio Consulting', entityId: 'lumio-france', budget: 2000,  budgetUsed: 2000, role: 'Employee', status: 'Active', gender: 'f' },
+  'laura-mertens':     { name: 'Laura Mertens',      initials: 'LM', color: P.dangerBorder, entitlement: 20, department: 'Engineering', email: 'laura.mertens@lumio-consulting.be',          entity: 'Lumio Consulting', entityId: 'lumio-france', budget: 750,   budgetUsed: 750,  role: 'Employee', status: 'Active', gender: 'f' },
   // Marketing → Lumio Netherlands
-  'pieter-mertens':    { name: 'Pieter Mertens',     initials: 'PM', color: '#a7f3d0', entitlement: 29, department: 'Marketing',   email: 'pieter.mertens@lumio.nl',         entity: 'Lumio Netherlands', entityId: 'lumio-nl', budget: 8500,  budgetUsed: 8500, role: 'Admin',  status: 'Active', gender: 'm' },
-  'sarah-de-smedt':    { name: 'Sarah De Smedt',     initials: 'SD', color: '#fecdd3', entitlement: 23, department: 'Marketing',   email: 'sarah.de-smedt@lumio.nl',         entity: 'Lumio Netherlands', entityId: 'lumio-nl', budget: 2750,  budgetUsed: 2750, role: 'Employee', status: 'Active', gender: 'f' },
-  'julie-goossens':    { name: 'Julie Goossens',     initials: 'JG', color: '#fed7aa', entitlement: 20, department: 'Marketing',   email: 'julie.goossens@lumio.nl',         entity: 'Lumio Netherlands', entityId: 'lumio-nl', budget: 5000,  budgetUsed: 5000, role: 'Admin',  status: 'Active', gender: 'f' },
-  'noor-de-smedt':     { name: 'Noor De Smedt',      initials: 'ND', color: P.warningBorder, entitlement: 20, department: 'Marketing',   email: 'noor.de-smedt@lumio.nl',          entity: 'Lumio Netherlands', entityId: 'lumio-nl', budget: 0,     role: 'Employee', status: 'Active', gender: 'f', fte: 0.8, workSchedule: [1,2,4,5] },
+  'pieter-mertens':    { name: 'Pieter Mertens',     initials: 'PM', color: '#a7f3d0', entitlement: 29, department: 'Marketing',   email: 'pieter.mertens@lumiodigital.be',         entity: 'Lumio Digital', entityId: 'lumio-nl', budget: 8500,  budgetUsed: 8500, role: 'Admin',  status: 'Active', gender: 'm' },
+  'sarah-de-smedt':    { name: 'Sarah De Smedt',     initials: 'SD', color: '#fecdd3', entitlement: 23, department: 'Marketing',   email: 'sarah.de-smedt@lumiodigital.be',         entity: 'Lumio Digital', entityId: 'lumio-nl', budget: 2750,  budgetUsed: 2750, role: 'Employee', status: 'Active', gender: 'f' },
+  'julie-goossens':    { name: 'Julie Goossens',     initials: 'JG', color: '#fed7aa', entitlement: 20, department: 'Marketing',   email: 'julie.goossens@lumiodigital.be',         entity: 'Lumio Digital', entityId: 'lumio-nl', budget: 5000,  budgetUsed: 5000, role: 'Admin',  status: 'Active', gender: 'f' },
+  'noor-de-smedt':     { name: 'Noor De Smedt',      initials: 'ND', color: P.warningBorder, entitlement: 20, department: 'Marketing',   email: 'noor.de-smedt@lumiodigital.be',          entity: 'Lumio Digital', entityId: 'lumio-nl', budget: 0,     role: 'Employee', status: 'Active', gender: 'f', fte: 0.8, workSchedule: [1,2,4,5] },
   // ── Onboarding demo employees (no card, no choices, not yet active) ────────
   'clara-wouters':     { name: 'Clara Wouters',      initials: 'CW', color: '#e9d5ff', entitlement: 20, department: 'Design',      email: 'clara.wouters@lumiogroup.be',     entity: 'Lumio Group', entityId: 'lumio-group', role: 'Employee', status: 'Pending', gender: 'f', startDate: '08/09/2026', _isNew: true },
   'emile-godart':      { name: 'Emile Godart',       initials: 'EG', color: '#bfdbfe', entitlement: 20, department: 'Product',     email: 'emile.godart@lumiogroup.be',      entity: 'Lumio Group', entityId: 'lumio-group', role: 'Employee', status: 'Pending', gender: 'm', startDate: '01/09/2026', _isNew: true },
@@ -8299,19 +8299,54 @@ function DashboardScreen({ requests, onNav, onToast, appEntity = null, physicalC
   );
 }
 
+function EntityDeliveryModal({ entityId, entityName, legalAddress, currentDelivery, onSave, onClose }) {
+  const [mode, setMode] = React.useState(currentDelivery);
+  const opt = (val, label, hint, selected) => (
+    <div onClick={() => setMode(val)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 'var(--space-200)', padding: 'var(--space-200)', borderRadius: 10, cursor: 'pointer', border: `1px solid ${selected ? P.ink : P.border}`, background: selected ? P.bg : P.white, transition: 'background 120ms cubic-bezier(0.22, 1, 0.36, 1), border-color 120ms cubic-bezier(0.22, 1, 0.36, 1)' }}>
+      <div>
+        <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', fontWeight: 500, color: P.ink }}>{label}</div>
+        <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, marginTop: 'var(--space-025)' }}>{hint}</div>
+      </div>
+      <div style={{ width: 18, height: 18, borderRadius: '50%', flexShrink: 0, border: `2px solid ${selected ? P.ink : P.border}`, background: selected ? P.ink : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'border-color 120ms cubic-bezier(0.22, 1, 0.36, 1), background 120ms cubic-bezier(0.22, 1, 0.36, 1)' }}>
+        {selected && <div style={{ width: 7, height: 7, borderRadius: '50%', background: P.white }} />}
+      </div>
+    </div>
+  );
+  return (
+    <ModalShell title={`Delivery — ${entityName}`} onClose={onClose} width={460}
+      footer={close => (
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-150)', padding: 'var(--space-200) var(--space-300)', borderTop: `1px solid ${P.border}` }}>
+          <Button variant="secondary" onClick={close}>Cancel</Button>
+          <Button variant="primary" onClick={() => { onSave(mode); close(); }}>Save</Button>
+        </div>
+      )}
+    >
+      <div style={{ padding: 'var(--space-200)', display: 'flex', flexDirection: 'column', gap: 'var(--space-100)' }}>
+        {opt('home', 'Employee address', 'Each employee enters their home address when requesting a card. Ships in 5–7 days · €9 per card.', mode === 'home')}
+        {opt('office', 'Company address', legalAddress || 'No address configured — add it in Entity settings.', mode === 'office')}
+      </div>
+    </ModalShell>
+  );
+}
+
 // ── Payflip Card settings ───────────────────────────────────────────────────
-function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, cardDelivery = 'home', onCardDeliveryChange, onToast, mobilityWidgetState, onMobilityWidgetStateChange, onNav }) {
+function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, cardDelivery = 'home', onCardDeliveryChange, onToast, mobilityWidgetState, onMobilityWidgetStateChange, onNav, appEntity = null }) {
   const [draftPhysicalCards, setDraftPhysicalCards] = useState(physicalCardsAllowed);
   const [draftCardDelivery, setDraftCardDelivery] = useState(cardDelivery);
+  // Per-entity delivery overrides — null means "inherit global default"
+  const [entityDeliveryOverrides, setEntityDeliveryOverrides] = useState({});
   const [showResignModal, setShowResignModal] = useState(false);
   const [showDeliveryModal, setShowDeliveryModal] = useState(false);
+  const [showEntityDeliveryModal, setShowEntityDeliveryModal] = useState(null);
   const [resignSigning, setResignSigning] = useState(false);
   const [savedPhysicalCards, setSavedPhysicalCards] = useState(physicalCardsAllowed);
   const [savedCardDelivery, setSavedCardDelivery] = useState(cardDelivery);
-  const [entityCardAddresses, setEntityCardAddresses] = useState({ 'lumio-group': 'Rue de la Loi 42, 1040 Brussels', 'lumio-france': '', 'lumio-nl': '' });
-  const [editingEntityAddr, setEditingEntityAddr] = useState(null);
-  const [addrInput, setAddrInput] = useState('');
-  const isDirty = draftPhysicalCards !== savedPhysicalCards || draftCardDelivery !== savedCardDelivery;
+  // Effective delivery for current scope: entity override if set, else global draft
+  const effectiveDelivery = appEntity && entityDeliveryOverrides[appEntity] != null
+    ? entityDeliveryOverrides[appEntity]
+    : draftCardDelivery;
+  const isDirty = draftPhysicalCards !== savedPhysicalCards || draftCardDelivery !== savedCardDelivery
+    || Object.keys(entityDeliveryOverrides).length > 0;
 
   const handleSave = () => {
     onPhysicalCardsChange(draftPhysicalCards);
@@ -8376,6 +8411,7 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, cardDe
       <div style={{ flex: 1, overflow: 'auto', animation: `screenEnter 180ms ${EASE_OUT}` }}>
         <div style={{ maxWidth: 680, margin: '0 auto', padding: 'var(--space-500) var(--space-400)', display: 'flex', flexDirection: 'column', gap: 'var(--space-400)' }}>
           <div>
+            {appEntity && <span style={{ display: 'inline-flex', alignItems: 'center', padding: 'var(--space-025) var(--space-100)', borderRadius: 6, background: P.white, border: `1px solid ${P.border}`, fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginBottom: 'var(--space-150)' }}>{ENTITIES.find(e => e.id === appEntity)?.name}</span>}
             <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 28, color: P.ink, margin: 0, letterSpacing: '-0.02em' }}>Payflip Card</h1>
             <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, margin: 'var(--space-050) 0 0' }}>Manage card accounts and settings for your employees</p>
           </div>
@@ -8399,12 +8435,13 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, cardDe
       <div style={{ maxWidth: 680, margin: '0 auto', padding: 'var(--space-500) var(--space-400)', display: 'flex', flexDirection: 'column', gap: 'var(--space-400)' }}>
 
         <div>
+          {appEntity && <span style={{ display: 'inline-flex', alignItems: 'center', padding: 'var(--space-025) var(--space-100)', borderRadius: 6, background: P.white, border: `1px solid ${P.border}`, fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginBottom: 'var(--space-150)' }}>{ENTITIES.find(e => e.id === appEntity)?.name}</span>}
           <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 28, color: P.ink, margin: 0, letterSpacing: '-0.02em' }}>Payflip Card</h1>
           <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, margin: 'var(--space-050) 0 0' }}>Manage card accounts and settings for your employees</p>
         </div>
 
         {/* Funding issue alert — page-level, above the account card */}
-        {isLive && fundingIssue2 && (
+        {isLive && fundingIssue2 && !appEntity && (
           <div style={{ display: 'flex', gap: 'var(--space-150)', padding: 'var(--space-200) var(--space-250)', borderRadius: 10, border: '1px solid var(--alert-200)', background: P.dangerBg, alignItems: 'flex-start' }}>
             <Icon name="alert-circle" size={16} color={P.danger} strokeWidth={2} style={{ flexShrink: 0, marginTop: 'var(--space-025)' }} />
             <div style={{ flex: 1 }}>
@@ -8422,8 +8459,8 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, cardDe
           </div>
         )}
 
-        {/* Account overview — only when live */}
-        {isLive && (
+        {/* Account overview — only when live and not entity-scoped */}
+        {isLive && !appEntity && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-250)' }}>
             <div style={SL}>Account</div>
             <div style={{ border: `1px solid ${P.border}`, borderRadius: 12, overflow: 'hidden', background: P.white }}>
@@ -8481,8 +8518,8 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, cardDe
           </div>
         )}
 
-        {/* Mandate */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-250)' }}>
+        {/* Mandate — company-wide, hidden at entity scope */}
+        {!appEntity && <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-250)' }}>
           <div style={SL}>Mandate</div>
           <SettingsCard info="Collections are processed by Twikey. Re-sign if your company's bank account changes.">
             <SettingsRow
@@ -8493,73 +8530,104 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, cardDe
               last
             />
           </SettingsCard>
-        </div>
+        </div>}
 
         {/* Card issuance */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-250)' }}>
           <div style={SL}>Card issuance</div>
-          <SettingsCard info={draftPhysicalCards ? (draftCardDelivery === 'office' ? 'Cards ship to your company address within 5–7 business days. You distribute them to employees. A €9 shipping fee applies per card.' : 'Employees enter their delivery address when requesting a card. Cards arrive within 5–7 business days. A €9 shipping fee applies per card.') : 'Physical cards are optional. Enable them to let employees request a card from the app.'}>
+          <SettingsCard info={!draftPhysicalCards ? 'Physical cards are optional. Enable them to let employees request a card from the app.' : undefined}>
             <SettingsRow
               icon="credit-card"
               label="Physical card requests"
-              subtitle="Allow employees to request a physical card from the app"
+              subtitle="Ships in 5–7 days · €9 per card"
               trailing={<Switch size="sm" checked={draftPhysicalCards} onChange={() => setDraftPhysicalCards(v => !v)} />}
-              last={!draftPhysicalCards}
+              last
             />
-            {draftPhysicalCards && (
-              <SettingsRow
-                icon="map-pin"
-                label="Card delivery"
-                value={draftCardDelivery === 'office' ? 'Company address' : 'Employee address'}
-                onClick={() => setShowDeliveryModal(true)}
-                last
-              />
-            )}
           </SettingsCard>
-          {showDeliveryModal && (
-            <PickModal
-              title="Where do we send physical cards?"
-              options={[
-                { value: 'home', label: 'Employee address', hint: 'Employees enter their delivery address when requesting a card in the app.' },
-                { value: 'office', label: 'Company address', hint: 'Cards ship to each entity\'s registered delivery address. You receive and distribute them to employees.' },
-              ]}
-              value={draftCardDelivery}
-              onSave={v => setDraftCardDelivery(v)}
-              onClose={() => setShowDeliveryModal(false)}
-            />
-          )}
         </div>
 
-        {/* Per-entity delivery addresses — only shown when physical cards + company address */}
-        {draftPhysicalCards && draftCardDelivery === 'office' && (
+        {/* Card delivery — global default + per-entity rows */}
+        {draftPhysicalCards && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-250)' }}>
-            <div style={SL}>Delivery addresses</div>
-            <SettingsCard info="Cards are shipped to each entity's delivery address. You receive and distribute them to employees.">
-              {ENTITIES.map((ent, idx) => {
-                const addr = entityCardAddresses[ent.id] || '';
-                const missing = !addr;
-                return (
+            <div style={SL}>Card delivery</div>
+            <SettingsCard>
+              {appEntity ? (
+                <SettingsRow
+                  icon="truck"
+                  label="Delivery address"
+                  value={effectiveDelivery === 'office' ? 'Company address' : 'Employee address'}
+                  subtitle={entityDeliveryOverrides[appEntity] != null ? 'Custom for this entity' : undefined}
+                  onClick={() => setShowEntityDeliveryModal(appEntity)}
+                  last
+                />
+              ) : (
+                <>
                   <SettingsRow
-                    key={ent.id}
-                    icon="map-pin"
-                    label={ent.name}
-                    subtitle={missing ? undefined : addr}
-                    trailing={
-                      missing
-                        ? <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-100)' }}>
-                            <DotPill bg={P.warningBorder} color={P.warningDark} size={11}>Address required</DotPill>
-                            <Icon name="chevron-right" size={14} color={P.inkFaint} strokeWidth={1.75} />
-                          </div>
-                        : <Icon name="chevron-right" size={14} color={P.inkFaint} strokeWidth={1.75} />
-                    }
-                    onClick={() => { setEditingEntityAddr(ent.id); setAddrInput(addr); }}
-                    last={idx === ENTITIES.length - 1}
+                    icon="truck"
+                    label="All entities"
+                    subtitle="Applies to entities with no override"
+                    value={draftCardDelivery === 'office' ? 'Company address' : 'Employee address'}
+                    onClick={() => setShowDeliveryModal(true)}
+                    last={false}
                   />
-                );
-              })}
+                  {ENTITIES.map((ent, idx, arr) => {
+                    const entDelivery = entityDeliveryOverrides[ent.id] ?? draftCardDelivery;
+                    const isOffice = entDelivery === 'office';
+                    const missing = isOffice && !ent.legalAddress;
+                    return (
+                      <SettingsRow
+                        key={ent.id}
+                        icon="building-2"
+                        label={ent.name}
+                        subtitle={isOffice && ent.legalAddress ? ent.legalAddress : undefined}
+                        value={missing ? undefined : isOffice ? 'Company address' : 'Employee address'}
+                        trailing={missing
+                          ? <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-100)' }}>
+                              <DotPill bg={P.warningBorder} color={P.warningDark} size={11}>Address required</DotPill>
+                              <Icon name="chevron-right" size={14} color={P.inkFaint} strokeWidth={1.75} />
+                            </div>
+                          : undefined
+                        }
+                        onClick={() => setShowEntityDeliveryModal(ent.id)}
+                        last={idx === arr.length - 1}
+                      />
+                    );
+                  })}
+                </>
+              )}
             </SettingsCard>
           </div>
         )}
+
+        {showDeliveryModal && (
+          <PickModal
+            title="Card delivery default"
+            options={[
+              { value: 'home', label: 'Employee address', hint: 'Each employee enters their home address when requesting a card. Ships in 5–7 days · €9 per card.' },
+              { value: 'office', label: 'Company address', hint: 'Cards ship to each entity\'s configured delivery address. Ships in 5–7 days · €9 per card.' },
+            ]}
+            value={draftCardDelivery}
+            onSave={v => { setDraftCardDelivery(v); }}
+            onClose={() => setShowDeliveryModal(false)}
+          />
+        )}
+        {showEntityDeliveryModal && (() => {
+          const ent = ENTITIES.find(e => e.id === showEntityDeliveryModal);
+          const entDelivery = entityDeliveryOverrides[showEntityDeliveryModal] ?? draftCardDelivery;
+          return (
+            <EntityDeliveryModal
+              entityId={showEntityDeliveryModal}
+              entityName={ent?.name}
+              legalAddress={ent?.legalAddress}
+              currentDelivery={entDelivery}
+              onSave={(mode) => {
+                setEntityDeliveryOverrides(prev => ({ ...prev, [showEntityDeliveryModal]: mode }));
+                setShowEntityDeliveryModal(null);
+              }}
+              onClose={() => setShowEntityDeliveryModal(null)}
+            />
+          );
+        })()}
 
         {/* Footer */}
         <div style={{ paddingTop: 'var(--space-100)', display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-125)' }}>
@@ -8593,35 +8661,6 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, cardDe
 
       </div>
 
-      {editingEntityAddr && (
-        <ModalShell
-          title={`Delivery address — ${ENTITIES.find(e => e.id === editingEntityAddr)?.name}`}
-          onClose={() => setEditingEntityAddr(null)}
-          width={440}
-          footer={close => (
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-150)', padding: 'var(--space-200) var(--space-300)', borderTop: `1px solid ${P.border}` }}>
-              <Button variant="secondary" onClick={close}>Cancel</Button>
-              <Button variant="primary" onClick={() => { setEntityCardAddresses(prev => ({ ...prev, [editingEntityAddr]: addrInput.trim() })); close(); }}>Save</Button>
-            </div>
-          )}
-        >
-          <div style={{ padding: 'var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-200)' }}>
-            <div>
-              <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginBottom: 'var(--space-075)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Delivery address</label>
-              <input
-                autoFocus
-                value={addrInput}
-                onChange={e => setAddrInput(e.target.value)}
-                placeholder="Street, postal code, city"
-                style={{ width: '100%', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, border: `1px solid ${P.border}`, borderRadius: 8, padding: 'var(--space-150) var(--space-200)', outline: 'none', boxSizing: 'border-box' }}
-              />
-              <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginTop: 'var(--space-075)', lineHeight: '18px' }}>
-                Cards will be shipped to this address. This is separate from the entity's registered legal address.
-              </div>
-            </div>
-          </div>
-        </ModalShell>
-      )}
 
       {showResignModal && (
         <ModalShell
@@ -10616,7 +10655,7 @@ function EntitiesSettings({ onNav, appEntity = null, companyRegime = COMPANY_REG
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink }}>{ent.name}</div>
                       <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginTop: 'var(--space-025)' }}>
-                        {[ent.jc, ent.country].filter(Boolean).join(' · ') || ent.country}
+                        {ent.jc || '—'}
                       </div>
                     </div>
                     <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkFaint, whiteSpace: 'nowrap' }}>{ent.employeeCount} employees</span>
@@ -10631,7 +10670,6 @@ function EntitiesSettings({ onNav, appEntity = null, companyRegime = COMPANY_REG
                     <div style={{ padding: 'var(--space-150) var(--space-250) var(--space-200)', background: P.bg, borderBottom: idx < ENTITIES.length - 1 ? `1px solid ${P.border}` : 'none' }}>
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-150) var(--space-300)' }}>
                         {[
-                          ['Country', ent.country],
                           ['Legal address', ent.legalAddress || '—'],
                           ['Joint committee', ent.jc || '—'],
                           ['Payroll provider', ent.payrollProvider],
@@ -13137,7 +13175,7 @@ function App() {
         {screen === 'settings-documents' && <DocumentsSettings key={appEntity ?? 'all'} appEntity={appEntity} documents={settingsDocuments} onDocumentsChange={setSettingsDocuments} />}
         {screen === 'settings-payroll' && <PayrollSettings companyRegime={companyRegime} onRegimeChange={setCompanyRegime} appEntity={appEntity} onToast={addToast} />}
         {screen === 'settings-benefits' && <BenefitsSettings key={appEntity ?? 'all'} appEntity={appEntity} />}
-        {screen === 'settings-cardrules' && <CardRulesSettings physicalCardsAllowed={physicalCardsAllowed} onPhysicalCardsChange={setPhysicalCardsAllowed} cardDelivery={cardDelivery} onCardDeliveryChange={setCardDelivery} onToast={addToast} mobilityWidgetState={mobilityWidgetState} onMobilityWidgetStateChange={setMobilityWidgetState} onNav={handleNav} />}
+        {screen === 'settings-cardrules' && <CardRulesSettings key={appEntity ?? 'all'} physicalCardsAllowed={physicalCardsAllowed} onPhysicalCardsChange={setPhysicalCardsAllowed} cardDelivery={cardDelivery} onCardDeliveryChange={setCardDelivery} onToast={addToast} mobilityWidgetState={mobilityWidgetState} onMobilityWidgetStateChange={setMobilityWidgetState} onNav={handleNav} appEntity={appEntity} />}
         {screen === 'changelog' && <ChangelogScreen />}
         {screen === 'components' && <ComponentLibraryScreen />}
         {screen.startsWith('settings-') && screen !== 'settings-allowances' && screen !== 'settings-expenses' && screen !== 'settings-team' && screen !== 'settings-timeoff' && screen !== 'settings-entities' && screen !== 'settings-documents' && screen !== 'settings-payroll' && screen !== 'settings-benefits' && screen !== 'settings-cardrules' && <StubScreen title={SETTINGS_TITLES[screen] || 'Settings'} description={`Configure ${(SETTINGS_TITLES[screen] || 'settings').toLowerCase()}`} />}
