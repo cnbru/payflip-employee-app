@@ -8562,14 +8562,24 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, cardDe
                 />
               ) : (
                 <>
-                  <SettingsRow
-                    icon="truck"
-                    label="All entities"
-                    subtitle="Applies to entities with no override"
-                    value={draftCardDelivery === 'office' ? 'Company address' : 'Employee address'}
-                    onClick={() => setShowDeliveryModal(true)}
-                    last={false}
-                  />
+                  {(() => {
+                    const effectiveModes = ENTITIES.map(e => entityDeliveryOverrides[e.id] ?? draftCardDelivery);
+                    const allSame = effectiveModes.every(m => m === effectiveModes[0]);
+                    const summaryValue = allSame
+                      ? (effectiveModes[0] === 'office' ? 'Company address' : 'Employee address')
+                      : 'Varies by entity';
+                    return (
+                      <SettingsRow
+                        icon="truck"
+                        label="All entities"
+                        subtitle="Default for entities with no override"
+                        value={summaryValue}
+                        valueColor={!allSame ? P.inkSoft : undefined}
+                        onClick={() => setShowDeliveryModal(true)}
+                        last={false}
+                      />
+                    );
+                  })()}
                   {ENTITIES.map((ent, idx, arr) => {
                     const entDelivery = entityDeliveryOverrides[ent.id] ?? draftCardDelivery;
                     const isOffice = entDelivery === 'office';
