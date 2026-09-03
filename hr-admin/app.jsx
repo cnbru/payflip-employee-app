@@ -710,7 +710,14 @@ const EMP_EXTRA = {
   'pieter-verheyen':     { inssNumber: '87.12.30-243.68' },
 };
 // ── Work regime helpers ───────────────────────────────────────────────────
-const COMPANY_REGIME_DEFAULTS = { contractedHours: 40, emailDomain: 'lumiogroup.be' };
+const COMPANY_REGIME_DEFAULTS = {
+  contractedHours: 40,
+  emailDomain: 'lumiogroup.be',
+  legalRepresentative: 'Maura Nachtergaele',
+  vatNumber: 'BE 0800 123 456',
+  invoicingEmail: 'billing@lumiogroup.be',
+  legalAddress: 'Rue de la Loi 42, 1040 Brussels',
+};
 function calcAdvDays(companyRegime, emp) {
   const contracted = companyRegime.contractedHours;
   const fullTimeAdv = Math.max(0, ((contracted - 38) / 2) * 12);
@@ -10587,76 +10594,77 @@ function ChoicesScreen({ choices, onApprove, onDecline, onDetail, appEntity = nu
 // ── Entities settings screen ──────────────────────────────────────────────
 function EntitiesSettings({ onNav, appEntity = null, companyRegime = COMPANY_REGIME_DEFAULTS, onRegimeChange }) {
   const [expandedId, setExpandedId] = useState(null);
-  const [editingDomain, setEditingDomain] = useState(false);
-  const [domainInput, setDomainInput] = useState(companyRegime.emailDomain || '');
-  const saveDomain = () => {
-    const v = domainInput.trim().toLowerCase().replace(/^@/, '');
-    if (v) onRegimeChange?.({ ...companyRegime, emailDomain: v });
-    setEditingDomain(false);
-  };
+  const [editingField, setEditingField] = useState(null);
+  const [editValue, setEditValue] = useState('');
 
-  const ENTITY_OVERRIDES_DEMO = {
-    'lumio-france': ['Entitlement', 'Approval workflow'],
-    'lumio-nl': [],
-    'lumio-group': [],
+  const regime = { ...COMPANY_REGIME_DEFAULTS, ...companyRegime };
+
+  const saveField = (close) => {
+    const v = editValue.trim();
+    if (!v) return;
+    onRegimeChange?.({ ...companyRegime, [editingField.key]: v });
+    close();
   };
 
   const card = { border: `1px solid ${P.border}`, borderRadius: 16, overflow: 'clip', background: P.white };
 
+  const companyFields = [
+    { key: 'legalRepresentative', label: 'Legal representative', icon: 'user', hint: 'Shown on all legal documents signed by employees.' },
+    { key: 'vatNumber', label: 'VAT number', icon: 'landmark', hint: 'Belgian VAT number for invoicing and compliance.' },
+    { key: 'invoicingEmail', label: 'Invoicing email', icon: 'mail', hint: 'Payflip sends invoices and billing notifications to this address.' },
+    { key: 'emailDomain', label: 'Default email domain', icon: 'at-sign', hint: 'Used to validate work emails during onboarding. Entities can set their own.' },
+    { key: 'legalAddress', label: 'Registered address', icon: 'map-pin', hint: 'Default company address. Entities can specify their own.' },
+  ];
+
   return (
     <div style={{ flex: 1, overflow: 'auto', animation: `screenEnter 180ms ${EASE_OUT}` }}>
       <div style={{ maxWidth: 680, margin: '0 auto', padding: 'var(--space-500) var(--space-400)', display: 'flex', flexDirection: 'column', gap: 'var(--space-400)' }}>
+
         <div>
-          <div>
-            {appEntity && <span style={{ display: 'inline-flex', alignItems: 'center', padding: 'var(--space-025) var(--space-100)', borderRadius: 6, background: P.white, border: `1px solid ${P.border}`, fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginBottom: 'var(--space-300)' }}>{ENTITIES.find(e => e.id === appEntity)?.name}</span>}
-            <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 22, color: P.ink, margin: 0, letterSpacing: '-0.02em' }}>Entities</h1>
-          </div>
+          {appEntity && <span style={{ display: 'inline-flex', alignItems: 'center', padding: 'var(--space-025) var(--space-100)', borderRadius: 6, background: P.white, border: `1px solid ${P.border}`, fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginBottom: 'var(--space-300)' }}>{ENTITIES.find(e => e.id === appEntity)?.name}</span>}
+          <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 22, color: P.ink, margin: 0, letterSpacing: '-0.02em' }}>Entities</h1>
           <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, margin: 'var(--space-050) 0 0' }}>Manage your company's legal entities</p>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: 'var(--space-125)', padding: 'var(--space-150) var(--space-200)', borderRadius: 10, background: '#f0f4ff', border: '1px solid #dbe4ff' }}>
           <Icon name="info" size={15} color="#4c6ef5" strokeWidth={1.75} style={{ flexShrink: 0, marginTop: 'var(--space-025)' }} />
           <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: '#364fc7', lineHeight: 1.5 }}>
-            Settings are configured at the company level by default. Entity-specific overrides can be added per setting where needed.
+            Settings are configured at the company level by default. Entities inherit these unless a specific value is set on the entity.
           </div>
         </div>
 
+        {/* Company-wide defaults */}
         <div>
           <div style={SL}>All entities</div>
-          <div style={{ ...card, marginBottom: 'var(--space-100)' }}>
-            <div style={{ padding: 'var(--space-150) var(--space-250)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 'var(--space-150)' }}>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginBottom: 'var(--space-050)' }}>Email domain</div>
-                {editingDomain ? (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-100)' }}>
-                    <input
-                      autoFocus
-                      value={domainInput}
-                      onChange={e => setDomainInput(e.target.value.toLowerCase().replace(/^@/, ''))}
-                      onKeyDown={e => { if (e.key === 'Enter') saveDomain(); if (e.key === 'Escape') setEditingDomain(false); }}
-                      placeholder="company.com"
-                      style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: P.ink, border: `1px solid ${P.action}`, borderRadius: 6, padding: 'var(--space-050) var(--space-100)', outline: 'none', width: 180 }}
-                    />
-                    <button onClick={saveDomain} style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.white, background: P.action, border: 'none', borderRadius: 6, padding: 'var(--space-075) var(--space-150)', cursor: 'pointer' }}>Save</button>
-                    <button onClick={() => setEditingDomain(false)} style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.ink, background: 'transparent', border: `1px solid ${P.border}`, borderRadius: 6, padding: 'var(--space-050) var(--space-125)', cursor: 'pointer' }}>Cancel</button>
-                  </div>
-                ) : (
-                  <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: P.ink }}>{companyRegime.emailDomain}</div>
-                )}
-                {!editingDomain && <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginTop: 'var(--space-050)' }}>Used to validate work emails during employee onboarding. Entities can override this with their own domain.</div>}
-              </div>
-              {editingDomain ? null : (
-                <button onClick={() => { setDomainInput(companyRegime.emailDomain || ''); setEditingDomain(true); }}
-                  style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.ink, background: 'transparent', border: `1px solid ${P.border}`, borderRadius: 6, padding: 'var(--space-050) var(--space-125)', cursor: 'pointer', flexShrink: 0 }}>
-                  Edit
-                </button>
-              )}
-            </div>
-          </div>
+          <SettingsCard>
+            {companyFields.map((field, idx) => (
+              <SettingsRow
+                key={field.key}
+                icon={field.icon}
+                label={field.label}
+                value={regime[field.key] || '—'}
+                onClick={() => { setEditingField(field); setEditValue(regime[field.key] || ''); }}
+                last={idx === companyFields.length - 1}
+              />
+            ))}
+          </SettingsCard>
+        </div>
+
+        {/* Entity list */}
+        <div>
+          <div style={SL}>Entities</div>
           <div style={card}>
             {ENTITIES.map((ent, idx) => {
               const isExpanded = expandedId === ent.id;
-              const overrides = ENTITY_OVERRIDES_DEMO[ent.id] || [];
+              const hasEmailOverride = !!ent.emailDomain;
+              const overrideCount = hasEmailOverride ? 1 : 0;
+              const entityRows = [
+                { label: 'Legal address', icon: 'map-pin', value: ent.legalAddress || '—', inherited: false },
+                { label: 'Joint committee', icon: 'briefcase', value: ent.jc || '—', inherited: false },
+                { label: 'Payroll provider', icon: 'building-2', value: ent.payrollProvider || '—', inherited: false },
+                { label: 'Integration ID', icon: 'plug', value: ent.integrationId || 'Not connected', inherited: false },
+                { label: 'Email domain', icon: 'at-sign', value: ent.emailDomain || regime.emailDomain, inherited: !ent.emailDomain },
+              ];
               return (
                 <React.Fragment key={ent.id}>
                   <div onClick={() => setExpandedId(isExpanded ? null : ent.id)}
@@ -10664,36 +10672,32 @@ function EntitiesSettings({ onNav, appEntity = null, companyRegime = COMPANY_REG
                     <Icon name="map-pin" size={16} color={P.inkFaint} strokeWidth={1.75} style={{ flexShrink: 0 }} />
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink }}>{ent.name}</div>
-                      <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginTop: 'var(--space-025)' }}>
-                        {ent.jc || '—'}
-                      </div>
+                      <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginTop: 'var(--space-025)' }}>{ent.jc || '—'}</div>
                     </div>
                     <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkFaint, whiteSpace: 'nowrap' }}>{ent.employeeCount} employees</span>
-                    {overrides.length > 0 && (
+                    {overrideCount > 0 && (
                       <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.action, background: '#f3f0ff', padding: 'var(--space-025) var(--space-100)', borderRadius: 10, whiteSpace: 'nowrap' }}>
-                        {overrides.length} override{overrides.length > 1 ? 's' : ''}
+                        {overrideCount} override{overrideCount !== 1 ? 's' : ''}
                       </span>
                     )}
                     <Icon name={isExpanded ? 'chevron-up' : 'chevron-down'} size={16} color={P.inkFaint} strokeWidth={1.75} style={{ flexShrink: 0 }} />
                   </div>
                   {isExpanded && (
-                    <div style={{ padding: 'var(--space-150) var(--space-250) var(--space-200)', background: P.bg, borderBottom: idx < ENTITIES.length - 1 ? `1px solid ${P.border}` : 'none' }}>
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-150) var(--space-300)' }}>
-                        {[
-                          ['Legal address', ent.legalAddress || '—'],
-                          ['Joint committee', ent.jc || '—'],
-                          ['Payroll provider', ent.payrollProvider],
-                          ['Integration ID', ent.integrationId || '—'],
-                          ['Email domain', ent.emailDomain ? `${ent.emailDomain} (override)` : `${companyRegime.emailDomain} (inherited)`],
-                          ['Employees', `${ent.employeeCount}`],
-                          ['Overrides', overrides.length > 0 ? overrides.join(', ') : 'None — fully inherited'],
-                        ].map(([label, value]) => (
-                          <div key={label}>
-                            <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginBottom: 'var(--space-025)' }}>{label}</div>
-                            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: P.ink }}>{value}</div>
+                    <div style={{ background: P.bg, borderBottom: idx < ENTITIES.length - 1 ? `1px solid ${P.border}` : 'none' }}>
+                      {entityRows.map((row, rIdx) => (
+                        <div key={row.label} style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-200)', padding: 'var(--space-150) var(--space-250)', borderBottom: rIdx < entityRows.length - 1 ? `1px solid ${P.border}` : 'none' }}>
+                          <div style={{ width: 36, height: 36, borderRadius: 10, background: P.white, border: `1px solid ${P.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                            <Icon name={row.icon} size={15} color={P.inkSoft} strokeWidth={1.75} />
                           </div>
-                        ))}
-                      </div>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>{row.label}</div>
+                            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: row.inherited ? P.inkSoft : P.ink, marginTop: 'var(--space-025)' }}>{row.value}</div>
+                          </div>
+                          {row.inherited && (
+                            <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkFaint, background: P.bg, border: `1px solid ${P.border}`, borderRadius: 6, padding: '2px var(--space-075)', whiteSpace: 'nowrap', flexShrink: 0 }}>Inherited</span>
+                          )}
+                        </div>
+                      ))}
                     </div>
                   )}
                 </React.Fragment>
@@ -10703,16 +10707,32 @@ function EntitiesSettings({ onNav, appEntity = null, companyRegime = COMPANY_REG
         </div>
 
         <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-          <button onClick={() => {}} style={{
-            display: 'flex', alignItems: 'center', gap: 'var(--space-075)',
-            padding: 'var(--space-100) var(--space-200)', borderRadius: 8, border: `1px solid ${P.border}`, background: P.white,
-            cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink,
-          }}>
-            <Icon name="plus" size={14} color={P.ink} strokeWidth={2} />
-            Add entity
-          </button>
+          <Button variant="secondary" icon="plus" onClick={() => {}}>Add entity</Button>
         </div>
       </div>
+
+      {editingField && (
+        <ModalShell title={`Edit ${editingField.label.toLowerCase()}`} onClose={() => setEditingField(null)} width={440}
+          footer={close => (
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-150)', padding: 'var(--space-200) var(--space-300)', borderTop: `1px solid ${P.border}` }}>
+              <Button variant="secondary" onClick={close}>Cancel</Button>
+              <Button variant="primary" onClick={() => saveField(close)}>Save</Button>
+            </div>
+          )}>
+          <div style={{ padding: 'var(--space-200) var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-150)' }}>
+            {editingField.hint && (
+              <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, lineHeight: 1.5 }}>{editingField.hint}</div>
+            )}
+            <input
+              autoFocus
+              value={editValue}
+              onChange={e => setEditValue(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Escape') setEditingField(null); }}
+              style={{ width: '100%', border: `1px solid ${P.border}`, borderRadius: 8, padding: 'var(--space-100) var(--space-150)', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, outline: 'none', boxSizing: 'border-box' }}
+            />
+          </div>
+        </ModalShell>
+      )}
     </div>
   );
 }
