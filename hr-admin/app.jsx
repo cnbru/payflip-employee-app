@@ -6687,6 +6687,9 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
   const liveVisible = ws.liveVisible;
   const setLiveVisible = (v) => setWs({ liveVisible: typeof v === 'function' ? v(ws.liveVisible) : v });
   const [showCalcModal, setShowCalcModal] = useState(false);
+  const [showAmountModal, setShowAmountModal] = useState(false);
+  const [amountInput, setAmountInput] = useState('');
+  const [customDeposit, setCustomDeposit] = useState(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showInviteListModal, setShowInviteListModal] = useState(false);
   const [showInviteMoreModal, setShowInviteMoreModal] = useState(false);
@@ -6758,7 +6761,8 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
   const foodMissingInss = foodSelectedEmployees.filter(id => !EMP_EXTRA[id]?.inssNumber);
   const foodInssComplete = inssUploaded;
   // Deposit = €37/employee/month × 3 months, rounded to nearest €50
-  const deposit = Math.max(50, Math.round(empCount * 37 * 3 / 50) * 50);
+  const recommendedDeposit = Math.max(50, Math.round(empCount * 37 * 3 / 50) * 50);
+  const deposit = customDeposit ?? recommendedDeposit;
 
   const switchMode = (mode) => {
     setWs({ widgetMode: mode, hidden: false, step: 1, mandateDenied: false, mandateValidated: false, depositFailed: false, live: false, liveVisible: false });
@@ -6893,9 +6897,14 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
                   <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
                     Authorises Payflip to collect <strong style={{ color: P.ink }}>€{deposit.toLocaleString('de-DE')}</strong> for your {empCount} employees, and top up automatically when the balance runs low.
                   </p>
-                  <button onClick={() => setShowCalcModal(true)} style={{ alignSelf: 'flex-start', background: 'none', border: 'none', padding: 0, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, textDecoration: 'underline', cursor: 'pointer' }}>
-                    How is this calculated?
-                  </button>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-200)' }}>
+                    <button onClick={() => setShowCalcModal(true)} style={{ background: 'none', border: 'none', padding: 0, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, textDecoration: 'underline', cursor: 'pointer' }}>
+                      How is this calculated?
+                    </button>
+                    <button onClick={() => { setAmountInput(deposit.toString()); setShowAmountModal(true); }} style={{ background: 'none', border: 'none', padding: 0, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, textDecoration: 'underline', cursor: 'pointer' }}>
+                      Adjust amount
+                    </button>
+                  </div>
                 </div>
                 <Button variant="primary" onClick={() => setStep(2)} style={{ width: '100%', justifyContent: 'center', fontSize: 'var(--fs-body-md)', padding: 'var(--space-125) var(--space-250)' }}>Sign with Twikey</Button>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 'var(--space-100)', width: '100%' }}>
@@ -7477,7 +7486,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
 
     {/* "How is this calculated?" modal */}
     {showCalcModal && (
-      <ModalShell title="About the recommended amount" onClose={() => setShowCalcModal(false)} width={480}>
+      <ModalShell title="About the deposit amount" onClose={() => setShowCalcModal(false)} width={480}>
         <div style={{ padding: 'var(--space-250) var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-250)' }}>
           {/* Summary stats */}
           <div style={{ display: 'flex', gap: 'var(--space-150)' }}>
@@ -7486,7 +7495,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
               <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-lg)', color: P.ink }}>{empCount}</span>
             </div>
             <div style={{ flex: 1, padding: 'var(--space-150) var(--space-200)', borderRadius: 8, background: P.bg, display: 'flex', flexDirection: 'column', gap: 'var(--space-025)' }}>
-              <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>Recommended deposit</span>
+              <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>Deposit amount</span>
               <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-lg)', color: P.ink }}>€{deposit.toLocaleString('de-DE')}</span>
             </div>
           </div>
@@ -7502,7 +7511,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
             <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-050)' }}>
               <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink }}>Can I change the amount?</span>
               <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: '18px', margin: 0 }}>
-                You don't have to fund this exact amount. Employees can only spend up to their own balance, so there's no risk of overspending. If you fund less, direct debit tops it up automatically.
+                Yes — use the button below. Employees can only spend up to their own balance, so there's no risk of overspending. If you fund less, direct debit tops it up automatically.
               </p>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-050)' }}>
@@ -7515,6 +7524,51 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
         </div>
       </ModalShell>
     )}
+
+    {/* Adjust deposit amount modal */}
+    {showAmountModal && (() => {
+      const parsed = parseFloat(amountInput.replace(',', '.'));
+      const isValid = !isNaN(parsed) && parsed >= 50;
+      return (
+        <ModalShell title="Adjust deposit amount" onClose={() => setShowAmountModal(false)} width={440}
+          footer={close => (
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-150)', padding: 'var(--space-200) var(--space-300)', borderTop: `1px solid ${P.border}` }}>
+              <Button variant="secondary" onClick={close}>Cancel</Button>
+              <Button variant="primary" disabled={!isValid} onClick={() => { setCustomDeposit(Math.round(parsed)); close(); }}>Confirm amount</Button>
+            </div>
+          )}>
+          <div style={{ padding: 'var(--space-200) var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-200)' }}>
+            <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, lineHeight: 1.5, margin: 0 }}>
+              This is the initial amount Payflip will collect from your account for {empCount} employees. The mandate allows automatic top-ups when the balance runs low.
+            </p>
+            <div style={{ display: 'flex', alignItems: 'center', border: `1px solid ${P.border}`, borderRadius: 8, overflow: 'hidden', background: P.white }}>
+              <span style={{ padding: '0 var(--space-150)', fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: P.inkSoft, borderRight: `1px solid ${P.border}`, height: 40, display: 'flex', alignItems: 'center' }}>€</span>
+              <input
+                autoFocus
+                type="number"
+                min="50"
+                step="50"
+                value={amountInput}
+                onChange={e => setAmountInput(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Escape') setShowAmountModal(false); }}
+                style={{ flex: 1, border: 'none', padding: 'var(--space-100) var(--space-150)', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.ink, outline: 'none', background: 'transparent' }}
+              />
+            </div>
+            {customDeposit && (
+              <button onClick={() => { setCustomDeposit(null); setShowAmountModal(false); }}
+                style={{ background: 'none', border: 'none', padding: 0, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, cursor: 'pointer', textAlign: 'left', textDecoration: 'underline' }}>
+                Reset to recommended amount (€{recommendedDeposit.toLocaleString('de-DE')})
+              </button>
+            )}
+            {!customDeposit && (
+              <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, margin: 0 }}>
+                Recommended: €{recommendedDeposit.toLocaleString('de-DE')} · based on 3 months × {empCount} employees
+              </p>
+            )}
+          </div>
+        </ModalShell>
+      );
+    })()}
 
     {/* Invite confirmation dialog */}
     {showConfirmModal && (
@@ -10593,117 +10647,217 @@ function ChoicesScreen({ choices, onApprove, onDecline, onDetail, appEntity = nu
 
 // ── Entities settings screen ──────────────────────────────────────────────
 function EntitiesSettings({ onNav, appEntity = null, companyRegime = COMPANY_REGIME_DEFAULTS, onRegimeChange }) {
-  const [expandedId, setExpandedId] = useState(null);
-  const [editingField, setEditingField] = useState(null);
+  const [selectedEntity, setSelectedEntity] = useState(null);
+  // { scope: 'company'|'entity', entId?, field, label, hint, inheritable, usingDefault, defaultValue }
+  const [editing, setEditing] = useState(null);
   const [editValue, setEditValue] = useState('');
+  const [entityOverrides, setEntityOverrides] = useState({});
 
   const regime = { ...COMPANY_REGIME_DEFAULTS, ...companyRegime };
 
-  const saveField = (close) => {
+  const getEntValue = (ent, fieldKey) => {
+    if (entityOverrides[ent.id]?.[fieldKey] !== undefined) return entityOverrides[ent.id][fieldKey];
+    return ent[fieldKey] ?? null;
+  };
+
+  // All fields shown inside an entity drawer — inheritable = can fall back to company default
+  const allEntityFields = [
+    { key: 'vatNumber',           label: 'VAT number',           icon: 'landmark',   inheritable: true },
+    { key: 'legalAddress',        label: 'Registered address',   icon: 'map-pin',    inheritable: true },
+    { key: 'legalRepresentative', label: 'Legal representative', icon: 'user',       inheritable: true },
+    { key: 'invoicingEmail',      label: 'Invoicing email',      icon: 'mail',       inheritable: true },
+    { key: 'emailDomain',         label: 'Email domain',         icon: 'at-sign',    inheritable: true },
+    { key: 'jc',                  label: 'Joint committee',      icon: 'briefcase',  inheritable: false },
+    { key: 'payrollProvider',     label: 'Payroll provider',     icon: 'building-2', inheritable: false },
+    { key: 'integrationId',       label: 'Integration ID',       icon: 'plug',       inheritable: false },
+  ];
+
+  const companyFields = [
+    { key: 'legalRepresentative', label: 'Legal representative', icon: 'user',    hint: 'Shown on all legal documents signed by employees.' },
+    { key: 'vatNumber',           label: 'VAT number',           icon: 'landmark', hint: 'Belgian VAT number for invoicing and compliance.' },
+    { key: 'invoicingEmail',      label: 'Invoicing email',      icon: 'mail',    hint: 'Payflip sends invoices and billing notifications here.' },
+    { key: 'emailDomain',         label: 'Default email domain', icon: 'at-sign', hint: 'Used to validate work emails. Entities can override.' },
+    { key: 'legalAddress',        label: 'Registered address',   icon: 'map-pin', hint: 'Default company address. Entities can override.' },
+  ];
+
+  const saveCompany = (close) => {
     const v = editValue.trim();
     if (!v) return;
-    onRegimeChange?.({ ...companyRegime, [editingField.key]: v });
+    onRegimeChange?.({ ...companyRegime, [editing.field]: v });
     close();
+  };
+
+  const saveEntity = (close) => {
+    const v = editValue.trim();
+    setEntityOverrides(prev => ({
+      ...prev,
+      [editing.entId]: { ...(prev[editing.entId] || {}), [editing.field]: v || null },
+    }));
+    close();
+  };
+
+  const resetToDefault = (entId, fieldKey) => {
+    setEntityOverrides(prev => {
+      const copy = { ...(prev[entId] || {}) };
+      delete copy[fieldKey];
+      return { ...prev, [entId]: copy };
+    });
+    setEditing(null);
+  };
+
+  const openEntityFieldEdit = (ent, field) => {
+    const currentVal = getEntValue(ent, field.key);
+    const usingDefault = field.inheritable && !currentVal;
+    setEditing({
+      scope: 'entity',
+      entId: ent.id,
+      entName: ent.name,
+      field: field.key,
+      label: field.label,
+      inheritable: field.inheritable,
+      usingDefault,
+      defaultValue: field.inheritable ? regime[field.key] : null,
+    });
+    setEditValue(usingDefault ? '' : (currentVal || ''));
+  };
+
+  const openCompanyFieldEdit = (field) => {
+    setEditing({ scope: 'company', field: field.key, label: field.label, hint: field.hint });
+    setEditValue(regime[field.key] || '');
+  };
+
+  const countOverrides = (ent) => {
+    const overriddenKeys = new Set();
+    allEntityFields.filter(f => f.inheritable).forEach(f => {
+      const sessionVal = entityOverrides[ent.id]?.[f.key];
+      const seedVal = ent[f.key];
+      if ((sessionVal !== undefined && sessionVal) || (sessionVal === undefined && seedVal)) {
+        overriddenKeys.add(f.key);
+      }
+    });
+    return overriddenKeys.size;
   };
 
   const card = { border: `1px solid ${P.border}`, borderRadius: 16, overflow: 'clip', background: P.white };
 
-  const companyFields = [
-    { key: 'legalRepresentative', label: 'Legal representative', icon: 'user', hint: 'Shown on all legal documents signed by employees.' },
-    { key: 'vatNumber', label: 'VAT number', icon: 'landmark', hint: 'Belgian VAT number for invoicing and compliance.' },
-    { key: 'invoicingEmail', label: 'Invoicing email', icon: 'mail', hint: 'Payflip sends invoices and billing notifications to this address.' },
-    { key: 'emailDomain', label: 'Default email domain', icon: 'at-sign', hint: 'Used to validate work emails during onboarding. Entities can set their own.' },
-    { key: 'legalAddress', label: 'Registered address', icon: 'map-pin', hint: 'Default company address. Entities can specify their own.' },
-  ];
+  if (selectedEntity) {
+    const ent = selectedEntity;
+    return (
+      <div style={{ flex: 1, overflow: 'auto', animation: `screenEnter 180ms ${EASE_OUT}` }}>
+        <div style={{ maxWidth: 680, margin: '0 auto', padding: 'var(--space-500) var(--space-400)', display: 'flex', flexDirection: 'column', gap: 'var(--space-400)' }}>
+          <div>
+            <button onClick={() => { setSelectedEntity(null); setEditing(null); }}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-075)', background: 'none', border: 'none', padding: 0, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, cursor: 'pointer', marginBottom: 'var(--space-200)' }}>
+              <Icon name="chevron-left" size={14} color={P.inkSoft} strokeWidth={2} />
+              Entities
+            </button>
+            <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 22, color: P.ink, margin: 0, letterSpacing: '-0.02em' }}>{ent.name}</h1>
+            <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, margin: 'var(--space-050) 0 0' }}>{ent.jc} · {ent.employeeCount} employees</p>
+          </div>
+          <div>
+            <div style={SL}>Settings</div>
+            <SettingsCard>
+              {allEntityFields.map((field, idx) => {
+                const rawVal = getEntValue(ent, field.key);
+                const usingDefault = field.inheritable && !rawVal;
+                const displayVal = rawVal || null;
+                const isOverride = field.inheritable && !!rawVal;
+                const shownVal = usingDefault ? (regime[field.key] || '—') : (displayVal || '—');
+                const overrideBadge = <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: 'var(--bg-primary-default)', background: 'rgb(243, 240, 255)', borderRadius: 10, padding: 'var(--space-025) var(--space-100)', whiteSpace: 'nowrap' }}>Override</span>;
+                return (
+                  <SettingsRow
+                    key={field.key}
+                    icon={field.icon}
+                    label={field.label}
+                    value={shownVal}
+                    valueColor={usingDefault ? P.inkFaint : P.inkSoft}
+                    trailing={isOverride ? overrideBadge : undefined}
+                    onClick={() => openEntityFieldEdit(ent, field)}
+                    last={idx === allEntityFields.length - 1}
+                  />
+                );
+              })}
+            </SettingsCard>
+          </div>
+        </div>
+
+        {/* Field edit modal */}
+        {editing && (() => {
+          const save = saveEntity;
+          return (
+            <ModalShell title={`${editing.label} — ${editing.entName}`} onClose={() => setEditing(null)} width={440}
+              footer={close => (
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-150)', padding: 'var(--space-200) var(--space-300)', borderTop: `1px solid ${P.border}` }}>
+                  <Button variant="secondary" onClick={close}>Cancel</Button>
+                  <Button variant="primary" onClick={() => save(close)}>Save</Button>
+                </div>
+              )}>
+              <div style={{ padding: 'var(--space-200) var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-150)' }}>
+                {editing.inheritable && (
+                  <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, lineHeight: 1.5 }}>
+                    {editing.usingDefault
+                      ? `Using company default: "${editing.defaultValue}". Enter a value to set it for this entity only.`
+                      : `Overriding company default (${editing.defaultValue}).`}
+                  </div>
+                )}
+                <input
+                  autoFocus
+                  value={editValue}
+                  onChange={e => setEditValue(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Escape') setEditing(null); }}
+                  placeholder={editing.inheritable ? editing.defaultValue : ''}
+                  style={{ width: '100%', border: `1px solid ${P.border}`, borderRadius: 8, padding: 'var(--space-100) var(--space-150)', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, outline: 'none', boxSizing: 'border-box' }}
+                />
+                {editing.inheritable && !editing.usingDefault && (
+                  <button onClick={() => resetToDefault(editing.entId, editing.field)}
+                    style={{ background: 'none', border: 'none', padding: 0, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, cursor: 'pointer', textAlign: 'left', textDecoration: 'underline' }}>
+                    Reset to company default ({editing.defaultValue})
+                  </button>
+                )}
+              </div>
+            </ModalShell>
+          );
+        })()}
+      </div>
+    );
+  }
 
   return (
     <div style={{ flex: 1, overflow: 'auto', animation: `screenEnter 180ms ${EASE_OUT}` }}>
       <div style={{ maxWidth: 680, margin: '0 auto', padding: 'var(--space-500) var(--space-400)', display: 'flex', flexDirection: 'column', gap: 'var(--space-400)' }}>
 
+        {/* Header */}
         <div>
           {appEntity && <span style={{ display: 'inline-flex', alignItems: 'center', padding: 'var(--space-025) var(--space-100)', borderRadius: 6, background: P.white, border: `1px solid ${P.border}`, fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginBottom: 'var(--space-300)' }}>{ENTITIES.find(e => e.id === appEntity)?.name}</span>}
           <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 22, color: P.ink, margin: 0, letterSpacing: '-0.02em' }}>Entities</h1>
-          <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, margin: 'var(--space-050) 0 0' }}>Manage your company's legal entities</p>
-        </div>
-
-        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 'var(--space-125)', padding: 'var(--space-150) var(--space-200)', borderRadius: 10, background: '#f0f4ff', border: '1px solid #dbe4ff' }}>
-          <Icon name="info" size={15} color="#4c6ef5" strokeWidth={1.75} style={{ flexShrink: 0, marginTop: 'var(--space-025)' }} />
-          <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: '#364fc7', lineHeight: 1.5 }}>
-            Settings are configured at the company level by default. Entities inherit these unless a specific value is set on the entity.
-          </div>
-        </div>
-
-        {/* Company-wide defaults */}
-        <div>
-          <div style={SL}>All entities</div>
-          <SettingsCard>
-            {companyFields.map((field, idx) => (
-              <SettingsRow
-                key={field.key}
-                icon={field.icon}
-                label={field.label}
-                value={regime[field.key] || '—'}
-                onClick={() => { setEditingField(field); setEditValue(regime[field.key] || ''); }}
-                last={idx === companyFields.length - 1}
-              />
-            ))}
-          </SettingsCard>
+          <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, margin: 'var(--space-050) 0 0' }}>Each entity inherits company settings unless a specific value is set.</p>
         </div>
 
         {/* Entity list */}
-        <div>
-          <div style={SL}>Entities</div>
-          <div style={card}>
-            {ENTITIES.map((ent, idx) => {
-              const isExpanded = expandedId === ent.id;
-              const hasEmailOverride = !!ent.emailDomain;
-              const overrideCount = hasEmailOverride ? 1 : 0;
-              const entityRows = [
-                { label: 'Legal address', icon: 'map-pin', value: ent.legalAddress || '—', inherited: false },
-                { label: 'Joint committee', icon: 'briefcase', value: ent.jc || '—', inherited: false },
-                { label: 'Payroll provider', icon: 'building-2', value: ent.payrollProvider || '—', inherited: false },
-                { label: 'Integration ID', icon: 'plug', value: ent.integrationId || 'Not connected', inherited: false },
-                { label: 'Email domain', icon: 'at-sign', value: ent.emailDomain || regime.emailDomain, inherited: !ent.emailDomain },
-              ];
-              return (
-                <React.Fragment key={ent.id}>
-                  <div onClick={() => setExpandedId(isExpanded ? null : ent.id)}
-                    style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-200)', padding: 'var(--space-200) var(--space-250)', borderBottom: (idx < ENTITIES.length - 1 || isExpanded) ? `1px solid ${P.border}` : 'none', cursor: 'pointer' }}>
-                    <Icon name="map-pin" size={16} color={P.inkFaint} strokeWidth={1.75} style={{ flexShrink: 0 }} />
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink }}>{ent.name}</div>
-                      <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginTop: 'var(--space-025)' }}>{ent.jc || '—'}</div>
-                    </div>
-                    <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkFaint, whiteSpace: 'nowrap' }}>{ent.employeeCount} employees</span>
-                    {overrideCount > 0 && (
-                      <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.action, background: '#f3f0ff', padding: 'var(--space-025) var(--space-100)', borderRadius: 10, whiteSpace: 'nowrap' }}>
-                        {overrideCount} override{overrideCount !== 1 ? 's' : ''}
-                      </span>
-                    )}
-                    <Icon name={isExpanded ? 'chevron-up' : 'chevron-down'} size={16} color={P.inkFaint} strokeWidth={1.75} style={{ flexShrink: 0 }} />
-                  </div>
-                  {isExpanded && (
-                    <div style={{ background: P.bg, borderBottom: idx < ENTITIES.length - 1 ? `1px solid ${P.border}` : 'none' }}>
-                      {entityRows.map((row, rIdx) => (
-                        <div key={row.label} style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-200)', padding: 'var(--space-150) var(--space-250)', borderBottom: rIdx < entityRows.length - 1 ? `1px solid ${P.border}` : 'none' }}>
-                          <div style={{ width: 36, height: 36, borderRadius: 10, background: P.white, border: `1px solid ${P.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                            <Icon name={row.icon} size={15} color={P.inkSoft} strokeWidth={1.75} />
-                          </div>
-                          <div style={{ flex: 1, minWidth: 0 }}>
-                            <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>{row.label}</div>
-                            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: row.inherited ? P.inkSoft : P.ink, marginTop: 'var(--space-025)' }}>{row.value}</div>
-                          </div>
-                          {row.inherited && (
-                            <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkFaint, background: P.bg, border: `1px solid ${P.border}`, borderRadius: 6, padding: '2px var(--space-075)', whiteSpace: 'nowrap', flexShrink: 0 }}>Inherited</span>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </React.Fragment>
-              );
-            })}
-          </div>
+        <div style={card}>
+          {ENTITIES.map((ent, idx) => {
+            const overrides = countOverrides(ent);
+            return (
+              <div key={ent.id} onClick={() => setSelectedEntity(ent)}
+                style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-200)', padding: 'var(--space-200) var(--space-250)', borderBottom: idx < ENTITIES.length - 1 ? `1px solid ${P.border}` : 'none', cursor: 'pointer', transition: 'background 100ms' }}
+                onMouseEnter={e => e.currentTarget.style.background = P.bg}
+                onMouseLeave={e => e.currentTarget.style.background = ''}>
+                <div style={{ width: 36, height: 36, borderRadius: 10, background: P.bg, border: `1px solid ${P.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <Icon name="building-2" size={15} color={P.inkSoft} strokeWidth={1.75} />
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink }}>{ent.name}</div>
+                  <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginTop: 'var(--space-025)' }}>{ent.jc} · {ent.employeeCount} employees</div>
+                </div>
+                {overrides > 0 && (
+                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.action, background: '#f3f0ff', padding: 'var(--space-025) var(--space-100)', borderRadius: 10, whiteSpace: 'nowrap' }}>
+                    {overrides} override{overrides !== 1 ? 's' : ''}
+                  </span>
+                )}
+                <Icon name="chevron-right" size={16} color={P.inkFaint} strokeWidth={1.75} style={{ flexShrink: 0 }} />
+              </div>
+            );
+          })}
         </div>
 
         <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
@@ -10711,28 +10865,6 @@ function EntitiesSettings({ onNav, appEntity = null, companyRegime = COMPANY_REG
         </div>
       </div>
 
-      {editingField && (
-        <ModalShell title={`Edit ${editingField.label.toLowerCase()}`} onClose={() => setEditingField(null)} width={440}
-          footer={close => (
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-150)', padding: 'var(--space-200) var(--space-300)', borderTop: `1px solid ${P.border}` }}>
-              <Button variant="secondary" onClick={close}>Cancel</Button>
-              <Button variant="primary" onClick={() => saveField(close)}>Save</Button>
-            </div>
-          )}>
-          <div style={{ padding: 'var(--space-200) var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-150)' }}>
-            {editingField.hint && (
-              <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, lineHeight: 1.5 }}>{editingField.hint}</div>
-            )}
-            <input
-              autoFocus
-              value={editValue}
-              onChange={e => setEditValue(e.target.value)}
-              onKeyDown={e => { if (e.key === 'Escape') setEditingField(null); }}
-              style={{ width: '100%', border: `1px solid ${P.border}`, borderRadius: 8, padding: 'var(--space-100) var(--space-150)', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, outline: 'none', boxSizing: 'border-box' }}
-            />
-          </div>
-        </ModalShell>
-      )}
     </div>
   );
 }
