@@ -6908,17 +6908,15 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
                   Set up a direct debit to fund your employees' mobility cards.
                 </p>
                 {/* Deposit card */}
-                <div style={{ border: `1px solid ${P.border}`, borderRadius: 10, background: P.bg, padding: 'var(--space-200) var(--space-250)' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 'var(--space-150)' }}>
+                <div style={{ border: `1px solid ${P.border}`, borderRadius: 10, background: P.bg, overflow: 'hidden' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 'var(--space-150)', padding: 'var(--space-200) var(--space-250)' }}>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-050)' }}>
                       <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>Initial deposit</span>
                       <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 28, color: P.ink, letterSpacing: '-0.03em', lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>€{deposit.toLocaleString('de-DE')}</span>
                     </div>
                     <Button variant="secondary" onClick={() => { setAmountInput(deposit.toString()); setShowAmountModal(true); }} style={{ fontSize: 'var(--fs-body-xs)', padding: 'var(--space-075) var(--space-150)', flexShrink: 0, background: P.white }}>Edit amount</Button>
                   </div>
-                </div>
-                {/* Caption + info popover */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-100)' }}>
+                  <div style={{ borderTop: `1px solid ${P.border}`, padding: 'var(--space-150) var(--space-250)', display: 'flex', alignItems: 'center', gap: 'var(--space-100)' }}>
                   <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>
                     {empCount} employees · approximately 3 months
                   </span>
@@ -6947,6 +6945,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
                       </p>
                     </div>
                   )}
+                  </div>
                   </div>
                 </div>
                 <Button variant="primary" onClick={() => setStep(2)} style={{ width: '100%', justifyContent: 'center', fontSize: 'var(--fs-body-md)', padding: 'var(--space-125) var(--space-250)' }}>Sign with Twikey</Button>
