@@ -6688,6 +6688,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
   const setLiveVisible = (v) => setWs({ liveVisible: typeof v === 'function' ? v(ws.liveVisible) : v });
   const [showCalcModal, setShowCalcModal] = useState(false);
   const [showAmountModal, setShowAmountModal] = useState(false);
+  const [showInfoPopover, setShowInfoPopover] = useState(false);
   const [amountInput, setAmountInput] = useState('');
   const [customDeposit, setCustomDeposit] = useState(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -6763,6 +6764,8 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
   // Deposit = €37/employee/month × 3 months, rounded to nearest €50
   const recommendedDeposit = Math.max(50, Math.round(empCount * 37 * 3 / 50) * 50);
   const deposit = customDeposit ?? recommendedDeposit;
+  const topUpStart = Math.round(deposit / 15) * 5;
+  const maxTopUp = deposit - topUpStart;
 
   const switchMode = (mode) => {
     setWs({ widgetMode: mode, hidden: false, step: 1, mandateDenied: false, mandateValidated: false, depositFailed: false, live: false, liveVisible: false });
@@ -6888,23 +6891,60 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
                 </div>
               </div>
             ) : (
-              <div style={{ padding: 'var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-250)' }}>
+              <div style={{ padding: 'var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-200)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)' }}>
                   {stepBadgeEl(1)}
                   <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.ink }}>Sign mandate</span>
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-075)' }}>
-                  <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
-                    Authorises Payflip to collect <strong style={{ color: P.ink }}>€{deposit.toLocaleString('de-DE')}</strong> for your {empCount} employees, and top up automatically when the balance runs low.
-                  </p>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-200)' }}>
-                    <button onClick={() => setShowCalcModal(true)} style={{ background: 'none', border: 'none', padding: 0, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, textDecoration: 'underline', cursor: 'pointer' }}>
-                      How is this calculated?
-                    </button>
-                    <button onClick={() => { setAmountInput(deposit.toString()); setShowAmountModal(true); }} style={{ background: 'none', border: 'none', padding: 0, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, textDecoration: 'underline', cursor: 'pointer' }}>
-                      Adjust amount
+                <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
+                  Set up a direct debit to fund your employees' mobility cards.
+                </p>
+                {/* Deposit card */}
+                <div style={{ border: `1px solid ${P.border}`, borderRadius: 10, background: P.bg, padding: 'var(--space-200) var(--space-250)' }}>
+                  <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 'var(--space-150)' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-050)' }}>
+                      <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>Initial deposit</span>
+                      <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 28, color: P.ink, letterSpacing: '-0.03em', lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>€{deposit.toLocaleString('de-DE')}</span>
+                    </div>
+                    <Button variant="secondary" onClick={() => { setAmountInput(deposit.toString()); setShowAmountModal(true); }} style={{ fontSize: 'var(--fs-body-xs)', padding: 'var(--space-075) var(--space-150)', flexShrink: 0, marginTop: 2 }}>Edit amount</Button>
+                  </div>
+                </div>
+                {/* Caption + info toggle */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-125)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-100)' }}>
+                    <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>
+                      {empCount} employees · approximately 3 months
+                    </span>
+                    <button onClick={() => setShowInfoPopover(v => !v)} style={{ background: 'none', border: `1.5px solid ${P.inkFaint}`, borderRadius: '50%', width: 16, height: 16, padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0, color: P.inkSoft }}>
+                      <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 9, lineHeight: 1 }}>i</span>
                     </button>
                   </div>
+                  {showInfoPopover && (
+                    <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 10, padding: 'var(--space-200) var(--space-250)', display: 'flex', flexDirection: 'column', gap: 'var(--space-150)' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink }}>About your funding</span>
+                        <button onClick={() => setShowInfoPopover(false)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', display: 'flex', alignItems: 'center', color: P.inkSoft }}>
+                          <Icon name="x" size={14} strokeWidth={2} color={P.inkSoft} />
+                        </button>
+                      </div>
+                      <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, lineHeight: 1.5, margin: 0 }}>
+                        Your first deposit is <strong style={{ color: P.ink }}>€{deposit.toLocaleString('de-DE')}</strong>, equal to about three months of expected spending.
+                      </p>
+                      <div style={{ background: P.bg, borderRadius: 8, padding: 'var(--space-150) var(--space-200)', display: 'flex', flexDirection: 'column', gap: 'var(--space-075)' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>We top up below</span>
+                          <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.ink, fontVariantNumeric: 'tabular-nums' }}>€{topUpStart.toLocaleString('de-DE')}</span>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>Never more than at once</span>
+                          <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.ink, fontVariantNumeric: 'tabular-nums' }}>€{maxTopUp.toLocaleString('de-DE')}</span>
+                        </div>
+                      </div>
+                      <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, lineHeight: 1.5, margin: 0 }}>
+                        If you change the initial deposit, these limits update with it.
+                      </p>
+                    </div>
+                  )}
                 </div>
                 <Button variant="primary" onClick={() => setStep(2)} style={{ width: '100%', justifyContent: 'center', fontSize: 'var(--fs-body-md)', padding: 'var(--space-125) var(--space-250)' }}>Sign with Twikey</Button>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 'var(--space-100)', width: '100%' }}>
@@ -7484,65 +7524,29 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
       />
     )}
 
-    {/* "How is this calculated?" modal */}
-    {showCalcModal && (
-      <ModalShell title="About the deposit amount" onClose={() => setShowCalcModal(false)} width={480}>
-        <div style={{ padding: 'var(--space-250) var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-250)' }}>
-          {/* Summary stats */}
-          <div style={{ display: 'flex', gap: 'var(--space-150)' }}>
-            <div style={{ flex: 1, padding: 'var(--space-150) var(--space-200)', borderRadius: 8, background: P.bg, display: 'flex', flexDirection: 'column', gap: 'var(--space-025)' }}>
-              <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>Employees with mobility budget</span>
-              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-lg)', color: P.ink }}>{empCount}</span>
-            </div>
-            <div style={{ flex: 1, padding: 'var(--space-150) var(--space-200)', borderRadius: 8, background: P.bg, display: 'flex', flexDirection: 'column', gap: 'var(--space-025)' }}>
-              <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>Deposit amount</span>
-              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-lg)', color: P.ink }}>€{deposit.toLocaleString('de-DE')}</span>
-            </div>
-          </div>
-
-          {/* Explanations */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-200)' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-050)' }}>
-              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink }}>What does this cover?</span>
-              <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: '18px', margin: 0 }}>
-                This covers about 3 months of expected mobility card spending for your employees, based on their 2025 spending patterns.
-              </p>
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-050)' }}>
-              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink }}>Can I change the amount?</span>
-              <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: '18px', margin: 0 }}>
-                Yes — use the button below. Employees can only spend up to their own balance, so there's no risk of overspending. If you fund less, direct debit tops it up automatically.
-              </p>
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-050)' }}>
-              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink }}>Where does the money go?</span>
-              <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: '18px', margin: 0 }}>
-                The funds go to your Payflip Card account. They're only used when employees make card payments. Unspent funds stay in the account.
-              </p>
-            </div>
-          </div>
-        </div>
-      </ModalShell>
-    )}
-
-    {/* Adjust deposit amount modal */}
+    {/* Choose initial deposit modal */}
     {showAmountModal && (() => {
       const parsed = parseFloat(amountInput.replace(',', '.'));
       const isValid = !isNaN(parsed) && parsed >= 50;
+      const isAtRecommended = isValid && Math.round(parsed) === recommendedDeposit;
+      const previewAmount = isValid ? Math.round(parsed) : recommendedDeposit;
+      const previewTopUpStart = Math.round(previewAmount / 15) * 5;
+      const previewMaxTopUp = previewAmount - previewTopUpStart;
       return (
-        <ModalShell title="Adjust deposit amount" onClose={() => setShowAmountModal(false)} width={440}
+        <ModalShell title="Choose your initial deposit" onClose={() => setShowAmountModal(false)} width={480}
           footer={close => (
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-150)', padding: 'var(--space-200) var(--space-300)', borderTop: `1px solid ${P.border}` }}>
               <Button variant="secondary" onClick={close}>Cancel</Button>
-              <Button variant="primary" disabled={!isValid} onClick={() => { setCustomDeposit(Math.round(parsed)); close(); }}>Confirm amount</Button>
+              <Button variant="primary" disabled={!isValid} onClick={() => { setCustomDeposit(Math.round(parsed)); close(); }}>Save initial deposit</Button>
             </div>
           )}>
-          <div style={{ padding: 'var(--space-200) var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-200)' }}>
-            <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, lineHeight: 1.5, margin: 0 }}>
-              This is the initial amount Payflip will collect from your account for {empCount} employees. The mandate allows automatic top-ups when the balance runs low.
+          <div style={{ padding: 'var(--space-250) var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-200)' }}>
+            <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
+              This is your first deposit and determines your automatic top-up limits.
             </p>
-            <div style={{ display: 'flex', alignItems: 'center', border: `1px solid ${P.border}`, borderRadius: 8, overflow: 'hidden', background: P.white }}>
-              <span style={{ padding: '0 var(--space-150)', fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: P.inkSoft, borderRight: `1px solid ${P.border}`, height: 40, display: 'flex', alignItems: 'center' }}>€</span>
+            {/* Amount input */}
+            <div style={{ display: 'flex', alignItems: 'center', border: `2px solid ${isValid ? 'var(--bg-primary-default)' : P.border}`, borderRadius: 12, overflow: 'hidden', background: P.white, transition: `border-color 150ms ease-out` }}>
+              <span style={{ padding: '0 var(--space-200)', fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-md)', color: P.inkSoft, borderRight: `1px solid ${P.border}`, height: 56, display: 'flex', alignItems: 'center' }}>€</span>
               <input
                 autoFocus
                 type="number"
@@ -7551,20 +7555,41 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
                 value={amountInput}
                 onChange={e => setAmountInput(e.target.value)}
                 onKeyDown={e => { if (e.key === 'Escape') setShowAmountModal(false); }}
-                style={{ flex: 1, border: 'none', padding: 'var(--space-100) var(--space-150)', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.ink, outline: 'none', background: 'transparent' }}
+                style={{ flex: 1, border: 'none', padding: 'var(--space-150) var(--space-200)', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 28, color: P.ink, outline: 'none', background: 'transparent', letterSpacing: '-0.02em', fontVariantNumeric: 'tabular-nums' }}
               />
             </div>
-            {customDeposit && (
-              <button onClick={() => { setCustomDeposit(null); setShowAmountModal(false); }}
+            {/* Recommended state / reset link */}
+            {isAtRecommended ? (
+              <div style={{ background: '#f0fdf4', borderRadius: 8, padding: 'var(--space-150) var(--space-200)', display: 'flex', alignItems: 'flex-start', gap: 'var(--space-125)' }}>
+                <Icon name="check" size={14} color="#16a34a" strokeWidth={2.5} style={{ flexShrink: 0, marginTop: 2 }} />
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: '#15803d' }}>€{recommendedDeposit.toLocaleString('de-DE')} recommended</span>
+                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: '#166534', lineHeight: 1.5 }}>Approximately three months of expected spending for {empCount} employees.</span>
+                </div>
+              </div>
+            ) : isValid ? (
+              <button onClick={() => setAmountInput(recommendedDeposit.toString())}
                 style={{ background: 'none', border: 'none', padding: 0, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, cursor: 'pointer', textAlign: 'left', textDecoration: 'underline' }}>
-                Reset to recommended amount (€{recommendedDeposit.toLocaleString('de-DE')})
+                Reset to recommended (€{recommendedDeposit.toLocaleString('de-DE')})
               </button>
-            )}
-            {!customDeposit && (
-              <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, margin: 0 }}>
-                Recommended: €{recommendedDeposit.toLocaleString('de-DE')} · based on 3 months × {empCount} employees
-              </p>
-            )}
+            ) : null}
+            {/* Auto top-ups preview */}
+            <div style={{ border: `1px solid ${P.border}`, borderRadius: 8, overflow: 'hidden' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: 'var(--space-150) var(--space-200)', borderBottom: `1px solid ${P.border}`, background: P.bg }}>
+                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink }}>Automatic top-ups</span>
+                <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>Updates with your initial deposit</span>
+              </div>
+              <div style={{ padding: 'var(--space-150) var(--space-200)', display: 'flex', flexDirection: 'column', gap: 'var(--space-100)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft }}>Starts below</span>
+                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: isValid ? P.ink : P.inkFaint, fontVariantNumeric: 'tabular-nums', transition: `color 150ms ease-out` }}>€{previewTopUpStart.toLocaleString('de-DE')}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft }}>Maximum per top-up</span>
+                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: isValid ? P.ink : P.inkFaint, fontVariantNumeric: 'tabular-nums', transition: `color 150ms ease-out` }}>€{previewMaxTopUp.toLocaleString('de-DE')}</span>
+                </div>
+              </div>
+            </div>
           </div>
         </ModalShell>
       );
