@@ -7715,13 +7715,13 @@ function AttentionRow({ item, last, onNav }) {
   const [hovered, setHovered] = useState(false);
   return (
     <div onClick={() => item.onClick ? item.onClick() : onNav(item.screen)} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
-      style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', padding: 'var(--space-150) var(--space-250)', cursor: 'pointer', background: hovered ? P.bgSubtle : 'transparent', transition: `background 150ms ${EASE_OUT}` }}>
+      style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', padding: 'var(--space-150) var(--space-250)', borderBottom: last ? 'none' : `1px solid ${P.border}`, cursor: 'pointer', background: hovered ? P.bgSubtle : 'transparent', transition: `background 150ms ${EASE_OUT}` }}>
       <div style={{ position: 'relative', flexShrink: 0 }}>
         <div style={{ width: 32, height: 32, borderRadius: 8, background: item.iconBg ?? P.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <Icon name={item.icon} size={15} color={item.iconColor ?? P.ink} strokeWidth={1.5} />
         </div>
         {item.count !== undefined && (
-          <span style={{ position: 'absolute', top: -5, right: -6, fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 10, lineHeight: '16px', color: '#fff', background: item.badgeBg ?? P.action, borderRadius: 20, minWidth: 16, height: 16, padding: '0 4px', textAlign: 'center', boxShadow: '0 0 0 2px #fff' }}>{item.count}</span>
+          <span style={{ position: 'absolute', top: -5, right: -6, fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 10, lineHeight: '16px', color: '#fff', background: item.badgeBg ?? P.action, borderRadius: 20, minWidth: 16, height: 16, padding: '0 4px', textAlign: 'center', boxShadow: '0 0 0 2px #fff', fontVariantNumeric: 'tabular-nums' }}>{item.count}</span>
         )}
       </div>
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 1, minWidth: 0 }}>
@@ -8203,7 +8203,7 @@ function DashboardScreen({ requests, onNav, onToast, appEntity = null, physicalC
                 <Icon name={icon} size={13} color={P.inkSoft} strokeWidth={1.75} />
                 <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>{label}</span>
               </div>
-              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 28, color: P.ink, letterSpacing: '-0.03em', lineHeight: 1 }}>{value}</div>
+              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 28, color: P.ink, letterSpacing: '-0.03em', lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>{value}</div>
             </div>
           ))}
         </div>
