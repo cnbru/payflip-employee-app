@@ -6908,14 +6908,12 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
                   Set up a direct debit to fund your employees' mobility cards.
                 </p>
                 {/* Deposit card */}
-                <div style={{ border: `1px solid ${P.border}`, borderRadius: 10, background: P.bg, padding: 'var(--space-200) var(--space-250)' }}>
-                  <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 'var(--space-150)' }}>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-050)' }}>
-                      <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>Initial deposit</span>
-                      <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 28, color: P.ink, letterSpacing: '-0.03em', lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>€{deposit.toLocaleString('de-DE')}</span>
-                    </div>
-                    <Button variant="secondary" onClick={() => { setAmountInput(deposit.toString()); setShowAmountModal(true); }} style={{ fontSize: 'var(--fs-body-xs)', padding: 'var(--space-075) var(--space-150)', flexShrink: 0, marginTop: 2 }}>Edit amount</Button>
+                <div style={{ border: `1px solid ${P.border}`, borderRadius: 10, background: P.bg, padding: 'var(--space-200) var(--space-250)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 'var(--space-150)' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 'var(--space-050)' }}>
+                    <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>Initial deposit</span>
+                    <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 28, color: P.ink, letterSpacing: '-0.03em', lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>€{deposit.toLocaleString('de-DE')}</span>
                   </div>
+                  <Button variant="secondary" onClick={() => { setAmountInput(deposit.toString()); setShowAmountModal(true); }} style={{ fontSize: 'var(--fs-body-xs)', padding: 'var(--space-075) var(--space-150)', background: P.white }}>Edit amount</Button>
                 </div>
                 {/* Caption + info popover */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-100)' }}>
