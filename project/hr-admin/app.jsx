@@ -7544,53 +7544,43 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
             </div>
           )}>
           <div style={{ padding: 'var(--space-250) var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-200)' }}>
-            <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
-              This is your first deposit and determines your automatic top-up limits.
-            </p>
-            {/* Amount input */}
-            <div style={{ display: 'flex', alignItems: 'center', border: `2px solid ${isValid ? 'var(--bg-primary-default)' : P.border}`, borderRadius: 12, overflow: 'hidden', background: P.white, transition: `border-color 150ms ease-out` }}>
-              <span style={{ padding: '0 var(--space-200)', fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-md)', color: P.inkSoft, borderRight: `1px solid ${P.border}`, height: 56, display: 'flex', alignItems: 'center' }}>€</span>
-              <input
-                autoFocus
-                type="number"
-                min="50"
-                step="50"
-                value={amountInput}
-                onChange={e => setAmountInput(e.target.value)}
-                onKeyDown={e => { if (e.key === 'Escape') setShowAmountModal(false); }}
-                style={{ flex: 1, border: 'none', padding: 'var(--space-150) var(--space-200)', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 28, color: P.ink, outline: 'none', background: 'transparent', letterSpacing: '-0.02em', fontVariantNumeric: 'tabular-nums' }}
-              />
+            {/* Amount input + inline feedback */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div style={{ display: 'flex', alignItems: 'center', border: `2px solid ${isValid ? 'var(--bg-primary-default)' : P.border}`, borderRadius: 12, overflow: 'hidden', background: P.white, transition: `border-color 150ms ease-out` }}>
+                <span style={{ padding: '0 var(--space-200)', fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-md)', color: P.inkSoft, borderRight: `1px solid ${P.border}`, height: 56, display: 'flex', alignItems: 'center' }}>€</span>
+                <input
+                  autoFocus
+                  type="number"
+                  min="50"
+                  step="50"
+                  value={amountInput}
+                  onChange={e => setAmountInput(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Escape') setShowAmountModal(false); }}
+                  style={{ flex: 1, border: 'none', padding: 'var(--space-150) var(--space-200)', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 28, color: P.ink, outline: 'none', background: 'transparent', letterSpacing: '-0.02em', fontVariantNumeric: 'tabular-nums', MozAppearance: 'textfield', WebkitAppearance: 'none' }}
+                />
+              </div>
+              {isAtRecommended ? (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px var(--space-150)', background: '#f0fdf4', borderRadius: 8, alignSelf: 'flex-start' }}>
+                  <Icon name="check" size={13} color="#16a34a" strokeWidth={2.5} style={{ flexShrink: 0 }} />
+                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: '#15803d' }}>Recommended</span>
+                </div>
+              ) : isValid ? (
+                <button onClick={() => setAmountInput(recommendedDeposit.toString())}
+                  style={{ background: 'none', border: 'none', padding: 0, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, cursor: 'pointer', textAlign: 'left', textDecoration: 'underline', alignSelf: 'flex-start' }}>
+                  Reset to recommended (€{recommendedDeposit.toLocaleString('de-DE')})
+                </button>
+              ) : null}
             </div>
-            {/* Recommended state / reset link */}
-            {isAtRecommended ? (
-              <div style={{ background: '#f0fdf4', borderRadius: 8, padding: 'var(--space-150) var(--space-200)', display: 'flex', alignItems: 'flex-start', gap: 'var(--space-125)' }}>
-                <Icon name="check" size={14} color="#16a34a" strokeWidth={2.5} style={{ flexShrink: 0, marginTop: 2 }} />
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: '#15803d' }}>€{recommendedDeposit.toLocaleString('de-DE')} recommended</span>
-                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: '#166534', lineHeight: 1.5 }}>Approximately three months of expected spending for {empCount} employees.</span>
-                </div>
-              </div>
-            ) : isValid ? (
-              <button onClick={() => setAmountInput(recommendedDeposit.toString())}
-                style={{ background: 'none', border: 'none', padding: 0, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, cursor: 'pointer', textAlign: 'left', textDecoration: 'underline' }}>
-                Reset to recommended (€{recommendedDeposit.toLocaleString('de-DE')})
-              </button>
-            ) : null}
             {/* Auto top-ups preview */}
-            <div style={{ border: `1px solid ${P.border}`, borderRadius: 8, overflow: 'hidden' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: 'var(--space-150) var(--space-200)', borderBottom: `1px solid ${P.border}`, background: P.bg }}>
-                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink }}>Automatic top-ups</span>
-                <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>Updates with your initial deposit</span>
+            <div style={{ border: `1px solid ${P.border}`, borderRadius: 8, padding: 'var(--space-150) var(--space-200)', display: 'flex', flexDirection: 'column', gap: 'var(--space-100)' }}>
+              <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginBottom: 2 }}>Automatic top-ups</span>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft }}>Starts below</span>
+                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: isValid ? P.ink : P.inkFaint, fontVariantNumeric: 'tabular-nums', transition: `color 150ms ease-out` }}>€{previewTopUpStart.toLocaleString('de-DE')}</span>
               </div>
-              <div style={{ padding: 'var(--space-150) var(--space-200)', display: 'flex', flexDirection: 'column', gap: 'var(--space-100)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft }}>Starts below</span>
-                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: isValid ? P.ink : P.inkFaint, fontVariantNumeric: 'tabular-nums', transition: `color 150ms ease-out` }}>€{previewTopUpStart.toLocaleString('de-DE')}</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft }}>Maximum per top-up</span>
-                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: isValid ? P.ink : P.inkFaint, fontVariantNumeric: 'tabular-nums', transition: `color 150ms ease-out` }}>€{previewMaxTopUp.toLocaleString('de-DE')}</span>
-                </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft }}>Maximum per top-up</span>
+                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: isValid ? P.ink : P.inkFaint, fontVariantNumeric: 'tabular-nums', transition: `color 150ms ease-out` }}>€{previewMaxTopUp.toLocaleString('de-DE')}</span>
               </div>
             </div>
           </div>
