@@ -6918,15 +6918,16 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
                   </div>
                 </div>
                 {/* Caption + info popover */}
-                <div ref={infoRef} style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-100)', position: 'relative' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-100)' }}>
                   <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>
                     {empCount} employees · approximately 3 months
                   </span>
-                  <button onClick={() => setShowInfoPopover(v => !v)} style={{ background: 'none', border: `1.5px solid ${P.inkFaint}`, borderRadius: '50%', width: 16, height: 16, padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0, color: P.inkSoft }}>
-                    <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 9, lineHeight: 1 }}>i</span>
-                  </button>
+                  <div ref={infoRef} style={{ position: 'relative', flexShrink: 0 }}>
+                    <button onClick={() => setShowInfoPopover(v => !v)} style={{ background: 'none', border: `1.5px solid ${P.inkFaint}`, borderRadius: '50%', width: 16, height: 16, padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: P.inkSoft }}>
+                      <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 9, lineHeight: 1 }}>i</span>
+                    </button>
                   {infoRendered && (
-                    <div style={{ position: 'absolute', top: 'calc(100% + 6px)', left: 0, width: 280, zIndex: 50, background: P.white, border: `1px solid ${P.border}`, borderRadius: 10, boxShadow: '0 4px 20px rgba(15,13,40,0.12)', padding: 'var(--space-200) var(--space-250)', display: 'flex', flexDirection: 'column', gap: 'var(--space-150)', ...popoverStyle(infoVisible, 'top left') }}>
+                    <div style={{ position: 'absolute', top: 'calc(100% + 6px)', left: '50%', width: 280, zIndex: 200, background: P.white, border: `1px solid ${P.border}`, borderRadius: 10, boxShadow: '0 4px 20px rgba(15,13,40,0.12)', padding: 'var(--space-200) var(--space-250)', display: 'flex', flexDirection: 'column', gap: 'var(--space-150)', opacity: infoVisible ? 1 : 0, transform: `translateX(-50%) scale(${infoVisible ? 1 : 0.97})`, transformOrigin: 'top center', transition: `opacity 150ms ${EASE_OUT}, transform 150ms ${EASE_OUT}` }}>
                       <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink }}>About your funding</span>
                       <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, lineHeight: 1.5, margin: 0 }}>
                         Your first deposit is <strong style={{ color: P.ink }}>€{deposit.toLocaleString('de-DE')}</strong>, equal to about three months of expected spending.
@@ -6946,6 +6947,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
                       </p>
                     </div>
                   )}
+                  </div>
                 </div>
                 <Button variant="primary" onClick={() => setStep(2)} style={{ width: '100%', justifyContent: 'center', fontSize: 'var(--fs-body-md)', padding: 'var(--space-125) var(--space-250)' }}>Sign with Twikey</Button>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 'var(--space-100)', width: '100%' }}>
