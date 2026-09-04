@@ -6689,6 +6689,14 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
   const [showCalcModal, setShowCalcModal] = useState(false);
   const [showAmountModal, setShowAmountModal] = useState(false);
   const [showInfoPopover, setShowInfoPopover] = useState(false);
+  const infoRef = useRef(null);
+  const { rendered: infoRendered, visible: infoVisible } = usePopoverTransition(showInfoPopover);
+  useEffect(() => {
+    if (!showInfoPopover) return;
+    const close = e => { if (infoRef.current && !infoRef.current.contains(e.target)) setShowInfoPopover(false); };
+    document.addEventListener('mousedown', close);
+    return () => document.removeEventListener('mousedown', close);
+  }, [showInfoPopover]);
   const [amountInput, setAmountInput] = useState('');
   const [customDeposit, setCustomDeposit] = useState(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -6909,24 +6917,17 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
                     <Button variant="secondary" onClick={() => { setAmountInput(deposit.toString()); setShowAmountModal(true); }} style={{ fontSize: 'var(--fs-body-xs)', padding: 'var(--space-075) var(--space-150)', flexShrink: 0, marginTop: 2 }}>Edit amount</Button>
                   </div>
                 </div>
-                {/* Caption + info toggle */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-125)' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-100)' }}>
-                    <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>
-                      {empCount} employees · approximately 3 months
-                    </span>
-                    <button onClick={() => setShowInfoPopover(v => !v)} style={{ background: 'none', border: `1.5px solid ${P.inkFaint}`, borderRadius: '50%', width: 16, height: 16, padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0, color: P.inkSoft }}>
-                      <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 9, lineHeight: 1 }}>i</span>
-                    </button>
-                  </div>
-                  {showInfoPopover && (
-                    <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 10, padding: 'var(--space-200) var(--space-250)', display: 'flex', flexDirection: 'column', gap: 'var(--space-150)' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink }}>About your funding</span>
-                        <button onClick={() => setShowInfoPopover(false)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', display: 'flex', alignItems: 'center', color: P.inkSoft }}>
-                          <Icon name="x" size={14} strokeWidth={2} color={P.inkSoft} />
-                        </button>
-                      </div>
+                {/* Caption + info popover */}
+                <div ref={infoRef} style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-100)', position: 'relative' }}>
+                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>
+                    {empCount} employees · approximately 3 months
+                  </span>
+                  <button onClick={() => setShowInfoPopover(v => !v)} style={{ background: 'none', border: `1.5px solid ${P.inkFaint}`, borderRadius: '50%', width: 16, height: 16, padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0, color: P.inkSoft }}>
+                    <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 9, lineHeight: 1 }}>i</span>
+                  </button>
+                  {infoRendered && (
+                    <div style={{ position: 'absolute', top: 'calc(100% + 6px)', left: 0, width: 280, zIndex: 50, background: P.white, border: `1px solid ${P.border}`, borderRadius: 10, boxShadow: '0 4px 20px rgba(15,13,40,0.12)', padding: 'var(--space-200) var(--space-250)', display: 'flex', flexDirection: 'column', gap: 'var(--space-150)', ...popoverStyle(infoVisible, 'top left') }}>
+                      <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink }}>About your funding</span>
                       <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, lineHeight: 1.5, margin: 0 }}>
                         Your first deposit is <strong style={{ color: P.ink }}>€{deposit.toLocaleString('de-DE')}</strong>, equal to about three months of expected spending.
                       </p>
