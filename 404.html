@@ -43,7 +43,7 @@
 
     /* Number pop-in — transitions.dev/02 */
     :root {
-      --digit-dur: 400ms;
+      --digit-dur: 280ms;
       --digit-distance: 8px;
       --digit-stagger: 60ms;
       --digit-blur: 2px;
@@ -58,10 +58,10 @@
     .t-digit-group { display: inline-flex; align-items: baseline; }
     .t-digit { display: inline-block; will-change: transform, opacity, filter; }
     .t-digit-group.is-animating .t-digit {
-      animation: t-digit-pop-in var(--digit-dur) var(--digit-ease) both;
+      animation: t-digit-pop-in var(--digit-dur) var(--digit-ease) var(--row-delay, 0ms) both;
     }
-    .t-digit-group.is-animating .t-digit[data-stagger="1"] { animation-delay: var(--digit-stagger); }
-    .t-digit-group.is-animating .t-digit[data-stagger="2"] { animation-delay: calc(var(--digit-stagger) * 2); }
+    .t-digit-group.is-animating .t-digit[data-stagger="1"] { animation-delay: calc(var(--digit-stagger) + var(--row-delay, 0ms)); }
+    .t-digit-group.is-animating .t-digit[data-stagger="2"] { animation-delay: calc(var(--digit-stagger) * 2 + var(--row-delay, 0ms)); }
     @media (prefers-reduced-motion: reduce) {
       .t-digit-group .t-digit { animation: none !important; }
     }
@@ -102,6 +102,14 @@
       from { opacity: 0; }
       to   { opacity: 1; }
     }
+    .amount-display-input::-webkit-inner-spin-button,
+    .amount-display-input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+    .amount-display-input { -moz-appearance: textfield; }
+
+    @keyframes fadeSlideIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
   </style>
 
   <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
@@ -111,6 +119,6 @@
 </head>
 <body>
   <div id="root"></div>
-  <script type="text/babel" src="app.jsx?v=1822"></script>
+  <script type="text/babel" src="app.jsx?v=1891"></script>
 </body>
 </html>
