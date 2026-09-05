@@ -7591,11 +7591,12 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
                 return <span key={i} className="t-digit" data-stagger={stagger}>{ch}</span>;
               });
               return (
-                <div style={{ borderTop: `1px solid ${P.border}`, paddingTop: 'var(--space-200)', display: 'flex', flexDirection: 'column', gap: 0 }}>
+                <div style={{ borderTop: `1px solid ${P.border}`, marginTop: 'var(--space-100)', paddingTop: 'var(--space-250)', display: 'flex', flexDirection: 'column', gap: 0 }}>
+                  <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', fontWeight: 500, color: P.inkSoft, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 'var(--space-075)' }}>Top-up details</div>
                   {[
                     { label: 'When balance drops below', value: <><strong style={{ fontFamily: 'var(--font-display)', fontWeight: 600, color: P.ink }}>€<span key={`tu-start-${amountAnimTick}`} className={`t-digit-group${amountAnimTick > 0 ? ' is-animating' : ''}`} style={{ '--row-delay': '0ms' }}>{digits(previewTopUpStart.toLocaleString('de-DE'))}</span></strong></> },
                     { label: 'We collect', value: <><strong style={{ fontFamily: 'var(--font-display)', fontWeight: 600, color: P.ink }}>€<span key={`tu-max-${amountAnimTick}`} className={`t-digit-group${amountAnimTick > 0 ? ' is-animating' : ''}`} style={{ '--row-delay': '40ms' }}>{digits(previewMaxTopUp.toLocaleString('de-DE'))}</span></strong></> },
-                    { label: 'Coverage', value: <strong style={{ fontFamily: 'var(--font-display)', fontWeight: 600, color: P.ink }}>{previewMonthsRaw < 1 ? '< 1 month' : <><span key={`tu-months-${amountAnimTick}`} className={`t-digit-group${amountAnimTick > 0 ? ' is-animating' : ''}`} style={{ '--row-delay': '80ms' }}>{digits(String(previewMonths))}</span>{' months'}</>}</strong> },
+                    { label: 'Card spending coverage', value: <strong style={{ fontFamily: 'var(--font-display)', fontWeight: 600, color: P.ink }}>{previewMonthsRaw < 1 ? '< 1 month' : <><span key={`tu-months-${amountAnimTick}`} className={`t-digit-group${amountAnimTick > 0 ? ' is-animating' : ''}`} style={{ '--row-delay': '80ms' }}>{digits(String(previewMonths))}</span>{' months'}</>}</strong> },
                   ].map(({ label, value }, i) => (
                     <div key={i} style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', padding: 'var(--space-075) 0', fontVariantNumeric: 'tabular-nums' }}>
                       <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft }}>{label}</span>
