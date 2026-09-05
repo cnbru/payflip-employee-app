@@ -6778,7 +6778,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
   const foodMissingInss = foodSelectedEmployees.filter(id => !EMP_EXTRA[id]?.inssNumber);
   const foodInssComplete = inssUploaded;
   // Deposit = €37/employee/month × 3 months, rounded to nearest €50
-  const recommendedDeposit = Math.max(50, Math.round(empCount * 37 * 3 / 50) * 50);
+  const recommendedDeposit = Math.max(50, Math.round(empCount * 12.5 * 3 / 50) * 50);
   const deposit = customDeposit ?? recommendedDeposit;
   const topUpStart = Math.round(deposit / 15) * 5;
   const maxTopUp = deposit - topUpStart;
@@ -6913,21 +6913,16 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
                   <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.ink }}>Sign mandate</span>
                 </div>
                 <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
-                  Set up a direct debit to fund your employees' mobility cards.
+                  We've calculated a recommended deposit for your team. Review it below, then sign the mandate with Twikey.
                 </p>
-                {/* Deposit card */}
-                <div style={{ border: `1px solid ${P.border}`, borderRadius: 10, background: P.bg, overflow: 'hidden' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 'var(--space-150)', padding: 'var(--space-200) var(--space-250)' }}>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-050)' }}>
-                      <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>Initial deposit</span>
-                      <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 28, color: P.ink, letterSpacing: '-0.03em', lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>€{deposit.toLocaleString('de-DE')}</span>
-                    </div>
-                    <Button variant="secondary" onClick={() => { setAmountInput(deposit.toString()); setDebouncedAmountInput(deposit.toString()); setAmountFocused(true); setShowAmountModal(true); }} style={{ fontSize: 'var(--fs-body-xs)', padding: 'var(--space-075) var(--space-150)', flexShrink: 0, background: P.white }}>Edit</Button>
-                  </div>
-                  <div style={{ borderTop: `1px solid ${P.border}`, padding: 'var(--space-150) var(--space-250)', display: 'flex', alignItems: 'center', gap: 'var(--space-100)' }}>
-                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>
-                    {empCount} employees · ~{Math.round(deposit / (empCount * 37))} months
+                {/* Deposit — soft surface */}
+                <div style={{ background: P.bg, borderRadius: 10, padding: 'var(--space-200) var(--space-250)', display: 'flex', flexDirection: 'column', gap: 'var(--space-075)' }}>
+                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, fontWeight: 500 }}>
+                    For {empCount} employees · {Math.round(deposit / (empCount * 12.5)) >= 1 ? `~${Math.round(deposit / (empCount * 12.5))} months` : '< 1 month'} of coverage
                   </span>
+                  <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
+                    <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 28, color: P.ink, letterSpacing: '-0.03em', lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>€{deposit.toLocaleString('de-DE')}</span>
+                    <button onClick={() => { setAmountInput(deposit.toString()); setDebouncedAmountInput(deposit.toString()); setAmountFocused(true); setShowAmountModal(true); }} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, textDecoration: 'underline' }}>Edit</button>
                   </div>
                 </div>
                 <Button variant="primary" onClick={() => setStep(2)} style={{ width: '100%', justifyContent: 'center', fontSize: 'var(--fs-body-md)', padding: 'var(--space-125) var(--space-250)' }}>Sign with Twikey</Button>
@@ -7518,7 +7513,8 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
       const previewAmount = debouncedValid ? Math.round(debouncedParsed) : recommendedDeposit;
       const previewTopUpStart = Math.round(previewAmount / 15) * 5;
       const previewMaxTopUp = previewAmount - previewTopUpStart;
-      const previewMonths = Math.round(previewAmount / (empCount * 37));
+      const previewMonthsRaw = previewAmount / (empCount * 12.5);
+      const previewMonths = Math.round(previewMonthsRaw);
       return (
         <ModalShell onClose={() => { setShowAmountModal(false); setAmountFocused(false); }} width={480}
           footer={close => (
@@ -7563,7 +7559,9 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
               <div style={{ display: 'flex', gap: 'var(--space-150)', padding: 'var(--space-150) var(--space-200)', borderRadius: 8, border: `1px solid ${P.dangerBorder}`, background: P.dangerBg, alignItems: 'flex-start' }}>
                 <Icon name="alert-circle" size={15} color={P.danger} strokeWidth={2} style={{ flexShrink: 0, marginTop: 2 }} />
                 <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.dangerDark, lineHeight: '18px' }}>
-                  The minimum initial deposit is <strong>€50</strong>. Use the recommended amount to get a head start.
+                  {'Below '}
+                  <strong>€{(empCount * 12.5).toLocaleString('de-DE')}</strong>
+                  {' — less than one month of expected card spending for your team. If a top-up collection is delayed by your bank, employee cards could be blocked.'}
                 </div>
               </div>
             ) : null}
@@ -7573,33 +7571,29 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
                 return <span key={i} className="t-digit" data-stagger={stagger}>{ch}</span>;
               });
               return (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-200)' }}>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-075)' }}>
-                      <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink }}>How automatic top-ups will work:</div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkFaint }}>Balance drops below</span>
-                        <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink, fontVariantNumeric: 'tabular-nums', display: 'inline-flex', alignItems: 'baseline' }}>
-                          <span>€</span>
-                          <span key={`tu-start-${amountAnimTick}`} className={`t-digit-group${amountAnimTick > 0 ? ' is-animating' : ''}`} style={{ '--row-delay': '0ms' }}>{digits(previewTopUpStart.toLocaleString('de-DE'))}</span>
-                        </span>
-                      </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkFaint }}>We collect</span>
-                        <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink, fontVariantNumeric: 'tabular-nums', display: 'inline-flex', alignItems: 'baseline' }}>
-                          <span>€</span>
-                          <span key={`tu-max-${amountAnimTick}`} className={`t-digit-group${amountAnimTick > 0 ? ' is-animating' : ''}`} style={{ '--row-delay': '40ms' }}>{digits(previewMaxTopUp.toLocaleString('de-DE'))}</span>
-                        </span>
-                      </div>
-                    </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkFaint }}>Your balance will last</span>
-                      <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-md)', color: P.ink, fontVariantNumeric: 'tabular-nums', display: 'inline-flex', alignItems: 'baseline', gap: 2 }}>
-                        <span style={{ fontWeight: 400, color: P.inkSoft }}>~</span>
-                        <span key={`tu-months-${amountAnimTick}`} className={`t-digit-group${amountAnimTick > 0 ? ' is-animating' : ''}`} style={{ '--row-delay': '80ms' }}>{digits(String(previewMonths))}</span>
-                        <span style={{ fontWeight: 400, fontSize: 'var(--fs-body-sm)', color: P.inkSoft }}> months</span>
-                      </span>
-                    </div>
+                <div style={{ borderTop: `1px solid ${P.border}`, paddingTop: 'var(--space-200)', display: 'flex', flexDirection: 'column', gap: 'var(--space-075)' }}>
+                  <div style={{ width: 36, height: 36, borderRadius: 10, background: P.bg, border: `1px solid ${P.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Icon name="repeat" size={17} color={P.inkSoft} strokeWidth={1.5} />
                   </div>
+                  <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.ink }}>How automatic top-ups will work:</div>
+                  <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: '20px', fontVariantNumeric: 'tabular-nums' }}>
+                    {'When your balance drops below '}
+                    <strong style={{ fontFamily: 'var(--font-display)', fontWeight: 600, color: P.ink }}>
+                      €<span key={`tu-start-${amountAnimTick}`} className={`t-digit-group${amountAnimTick > 0 ? ' is-animating' : ''}`} style={{ '--row-delay': '0ms' }}>{digits(previewTopUpStart.toLocaleString('de-DE'))}</span>
+                    </strong>
+                    {', we collect '}
+                    <strong style={{ fontFamily: 'var(--font-display)', fontWeight: 600, color: P.ink }}>
+                      €<span key={`tu-max-${amountAnimTick}`} className={`t-digit-group${amountAnimTick > 0 ? ' is-animating' : ''}`} style={{ '--row-delay': '40ms' }}>{digits(previewMaxTopUp.toLocaleString('de-DE'))}</span>
+                    </strong>
+                    {' — giving your team roughly '}
+                    <strong style={{ fontFamily: 'var(--font-display)', fontWeight: 600, color: P.ink }}>
+                      {previewMonthsRaw < 1 ? '< 1 month' : (
+                        <><span key={`tu-months-${amountAnimTick}`} className={`t-digit-group${amountAnimTick > 0 ? ' is-animating' : ''}`} style={{ '--row-delay': '80ms' }}>{digits(String(previewMonths))}</span>{' months'}</>
+                      )}
+                    </strong>
+                    {' of coverage.'}
+                  </div>
+                </div>
               );
             })()}
             </div>
@@ -8470,7 +8464,7 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, cardDe
   const setWs2 = (patch) => onMobilityWidgetStateChange && onMobilityWidgetStateChange({ ...ws2, ...patch });
   const allEligible2 = Object.entries(EMPLOYEES).filter(([, e]) => e.budget > 0).map(([id, e]) => ({ ...e, id }));
   const empCount2 = allEligible2.length;
-  const deposit2 = Math.max(50, Math.round(empCount2 * 37 * 3 / 50) * 50);
+  const deposit2 = Math.max(50, Math.round(empCount2 * 12.5 * 3 / 50) * 50);
   const invitedKeys2 = ws2.invitedKeys || [];
   const justLaunched2 = !!ws2.justLaunched;
   const fundingIssue2 = !!ws2.fundingIssue;
