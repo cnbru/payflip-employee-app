@@ -8433,6 +8433,50 @@ function EntityDeliveryModal({ entityId, entityName, legalAddress, currentDelive
 }
 
 // ── Payflip Card settings ───────────────────────────────────────────────────
+function TopUpCollectionModal({ initialValue, empCount, chip1, chip3, chip6, onSave, onClose }) {
+  const [draft, setDraft] = useState(initialValue);
+  const monthsRaw = draft / (empCount * 12.5);
+  const months = Math.round(monthsRaw);
+  const monthsLabel = monthsRaw < 1 ? '< 1 month' : `~${months} ${months === 1 ? 'month' : 'months'}`;
+  return (
+    <ModalShell title="Collection amount" onClose={onClose}
+      footer={close => (<><Button variant="secondary" onClick={close}>Cancel</Button><Button variant="primary" onClick={() => { onSave(draft); close(); }}>Save</Button></>)}>
+      {() => (
+        <div style={{ padding: 'var(--space-250) var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-250)' }}>
+          <div style={{ display: 'flex', gap: 'var(--space-100)' }}>
+            {[{ amount: chip1, label: '1 month' }, { amount: chip3, label: '3 months', recommended: true }, { amount: chip6, label: '6 months' }].map(({ amount, label, recommended }) => {
+              const active = Math.round(draft) === amount;
+              return (
+                <button key={amount} onClick={() => setDraft(amount)}
+                  style={{ flex: 1, position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 'var(--space-100)', padding: 'var(--space-150)', borderRadius: 10, border: `1px solid ${active ? P.ink : P.border}`, background: active ? P.bg : P.white, cursor: 'pointer', transition: `border-color 120ms ${EASE_OUT}, background 120ms ${EASE_OUT}`, textAlign: 'left' }}>
+                  {recommended && <span style={{ position: 'absolute', top: -8, right: 8, fontFamily: 'var(--font-body)', fontSize: 10, fontWeight: 600, color: P.successDark, background: P.successBg, border: `1px solid ${P.successBorder}`, borderRadius: 4, padding: '1px 5px', lineHeight: '14px', whiteSpace: 'nowrap' }}>Recommended</span>}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', fontWeight: 500, color: P.ink, fontVariantNumeric: 'tabular-nums' }}>€{amount.toLocaleString('de-DE')}</span>
+                    <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>{label}</span>
+                  </div>
+                  <div style={{ width: 16, height: 16, borderRadius: '50%', flexShrink: 0, border: `2px solid ${active ? P.ink : P.border}`, background: active ? P.ink : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: `border-color 120ms ${EASE_OUT}, background 120ms ${EASE_OUT}` }}>
+                    {active && <div style={{ width: 5, height: 5, borderRadius: '50%', background: P.white }} />}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+          <div>
+            <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.inkSoft, marginBottom: 'var(--space-075)' }}>Custom amount</label>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-100)', border: `1px solid ${P.border}`, borderRadius: 7, padding: 'var(--space-100) var(--space-125)' }}>
+              <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft }}>€</span>
+              <input autoFocus type="number" min="50" step="50" value={draft}
+                onChange={e => setDraft(parseFloat(e.target.value) || 0)}
+                style={{ flex: 1, border: 'none', outline: 'none', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, background: 'transparent' }} />
+              <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, whiteSpace: 'nowrap' }}>{monthsLabel}</span>
+            </div>
+          </div>
+        </div>
+      )}
+    </ModalShell>
+  );
+}
+
 function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, cardDelivery = 'home', onCardDeliveryChange, onToast, mobilityWidgetState, onMobilityWidgetStateChange, onNav, appEntity = null }) {
   const [draftPhysicalCards, setDraftPhysicalCards] = useState(physicalCardsAllowed);
   const [draftCardDelivery, setDraftCardDelivery] = useState(cardDelivery);
@@ -8661,6 +8705,12 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, cardDe
           const collection = topUpCollectionOverride ?? defaultCollection;
           const isCustomThreshold = topUpThresholdOverride != null;
           const isCustomCollection = topUpCollectionOverride != null;
+          const collectionMonthsRaw = collection / (empCount2 * 12.5);
+          const collectionMonths = Math.round(collectionMonthsRaw);
+          const collectionMonthsLabel = collectionMonthsRaw < 1 ? '< 1 month' : `~${collectionMonths} ${collectionMonths === 1 ? 'month' : 'months'}`;
+          const chip1 = Math.max(50, Math.round(empCount2 * 12.5 / 50) * 50);
+          const chip3 = Math.max(50, Math.round(empCount2 * 12.5 * 3 / 50) * 50);
+          const chip6 = Math.max(50, Math.round(empCount2 * 12.5 * 6 / 50) * 50);
           return (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-250)' }}>
               <div style={SL}>Auto top-up</div>
@@ -8676,7 +8726,7 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, cardDe
                   icon="circle-dollar-sign"
                   label="Collection amount"
                   subtitle={isCustomCollection ? 'Custom' : 'Calculated from deposit'}
-                  value={`€${collection.toLocaleString('de-DE')}`}
+                  value={`€${collection.toLocaleString('de-DE')} · ${collectionMonthsLabel}`}
                   onClick={() => setShowTopUpCollectionModal(true)}
                   last
                 />
@@ -8691,11 +8741,11 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, cardDe
                 />
               )}
               {showTopUpCollectionModal && (
-                <AmountModal
-                  title="Collection amount"
-                  label="Amount collected per top-up"
-                  value={collection}
-                  onSave={v => setTopUpCollectionOverride(v)}
+                <TopUpCollectionModal
+                  initialValue={collection}
+                  empCount={empCount2}
+                  chip1={chip1} chip3={chip3} chip6={chip6}
+                  onSave={v => { setTopUpCollectionOverride(v); setShowTopUpCollectionModal(false); }}
                   onClose={() => setShowTopUpCollectionModal(false)}
                 />
               )}
