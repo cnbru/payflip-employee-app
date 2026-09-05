@@ -7534,7 +7534,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
             </div>
             <div style={{ padding: 'var(--space-250) var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-200)' }}>
             {/* Amount input — large borderless display */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 0 var(--space-075)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 'var(--space-050)' }}>
                 <span style={{ fontFamily: 'var(--font-display)', fontWeight: 400, fontSize: 52, color: P.inkFaint, lineHeight: 1 }}>€</span>
                 <input
@@ -7554,18 +7554,25 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
                   style={{ border: 'none', outline: 'none', background: 'transparent', fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 52, color: amountInput ? P.ink : P.inkSoft, fontVariantNumeric: 'tabular-nums', lineHeight: 1, width: `${Math.max(1, amountInput.length || 1)}ch`, minWidth: '1ch', maxWidth: 280, transition: 'width 80ms ease-out' }}
                 />
               </div>
-              <button onClick={() => setAmountInput(recommendedDeposit.toString())} style={{ background: 'none', border: 'none', padding: 0, cursor: isAtRecommended || !isValid ? 'default' : 'pointer', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: 'var(--bg-primary-default)', textDecoration: 'underline', opacity: isAtRecommended || !isValid ? 0 : 1, transition: `opacity 150ms ${EASE_OUT}`, pointerEvents: isAtRecommended || !isValid ? 'none' : 'auto', flexShrink: 0, }}>
+              <button onClick={() => setAmountInput(recommendedDeposit.toString())} style={{ background: 'none', border: 'none', padding: 0, cursor: isAtRecommended ? 'default' : 'pointer', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: 'var(--bg-primary-default)', textDecoration: 'underline', opacity: isAtRecommended ? 0 : 1, transition: `opacity 150ms ${EASE_OUT}`, pointerEvents: isAtRecommended ? 'none' : 'auto', flexShrink: 0, }}>
                 Use recommended (€{recommendedDeposit.toLocaleString('de-DE')})
               </button>
             </div>
-            {/* Top-up limits preview — always visible, values pop in per-digit on debounce */}
-            {(() => {
+            {/* Top-up limits preview or invalid-amount alert */}
+            {!isValid ? (
+              <div style={{ display: 'flex', gap: 'var(--space-150)', padding: 'var(--space-150) var(--space-200)', borderRadius: 8, border: `1px solid ${P.dangerBorder}`, background: P.dangerBg, alignItems: 'flex-start' }}>
+                <Icon name="alert-circle" size={15} color={P.danger} strokeWidth={2} style={{ flexShrink: 0, marginTop: 2 }} />
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.dangerDark, lineHeight: '18px' }}>
+                  The minimum initial deposit is <strong>€50</strong>. Use the recommended amount to get a head start.
+                </div>
+              </div>
+            ) : null}
+            {isValid && (() => {
               const digits = (str) => String(str).split('').map((ch, i, arr) => {
                 const stagger = i === arr.length - 2 ? '1' : i === arr.length - 1 ? '2' : undefined;
                 return <span key={i} className="t-digit" data-stagger={stagger}>{ch}</span>;
               });
               return (
-                <div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-200)' }}>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-075)' }}>
                       <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink }}>How automatic top-ups will work:</div>
@@ -7585,14 +7592,14 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
                       </div>
                     </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkFaint }}>Giving you approximately</span>
+                      <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkFaint }}>Your balance will last</span>
                       <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-md)', color: P.ink, fontVariantNumeric: 'tabular-nums', display: 'inline-flex', alignItems: 'baseline', gap: 2 }}>
+                        <span style={{ fontWeight: 400, color: P.inkSoft }}>~</span>
                         <span key={`tu-months-${amountAnimTick}`} className={`t-digit-group${amountAnimTick > 0 ? ' is-animating' : ''}`} style={{ '--row-delay': '80ms' }}>{digits(String(previewMonths))}</span>
                         <span style={{ fontWeight: 400, fontSize: 'var(--fs-body-sm)', color: P.inkSoft }}> months</span>
                       </span>
                     </div>
                   </div>
-                </div>
               );
             })()}
             </div>
