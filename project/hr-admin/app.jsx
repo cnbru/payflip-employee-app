@@ -7530,30 +7530,50 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
             </div>
             <div style={{ padding: 'var(--space-250) var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-200)' }}>
             {/* Amount input — large borderless display */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: 'var(--space-050)' }}>
-                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 400, fontSize: 52, color: P.inkFaint, lineHeight: 1 }}>€</span>
-                <input
-                  autoFocus
-                  aria-label="Deposit amount in euros"
-                  type="number"
-                  min="50"
-                  step="50"
-                  value={amountInput}
-                  onChange={e => setAmountInput(e.target.value)}
-                  onKeyDown={e => {
-                    if (e.key === 'Escape') setShowAmountModal(false);
-                    if (e.key === 'Enter' && isValid) { setCustomDeposit(Math.round(parsed)); setShowAmountModal(false); }
-                  }}
-                  placeholder="0"
-                  className="amount-display-input"
-                  style={{ border: 'none', outline: 'none', background: 'transparent', fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 52, color: amountInput ? P.ink : P.inkSoft, fontVariantNumeric: 'tabular-nums', lineHeight: 1, width: `${Math.max(1, amountInput.length || 1)}ch`, minWidth: '1ch', maxWidth: 280, transition: 'width 80ms ease-out' }}
-                />
-              </div>
-              <button onClick={() => setAmountInput(recommendedDeposit.toString())} style={{ background: 'none', border: 'none', padding: 0, cursor: isAtRecommended ? 'default' : 'pointer', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: 'var(--bg-primary-default)', textDecoration: 'underline', opacity: isAtRecommended ? 0 : 1, transition: `opacity 150ms ${EASE_OUT}`, pointerEvents: isAtRecommended ? 'none' : 'auto', flexShrink: 0, }}>
-                Use recommended (€{recommendedDeposit.toLocaleString('de-DE')})
-              </button>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 'var(--space-050)' }}>
+              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 400, fontSize: 52, color: P.inkFaint, lineHeight: 1 }}>€</span>
+              <input
+                autoFocus
+                aria-label="Deposit amount in euros"
+                type="number"
+                min="50"
+                step="50"
+                value={amountInput}
+                onChange={e => setAmountInput(e.target.value)}
+                onKeyDown={e => {
+                  if (e.key === 'Escape') setShowAmountModal(false);
+                  if (e.key === 'Enter' && isValid) { setCustomDeposit(Math.round(parsed)); setShowAmountModal(false); }
+                }}
+                placeholder="0"
+                className="amount-display-input"
+                style={{ border: 'none', outline: 'none', background: 'transparent', fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 52, color: amountInput ? P.ink : P.inkSoft, fontVariantNumeric: 'tabular-nums', lineHeight: 1, width: `${Math.max(1, amountInput.length || 1)}ch`, minWidth: '1ch', maxWidth: 280, transition: 'width 80ms ease-out' }}
+              />
             </div>
+            {/* Quick-select chips */}
+            {(() => {
+              const chip1 = Math.max(50, Math.round(empCount * 12.5 / 50) * 50);
+              const chip3 = recommendedDeposit;
+              const chip6 = Math.max(50, Math.round(empCount * 12.5 * 6 / 50) * 50);
+              return (
+                <div style={{ display: 'flex', gap: 'var(--space-100)' }}>
+                  {[{ amount: chip1, label: '1 month' }, { amount: chip3, label: '3 months', recommended: true }, { amount: chip6, label: '6 months' }].map(({ amount, label, recommended }) => {
+                    const active = isValid && Math.round(parsed) === amount;
+                    return (
+                      <button key={amount} onClick={() => { setAmountInput(amount.toString()); setDebouncedAmountInput(amount.toString()); setAmountAnimTick(t => t + 1); }} style={{ flex: 1, position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 'var(--space-100)', padding: 'var(--space-150) var(--space-150)', borderRadius: 10, border: `1px solid ${active ? P.ink : P.border}`, background: active ? P.bg : P.white, cursor: 'pointer', transition: `border-color 120ms ${EASE_OUT}, background 120ms ${EASE_OUT}`, textAlign: 'left' }}>
+                        {recommended && <span style={{ position: 'absolute', top: -8, right: 8, fontFamily: 'var(--font-body)', fontSize: 10, fontWeight: 600, color: P.successDark, background: P.successBg, border: `1px solid ${P.successBorder}`, borderRadius: 4, padding: '1px 5px', lineHeight: '14px', whiteSpace: 'nowrap' }}>Recommended</span>}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                          <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', fontWeight: 500, color: P.ink, fontVariantNumeric: 'tabular-nums' }}>€{amount.toLocaleString('de-DE')}</span>
+                          <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>{label}</span>
+                        </div>
+                        <div style={{ width: 16, height: 16, borderRadius: '50%', flexShrink: 0, border: `2px solid ${active ? P.ink : P.border}`, background: active ? P.ink : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: `border-color 120ms ${EASE_OUT}, background 120ms ${EASE_OUT}` }}>
+                          {active && <div style={{ width: 5, height: 5, borderRadius: '50%', background: P.white }} />}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              );
+            })()}
             {/* Top-up limits preview or invalid-amount alert */}
             {!isValid ? (
               <div style={{ display: 'flex', gap: 'var(--space-150)', padding: 'var(--space-150) var(--space-200)', borderRadius: 8, border: `1px solid ${P.dangerBorder}`, background: P.dangerBg, alignItems: 'flex-start' }}>
@@ -7571,28 +7591,17 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
                 return <span key={i} className="t-digit" data-stagger={stagger}>{ch}</span>;
               });
               return (
-                <div style={{ borderTop: `1px solid ${P.border}`, paddingTop: 'var(--space-200)', display: 'flex', flexDirection: 'column', gap: 'var(--space-075)' }}>
-                  <div style={{ width: 36, height: 36, borderRadius: 10, background: P.bg, border: `1px solid ${P.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <Icon name="repeat" size={17} color={P.inkSoft} strokeWidth={1.5} />
-                  </div>
-                  <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.ink }}>How automatic top-ups will work:</div>
-                  <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: '20px', fontVariantNumeric: 'tabular-nums' }}>
-                    {'When your balance drops below '}
-                    <strong style={{ fontFamily: 'var(--font-display)', fontWeight: 600, color: P.ink }}>
-                      €<span key={`tu-start-${amountAnimTick}`} className={`t-digit-group${amountAnimTick > 0 ? ' is-animating' : ''}`} style={{ '--row-delay': '0ms' }}>{digits(previewTopUpStart.toLocaleString('de-DE'))}</span>
-                    </strong>
-                    {', we collect '}
-                    <strong style={{ fontFamily: 'var(--font-display)', fontWeight: 600, color: P.ink }}>
-                      €<span key={`tu-max-${amountAnimTick}`} className={`t-digit-group${amountAnimTick > 0 ? ' is-animating' : ''}`} style={{ '--row-delay': '40ms' }}>{digits(previewMaxTopUp.toLocaleString('de-DE'))}</span>
-                    </strong>
-                    {' — giving your team roughly '}
-                    <strong style={{ fontFamily: 'var(--font-display)', fontWeight: 600, color: P.ink }}>
-                      {previewMonthsRaw < 1 ? '< 1 month' : (
-                        <><span key={`tu-months-${amountAnimTick}`} className={`t-digit-group${amountAnimTick > 0 ? ' is-animating' : ''}`} style={{ '--row-delay': '80ms' }}>{digits(String(previewMonths))}</span>{' months'}</>
-                      )}
-                    </strong>
-                    {' of coverage.'}
-                  </div>
+                <div style={{ borderTop: `1px solid ${P.border}`, paddingTop: 'var(--space-200)', display: 'flex', flexDirection: 'column', gap: 0 }}>
+                  {[
+                    { label: 'When balance drops below', value: <><strong style={{ fontFamily: 'var(--font-display)', fontWeight: 600, color: P.ink }}>€<span key={`tu-start-${amountAnimTick}`} className={`t-digit-group${amountAnimTick > 0 ? ' is-animating' : ''}`} style={{ '--row-delay': '0ms' }}>{digits(previewTopUpStart.toLocaleString('de-DE'))}</span></strong></> },
+                    { label: 'We collect', value: <><strong style={{ fontFamily: 'var(--font-display)', fontWeight: 600, color: P.ink }}>€<span key={`tu-max-${amountAnimTick}`} className={`t-digit-group${amountAnimTick > 0 ? ' is-animating' : ''}`} style={{ '--row-delay': '40ms' }}>{digits(previewMaxTopUp.toLocaleString('de-DE'))}</span></strong></> },
+                    { label: 'Coverage', value: <strong style={{ fontFamily: 'var(--font-display)', fontWeight: 600, color: P.ink }}>{previewMonthsRaw < 1 ? '< 1 month' : <><span key={`tu-months-${amountAnimTick}`} className={`t-digit-group${amountAnimTick > 0 ? ' is-animating' : ''}`} style={{ '--row-delay': '80ms' }}>{digits(String(previewMonths))}</span>{' months'}</>}</strong> },
+                  ].map(({ label, value }, i) => (
+                    <div key={i} style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', padding: 'var(--space-075) 0', fontVariantNumeric: 'tabular-nums' }}>
+                      <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft }}>{label}</span>
+                      <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)' }}>{value}</span>
+                    </div>
+                  ))}
                 </div>
               );
             })()}
