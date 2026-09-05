@@ -8433,7 +8433,7 @@ function EntityDeliveryModal({ entityId, entityName, legalAddress, currentDelive
 }
 
 // ── Payflip Card settings ───────────────────────────────────────────────────
-function TopUpCollectionModal({ initialValue, empCount, chip1, chip3, chip6, onSave, onClose }) {
+function TopUpCollectionModal({ initialValue, defaultValue, empCount, chip1, chip3, chip6, onSave, onClose }) {
   const [draft, setDraft] = useState(initialValue);
   const monthsRaw = draft / (empCount * 12.5);
   const months = Math.round(monthsRaw);
@@ -8470,6 +8470,11 @@ function TopUpCollectionModal({ initialValue, empCount, chip1, chip3, chip6, onS
                 style={{ flex: 1, border: 'none', outline: 'none', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, background: 'transparent' }} />
               <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, whiteSpace: 'nowrap' }}>{monthsLabel}</span>
             </div>
+            {defaultValue != null && Math.round(draft) !== Math.round(defaultValue) && (
+              <button onClick={() => setDraft(defaultValue)} style={{ marginTop: 'var(--space-100)', background: 'none', border: 'none', padding: 0, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, textDecoration: 'underline', cursor: 'pointer' }}>
+                Reset to calculated (€{defaultValue.toLocaleString('de-DE')})
+              </button>
+            )}
           </div>
         </div>
       )}
@@ -8497,7 +8502,8 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, cardDe
     ? entityDeliveryOverrides[appEntity]
     : draftCardDelivery;
   const isDirty = draftPhysicalCards !== savedPhysicalCards || draftCardDelivery !== savedCardDelivery
-    || Object.keys(entityDeliveryOverrides).length > 0;
+    || Object.keys(entityDeliveryOverrides).length > 0
+    || topUpThresholdOverride != null || topUpCollectionOverride != null;
 
   const handleSave = () => {
     onPhysicalCardsChange(draftPhysicalCards);
@@ -8708,24 +8714,28 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, cardDe
           const collectionMonthsRaw = collection / (empCount2 * 12.5);
           const collectionMonths = Math.round(collectionMonthsRaw);
           const collectionMonthsLabel = collectionMonthsRaw < 1 ? '< 1 month' : `~${collectionMonths} ${collectionMonths === 1 ? 'month' : 'months'}`;
+          const thresholdPct = Math.round((threshold / deposit2) * 100);
           const chip1 = Math.max(50, Math.round(empCount2 * 12.5 / 50) * 50);
           const chip3 = Math.max(50, Math.round(empCount2 * 12.5 * 3 / 50) * 50);
           const chip6 = Math.max(50, Math.round(empCount2 * 12.5 * 6 / 50) * 50);
+          const coherenceInfo = collectionMonthsRaw < 1
+            ? `At your current team size (${empCount2} employees), each collection covers less than 1 month of card spend — top-ups will fire frequently.`
+            : `At your current team size (${empCount2} employees), each collection covers ~${collectionMonths} ${collectionMonths === 1 ? 'month' : 'months'} of card spend.`;
           return (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-250)' }}>
               <div style={SL}>Auto top-up</div>
-              <SettingsCard info="When your card balance drops below the trigger, Payflip automatically collects via direct debit.">
+              <SettingsCard info={coherenceInfo}>
                 <SettingsRow
                   icon="trending-down"
                   label="Trigger balance"
-                  subtitle={isCustomThreshold ? 'Custom' : 'Calculated from deposit'}
-                  value={`€${threshold.toLocaleString('de-DE')}`}
+                  subtitle={isCustomThreshold ? `Custom · was €${defaultThreshold.toLocaleString('de-DE')}` : 'Calculated from deposit'}
+                  value={`€${threshold.toLocaleString('de-DE')} · ~${thresholdPct}%`}
                   onClick={() => setShowTopUpThresholdModal(true)}
                 />
                 <SettingsRow
                   icon="circle-dollar-sign"
                   label="Collection amount"
-                  subtitle={isCustomCollection ? 'Custom' : 'Calculated from deposit'}
+                  subtitle={isCustomCollection ? `Custom · was €${defaultCollection.toLocaleString('de-DE')}` : 'Calculated from deposit'}
                   value={`€${collection.toLocaleString('de-DE')} · ${collectionMonthsLabel}`}
                   onClick={() => setShowTopUpCollectionModal(true)}
                   last
@@ -8736,16 +8746,18 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, cardDe
                   title="Trigger balance"
                   label="Top up when balance drops below"
                   value={threshold}
-                  onSave={v => setTopUpThresholdOverride(v)}
+                  resetValue={isCustomThreshold ? defaultThreshold : undefined}
+                  onSave={v => { setTopUpThresholdOverride(v === defaultThreshold ? null : v); setShowTopUpThresholdModal(false); }}
                   onClose={() => setShowTopUpThresholdModal(false)}
                 />
               )}
               {showTopUpCollectionModal && (
                 <TopUpCollectionModal
                   initialValue={collection}
+                  defaultValue={isCustomCollection ? defaultCollection : undefined}
                   empCount={empCount2}
                   chip1={chip1} chip3={chip3} chip6={chip6}
-                  onSave={v => { setTopUpCollectionOverride(v); setShowTopUpCollectionModal(false); }}
+                  onSave={v => { setTopUpCollectionOverride(v === defaultCollection ? null : v); setShowTopUpCollectionModal(false); }}
                   onClose={() => setShowTopUpCollectionModal(false)}
                 />
               )}
@@ -9009,7 +9021,7 @@ function PickModal({ title, options, value, onSave, onClose, extraField }) {
   );
 }
 
-function AmountModal({ title, label, value, onSave, onClose, nullable }) {
+function AmountModal({ title, label, value, onSave, onClose, nullable, resetValue }) {
   const [val, setVal] = useState(value != null ? String(value) : '');
   return (
     <ModalShell title={title} onClose={onClose}>
@@ -9027,6 +9039,11 @@ function AmountModal({ title, label, value, onSave, onClose, nullable }) {
                   style={{ flex: 1, border: 'none', outline: 'none', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, background: 'transparent' }} />
               </div>
               {nullable && <p style={{ margin: 'var(--space-075) 0 0', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkFaint }}>Leave blank for no limit.</p>}
+              {resetValue != null && String(Math.round(parseFloat(val))) !== String(Math.round(resetValue)) && (
+                <button onClick={() => setVal(String(resetValue))} style={{ marginTop: 'var(--space-100)', background: 'none', border: 'none', padding: 0, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, textDecoration: 'underline', cursor: 'pointer' }}>
+                  Reset to calculated (€{resetValue.toLocaleString('de-DE')})
+                </button>
+              )}
             </div>
             <div style={{ padding: 'var(--space-200) var(--space-300)', borderTop: `1px solid ${P.border}`, display: 'flex', gap: 'var(--space-125)', justifyContent: 'flex-end' }}>
               <Button variant="secondary" onClick={close}>Cancel</Button>
