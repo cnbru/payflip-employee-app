@@ -8441,6 +8441,10 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, cardDe
   const [showResignModal, setShowResignModal] = useState(false);
   const [showDeliveryModal, setShowDeliveryModal] = useState(false);
   const [showEntityDeliveryModal, setShowEntityDeliveryModal] = useState(null);
+  const [showTopUpThresholdModal, setShowTopUpThresholdModal] = useState(false);
+  const [showTopUpCollectionModal, setShowTopUpCollectionModal] = useState(false);
+  const [topUpThresholdOverride, setTopUpThresholdOverride] = useState(null);
+  const [topUpCollectionOverride, setTopUpCollectionOverride] = useState(null);
   const [resignSigning, setResignSigning] = useState(false);
   const [savedPhysicalCards, setSavedPhysicalCards] = useState(physicalCardsAllowed);
   const [savedCardDelivery, setSavedCardDelivery] = useState(cardDelivery);
@@ -8648,6 +8652,56 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, cardDe
             />
           </SettingsCard>
         </div>
+
+        {/* Auto top-up — company-wide, hidden at entity scope */}
+        {!appEntity && (() => {
+          const defaultThreshold = Math.round(deposit2 / 15) * 5;
+          const defaultCollection = deposit2 - defaultThreshold;
+          const threshold = topUpThresholdOverride ?? defaultThreshold;
+          const collection = topUpCollectionOverride ?? defaultCollection;
+          const isCustomThreshold = topUpThresholdOverride != null;
+          const isCustomCollection = topUpCollectionOverride != null;
+          return (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-250)' }}>
+              <div style={SL}>Auto top-up</div>
+              <SettingsCard info="When your card balance drops below the trigger, Payflip automatically collects via direct debit.">
+                <SettingsRow
+                  icon="trending-down"
+                  label="Trigger balance"
+                  subtitle={isCustomThreshold ? 'Custom' : 'Calculated from deposit'}
+                  value={`€${threshold.toLocaleString('de-DE')}`}
+                  onClick={() => setShowTopUpThresholdModal(true)}
+                />
+                <SettingsRow
+                  icon="circle-dollar-sign"
+                  label="Collection amount"
+                  subtitle={isCustomCollection ? 'Custom' : 'Calculated from deposit'}
+                  value={`€${collection.toLocaleString('de-DE')}`}
+                  onClick={() => setShowTopUpCollectionModal(true)}
+                  last
+                />
+              </SettingsCard>
+              {showTopUpThresholdModal && (
+                <AmountModal
+                  title="Trigger balance"
+                  label="Top up when balance drops below"
+                  value={threshold}
+                  onSave={v => setTopUpThresholdOverride(v)}
+                  onClose={() => setShowTopUpThresholdModal(false)}
+                />
+              )}
+              {showTopUpCollectionModal && (
+                <AmountModal
+                  title="Collection amount"
+                  label="Amount collected per top-up"
+                  value={collection}
+                  onSave={v => setTopUpCollectionOverride(v)}
+                  onClose={() => setShowTopUpCollectionModal(false)}
+                />
+              )}
+            </div>
+          );
+        })()}
 
         {/* Card delivery — global default + per-entity rows */}
         {draftPhysicalCards && (
