@@ -8440,7 +8440,7 @@ function TopUpCollectionModal({ initialValue, empCount, chip1, chip3, chip6, onS
   const monthsLabel = monthsRaw < 1 ? '< 1 month' : `~${months} ${months === 1 ? 'month' : 'months'}`;
   return (
     <ModalShell title="Collection amount" onClose={onClose}
-      footer={close => (<><Button variant="secondary" onClick={close}>Cancel</Button><Button variant="primary" onClick={() => { onSave(draft); close(); }}>Save</Button></>)}>
+      footer={close => (<div style={{ padding: 'var(--space-200) var(--space-300)', borderTop: `1px solid ${P.border}`, display: 'flex', gap: 'var(--space-125)', justifyContent: 'flex-end' }}><Button variant="secondary" onClick={close}>Cancel</Button><Button variant="primary" onClick={() => { onSave(draft); close(); }}>Save</Button></div>)}>
       {() => (
         <div style={{ padding: 'var(--space-250) var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-250)' }}>
           <div style={{ display: 'flex', gap: 'var(--space-100)' }}>
