@@ -8714,7 +8714,11 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, cardDe
           const collectionMonthsRaw = collection / (empCount2 * 12.5);
           const collectionMonths = Math.round(collectionMonthsRaw);
           const collectionMonthsLabel = collectionMonthsRaw < 1 ? '< 1 month' : `~${collectionMonths} ${collectionMonths === 1 ? 'month' : 'months'}`;
-          const thresholdPct = Math.round((threshold / deposit2) * 100);
+          const dailySpend = (empCount2 * 12.5) / 30;
+          const thresholdRunwayDays = Math.round((deposit2 - threshold) / dailySpend);
+          const thresholdRunwayLabel = thresholdRunwayDays < 14
+            ? `~${thresholdRunwayDays}d buffer`
+            : `~${Math.round(thresholdRunwayDays / 7)}w buffer`;
           const chip1 = Math.max(50, Math.round(empCount2 * 12.5 / 50) * 50);
           const chip3 = Math.max(50, Math.round(empCount2 * 12.5 * 3 / 50) * 50);
           const chip6 = Math.max(50, Math.round(empCount2 * 12.5 * 6 / 50) * 50);
@@ -8729,7 +8733,7 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, cardDe
                   icon="trending-down"
                   label="Trigger balance"
                   subtitle={isCustomThreshold ? `Custom · was €${defaultThreshold.toLocaleString('de-DE')}` : 'Calculated from deposit'}
-                  value={`€${threshold.toLocaleString('de-DE')} · ~${thresholdPct}%`}
+                  value={`€${threshold.toLocaleString('de-DE')} · ${thresholdRunwayLabel}`}
                   onClick={() => setShowTopUpThresholdModal(true)}
                 />
                 <SettingsRow
