@@ -2390,10 +2390,10 @@ function CalendarDrawer({ req, requests, onClose, onApprove, onDecline, onCancel
 }
 
 // ── Select with chevron ────────────────────────────────────────────────────
-function SelectField({ value, onChange, children, style }) {
+function SelectField({ value, onChange, children, style, id }) {
   return (
     <div style={{ position: 'relative' }}>
-      <select value={value} onChange={onChange} style={{ ...style, appearance: 'none', paddingRight: 'var(--space-400)' }}>
+      <select id={id} value={value} onChange={onChange} style={{ ...style, appearance: 'none', paddingRight: 'var(--space-400)' }}>
         {children}
       </select>
       <svg style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}
@@ -2948,8 +2948,8 @@ function AddTimeOffModal({ existing, onClose, onSave, requests = [], defaultDate
           {/* Leave type — hidden for collective holidays */}
           {!allEmployees && (
             <div>
-              <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.inkSoft, marginBottom: 'var(--space-075)' }}>Leave type</label>
-              <SelectField value={type} onChange={e => setType(e.target.value)} style={{ ...inputStyle, cursor: 'pointer' }}>
+              <label htmlFor="leave-type" style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.inkSoft, marginBottom: 'var(--space-075)' }}>Leave type</label>
+              <SelectField id="leave-type" value={type} onChange={e => setType(e.target.value)} style={{ ...inputStyle, cursor: 'pointer' }}>
                 {ALL_LEAVE_TYPES.map(t => (
                   <option key={t} value={t}>{t}{ADMIN_ONLY_TYPES.has(t) ? ' (Admin)' : ''}</option>
                 ))}
@@ -3031,11 +3031,11 @@ function AddTimeOffModal({ existing, onClose, onSave, requests = [], defaultDate
             <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.inkSoft, marginBottom: 'var(--space-075)' }}>Dates</label>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-100)' }}>
               <div>
-                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.inkFaint, marginBottom: 'var(--space-050)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>From</div>
+                <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginBottom: 'var(--space-050)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>From</label>
                 <DateInput value={rangeFrom} placeholder="Start date" borderColor={errors.dates ? P.danger : P.border} onChange={e => { setRangeFrom(e.target.value); if (rangeTo && e.target.value > rangeTo) setRangeTo(e.target.value); }} />
               </div>
               <div>
-                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.inkFaint, marginBottom: 'var(--space-050)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>To</div>
+                <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginBottom: 'var(--space-050)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>To</label>
                 <DateInput value={rangeTo} placeholder="End date" min={rangeFrom || undefined} borderColor={errors.dates ? P.danger : P.border} onChange={e => { setRangeTo(e.target.value); }} />
               </div>
             </div>
@@ -3054,7 +3054,7 @@ function AddTimeOffModal({ existing, onClose, onSave, requests = [], defaultDate
                   )}
                 </span>
                 <button onClick={() => setShowEditSelection(v => !v)} style={{
-                  border: 'none', background: 'transparent', cursor: 'pointer', padding: 0,
+                  border: 'none', background: 'transparent', cursor: 'pointer', padding: 'var(--space-050) var(--space-075)',
                   fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.ink,
                   textDecoration: 'underline', textUnderlineOffset: 2,
                 }}>
@@ -3077,7 +3077,7 @@ function AddTimeOffModal({ existing, onClose, onSave, requests = [], defaultDate
                           if (v === 'full') delete c[iso]; else c[iso] = v;
                           return c;
                         })} />
-                        <button onClick={() => handleDateTap(d)} style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: 'var(--space-050)', display: 'flex', lineHeight: 1 }}>
+                        <button onClick={() => handleDateTap(d)} style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: 'var(--space-100)', display: 'flex', lineHeight: 1 }}>
                           <Icon name="Trash2" size={13} color={P.inkSoft} />
                         </button>
                       </div>
@@ -3090,8 +3090,8 @@ function AddTimeOffModal({ existing, onClose, onSave, requests = [], defaultDate
 
           {/* Note — always shown */}
           <div>
-            <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.inkSoft, marginBottom: 'var(--space-075)' }}>Notes <span style={{ fontWeight: 400 }}>(optional)</span></label>
-            <textarea value={note} onChange={e => setNote(e.target.value)} rows={2} placeholder={scope === 'collective' ? 'e.g. Replacement for Christmas Day which fell on a Sunday…' : 'Reason or additional context…'} style={{ ...inputStyle, resize: 'none', lineHeight: 1.5 }} />
+            <label htmlFor="add-time-off-note" style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.inkSoft, marginBottom: 'var(--space-075)' }}>Notes <span style={{ fontWeight: 400 }}>(optional)</span></label>
+            <textarea id="add-time-off-note" value={note} onChange={e => setNote(e.target.value)} rows={2} placeholder={scope === 'collective' ? 'e.g. Replacement for Christmas Day which fell on a Sunday…' : 'Reason or additional context…'} onKeyDown={e => { if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') handleSave(close); }} style={{ ...inputStyle, resize: 'none', lineHeight: 1.5 }} />
           </div>
 
           {/* Document upload + notify toggle — non-blocking */}
@@ -3101,7 +3101,7 @@ function AddTimeOffModal({ existing, onClose, onSave, requests = [], defaultDate
             return (
               <div>
                 <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.inkSoft, marginBottom: 'var(--space-075)' }}>{rule.label}</label>
-                <p style={{ margin: '0 0 var(--space-100)', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkFaint }}>{rule.note}</p>
+                <p style={{ margin: '0 0 var(--space-100)', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>{rule.note}</p>
                 {attachment ? (
                   <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-100)', padding: 'var(--space-100) var(--space-125)', borderRadius: 7, border: `1px solid ${P.border}`, background: P.bg }}>
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={P.inkSoft} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -3128,13 +3128,13 @@ function AddTimeOffModal({ existing, onClose, onSave, requests = [], defaultDate
                   </button>
                 )}
                 {!attachment && (
-                  <div onClick={() => setNotifyEmployee(v => !v)} style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-125)', marginTop: 'var(--space-100)', padding: 'var(--space-125) var(--space-150)', borderRadius: 8, border: `1px solid ${P.border}`, background: P.bg, cursor: 'pointer', userSelect: 'none' }}>
-                    <Switch checked={notifyEmployee} size="sm" />
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-125)', marginTop: 'var(--space-100)', padding: 'var(--space-125) var(--space-150)', borderRadius: 8, border: `1px solid ${P.border}`, background: P.bg, cursor: 'pointer', userSelect: 'none' }}>
+                    <Switch checked={notifyEmployee} size="sm" onChange={() => setNotifyEmployee(v => !v)} />
                     <div style={{ flex: 1 }}>
                       <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink }}>Request {rule.label.toLowerCase()} from employee</div>
                       <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginTop: 'var(--space-025)' }}>Sends an email asking the employee to upload the document</div>
                     </div>
-                  </div>
+                  </label>
                 )}
               </div>
             );
@@ -5077,7 +5077,7 @@ function TeamAbsencesScreen({ requests, pendingCount, onNav, onShowDetail, activ
   const upcomingHolidays = BELGIAN_HOLIDAYS_2026.filter(h => h >= todayISO).slice(0, 3);
 
   return (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, overflow: 'hidden', animation: `screenEnter 180ms ${EASE_OUT}` }}>
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, overflow: 'hidden', animation: PREFERS_REDUCED_MOTION ? 'none' : `screenEnter 180ms ${EASE_OUT}` }}>
       <PageHeader title="Team absences" subtitle="Track and plan team availability" badge={appEntity ? (ENTITIES.find(e => e.id === appEntity)?.name) : null}>
         <button onClick={() => setAddOpen(true)} style={{
           display: 'flex', alignItems: 'center', gap: 'var(--space-100)', padding: 'var(--space-100) var(--space-250)', borderRadius: 8, border: 'none',
@@ -5107,8 +5107,9 @@ function TeamAbsencesScreen({ requests, pendingCount, onNav, onShowDetail, activ
                 padding: 'var(--space-075) var(--space-200)', borderRadius: 7, border: `1px solid ${P.border}`,
                 background: 'transparent', cursor: 'pointer',
                 fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.inkSoft,
-              }}>Today</button>
-              <button onClick={() => step(-1)} style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: 'var(--space-050)', display: 'flex', alignItems: 'center' }}>
+                transition: 'background-color 120ms ease-out',
+              }} onMouseEnter={e => e.currentTarget.style.background = P.bg} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>Today</button>
+              <button onClick={() => step(-1)} style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: 'var(--space-150)', display: 'flex', alignItems: 'center' }}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={P.ink} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
               </button>
               <button onClick={() => setMonthPickerOpen(o => !o)} style={{
@@ -5116,19 +5117,20 @@ function TeamAbsencesScreen({ requests, pendingCount, onNav, onShowDetail, activ
                 fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-md)', color: P.ink,
                 minWidth: 160, textAlign: 'center',
               }}>{monthLabel}</button>
-              <button onClick={() => step(1)} style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: 'var(--space-050)', display: 'flex', alignItems: 'center' }}>
+              <button onClick={() => step(1)} style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: 'var(--space-150)', display: 'flex', alignItems: 'center' }}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={P.ink} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
               </button>
               <div ref={viewModeRef} style={{ display: 'flex', border: `1px solid ${P.border}`, borderRadius: 8, overflow: 'hidden', marginLeft: 'var(--space-050)', position: 'relative' }}>
                 <div style={{
-                  position: 'absolute', top: 0, bottom: 0, background: P.action,
-                  left: viewModeRect.left, width: viewModeRect.width,
-                  transition: viewModeAnimate ? `left 250ms ${EASE_OUT}, width 250ms ${EASE_OUT}` : 'none',
+                  position: 'absolute', top: 0, bottom: 0, left: 0, background: P.action,
+                  width: viewModeRect.width,
+                  transform: `translateX(${viewModeRect.left}px)`,
+                  transition: (viewModeAnimate && !PREFERS_REDUCED_MOTION) ? `transform 250ms ${EASE_OUT}, width 250ms ${EASE_OUT}` : 'none',
                 }} />
                 {[['week', 'Week'], ['month', 'Month']].map(([val, label]) => (
                   <button key={val} data-key={val} onClick={() => setViewMode(val)} style={{
                     position: 'relative', padding: 'var(--space-075) var(--space-200)', border: 'none', cursor: 'pointer', background: 'transparent',
-                    fontFamily: 'var(--font-display)', fontWeight: viewMode === val ? 700 : 500,
+                    fontFamily: 'var(--font-display)', fontWeight: 600,
                     fontSize: 'var(--fs-body-sm)', color: viewMode === val ? '#fff' : P.ink,
                     transition: `color 150ms ${EASE_OUT}`,
                   }}>{label}</button>
@@ -5153,7 +5155,7 @@ function TeamAbsencesScreen({ requests, pendingCount, onNav, onShowDetail, activ
               {/* Day headers */}
               <div style={{ display: 'grid', gridTemplateColumns: gridCols, position: 'sticky', top: 0, zIndex: 10, background: P.white, borderBottom: `1px solid ${P.border}` }}>
                 <div style={{ padding: 'var(--space-075) var(--space-150)', display: 'flex', alignItems: 'center' }}>
-                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.inkSoft, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                     {filteredEmployees.length} people
                   </span>
                 </div>
@@ -5176,7 +5178,7 @@ function TeamAbsencesScreen({ requests, pendingCount, onNav, onShowDetail, activ
                       borderLeft: isWeekStart ? `2px solid ${P.borderStrong}` : `1px solid ${P.border}`,
                       cursor: closureEv ? 'pointer' : undefined,
                     }} title={isHoliday ? BELGIAN_HOLIDAY_NAMES[iso] : closureEv ? (closureEv.name || 'Company closure') : isCollective ? 'Company closed' : ''}>
-                      <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 9, color: P.inkFaint, letterSpacing: '0.06em' }}>
+                      <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-xs)', color: P.inkSoft, letterSpacing: '0.06em' }}>
                         {DAY_LABELS[(d.getDay() + 6) % 7]}
                       </div>
                       <div style={{
@@ -5189,7 +5191,7 @@ function TeamAbsencesScreen({ requests, pendingCount, onNav, onShowDetail, activ
                         </span>
                       </div>
                       {(isHoliday || isCollective) && (
-                        <div style={{ fontSize: 8, color: isCollective ? P.warningDark : '#7c3aed', fontFamily: 'var(--font-display)', fontWeight: 600, marginTop: 'var(--space-025)' }}>
+                        <div style={{ fontSize: 10, color: isCollective ? P.warningDark : '#7c3aed', fontFamily: 'var(--font-display)', fontWeight: 600, marginTop: 'var(--space-025)' }}>
                           {closureEv ? 'Closed' : isCollective ? 'Closed' : ''}
                         </div>
                       )}
@@ -6688,16 +6690,22 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
   const setLiveVisible = (v) => setWs({ liveVisible: typeof v === 'function' ? v(ws.liveVisible) : v });
   const [showCalcModal, setShowCalcModal] = useState(false);
   const [showAmountModal, setShowAmountModal] = useState(false);
-  const [showInfoPopover, setShowInfoPopover] = useState(false);
-  const [infoPos, setInfoPos] = useState({ top: 0, left: 0 });
-  const { rendered: infoRendered, visible: infoVisible } = usePopoverTransition(showInfoPopover);
-  useEffect(() => {
-    if (!showInfoPopover) return;
-    const close = () => setShowInfoPopover(false);
-    document.addEventListener('click', close);
-    return () => document.removeEventListener('click', close);
-  }, [showInfoPopover]);
+  const [amountFocused, setAmountFocused] = useState(false);
   const [amountInput, setAmountInput] = useState('');
+  const [debouncedAmountInput, setDebouncedAmountInput] = useState('');
+  const [amountAnimTick, setAmountAnimTick] = useState(0);
+  React.useEffect(() => {
+    const parsed = parseFloat(amountInput.replace(',', '.'));
+    const valid = !isNaN(parsed) && parsed >= 50;
+    if (!valid) return;
+    const id = setTimeout(() => {
+      setDebouncedAmountInput(prev => {
+        if (prev !== amountInput) setAmountAnimTick(t => t + 1);
+        return amountInput;
+      });
+    }, 320);
+    return () => clearTimeout(id);
+  }, [amountInput]);
   const [customDeposit, setCustomDeposit] = useState(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showInviteListModal, setShowInviteListModal] = useState(false);
@@ -6914,38 +6922,12 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
                       <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>Initial deposit</span>
                       <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 28, color: P.ink, letterSpacing: '-0.03em', lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>€{deposit.toLocaleString('de-DE')}</span>
                     </div>
-                    <Button variant="secondary" onClick={() => { setAmountInput(deposit.toString()); setShowAmountModal(true); }} style={{ fontSize: 'var(--fs-body-xs)', padding: 'var(--space-075) var(--space-150)', flexShrink: 0, background: P.white }}>Edit amount</Button>
+                    <Button variant="secondary" onClick={() => { setAmountInput(deposit.toString()); setDebouncedAmountInput(deposit.toString()); setAmountFocused(true); setShowAmountModal(true); }} style={{ fontSize: 'var(--fs-body-xs)', padding: 'var(--space-075) var(--space-150)', flexShrink: 0, background: P.white }}>Edit</Button>
                   </div>
                   <div style={{ borderTop: `1px solid ${P.border}`, padding: 'var(--space-150) var(--space-250)', display: 'flex', alignItems: 'center', gap: 'var(--space-100)' }}>
                   <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>
-                    {empCount} employees · approximately 3 months
+                    {empCount} employees · ~{Math.round(deposit / (empCount * 37))} months
                   </span>
-                  <div style={{ position: 'relative', flexShrink: 0 }}>
-                    <button onClick={e => { e.stopPropagation(); const r = e.currentTarget.getBoundingClientRect(); setInfoPos({ top: r.bottom + 6, left: r.left + r.width / 2 }); setShowInfoPopover(v => !v); }} style={{ background: 'none', border: `1.5px solid ${P.inkFaint}`, borderRadius: '50%', width: 16, height: 16, padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: P.inkSoft }}>
-                      <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 9, lineHeight: 1 }}>i</span>
-                    </button>
-                  {infoRendered && (
-                    <div style={{ position: 'fixed', top: infoPos.top, left: infoPos.left, width: 280, zIndex: 200, background: P.white, border: `1px solid ${P.border}`, borderRadius: 10, boxShadow: '0 4px 20px rgba(15,13,40,0.12)', padding: 'var(--space-200) var(--space-250)', display: 'flex', flexDirection: 'column', gap: 'var(--space-150)', opacity: infoVisible ? 1 : 0, transform: `translateX(-50%) scale(${infoVisible ? 1 : 0.97})`, transformOrigin: 'top center', transition: `opacity 150ms ${EASE_OUT}, transform 150ms ${EASE_OUT}` }}>
-                      <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink }}>About your funding</span>
-                      <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, lineHeight: 1.5, margin: 0 }}>
-                        Your first deposit is <strong style={{ color: P.ink }}>€{deposit.toLocaleString('de-DE')}</strong>, equal to about three months of expected spending.
-                      </p>
-                      <div style={{ background: P.bg, borderRadius: 8, padding: 'var(--space-150) var(--space-200)', display: 'flex', flexDirection: 'column', gap: 'var(--space-075)' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>We top up below</span>
-                          <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.ink, fontVariantNumeric: 'tabular-nums' }}>€{topUpStart.toLocaleString('de-DE')}</span>
-                        </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>Never more than at once</span>
-                          <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.ink, fontVariantNumeric: 'tabular-nums' }}>€{maxTopUp.toLocaleString('de-DE')}</span>
-                        </div>
-                      </div>
-                      <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, lineHeight: 1.5, margin: 0 }}>
-                        If you change the initial deposit, these limits update with it.
-                      </p>
-                    </div>
-                  )}
-                  </div>
                   </div>
                 </div>
                 <Button variant="primary" onClick={() => setStep(2)} style={{ width: '100%', justifyContent: 'center', fontSize: 'var(--fs-body-md)', padding: 'var(--space-125) var(--space-250)' }}>Sign with Twikey</Button>
@@ -7531,66 +7513,88 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
       const parsed = parseFloat(amountInput.replace(',', '.'));
       const isValid = !isNaN(parsed) && parsed >= 50;
       const isAtRecommended = isValid && Math.round(parsed) === recommendedDeposit;
-      const previewAmount = isValid ? Math.round(parsed) : recommendedDeposit;
+      const debouncedParsed = parseFloat(debouncedAmountInput.replace(',', '.'));
+      const debouncedValid = !isNaN(debouncedParsed) && debouncedParsed >= 50;
+      const previewAmount = debouncedValid ? Math.round(debouncedParsed) : recommendedDeposit;
       const previewTopUpStart = Math.round(previewAmount / 15) * 5;
       const previewMaxTopUp = previewAmount - previewTopUpStart;
+      const previewMonths = Math.round(previewAmount / (empCount * 37));
       return (
-        <ModalShell title="Choose your initial deposit" onClose={() => setShowAmountModal(false)} width={480}
+        <ModalShell onClose={() => { setShowAmountModal(false); setAmountFocused(false); }} width={480}
           footer={close => (
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-150)', padding: 'var(--space-200) var(--space-300)', borderTop: `1px solid ${P.border}` }}>
               <Button variant="secondary" onClick={close}>Cancel</Button>
               <Button variant="primary" disabled={!isValid} onClick={() => { setCustomDeposit(Math.round(parsed)); close(); }}>Save initial deposit</Button>
             </div>
           )}>
-          <div style={{ padding: 'var(--space-250) var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-200)' }}>
-            <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
-              This is your first deposit and determines your automatic top-up limits.
-            </p>
-            {/* Amount input */}
-            <div style={{ display: 'flex', alignItems: 'center', border: `2px solid ${isValid ? 'var(--bg-primary-default)' : P.border}`, borderRadius: 12, overflow: 'hidden', background: P.white, transition: `border-color 150ms ease-out` }}>
-              <span style={{ padding: '0 var(--space-200)', fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-md)', color: P.inkSoft, borderRight: `1px solid ${P.border}`, height: 56, display: 'flex', alignItems: 'center' }}>€</span>
-              <input
-                autoFocus
-                type="number"
-                min="50"
-                step="50"
-                value={amountInput}
-                onChange={e => setAmountInput(e.target.value)}
-                onKeyDown={e => { if (e.key === 'Escape') setShowAmountModal(false); }}
-                style={{ flex: 1, border: 'none', padding: 'var(--space-150) var(--space-200)', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 28, color: P.ink, outline: 'none', background: 'transparent', letterSpacing: '-0.02em', fontVariantNumeric: 'tabular-nums' }}
-              />
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 'var(--space-150)', padding: 'var(--space-200) var(--space-300)', borderBottom: `1px solid ${P.border}` }}>
+              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-md)', color: P.ink }}>Choose your initial deposit</span>
+              <IconButton icon="X" onClick={() => { setShowAmountModal(false); setAmountFocused(false); }} blur style={{ flexShrink: 0 }} />
             </div>
-            {/* Recommended state / reset link */}
-            {isAtRecommended ? (
-              <div style={{ background: '#f0fdf4', borderRadius: 8, padding: 'var(--space-150) var(--space-200)', display: 'flex', alignItems: 'flex-start', gap: 'var(--space-125)' }}>
-                <Icon name="check" size={14} color="#16a34a" strokeWidth={2.5} style={{ flexShrink: 0, marginTop: 2 }} />
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: '#15803d' }}>€{recommendedDeposit.toLocaleString('de-DE')} recommended</span>
-                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: '#166534', lineHeight: 1.5 }}>Approximately three months of expected spending for {empCount} employees.</span>
-                </div>
+            <div style={{ padding: 'var(--space-250) var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-200)' }}>
+            {/* Amount input — large borderless display */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 0 var(--space-075)' }}>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 'var(--space-050)' }}>
+                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 400, fontSize: 52, color: P.inkFaint, lineHeight: 1 }}>€</span>
+                <input
+                  autoFocus
+                  aria-label="Deposit amount in euros"
+                  type="number"
+                  min="50"
+                  step="50"
+                  value={amountInput}
+                  onChange={e => setAmountInput(e.target.value)}
+                  onKeyDown={e => {
+                    if (e.key === 'Escape') setShowAmountModal(false);
+                    if (e.key === 'Enter' && isValid) { setCustomDeposit(Math.round(parsed)); setShowAmountModal(false); }
+                  }}
+                  placeholder="0"
+                  className="amount-display-input"
+                  style={{ border: 'none', outline: 'none', background: 'transparent', fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 52, color: amountInput ? P.ink : P.inkSoft, fontVariantNumeric: 'tabular-nums', lineHeight: 1, width: `${Math.max(1, amountInput.length || 1)}ch`, minWidth: '1ch', maxWidth: 280, transition: 'width 80ms ease-out' }}
+                />
               </div>
-            ) : isValid ? (
-              <button onClick={() => setAmountInput(recommendedDeposit.toString())}
-                style={{ background: 'none', border: 'none', padding: 0, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, cursor: 'pointer', textAlign: 'left', textDecoration: 'underline' }}>
-                Reset to recommended (€{recommendedDeposit.toLocaleString('de-DE')})
+              <button onClick={() => setAmountInput(recommendedDeposit.toString())} style={{ background: 'none', border: 'none', padding: 0, cursor: isAtRecommended || !isValid ? 'default' : 'pointer', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: 'var(--bg-primary-default)', textDecoration: 'underline', opacity: isAtRecommended || !isValid ? 0 : 1, transition: `opacity 150ms ${EASE_OUT}`, pointerEvents: isAtRecommended || !isValid ? 'none' : 'auto', flexShrink: 0, }}>
+                Use recommended (€{recommendedDeposit.toLocaleString('de-DE')})
               </button>
-            ) : null}
-            {/* Auto top-ups preview */}
-            <div style={{ border: `1px solid ${P.border}`, borderRadius: 8, overflow: 'hidden' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: 'var(--space-150) var(--space-200)', borderBottom: `1px solid ${P.border}`, background: P.bg }}>
-                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink }}>Automatic top-ups</span>
-                <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>Updates with your initial deposit</span>
-              </div>
-              <div style={{ padding: 'var(--space-150) var(--space-200)', display: 'flex', flexDirection: 'column', gap: 'var(--space-100)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft }}>Starts below</span>
-                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: isValid ? P.ink : P.inkFaint, fontVariantNumeric: 'tabular-nums', transition: `color 150ms ease-out` }}>€{previewTopUpStart.toLocaleString('de-DE')}</span>
+            </div>
+            {/* Top-up limits preview — always visible, values pop in per-digit on debounce */}
+            {(() => {
+              const digits = (str) => String(str).split('').map((ch, i, arr) => {
+                const stagger = i === arr.length - 2 ? '1' : i === arr.length - 1 ? '2' : undefined;
+                return <span key={i} className="t-digit" data-stagger={stagger}>{ch}</span>;
+              });
+              return (
+                <div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-200)' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-075)' }}>
+                      <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink }}>How automatic top-ups will work:</div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkFaint }}>Balance drops below</span>
+                        <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink, fontVariantNumeric: 'tabular-nums', display: 'inline-flex', alignItems: 'baseline' }}>
+                          <span>€</span>
+                          <span key={`tu-start-${amountAnimTick}`} className={`t-digit-group${amountAnimTick > 0 ? ' is-animating' : ''}`} style={{ '--row-delay': '0ms' }}>{digits(previewTopUpStart.toLocaleString('de-DE'))}</span>
+                        </span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkFaint }}>We collect</span>
+                        <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink, fontVariantNumeric: 'tabular-nums', display: 'inline-flex', alignItems: 'baseline' }}>
+                          <span>€</span>
+                          <span key={`tu-max-${amountAnimTick}`} className={`t-digit-group${amountAnimTick > 0 ? ' is-animating' : ''}`} style={{ '--row-delay': '40ms' }}>{digits(previewMaxTopUp.toLocaleString('de-DE'))}</span>
+                        </span>
+                      </div>
+                    </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkFaint }}>Giving you approximately</span>
+                      <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-md)', color: P.ink, fontVariantNumeric: 'tabular-nums', display: 'inline-flex', alignItems: 'baseline', gap: 2 }}>
+                        <span key={`tu-months-${amountAnimTick}`} className={`t-digit-group${amountAnimTick > 0 ? ' is-animating' : ''}`} style={{ '--row-delay': '80ms' }}>{digits(String(previewMonths))}</span>
+                        <span style={{ fontWeight: 400, fontSize: 'var(--fs-body-sm)', color: P.inkSoft }}> months</span>
+                      </span>
+                    </div>
+                  </div>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft }}>Maximum per top-up</span>
-                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: isValid ? P.ink : P.inkFaint, fontVariantNumeric: 'tabular-nums', transition: `color 150ms ease-out` }}>€{previewMaxTopUp.toLocaleString('de-DE')}</span>
-                </div>
-              </div>
+              );
+            })()}
             </div>
           </div>
         </ModalShell>
