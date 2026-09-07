@@ -11143,6 +11143,7 @@ function EntitiesSettings({ onNav, appEntity = null, companyRegime = COMPANY_REG
         <div style={card}>
           {ENTITIES.map((ent, idx) => {
             const overrides = countOverrides(ent);
+            const missingDelivery = !ent.deliveryAddress && !entityOverrides[ent.id]?.deliveryAddress;
             return (
               <div key={ent.id} onClick={() => setSelectedEntity(ent)}
                 style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-200)', padding: 'var(--space-200) var(--space-250)', borderBottom: idx < ENTITIES.length - 1 ? `1px solid ${P.border}` : 'none', cursor: 'pointer', transition: 'background 100ms' }}
@@ -11155,7 +11156,13 @@ function EntitiesSettings({ onNav, appEntity = null, companyRegime = COMPANY_REG
                   <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink }}>{ent.name}</div>
                   <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginTop: 'var(--space-025)' }}>{ent.jc} · {ent.employeeCount} employees</div>
                 </div>
-                {overrides > 0 && (
+                {missingDelivery && (
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-075)', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.warningDark, background: P.warningBg, padding: 'var(--space-025) var(--space-100)', borderRadius: 10, whiteSpace: 'nowrap' }}>
+                    <Icon name="alert-triangle" size={11} color={P.warningDark} strokeWidth={2} />
+                    No delivery address
+                  </span>
+                )}
+                {idx > 0 && overrides > 0 && (
                   <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.action, background: '#f3f0ff', padding: 'var(--space-025) var(--space-100)', borderRadius: 10, whiteSpace: 'nowrap' }}>
                     {overrides} override{overrides !== 1 ? 's' : ''}
                   </span>
