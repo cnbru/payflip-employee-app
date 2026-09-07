@@ -1208,6 +1208,41 @@ const generatedRequests = [
   { id: 'gen-18', employee: 'david', type: 'Statutory annual leave', startDate: 'Mon 28 Jul', endDate: 'Fri 1 Aug', days: 5, status: 'approved', submittedAt: '5 Jul', note: 'Summer break', _selectedDates: ['2026-07-27','2026-07-28','2026-07-29','2026-07-30','2026-07-31'] },
   { id: 'gen-19', employee: 'stijn-laurent', type: 'Statutory annual leave', startDate: 'Mon 27 Jul', endDate: 'Fri 1 Aug', days: 6, status: 'approved', submittedAt: '8 Jul', note: '', _selectedDates: ['2026-07-27','2026-07-28','2026-07-29','2026-07-30','2026-07-31'] },
   { id: 'gen-20', employee: 'jana-goossens', type: 'ADV / RTT', startDate: 'Thu 30 Jul', endDate: 'Fri 31 Jul', days: 2, status: 'approved', submittedAt: '11 Jul', note: '', _selectedDates: ['2026-07-30','2026-07-31'] },
+  // August
+  { id: 'gen-21', employee: 'pieter-verheyen', type: 'Statutory annual leave', startDate: 'Mon 3 Aug', endDate: 'Fri 7 Aug', days: 5, status: 'approved', submittedAt: '15 Jul', note: 'Summer break', _selectedDates: ['2026-08-03','2026-08-04','2026-08-05','2026-08-06','2026-08-07'] },
+  { id: 'gen-22', employee: 'lasse-willems', type: 'ADV / RTT', startDate: 'Mon 10 Aug', endDate: 'Tue 11 Aug', days: 2, status: 'approved', submittedAt: '22 Jul', note: '', _selectedDates: ['2026-08-10','2026-08-11'] },
+  { id: 'gen-23', employee: 'nathalie-cox', type: 'Sick leave', startDate: 'Wed 5 Aug', endDate: 'Thu 6 Aug', days: 2, status: 'approved', submittedAt: '5 Aug', note: '', document: 'medical_certificate.pdf', _selectedDates: ['2026-08-05','2026-08-06'] },
+  { id: 'gen-24', employee: 'ruben-declercq', type: 'Statutory annual leave', startDate: 'Mon 17 Aug', endDate: 'Fri 21 Aug', days: 5, status: 'approved', submittedAt: '1 Aug', note: '', _selectedDates: ['2026-08-17','2026-08-18','2026-08-19','2026-08-20','2026-08-21'] },
+  { id: 'gen-25', employee: 'ines-baert', type: 'Extra-legal leave', startDate: 'Thu 13 Aug', endDate: 'Thu 13 Aug', days: 1, status: 'approved', submittedAt: '4 Aug', note: '', _selectedDates: ['2026-08-13'] },
+  { id: 'gen-26', employee: 'joachim-nijs', type: 'Special leave', startDate: 'Mon 24 Aug', endDate: 'Mon 24 Aug', days: 1, status: 'approved', submittedAt: '11 Aug', note: 'Moving', _selectedDates: ['2026-08-24'] },
+  { id: 'gen-27', employee: 'sara-verbeke', type: 'Statutory annual leave', startDate: 'Mon 24 Aug', endDate: 'Fri 28 Aug', days: 5, status: 'approved', submittedAt: '16 Jul', note: '', _selectedDates: ['2026-08-24','2026-08-25','2026-08-26','2026-08-27','2026-08-28'] },
+  { id: 'gen-28', employee: 'wout-desmet', type: 'ADV / RTT', startDate: 'Mon 31 Aug', endDate: 'Mon 31 Aug', days: 1, status: 'approved', submittedAt: '25 Aug', note: '', _selectedDates: ['2026-08-31'] },
+  { id: 'gen-29', employee: 'amber-claes', type: 'Paternity leave', startDate: 'Mon 10 Aug', endDate: 'Fri 21 Aug', days: 10, status: 'approved', submittedAt: '12 Aug', note: '', _selectedDates: ['2026-08-10','2026-08-11','2026-08-12','2026-08-13','2026-08-14','2026-08-17','2026-08-18','2026-08-19','2026-08-20','2026-08-21'] },
+  { id: 'gen-30', employee: 'charlotte-pieters', type: 'Statutory annual leave', startDate: 'Mon 3 Aug', endDate: 'Fri 14 Aug', days: 10, status: 'approved', submittedAt: '10 Jul', note: '', _selectedDates: ['2026-08-03','2026-08-04','2026-08-05','2026-08-06','2026-08-07','2026-08-10','2026-08-11','2026-08-12','2026-08-13','2026-08-14'] },
+  { id: 'gen-31', employee: 'david', type: 'Sick leave', startDate: 'Mon 31 Aug', endDate: 'Mon 31 Aug', days: 1, status: 'pending', submittedAt: '31 Aug', note: '', _selectedDates: ['2026-08-31'] },
+  { id: 'gen-32', employee: 'thomas-janssens', type: 'ADV / RTT', startDate: 'Mon 24 Aug', endDate: 'Tue 25 Aug', days: 2, status: 'approved', submittedAt: '10 Aug', note: '', _selectedDates: ['2026-08-24','2026-08-25'] },
+  // September
+  { id: 'gen-33', employee: 'stijn-laurent', type: 'Statutory annual leave', startDate: 'Mon 7 Sep', endDate: 'Fri 11 Sep', days: 5, status: 'approved', submittedAt: '20 Aug', note: '', _selectedDates: ['2026-09-07','2026-09-08','2026-09-09','2026-09-10','2026-09-11'] },
+  { id: 'gen-34', employee: 'emma-martens', type: 'ADV / RTT', startDate: 'Mon 14 Sep', endDate: 'Tue 15 Sep', days: 2, status: 'approved', submittedAt: '1 Sep', note: '', _selectedDates: ['2026-09-14','2026-09-15'] },
+  { id: 'gen-35', employee: 'jana-goossens', type: 'Sick leave', startDate: 'Mon 21 Sep', endDate: 'Wed 23 Sep', days: 3, status: 'approved', submittedAt: '21 Sep', note: '', _selectedDates: ['2026-09-21','2026-09-22','2026-09-23'] },
+  { id: 'gen-36', employee: 'laura-mertens', type: 'Extra-legal leave', startDate: 'Thu 3 Sep', endDate: 'Thu 3 Sep', days: 1, status: 'approved', submittedAt: '26 Aug', note: '', _selectedDates: ['2026-09-03'] },
+  { id: 'gen-37', employee: 'mathias-de-smedt', type: 'Statutory annual leave', startDate: 'Mon 14 Sep', endDate: 'Fri 18 Sep', days: 5, status: 'approved', submittedAt: '1 Sep', note: '', _selectedDates: ['2026-09-14','2026-09-15','2026-09-16','2026-09-17','2026-09-18'] },
+  { id: 'gen-38', employee: 'sarah-de-smedt', type: 'Special leave', startDate: 'Fri 4 Sep', endDate: 'Fri 4 Sep', days: 1, status: 'approved', submittedAt: '28 Aug', note: 'Funeral leave', _selectedDates: ['2026-09-04'] },
+  { id: 'gen-39', employee: 'pieter-mertens', type: 'Statutory annual leave', startDate: 'Mon 28 Sep', endDate: 'Wed 30 Sep', days: 3, status: 'pending', submittedAt: '15 Sep', note: '', _selectedDates: ['2026-09-28','2026-09-29','2026-09-30'] },
+  { id: 'gen-40', employee: 'charlotte-pieters', type: 'ADV / RTT', startDate: 'Mon 7 Sep', endDate: 'Mon 7 Sep', days: 1, status: 'approved', submittedAt: '2 Sep', note: '', _selectedDates: ['2026-09-07'] },
+  { id: 'gen-41', employee: 'ruben-declercq', type: 'Sick leave', startDate: 'Wed 16 Sep', endDate: 'Thu 17 Sep', days: 2, status: 'approved', submittedAt: '16 Sep', note: '', _selectedDates: ['2026-09-16','2026-09-17'] },
+  { id: 'gen-42', employee: 'lasse-willems', type: 'Maternity leave', startDate: 'Tue 1 Sep', endDate: 'Fri 25 Sep', days: 19, status: 'approved', submittedAt: '20 Aug', note: '', _selectedDates: ['2026-09-01','2026-09-02','2026-09-03','2026-09-04','2026-09-07','2026-09-08','2026-09-09','2026-09-10','2026-09-11','2026-09-14','2026-09-15','2026-09-16','2026-09-17','2026-09-18','2026-09-21','2026-09-22','2026-09-23','2026-09-24','2026-09-25'] },
+  // October
+  { id: 'gen-43', employee: 'bram-goossens', type: 'Statutory annual leave', startDate: 'Thu 1 Oct', endDate: 'Fri 2 Oct', days: 2, status: 'approved', submittedAt: '20 Sep', note: '', _selectedDates: ['2026-10-01','2026-10-02'] },
+  { id: 'gen-44', employee: 'julie-goossens', type: 'Extra-legal leave', startDate: 'Mon 5 Oct', endDate: 'Mon 5 Oct', days: 1, status: 'approved', submittedAt: '25 Sep', note: '', _selectedDates: ['2026-10-05'] },
+  { id: 'gen-45', employee: 'thomas-vandenberghe', type: 'Sick leave', startDate: 'Mon 12 Oct', endDate: 'Wed 14 Oct', days: 3, status: 'pending', submittedAt: '12 Oct', note: '', document: 'medical_certificate.pdf', _selectedDates: ['2026-10-12','2026-10-13','2026-10-14'] },
+  { id: 'gen-46', employee: 'wout-desmet', type: 'Statutory annual leave', startDate: 'Mon 19 Oct', endDate: 'Fri 23 Oct', days: 5, status: 'approved', submittedAt: '1 Oct', note: '', _selectedDates: ['2026-10-19','2026-10-20','2026-10-21','2026-10-22','2026-10-23'] },
+  { id: 'gen-47', employee: 'ines-baert', type: 'ADV / RTT', startDate: 'Thu 22 Oct', endDate: 'Fri 23 Oct', days: 2, status: 'approved', submittedAt: '8 Oct', note: '', _selectedDates: ['2026-10-22','2026-10-23'] },
+  { id: 'gen-48', employee: 'joachim-nijs', type: 'Sick leave', startDate: 'Mon 26 Oct', endDate: 'Tue 27 Oct', days: 2, status: 'approved', submittedAt: '26 Oct', note: '', _selectedDates: ['2026-10-26','2026-10-27'] },
+  { id: 'gen-49', employee: 'sara-verbeke', type: 'Statutory annual leave', startDate: 'Mon 26 Oct', endDate: 'Fri 30 Oct', days: 5, status: 'approved', submittedAt: '5 Oct', note: '', _selectedDates: ['2026-10-26','2026-10-27','2026-10-28','2026-10-29','2026-10-30'] },
+  { id: 'gen-50', employee: 'amber-claes', type: 'Special leave', startDate: 'Fri 9 Oct', endDate: 'Fri 9 Oct', days: 1, status: 'pending', submittedAt: '3 Oct', note: 'Seniority leave', _selectedDates: ['2026-10-09'] },
+  { id: 'gen-51', employee: 'pieter-verheyen', type: 'Paternity leave', startDate: 'Mon 5 Oct', endDate: 'Fri 16 Oct', days: 10, status: 'approved', submittedAt: '4 Oct', note: '', _selectedDates: ['2026-10-05','2026-10-06','2026-10-07','2026-10-08','2026-10-09','2026-10-12','2026-10-13','2026-10-14','2026-10-15','2026-10-16'] },
+  { id: 'gen-52', employee: 'nathalie-cox', type: 'Statutory annual leave', startDate: 'Mon 12 Oct', endDate: 'Fri 16 Oct', days: 5, status: 'approved', submittedAt: '25 Sep', note: '', _selectedDates: ['2026-10-12','2026-10-13','2026-10-14','2026-10-15','2026-10-16'] },
 ];
 
 const EXPENSE_BUDGET_TYPES = [
@@ -4669,6 +4704,7 @@ function RequestsScreen({ requests, onApprove, onDecline, onSave, onCancel, onVi
             ]}
             activeTab={tab}
             onTabChange={(v) => { setTab(v); setSelected(new Set()); setPage(1); }}
+            padding="0"
           />
         }
       >
@@ -6762,6 +6798,14 @@ function ProtoDevPanel({ widgetMode, switchMode, ws, setWs }) {
                 )}
               </div>
             </div>
+            {mobStep === 1 && (
+              <div style={{ padding: '10px 12px', borderBottom: `1px solid ${BORDER}` }}>
+                {section('Deposit modal')}
+                <div style={{ display: 'flex', gap: 3 }}>
+                  {btn('Hide presets', ws.hideDepositPresets, () => setWs({ hideDepositPresets: !ws.hideDepositPresets }))}
+                </div>
+              </div>
+            )}
             <div style={{ padding: '10px 12px' }}>
               {section('Simulate error')}
               <div style={{ display: 'flex', gap: 3 }}>
@@ -7024,17 +7068,20 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
                   <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.ink }}>Sign mandate</span>
                 </div>
                 <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
-                  We've calculated a recommended deposit for your team. Review it below, then sign the mandate with Twikey.
+                  This authorizes the initial collection and future automatic top-ups when your balance runs low. Review the amounts below, then sign with Twikey.
                 </p>
                 {/* Deposit — soft surface */}
                 <div style={{ background: P.bg, borderRadius: 10, padding: 'var(--space-200) var(--space-250)', display: 'flex', flexDirection: 'column', gap: 'var(--space-075)' }}>
-                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, fontWeight: 500 }}>
-                    For {empCount} employees · {Math.round(deposit / (empCount * 12.5)) >= 1 ? `~${Math.round(deposit / (empCount * 12.5))} months` : '< 1 month'} of coverage
-                  </span>
-                  <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 28, color: P.ink, letterSpacing: '-0.03em', lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>€{deposit.toLocaleString('de-DE')}</span>
                     <button onClick={() => { setAmountInput(deposit.toString()); setDebouncedAmountInput(deposit.toString()); setAmountFocused(true); setShowAmountModal(true); }} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, textDecoration: 'underline' }}>Edit</button>
                   </div>
+                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, fontWeight: 500 }}>
+                    For {empCount} employees · {Math.round(deposit / (empCount * 12.5)) >= 1 ? `~${Math.round(deposit / (empCount * 12.5))} months` : '< 1 month'} of coverage
+                  </span>
+                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>
+                    Auto top-up when balance drops below €{Math.round(deposit / 15) * 5 >= 50 ? (Math.round(deposit / 15) * 5).toLocaleString('de-DE') : 50}
+                  </span>
                 </div>
                 <Button variant="primary" onClick={() => setStep(2)} style={{ width: '100%', justifyContent: 'center', fontSize: 'var(--fs-body-md)', padding: 'var(--space-125) var(--space-250)' }}>Sign with Twikey</Button>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 'var(--space-100)', width: '100%' }}>
@@ -7630,7 +7677,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
           footer={close => (
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-150)', padding: 'var(--space-200) var(--space-300)', borderTop: `1px solid ${P.border}` }}>
               <Button variant="secondary" onClick={close}>Cancel</Button>
-              <Button variant="primary" disabled={!isValid} onClick={() => { setCustomDeposit(Math.round(parsed)); close(); }}>Save initial deposit</Button>
+              <Button variant="primary" disabled={!isValid} onClick={() => { setCustomDeposit(Math.round(parsed)); close(); }}>Save</Button>
             </div>
           )}>
           <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -7660,7 +7707,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
               />
             </div>
             {/* Quick-select chips */}
-            {(() => {
+            {!ws.hideDepositPresets && (() => {
               const chip1 = Math.max(50, Math.round(empCount * 12.5 / 50) * 50);
               const chip3 = recommendedDeposit;
               const chip6 = Math.max(50, Math.round(empCount * 12.5 * 6 / 50) * 50);
@@ -7702,7 +7749,10 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
               });
               return (
                 <div style={{ borderTop: `1px solid ${P.border}`, marginTop: 'var(--space-100)', paddingTop: 'var(--space-250)', display: 'flex', flexDirection: 'column', gap: 0 }}>
-                  <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', fontWeight: 500, color: P.inkSoft, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 'var(--space-075)' }}>Top-up details</div>
+                  <div style={{ marginBottom: 'var(--space-150)' }}>
+                    <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', fontWeight: 500, color: P.ink, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 'var(--space-050)' }}>Auto top-up</div>
+                    <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, lineHeight: 1.2 }}>Set for your {empCount} employees today. We collect more as your team grows, and less when people leave.</span>
+                  </div>
                   {[
                     { label: 'When balance drops below', value: <><strong style={{ fontFamily: 'var(--font-display)', fontWeight: 600, color: P.ink }}>€<span key={`tu-start-${amountAnimTick}`} className={`t-digit-group${amountAnimTick > 0 ? ' is-animating' : ''}`} style={{ '--row-delay': '0ms' }}>{digits(previewTopUpStart.toLocaleString('de-DE'))}</span></strong></> },
                     { label: 'We collect', value: <><strong style={{ fontFamily: 'var(--font-display)', fontWeight: 600, color: P.ink }}>€<span key={`tu-max-${amountAnimTick}`} className={`t-digit-group${amountAnimTick > 0 ? ' is-animating' : ''}`} style={{ '--row-delay': '40ms' }}>{digits(previewMaxTopUp.toLocaleString('de-DE'))}</span></strong></> },
@@ -13562,6 +13612,7 @@ function App() {
     depositFailed: false,
     live: false,
     liveVisible: false,
+    hideDepositPresets: false,
     invitedKeys: [],
     bankConfirmDelay: 8,
   });
