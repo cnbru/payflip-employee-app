@@ -7078,18 +7078,39 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
                 <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
                   This authorizes the initial collection and future automatic top-ups when your balance runs low. Review the amounts below, then sign with Twikey.
                 </p>
-                {/* Deposit — soft surface */}
-                <div style={{ background: P.bg, borderRadius: 10, padding: 'var(--space-200) var(--space-250)', display: 'flex', flexDirection: 'column', gap: 'var(--space-075)' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                {/* Deposit — stat grid */}
+                <div style={{ background: P.bg, borderRadius: 10, overflow: 'hidden' }}>
+                  {/* Amount row */}
+                  <div style={{ padding: 'var(--space-200) var(--space-250)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 'var(--space-150)' }}>
                     <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 28, color: P.ink, letterSpacing: '-0.03em', lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>€{deposit.toLocaleString('de-DE')}</span>
-                    <button onClick={() => { setAmountInput(deposit.toString()); setDebouncedAmountInput(deposit.toString()); setAmountFocused(true); setShowAmountModal(true); }} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, textDecoration: 'underline' }}>Edit</button>
+                    <button onClick={() => { setAmountInput(deposit.toString()); setDebouncedAmountInput(deposit.toString()); setAmountFocused(true); setShowAmountModal(true); }} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '5px 10px 5px 8px', border: `1px solid ${P.border}`, borderRadius: 7, background: 'transparent', cursor: 'pointer', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', fontWeight: 600, color: P.inkSoft, whiteSpace: 'nowrap', flexShrink: 0, transition: 'background 100ms ease-out, border-color 100ms ease-out, color 100ms ease-out' }}
+                      onMouseEnter={e => { e.currentTarget.style.background = P.white; e.currentTarget.style.borderColor = P.ink; e.currentTarget.style.color = P.ink; }}
+                      onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = P.border; e.currentTarget.style.color = P.inkSoft; }}>
+                      <Icon name="pencil" size={11} color="currentColor" strokeWidth={2} />
+                      Edit
+                    </button>
                   </div>
-                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, fontWeight: 500 }}>
-                    For {empCount} employees · {Math.round(deposit / (empCount * 12.5)) >= 1 ? `~${Math.round(deposit / (empCount * 12.5))} months` : '< 1 month'} of coverage
-                  </span>
-                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>
-                    Auto top-up when balance drops below €{Math.round(deposit / 15) * 5 >= 50 ? (Math.round(deposit / 15) * 5).toLocaleString('de-DE') : 50}
-                  </span>
+                  {/* Stat grid */}
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', borderTop: `1px solid ${P.borderLight || P.border}` }}>
+                    <div style={{ padding: 'var(--space-150) var(--space-200)', display: 'flex', flexDirection: 'column', gap: 'var(--space-075)' }}>
+                      <div style={{ width: 26, height: 26, borderRadius: 6, background: P.white, border: `1px solid ${P.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: P.inkSoft }}>
+                        <Icon name="users" size={13} color={P.inkSoft} strokeWidth={1.75} />
+                      </div>
+                      <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 17, color: P.ink, letterSpacing: '-0.02em', fontVariantNumeric: 'tabular-nums', lineHeight: 1 }}>
+                        {Math.round(deposit / (empCount * 12.5)) >= 1 ? `~${Math.round(deposit / (empCount * 12.5))} months` : '< 1 month'}
+                      </span>
+                      <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, lineHeight: 1.35 }}>coverage for {empCount} employees</span>
+                    </div>
+                    <div style={{ padding: 'var(--space-150) var(--space-200)', display: 'flex', flexDirection: 'column', gap: 'var(--space-075)', borderLeft: `1px solid ${P.borderLight || P.border}` }}>
+                      <div style={{ width: 26, height: 26, borderRadius: 6, background: P.white, border: `1px solid ${P.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: P.inkSoft }}>
+                        <Icon name="refresh-cw" size={13} color={P.inkSoft} strokeWidth={1.75} />
+                      </div>
+                      <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 17, color: P.ink, letterSpacing: '-0.02em', fontVariantNumeric: 'tabular-nums', lineHeight: 1 }}>
+                        €{Math.round(deposit / 15) * 5 >= 50 ? (Math.round(deposit / 15) * 5).toLocaleString('de-DE') : 50}
+                      </span>
+                      <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, lineHeight: 1.35 }}>auto top-up trigger</span>
+                    </div>
+                  </div>
                 </div>
                 <Button variant="primary" onClick={() => setStep(2)} style={{ width: '100%', justifyContent: 'center', fontSize: 'var(--fs-body-md)', padding: 'var(--space-125) var(--space-250)' }}>Sign with Twikey</Button>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 'var(--space-100)', width: '100%' }}>
