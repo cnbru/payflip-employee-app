@@ -1752,7 +1752,7 @@ function pathToScreen(path) {
   return 'dashboard';
 }
 
-function SettingsModeSidebar({ active, onNav }) {
+function SettingsModeSidebar({ active, onNav, mobilityLive }) {
   const [personalOpen, setPersonalOpen] = useState(true);
   const [companyOpen,  setCompanyOpen]  = useState(true);
 
@@ -1780,7 +1780,7 @@ function SettingsModeSidebar({ active, onNav }) {
             { id: 'settings-payroll',      label: 'Payroll' },
             { id: 'settings-allowances',   label: 'Allowances' },
             { id: 'settings-expenses',     label: 'Expenses' },
-            { id: 'settings-cardrules',    label: 'Payflip Card' },
+            ...(mobilityLive ? [{ id: 'settings-cardrules', label: 'Payflip Card' }] : []),
             { id: 'settings-integrations', label: 'Integrations' },
             { id: 'settings-team',         label: 'Team & access' },
             { id: 'settings-billing',      label: 'Billing' },
@@ -1792,7 +1792,7 @@ function SettingsModeSidebar({ active, onNav }) {
 }
 
 const PANEL_DUR = 280;
-function Sidebar({ active, onNav, pendingCount, sidebarMode, onSetSidebarMode, appEntity, onSetAppEntity, setupInProgress, onboardingCount = 0, offboardingCount = 0 }) {
+function Sidebar({ active, onNav, pendingCount, sidebarMode, onSetSidebarMode, appEntity, onSetAppEntity, setupInProgress, onboardingCount = 0, offboardingCount = 0, mobilityLive = false }) {
   const inSettings = sidebarMode === 'settings';
   const panelStyle = (offset) => ({
     position: 'absolute', inset: 0,
@@ -1841,6 +1841,7 @@ function Sidebar({ active, onNav, pendingCount, sidebarMode, onSetSidebarMode, a
           <SettingsModeSidebar
             active={active}
             onNav={onNav}
+            mobilityLive={mobilityLive}
           />
         </div>
       </div>
@@ -13516,7 +13517,7 @@ function App() {
         <div onClick={() => setMobilityWidgetState(prev => ({ ...prev, hidden: true }))} style={{ position: 'fixed', inset: 0, zIndex: 1, cursor: 'pointer' }} />
       )}
 
-      <Sidebar active={screen} onNav={handleNav} pendingCount={pendingCount} sidebarMode={sidebarMode} onSetSidebarMode={setSidebarMode} appEntity={appEntity} onSetAppEntity={setAppEntity} setupInProgress={screen === 'dashboard' && !mobilityWidgetState.live && !mobilityWidgetState.hidden} onboardingCount={onboardingIds.size + drafts.size} offboardingCount={offboardingIds.size} />
+      <Sidebar active={screen} onNav={handleNav} pendingCount={pendingCount} sidebarMode={sidebarMode} onSetSidebarMode={setSidebarMode} appEntity={appEntity} onSetAppEntity={setAppEntity} setupInProgress={screen === 'dashboard' && !mobilityWidgetState.live && !mobilityWidgetState.hidden} onboardingCount={onboardingIds.size + drafts.size} offboardingCount={offboardingIds.size} mobilityLive={!!mobilityWidgetState.live} />
 
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, overflow: 'hidden' }}>
         {screen === 'dashboard' && <DashboardScreen key={appEntity ?? 'all'} requests={entityFilteredRequests} onNav={handleNav} onToast={addToast} appEntity={appEntity} physicalCardsAllowed={physicalCardsAllowed} onPhysicalCardsChange={setPhysicalCardsAllowed} cardDelivery={cardDelivery} onCardDeliveryChange={setCardDelivery} mobilityWidgetState={mobilityWidgetState} onMobilityWidgetStateChange={setMobilityWidgetState} pendingRequests={pendingRequestsCount} pendingExpenses={pendingExpensesCount} pendingChoices={pendingChoicesCount} activeBudgets={allowances.filter(a => a.active).length} onAddEmployee={(pf) => { setAddEmployeePrefill({ ...(pf||{}), _draftId: 'draft-' + Date.now() }); setAddEmployeeOpen(true); }} foodUnmatched={foodUnmatched} setFoodUnmatched={setFoodUnmatched} unmatchedQueue={unmatchedQueue} setUnmatchedQueue={setUnmatchedQueue} matchedEmpInssMap={matchedEmpInssMap} onboardingCount={[...onboardingIds].filter(id => !appEntity || EMPLOYEES[id]?.entityId === appEntity).length} offboardingCount={[...offboardingIds].filter(id => !appEntity || EMPLOYEES[id]?.entityId === appEntity).length} />}
