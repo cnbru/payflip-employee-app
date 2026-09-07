@@ -1,0 +1,88 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 595 842" width="595" height="842" style="font-family: Georgia, serif; background: white;">
+  <!-- Page background -->
+  <rect width="595" height="842" fill="white"/>
+
+  <!-- Header band -->
+  <rect x="0" y="0" width="595" height="6" fill="#1a4f7a"/>
+
+  <!-- Doctor info block -->
+  <text x="48" y="52" font-family="Arial, sans-serif" font-size="13" font-weight="700" fill="#1a4f7a">Dr. Sophie Vandermeersch</text>
+  <text x="48" y="68" font-family="Arial, sans-serif" font-size="10.5" fill="#555">Médecin généraliste / Huisarts</text>
+  <text x="48" y="82" font-family="Arial, sans-serif" font-size="10" fill="#777">RIZIV / INAMI : 1-23456-78-901</text>
+  <text x="48" y="96" font-family="Arial, sans-serif" font-size="10" fill="#777">Rue des Hérons 14 · 1000 Bruxelles</text>
+  <text x="48" y="110" font-family="Arial, sans-serif" font-size="10" fill="#777">Tél. +32 2 512 44 88 · vandermeersch@medaxis.be</text>
+
+  <!-- Divider -->
+  <line x1="48" y1="124" x2="547" y2="124" stroke="#dde3ea" stroke-width="1"/>
+
+  <!-- Document title -->
+  <text x="298" y="162" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#1a1a2e" text-anchor="middle">CERTIFICAT MÉDICAL</text>
+  <text x="298" y="179" font-family="Arial, sans-serif" font-size="10.5" fill="#777" text-anchor="middle">/ MEDISCH ATTEST</text>
+
+  <!-- Thin rule under title -->
+  <line x1="180" y1="188" x2="415" y2="188" stroke="#1a4f7a" stroke-width="1.5"/>
+
+  <!-- Body text -->
+  <text x="48" y="224" font-family="Arial, sans-serif" font-size="11" fill="#333">Je soussignée, Dr. Sophie Vandermeersch, certifie avoir examiné :</text>
+
+  <!-- Patient block -->
+  <rect x="48" y="236" width="499" height="60" rx="4" fill="#f4f7fb" stroke="#dde3ea" stroke-width="1"/>
+  <text x="64" y="256" font-family="Arial, sans-serif" font-size="10.5" fill="#555">Nom / Naam :</text>
+  <text x="168" y="256" font-family="Arial, sans-serif" font-size="10.5" font-weight="700" fill="#1a1a2e">Thomas Vandenberghe</text>
+  <text x="64" y="274" font-family="Arial, sans-serif" font-size="10.5" fill="#555">Date de naissance :</text>
+  <text x="168" y="274" font-family="Arial, sans-serif" font-size="10.5" fill="#1a1a2e">14 mars 1991</text>
+  <text x="64" y="292" font-family="Arial, sans-serif" font-size="10.5" fill="#555">NISS / INSZ :</text>
+  <text x="168" y="292" font-family="Arial, sans-serif" font-size="10.5" fill="#1a1a2e">91.03.14-217.84</text>
+
+  <!-- Incapacity section -->
+  <text x="48" y="328" font-family="Arial, sans-serif" font-size="11" fill="#333">et atteste que l'état de santé de la personne susmentionnée justifie une</text>
+  <text x="48" y="344" font-family="Arial, sans-serif" font-size="11" fill="#333">incapacité de travail pour la période suivante :</text>
+
+  <!-- Period block -->
+  <rect x="48" y="356" width="499" height="48" rx="4" fill="#fff8f0" stroke="#f0c080" stroke-width="1"/>
+  <text x="64" y="376" font-family="Arial, sans-serif" font-size="10.5" fill="#555">Du / Van :</text>
+  <text x="168" y="376" font-family="Arial, sans-serif" font-size="10.5" font-weight="700" fill="#1a1a2e">Lundi 28 juillet 2026</text>
+  <text x="64" y="394" font-family="Arial, sans-serif" font-size="10.5" fill="#555">Au / Tot :</text>
+  <text x="168" y="394" font-family="Arial, sans-serif" font-size="10.5" font-weight="700" fill="#1a1a2e">Mercredi 30 juillet 2026  (3 jours)</text>
+
+  <!-- Nature -->
+  <text x="48" y="430" font-family="Arial, sans-serif" font-size="11" fill="#333">Nature de l'incapacité :</text>
+  <rect x="48" y="440" width="499" height="38" rx="4" fill="#f4f7fb" stroke="#dde3ea" stroke-width="1"/>
+  <text x="64" y="457" font-family="Arial, sans-serif" font-size="10.5" fill="#1a1a2e">Affection des voies respiratoires supérieures / Bovenste luchtweginfectie</text>
+  <text x="64" y="471" font-family="Arial, sans-serif" font-size="10" fill="#888">(ICD-10 : J06.9)</text>
+
+  <!-- Checkboxes -->
+  <text x="48" y="508" font-family="Arial, sans-serif" font-size="10.5" fill="#333">Sortie autorisée :</text>
+  <rect x="160" y="496" width="13" height="13" rx="2" fill="none" stroke="#aaa" stroke-width="1.2"/>
+  <text x="177" y="507" font-family="Arial, sans-serif" font-size="10.5" fill="#555">Oui / Ja</text>
+  <rect x="230" y="496" width="13" height="13" rx="2" fill="#1a4f7a" stroke="#1a4f7a" stroke-width="1.2"/>
+  <text x="233" y="507" font-family="Arial, sans-serif" font-size="9" fill="white" font-weight="bold">✓</text>
+  <text x="248" y="507" font-family="Arial, sans-serif" font-size="10.5" fill="#555">Non / Nee</text>
+
+  <!-- Divider -->
+  <line x1="48" y1="528" x2="547" y2="528" stroke="#dde3ea" stroke-width="1" stroke-dasharray="4,3"/>
+
+  <!-- Footer text -->
+  <text x="48" y="552" font-family="Arial, sans-serif" font-size="10" fill="#777">Ce certificat est établi sur base d'un examen clinique. Il est destiné à justifier une absence</text>
+  <text x="48" y="566" font-family="Arial, sans-serif" font-size="10" fill="#777">auprès de l'employeur conformément à la loi sur les contrats de travail du 3 juillet 1978.</text>
+
+  <!-- Signature section -->
+  <text x="380" y="614" font-family="Arial, sans-serif" font-size="10.5" fill="#555">Fait à Bruxelles, le 28 juillet 2026</text>
+
+  <!-- Signature line -->
+  <line x1="360" y1="660" x2="547" y2="660" stroke="#bbb" stroke-width="1"/>
+  <text x="454" y="674" font-family="Arial, sans-serif" font-size="10" fill="#777" text-anchor="middle">Signature et cachet du médecin</text>
+
+  <!-- Stamp circle (decorative) -->
+  <circle cx="440" cy="630" r="28" fill="none" stroke="#1a4f7a" stroke-width="1.5" opacity="0.35"/>
+  <circle cx="440" cy="630" r="24" fill="none" stroke="#1a4f7a" stroke-width="0.8" opacity="0.25"/>
+  <text x="440" y="625" font-family="Arial, sans-serif" font-size="7" fill="#1a4f7a" text-anchor="middle" opacity="0.5">Dr. S. VANDERMEERSCH</text>
+  <text x="440" y="634" font-family="Arial, sans-serif" font-size="6.5" fill="#1a4f7a" text-anchor="middle" opacity="0.5">BRUXELLES · 1000</text>
+
+  <!-- Signature scrawl (path) -->
+  <path d="M370 648 Q382 638 390 643 Q398 648 405 640 Q412 632 420 638 Q428 644 432 638" stroke="#1a4f7a" stroke-width="1.2" fill="none" opacity="0.7"/>
+
+  <!-- Footer band -->
+  <rect x="0" y="836" width="595" height="6" fill="#1a4f7a"/>
+  <text x="298" y="830" font-family="Arial, sans-serif" font-size="8" fill="#aaa" text-anchor="middle">Document confidentiel — Vertrouwelijk document</text>
+</svg>
