@@ -11048,8 +11048,17 @@ function EntitiesSettings({ onNav, appEntity = null, companyRegime = COMPANY_REG
                         key="deliveryAddress"
                         icon="truck"
                         label="Delivery address"
-                        value={deliveryAddr || '—'}
-                        valueColor={deliveryAddr ? P.inkSoft : P.inkFaint}
+                        value={deliveryAddr || undefined}
+                        valueColor={P.inkSoft}
+                        trailing={!deliveryAddr ? (
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-150)' }}>
+                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-075)', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.warningDark, background: P.warningBg, padding: 'var(--space-025) var(--space-100)', borderRadius: 10, whiteSpace: 'nowrap' }}>
+                              <Icon name="alert-triangle" size={11} color={P.warningDark} strokeWidth={2} />
+                              Not set
+                            </span>
+                            <Icon name="chevron-right" size={16} color={P.inkFaint} strokeWidth={1.75} />
+                          </span>
+                        ) : undefined}
                         onClick={() => setEditing({ scope: 'entity', entId: ent.id, entName: ent.name, field: 'deliveryAddress', label: 'Delivery address' })}
                       />
                     );
