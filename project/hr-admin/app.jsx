@@ -6009,7 +6009,6 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, o
   const [grantLeaveOpen, setGrantLeaveOpen] = useState(false);
   const [detailReq, setDetailReq] = useState(null);
   const [leaveSubTab, setLeaveSubTab] = useState('balances');
-  const [requestStatusFilter, setRequestStatusFilter] = useState('all');
   const [empMenuOpen, setEmpMenuOpen] = useState(false);
   const [deactivateConfirm, setDeactivateConfirm] = useState(false);
   const empMenuRef = useRef(null);
@@ -6057,17 +6056,12 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, o
   , [balances]);
 
   const pendingCount = empReqs.filter(r => r.status === 'pending').length;
-  const filteredReqs = useMemo(() => {
-    const sorted = [...empReqs].sort((a, b) => {
-      if (a.status === 'pending' && b.status !== 'pending') return -1;
-      if (a.status !== 'pending' && b.status === 'pending') return 1;
-      return 0;
-    });
-    if (requestStatusFilter === 'all') return sorted;
-    return sorted.filter(r => r.status === requestStatusFilter);
-  }, [empReqs, requestStatusFilter]);
+  const filteredReqs = useMemo(() => [...empReqs].sort((a, b) => {
+    if (a.status === 'pending' && b.status !== 'pending') return -1;
+    if (a.status !== 'pending' && b.status === 'pending') return 1;
+    return 0;
+  }), [empReqs]);
   const leaveThStyle = { textAlign: 'left', padding: 'var(--space-100) var(--space-200)', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.inkSoft, textTransform: 'uppercase', letterSpacing: '0.04em' };
-  const leaveStatusFilters = ['all', 'pending', 'approved', 'declined', 'cancelled'];
 
   const tabs = [
     { id: 'choices', label: 'Choices' },
@@ -6146,11 +6140,11 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, o
             <div>
               {/* Sub-tab bar */}
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: `1px solid ${P.border}`, marginBottom: 'var(--space-400)' }}>
-                <div style={{ display: 'flex' }}>
+                <div style={{ display: 'flex', gap: 'var(--space-400)' }}>
                   {[{ id: 'balances', label: 'Balances' }, { id: 'requests', label: 'Requests', count: pendingCount }].map(t => (
                     <button key={t.id} onClick={() => setLeaveSubTab(t.id)} style={{
                       display: 'flex', alignItems: 'center', gap: 'var(--space-075)',
-                      padding: 'var(--space-100) 0', marginRight: 'var(--space-350)',
+                      padding: 'var(--space-100) 0',
                       border: 'none', background: 'transparent', cursor: 'pointer',
                       fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)',
                       color: leaveSubTab === t.id ? P.ink : P.inkSoft,
@@ -6231,22 +6225,9 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, o
               {/* Requests sub-tab */}
               {leaveSubTab === 'requests' && (
                 <div>
-                  {/* Status filter chips */}
-                  <div style={{ display: 'flex', gap: 'var(--space-075)', marginBottom: 'var(--space-250)' }}>
-                    {leaveStatusFilters.map(f => (
-                      <button key={f} onClick={() => setRequestStatusFilter(f)} style={{
-                        padding: 'var(--space-050) var(--space-150)', borderRadius: 999,
-                        border: `1px solid ${requestStatusFilter === f ? P.ink : P.border}`,
-                        background: requestStatusFilter === f ? P.ink : P.white,
-                        color: requestStatusFilter === f ? P.white : P.inkSoft,
-                        fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)',
-                        cursor: 'pointer', textTransform: 'capitalize', transition: 'all 120ms ease',
-                      }}>{f === 'all' ? 'All' : f.charAt(0).toUpperCase() + f.slice(1)}</button>
-                    ))}
-                  </div>
                   <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 12, overflow: 'visible' }}>
                     {filteredReqs.length === 0 ? (
-                      <EmptyState icon="calendar-off" title="No requests" subtitle={requestStatusFilter !== 'all' ? `No ${requestStatusFilter} requests` : 'No time off recorded yet'} />
+                      <EmptyState icon="calendar-off" title="No time off recorded yet" />
                     ) : (
                       <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)' }}>
                         <thead>
