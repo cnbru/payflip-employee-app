@@ -10833,29 +10833,52 @@ function AddressEditModal({ title, currentAddress, defaultAddress, onSave, onClo
   );
 }
 
-function DeliveryAddressEditModal({ title, currentAddress, onSave, onRemove, onClose }) {
-  const parsed = parseAddressBE(currentAddress || '');
-  const [street, setStreet] = React.useState(parsed.street);
-  const [number, setNumber] = React.useState(parsed.number);
-  const [postalCode, setPostalCode] = React.useState(parsed.postalCode);
-  const [city, setCity] = React.useState(parsed.city);
+function DeliveryAddressEditModal({ title, currentAddress, registeredAddress, onSave, onClose }) {
+  const parsedReg = parseAddressBE(registeredAddress || '');
+  const parsedCurrent = parseAddressBE(currentAddress || '');
+  const sameAsReg = currentAddress && currentAddress === registeredAddress;
+  const [useRegistered, setUseRegistered] = React.useState(!!sameAsReg);
+  const [street, setStreet] = React.useState(parsedCurrent.street);
+  const [number, setNumber] = React.useState(parsedCurrent.number);
+  const [postalCode, setPostalCode] = React.useState(parsedCurrent.postalCode);
+  const [city, setCity] = React.useState(parsedCurrent.city);
+
+  const handleToggle = (val) => {
+    setUseRegistered(val);
+    if (val) {
+      setStreet(parsedReg.street);
+      setNumber(parsedReg.number);
+      setPostalCode(parsedReg.postalCode);
+      setCity(parsedReg.city);
+    } else {
+      setStreet(''); setNumber(''); setPostalCode(''); setCity('');
+    }
+  };
+
+  const disabled = useRegistered;
 
   return (
     <ModalShell title={title} onClose={onClose} width={480}
       footer={close => (
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-150)', padding: 'var(--space-200) var(--space-300)', borderTop: `1px solid ${P.border}` }}>
           <Button variant="secondary" onClick={close}>Cancel</Button>
-          <Button variant="primary" onClick={() => { onSave(formatAddressBE({ street, number, postalCode, city })); close(); }}>Save</Button>
+          <Button variant="primary" onClick={() => {
+            const addr = useRegistered ? registeredAddress : formatAddressBE({ street, number, postalCode, city });
+            onSave(addr || null);
+            close();
+          }}>Save</Button>
         </div>
       )}>
-      {close => (
+      {() => (
         <div style={{ padding: 'var(--space-200) var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-150)' }}>
-          <AddressFields s={street} setS={setStreet} n={number} setN={setNumber} pc={postalCode} setPc={setPostalCode} c={city} setC={setCity} autoFocus />
-          {onRemove && (
-            <button type="button" onClick={() => { onRemove(); close(); }}
-              style={{ background: 'none', border: 'none', padding: 0, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, cursor: 'pointer', textAlign: 'left', textDecoration: 'underline', paddingTop: 'var(--space-050)' }}>
-              Remove delivery address override
-            </button>
+          <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', userSelect: 'none' }}>
+            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: P.ink }}>Same as registered address</span>
+            <Switch checked={useRegistered} onChange={() => handleToggle(!useRegistered)} />
+          </label>
+          {!useRegistered && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-150)', paddingTop: 'var(--space-050)' }} className="section-reveal">
+              <AddressFields s={street} setS={setStreet} n={number} setN={setNumber} pc={postalCode} setPc={setPostalCode} c={city} setC={setCity} autoFocus />
+            </div>
           )}
         </div>
       )}
@@ -11041,12 +11064,8 @@ function EntitiesSettings({ onNav, appEntity = null, companyRegime = COMPANY_REG
               <DeliveryAddressEditModal
                 title={`${editing.label} — ${editing.entName}`}
                 currentAddress={entityOverrides[editing.entId]?.deliveryAddress || ''}
+                registeredAddress={(() => { const ent = ENTITIES.find(e => e.id === editing.entId); return entityOverrides[editing.entId]?.legalAddress || ent?.legalAddress || ''; })()}
                 onSave={addr => setEntityOverrides(prev => ({ ...prev, [editing.entId]: { ...(prev[editing.entId] || {}), deliveryAddress: addr || null } }))}
-                onRemove={entityOverrides[editing.entId]?.deliveryAddress ? () => setEntityOverrides(prev => {
-                  const copy = { ...(prev[editing.entId] || {}) };
-                  delete copy.deliveryAddress;
-                  return { ...prev, [editing.entId]: copy };
-                }) : undefined}
                 onClose={() => setEditing(null)}
               />
             );
