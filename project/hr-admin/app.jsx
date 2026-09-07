@@ -241,7 +241,7 @@ function SettingsCard({ children, info, infoVariant, infoAction }) {
       {info && (
         <div style={{ borderTop: `1px solid ${infoBorder}`, background: infoBg, padding: 'var(--space-150) var(--space-200)', display: 'flex', alignItems: 'flex-start', gap: 'var(--space-100)' }}>
           <Icon name={infoIconName} size={13} color={infoIcon} strokeWidth={2} style={{ flexShrink: 0, marginTop: 'var(--space-025)' }} />
-          <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: infoColor, flex: 1 }}>{info}{infoAction && <> · <span onClick={infoAction.onClick} style={{ textDecoration: 'underline', cursor: 'pointer' }}>{infoAction.label}</span></>}</span>
+          <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: infoColor, flex: 1 }}>{info}{infoAction && <><br /><span onClick={infoAction.onClick} style={{ textDecoration: 'underline', cursor: 'pointer' }}>{infoAction.label}</span></>}</span>
         </div>
       )}
     </div>
