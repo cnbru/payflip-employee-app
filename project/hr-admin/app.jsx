@@ -10779,7 +10779,7 @@ function formatAddressBE({ street, number, postalCode, city }) {
   return [streetLine, cityLine].filter(Boolean).join(', ');
 }
 
-function AddressEditModal({ title, currentAddress, defaultAddress, isOverriding, onSave, onSaveDelivery, onReset, onClose }) {
+function AddressEditModal({ title, currentAddress, defaultAddress, onSave, onSaveDelivery, onClose }) {
   const parsed = parseAddressBE(currentAddress || defaultAddress || '');
   const [street, setStreet] = React.useState(parsed.street);
   const [number, setNumber] = React.useState(parsed.number);
@@ -10838,19 +10838,8 @@ function AddressEditModal({ title, currentAddress, defaultAddress, isOverriding,
       )}>
       {close => (
         <div style={{ padding: 'var(--space-200) var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-150)' }}>
-          {isOverriding && defaultAddress && (
-            <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, lineHeight: 1.5 }}>
-              Overriding company default ({defaultAddress}).
-            </div>
-          )}
           <AddressFields s={street} setS={setStreet} n={number} setN={setNumber} pc={postalCode} setPc={setPostalCode} c={city} setC={setCity} autoFocus />
-          {onReset && (
-            <button type="button" onClick={() => { onReset(); close(); }}
-              style={{ background: 'none', border: 'none', padding: 0, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, cursor: 'pointer', textAlign: 'left', textDecoration: 'underline' }}>
-              Reset to company default ({defaultAddress})
-            </button>
-          )}
-          <div style={{ borderTop: `1px solid ${P.border}`, margin: '0 calc(-1 * var(--space-300))', padding: 'var(--space-175) var(--space-300) 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 'var(--space-200)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 'var(--space-200)', paddingTop: 'var(--space-100)' }}>
             <div>
               <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: P.ink }}>Ship cards to this address</div>
               <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginTop: 'var(--space-025)' }}>When delivery is set to "Company address" for this entity</div>
@@ -10858,7 +10847,7 @@ function AddressEditModal({ title, currentAddress, defaultAddress, isOverriding,
             <Switch size="sm" checked={sameDelivery} onChange={() => setSameDelivery(v => !v)} />
           </div>
           {!sameDelivery && (
-            <div className="section-reveal" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-150)', paddingTop: 'var(--space-050)' }}>
+            <div className="section-reveal" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-150)' }}>
               <div style={Object.assign({}, SL, { marginBottom: 0 })}>Delivery address</div>
               <AddressFields s={dStreet} setS={setDStreet} n={dNumber} setN={setDNumber} pc={dPostalCode} setPc={setDPostalCode} c={dCity} setC={setDCity} />
             </div>
@@ -11014,12 +11003,10 @@ function EntitiesSettings({ onNav, appEntity = null, companyRegime = COMPANY_REG
                 title={`${editing.label} — ${editing.entName}`}
                 currentAddress={editValue || null}
                 defaultAddress={editing.defaultValue}
-                isOverriding={!editing.usingDefault && !!editing.defaultValue}
                 onSave={addr => setEntityOverrides(prev => ({ ...prev, [editing.entId]: { ...(prev[editing.entId] || {}), legalAddress: addr || null } }))}
                 onSaveDelivery={deliveryAddr => {
                   if (deliveryAddr) setEntityOverrides(prev => ({ ...prev, [editing.entId]: { ...(prev[editing.entId] || {}), deliveryAddress: deliveryAddr } }));
                 }}
-                onReset={!editing.usingDefault ? () => resetToDefault(editing.entId, editing.field) : undefined}
                 onClose={() => setEditing(null)}
               />
             );
