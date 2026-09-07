@@ -11142,7 +11142,6 @@ function EntitiesSettings({ onNav, appEntity = null, companyRegime = COMPANY_REG
         {/* Entity list */}
         <div style={card}>
           {ENTITIES.map((ent, idx) => {
-            const overrides = countOverrides(ent);
             const missingDelivery = !ent.deliveryAddress && !entityOverrides[ent.id]?.deliveryAddress;
             return (
               <div key={ent.id} onClick={() => setSelectedEntity(ent)}
@@ -11160,11 +11159,6 @@ function EntitiesSettings({ onNav, appEntity = null, companyRegime = COMPANY_REG
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-075)', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.warningDark, background: P.warningBg, padding: 'var(--space-025) var(--space-100)', borderRadius: 10, whiteSpace: 'nowrap' }}>
                     <Icon name="alert-triangle" size={11} color={P.warningDark} strokeWidth={2} />
                     No delivery address
-                  </span>
-                )}
-                {idx > 0 && overrides > 0 && (
-                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.action, background: '#f3f0ff', padding: 'var(--space-025) var(--space-100)', borderRadius: 10, whiteSpace: 'nowrap' }}>
-                    {overrides} override{overrides !== 1 ? 's' : ''}
                   </span>
                 )}
                 <Icon name="chevron-right" size={16} color={P.inkFaint} strokeWidth={1.75} style={{ flexShrink: 0 }} />
