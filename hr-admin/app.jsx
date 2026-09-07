@@ -10904,27 +10904,28 @@ function formatAddressBE({ street, number, postalCode, city }) {
 const addrInputStyle = { width: '100%', border: `1px solid ${P.border}`, borderRadius: 8, padding: 'var(--space-100) var(--space-150)', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, outline: 'none', boxSizing: 'border-box' };
 const addrLabelStyle = { display: 'block', fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginBottom: 'var(--space-075)' };
 
-function AddressFields({ s, setS, n, setN, pc, setPc, c, setC, autoFocus }) {
+function AddressFields({ s, setS, n, setN, pc, setPc, c, setC, autoFocus, disabled }) {
+  const disabledStyle = disabled ? { background: P.bg, color: P.inkSoft, cursor: 'not-allowed' } : {};
   return (
     <>
       <div style={{ display: 'flex', gap: 'var(--space-150)' }}>
         <div style={{ flex: 3 }}>
           <label style={addrLabelStyle}>Street</label>
-          <input autoFocus={autoFocus} value={s} onChange={e => setS(e.target.value)} placeholder="Rue de la Loi" style={addrInputStyle} />
+          <input autoFocus={!disabled && autoFocus} value={s} onChange={e => !disabled && setS(e.target.value)} disabled={disabled} placeholder="Rue de la Loi" style={{ ...addrInputStyle, ...disabledStyle }} />
         </div>
         <div style={{ flex: 1 }}>
           <label style={addrLabelStyle}>No.</label>
-          <input value={n} onChange={e => setN(e.target.value)} placeholder="42" style={addrInputStyle} />
+          <input value={n} onChange={e => !disabled && setN(e.target.value)} disabled={disabled} placeholder="42" style={{ ...addrInputStyle, ...disabledStyle }} />
         </div>
       </div>
       <div style={{ display: 'flex', gap: 'var(--space-150)' }}>
         <div style={{ flex: 1 }}>
           <label style={addrLabelStyle}>Postal code</label>
-          <input value={pc} onChange={e => setPc(e.target.value)} placeholder="1040" style={addrInputStyle} />
+          <input value={pc} onChange={e => !disabled && setPc(e.target.value)} disabled={disabled} placeholder="1040" style={{ ...addrInputStyle, ...disabledStyle }} />
         </div>
         <div style={{ flex: 2 }}>
           <label style={addrLabelStyle}>City</label>
-          <input value={c} onChange={e => setC(e.target.value)} placeholder="Brussels" style={addrInputStyle} />
+          <input value={c} onChange={e => !disabled && setC(e.target.value)} disabled={disabled} placeholder="Brussels" style={{ ...addrInputStyle, ...disabledStyle }} />
         </div>
       </div>
     </>
@@ -10997,11 +10998,9 @@ function DeliveryAddressEditModal({ title, currentAddress, registeredAddress, on
             <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: P.ink }}>Same as registered address</span>
             <Switch checked={useRegistered} onChange={() => handleToggle(!useRegistered)} />
           </label>
-          {!useRegistered && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-150)', paddingTop: 'var(--space-050)' }} className="section-reveal">
-              <AddressFields s={street} setS={setStreet} n={number} setN={setNumber} pc={postalCode} setPc={setPostalCode} c={city} setC={setCity} autoFocus />
-            </div>
-          )}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-150)', paddingTop: 'var(--space-050)' }}>
+            <AddressFields s={street} setS={setStreet} n={number} setN={setNumber} pc={postalCode} setPc={setPostalCode} c={city} setC={setCity} autoFocus={!useRegistered} disabled={useRegistered} />
+          </div>
         </div>
       )}
     </ModalShell>
@@ -11199,7 +11198,7 @@ function EntitiesSettings({ onNav, appEntity = null, companyRegime = COMPANY_REG
             return (
               <DeliveryAddressEditModal
                 title={`${editing.label} — ${editing.entName}`}
-                currentAddress={entityOverrides[editing.entId]?.deliveryAddress || ''}
+                currentAddress={entityOverrides[editing.entId]?.deliveryAddress ?? (ENTITIES.find(e => e.id === editing.entId)?.deliveryAddress || '')}
                 registeredAddress={(() => { const ent = ENTITIES.find(e => e.id === editing.entId); return entityOverrides[editing.entId]?.legalAddress || ent?.legalAddress || ''; })()}
                 onSave={addr => setEntityOverrides(prev => ({ ...prev, [editing.entId]: { ...(prev[editing.entId] || {}), deliveryAddress: addr || null } }))}
                 onClose={() => setEditing(null)}
