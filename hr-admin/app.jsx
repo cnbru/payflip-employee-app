@@ -229,14 +229,18 @@ function CardFooter({ children, divider }) {
   );
 }
 
-function SettingsCard({ children, info }) {
+function SettingsCard({ children, info, infoVariant }) {
+  const infoBg    = infoVariant === 'blue' ? 'var(--blue-100)'  : 'transparent';
+  const infoBorder= infoVariant === 'blue' ? 'var(--blue-200)'  : P.border;
+  const infoColor = infoVariant === 'blue' ? 'var(--blue-700)'  : P.inkSoft;
+  const infoIcon  = infoVariant === 'blue' ? 'var(--blue-500)'  : P.inkSoft;
   return (
     <div style={{ border: `1px solid ${P.border}`, borderRadius: 16, overflow: 'clip', background: P.white }}>
       {children}
       {info && (
-        <div style={{ borderTop: `1px solid ${P.border}`, padding: 'var(--space-150) var(--space-200)', display: 'flex', alignItems: 'flex-start', gap: 'var(--space-100)' }}>
-          <Icon name="info" size={13} color={P.inkSoft} strokeWidth={2} style={{ flexShrink: 0, marginTop: 'var(--space-025)' }} />
-          <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>{info}</span>
+        <div style={{ borderTop: `1px solid ${infoBorder}`, background: infoBg, padding: 'var(--space-150) var(--space-200)', display: 'flex', alignItems: 'flex-start', gap: 'var(--space-100)' }}>
+          <Icon name="info" size={13} color={infoIcon} strokeWidth={2} style={{ flexShrink: 0, marginTop: 'var(--space-025)' }} />
+          <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: infoColor }}>{info}</span>
         </div>
       )}
     </div>
@@ -1693,6 +1697,7 @@ const ROUTE_MAP = [
   { screen: 'choices',                path: '/hr-admin/choices' },
   { screen: 'payroll-overview',       path: '/hr-admin/payroll' },
   { screen: 'payroll-reports',        path: '/hr-admin/payroll/reports' },
+  { screen: 'settings-landing',        path: '/hr-admin/settings' },
   { screen: 'settings-notifications', path: '/hr-admin/settings/notifications' },
   { screen: 'settings-account',       path: '/hr-admin/settings/account' },
   { screen: 'settings-entities',      path: '/hr-admin/settings/entities' },
@@ -1754,6 +1759,7 @@ function SettingsModeSidebar({ active, onNav }) {
   return (
     <React.Fragment>
       <nav style={{ flex: 1, padding: 'var(--space-125) 0', display: 'flex', flexDirection: 'column', gap: 'var(--space-050)', overflow: 'auto' }}>
+        <SidebarItem icon="layout-grid" label="Overview" onClick={() => onNav('settings-landing')} isActive={active === 'settings-landing'} />
         <SidebarItem icon="user" label="Personal" onClick={() => setPersonalOpen(o => !o)} chevron chevronOpen={personalOpen} isActive={PERSONAL_IDS.includes(active)} />
         <SidebarAccordion open={personalOpen}>
           <SidebarSub active={active} onNav={onNav} items={[
@@ -1825,7 +1831,7 @@ function Sidebar({ active, onNav, pendingCount, sidebarMode, onSetSidebarMode, a
             active={active}
             onNav={onNav}
             pendingCount={pendingCount}
-            onEnterSettings={() => { onSetSidebarMode('settings'); onNav('settings-notifications'); }}
+            onEnterSettings={() => { onSetSidebarMode('settings'); onNav('settings-landing'); }}
             setupInProgress={setupInProgress}
             onboardingCount={onboardingCount}
             offboardingCount={offboardingCount}
@@ -4855,7 +4861,7 @@ function PageHeader({ title, subtitle, badge, children, tabs, maxWidth: mw, noBo
         </div>
         {children}
       </div>
-      {tabs}
+      {tabs && <div style={{ padding: '0 28px' }}>{tabs}</div>}
     </>
   );
   return (
@@ -7139,7 +7145,6 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
 
   return (
     <div style={{ marginBottom: 'var(--space-300)' }}>
-      <ProtoDevPanel widgetMode={widgetMode} switchMode={switchMode} ws={ws} setWs={setWs} />
 
     <div style={{ background: P.white, borderRadius: 12, overflow: 'hidden', ...(live ? { border: `1px solid ${P.border}` } : { boxShadow: `0 0 0 1px rgba(15,13,40,0.07), 0 4px 24px rgba(15,13,40,0.08)` }) }}>
       {/* Header */}
@@ -7562,7 +7567,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
                       <button key={amount} onClick={() => { setAmountInput(amount.toString()); setDebouncedAmountInput(amount.toString()); setAmountAnimTick(t => t + 1); }} style={{ flex: 1, position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 'var(--space-100)', padding: 'var(--space-150) var(--space-150)', borderRadius: 10, border: `1px solid ${active ? P.ink : P.border}`, background: active ? P.bg : P.white, cursor: 'pointer', transition: `border-color 120ms ${EASE_OUT}, background 120ms ${EASE_OUT}`, textAlign: 'left' }}>
                         {recommended && <span style={{ position: 'absolute', top: -8, right: 8, fontFamily: 'var(--font-body)', fontSize: 10, fontWeight: 600, color: P.successDark, background: P.successBg, border: `1px solid ${P.successBorder}`, borderRadius: 4, padding: '1px 5px', lineHeight: '14px', whiteSpace: 'nowrap' }}>Recommended</span>}
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                          <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', fontWeight: 500, color: P.ink, fontVariantNumeric: 'tabular-nums' }}>€{amount.toLocaleString('de-DE')}</span>
+                          <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-md)', fontWeight: 500, color: P.ink, fontVariantNumeric: 'tabular-nums' }}>€{amount.toLocaleString('de-DE')}</span>
                           <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>{label}</span>
                         </div>
                         <div style={{ width: 16, height: 16, borderRadius: '50%', flexShrink: 0, border: `2px solid ${active ? P.ink : P.border}`, background: active ? P.ink : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: `border-color 120ms ${EASE_OUT}, background 120ms ${EASE_OUT}` }}>
@@ -7596,7 +7601,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
                   {[
                     { label: 'When balance drops below', value: <><strong style={{ fontFamily: 'var(--font-display)', fontWeight: 600, color: P.ink }}>€<span key={`tu-start-${amountAnimTick}`} className={`t-digit-group${amountAnimTick > 0 ? ' is-animating' : ''}`} style={{ '--row-delay': '0ms' }}>{digits(previewTopUpStart.toLocaleString('de-DE'))}</span></strong></> },
                     { label: 'We collect', value: <><strong style={{ fontFamily: 'var(--font-display)', fontWeight: 600, color: P.ink }}>€<span key={`tu-max-${amountAnimTick}`} className={`t-digit-group${amountAnimTick > 0 ? ' is-animating' : ''}`} style={{ '--row-delay': '40ms' }}>{digits(previewMaxTopUp.toLocaleString('de-DE'))}</span></strong></> },
-                    { label: 'Card spending coverage', value: <strong style={{ fontFamily: 'var(--font-display)', fontWeight: 600, color: P.ink }}>{previewMonthsRaw < 1 ? '< 1 month' : <><span key={`tu-months-${amountAnimTick}`} className={`t-digit-group${amountAnimTick > 0 ? ' is-animating' : ''}`} style={{ '--row-delay': '80ms' }}>{digits(String(previewMonths))}</span>{' months'}</>}</strong> },
+                    { label: 'Covering', value: <strong style={{ fontFamily: 'var(--font-display)', fontWeight: 600, color: P.ink }}>{previewMonthsRaw < 1 ? '< 1 month' : <><span key={`tu-months-${amountAnimTick}`} className={`t-digit-group${amountAnimTick > 0 ? ' is-animating' : ''}`} style={{ '--row-delay': '80ms' }}>{digits(String(previewMonths))}</span>{' months'}</>}</strong> },
                   ].map(({ label, value }, i) => (
                     <div key={i} style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', padding: 'var(--space-075) 0', fontVariantNumeric: 'tabular-nums' }}>
                       <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft }}>{label}</span>
@@ -8439,7 +8444,7 @@ function TopUpCollectionModal({ initialValue, defaultValue, empCount, chip1, chi
   const months = Math.round(monthsRaw);
   const monthsLabel = monthsRaw < 1 ? '< 1 month' : `~${months} ${months === 1 ? 'month' : 'months'}`;
   return (
-    <ModalShell title="Collection amount" onClose={onClose}
+    <ModalShell title="We collect" onClose={onClose}
       footer={close => (<div style={{ padding: 'var(--space-200) var(--space-300)', borderTop: `1px solid ${P.border}`, display: 'flex', gap: 'var(--space-125)', justifyContent: 'flex-end' }}><Button variant="secondary" onClick={close}>Cancel</Button><Button variant="primary" onClick={() => { onSave(draft); close(); }}>Save</Button></div>)}>
       {() => (
         <div style={{ padding: 'var(--space-250) var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-250)' }}>
@@ -8451,7 +8456,7 @@ function TopUpCollectionModal({ initialValue, defaultValue, empCount, chip1, chi
                   style={{ flex: 1, position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 'var(--space-100)', padding: 'var(--space-150)', borderRadius: 10, border: `1px solid ${active ? P.ink : P.border}`, background: active ? P.bg : P.white, cursor: 'pointer', transition: `border-color 120ms ${EASE_OUT}, background 120ms ${EASE_OUT}`, textAlign: 'left' }}>
                   {recommended && <span style={{ position: 'absolute', top: -8, right: 8, fontFamily: 'var(--font-body)', fontSize: 10, fontWeight: 600, color: P.successDark, background: P.successBg, border: `1px solid ${P.successBorder}`, borderRadius: 4, padding: '1px 5px', lineHeight: '14px', whiteSpace: 'nowrap' }}>Recommended</span>}
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                    <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', fontWeight: 500, color: P.ink, fontVariantNumeric: 'tabular-nums' }}>€{amount.toLocaleString('de-DE')}</span>
+                    <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-md)', fontWeight: 500, color: P.ink, fontVariantNumeric: 'tabular-nums' }}>€{amount.toLocaleString('de-DE')}</span>
                     <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>{label}</span>
                   </div>
                   <div style={{ width: 16, height: 16, borderRadius: '50%', flexShrink: 0, border: `2px solid ${active ? P.ink : P.border}`, background: active ? P.ink : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: `border-color 120ms ${EASE_OUT}, background 120ms ${EASE_OUT}` }}>
@@ -8490,10 +8495,6 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, cardDe
   const [showResignModal, setShowResignModal] = useState(false);
   const [showDeliveryModal, setShowDeliveryModal] = useState(false);
   const [showEntityDeliveryModal, setShowEntityDeliveryModal] = useState(null);
-  const [showTopUpThresholdModal, setShowTopUpThresholdModal] = useState(false);
-  const [showTopUpCollectionModal, setShowTopUpCollectionModal] = useState(false);
-  const [topUpThresholdOverride, setTopUpThresholdOverride] = useState(null);
-  const [topUpCollectionOverride, setTopUpCollectionOverride] = useState(null);
   const [resignSigning, setResignSigning] = useState(false);
   const [savedPhysicalCards, setSavedPhysicalCards] = useState(physicalCardsAllowed);
   const [savedCardDelivery, setSavedCardDelivery] = useState(cardDelivery);
@@ -8502,8 +8503,7 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, cardDe
     ? entityDeliveryOverrides[appEntity]
     : draftCardDelivery;
   const isDirty = draftPhysicalCards !== savedPhysicalCards || draftCardDelivery !== savedCardDelivery
-    || Object.keys(entityDeliveryOverrides).length > 0
-    || topUpThresholdOverride != null || topUpCollectionOverride != null;
+    || Object.keys(entityDeliveryOverrides).length > 0;
 
   const handleSave = () => {
     onPhysicalCardsChange(draftPhysicalCards);
@@ -8565,13 +8565,16 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, cardDe
 
   if (!isLive || mobilityWidgetState.widgetMode === 'food') {
     return (
-      <div style={{ flex: 1, overflow: 'auto', animation: `screenEnter 180ms ${EASE_OUT}` }}>
-        <div style={{ maxWidth: 680, margin: '0 auto', padding: 'var(--space-500) var(--space-400)', display: 'flex', flexDirection: 'column', gap: 'var(--space-400)' }}>
-          <div>
-            {appEntity && <span style={{ display: 'inline-flex', alignItems: 'center', padding: 'var(--space-025) var(--space-100)', borderRadius: 6, background: P.white, border: `1px solid ${P.border}`, fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginBottom: 'var(--space-150)' }}>{ENTITIES.find(e => e.id === appEntity)?.name}</span>}
-            <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 28, color: P.ink, margin: 0, letterSpacing: '-0.02em' }}>Payflip Card</h1>
-            <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, margin: 'var(--space-050) 0 0' }}>Manage card accounts and settings for your employees</p>
-          </div>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, overflow: 'hidden', animation: `screenEnter 180ms ${EASE_OUT}` }}>
+        <PageHeader
+          title="Payflip Card"
+          subtitle="Manage card accounts and settings for your employees"
+          badge={appEntity ? ENTITIES.find(e => e.id === appEntity)?.name : null}
+          maxWidth={880}
+          padding="31px 28px 20px"
+        />
+        <div style={{ flex: 1, overflow: 'auto' }}>
+        <div style={{ maxWidth: 880, margin: '0 auto', padding: 'var(--space-300) var(--space-400)', display: 'flex', flexDirection: 'column', gap: 'var(--space-400)' }}>
           <div style={{ border: `1px solid ${P.border}`, borderRadius: 12, background: P.white, padding: 'var(--space-600) var(--space-400)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 'var(--space-200)', textAlign: 'center' }}>
             <div style={{ width: 44, height: 44, borderRadius: 12, background: P.bg, border: `1px solid ${P.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <Icon name="credit-card" size={20} color={P.inkSoft} strokeWidth={1.5} />
@@ -8583,13 +8586,14 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, cardDe
             <Button variant="primary" icon="arrow-right" onClick={() => onNav && onNav('dashboard')}>Set up Mobility</Button>
           </div>
         </div>
+        </div>
       </div>
     );
   }
 
   return (
     <div style={{ flex: 1, overflow: 'auto', animation: `screenEnter 180ms ${EASE_OUT}` }}>
-      <div style={{ maxWidth: 680, margin: '0 auto', padding: 'var(--space-500) var(--space-400)', display: 'flex', flexDirection: 'column', gap: 'var(--space-400)' }}>
+      <div style={{ maxWidth: 880, margin: '0 auto', padding: 'var(--space-500) var(--space-400)', display: 'flex', flexDirection: 'column', gap: 'var(--space-400)' }}>
 
         <div>
           {appEntity && <span style={{ display: 'inline-flex', alignItems: 'center', padding: 'var(--space-025) var(--space-100)', borderRadius: 6, background: P.white, border: `1px solid ${P.border}`, fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginBottom: 'var(--space-150)' }}>{ENTITIES.find(e => e.id === appEntity)?.name}</span>}
@@ -8618,7 +8622,7 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, cardDe
 
         {/* Account overview — only when live and not entity-scoped */}
         {isLive && !appEntity && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-250)' }}>
+          <div>
             <div style={SL}>Account</div>
             <div style={{ border: `1px solid ${P.border}`, borderRadius: 12, overflow: 'hidden', background: P.white }}>
 
@@ -8676,7 +8680,7 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, cardDe
         )}
 
         {/* Mandate — company-wide, hidden at entity scope */}
-        {!appEntity && <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-250)' }}>
+        {!appEntity && <div>
           <div style={SL}>Mandate</div>
           <SettingsCard info="Collections are processed by Twikey. Re-sign if your company's bank account changes.">
             <SettingsRow
@@ -8689,103 +8693,41 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, cardDe
           </SettingsCard>
         </div>}
 
-        {/* Card issuance */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-250)' }}>
-          <div style={SL}>Card issuance</div>
+        {/* Physical cards — issuance toggle + delivery sub-group in one card */}
+        <div>
+          <div style={SL}>Physical cards</div>
           <SettingsCard info={!draftPhysicalCards ? 'Physical cards are optional. Enable them to let employees request a card from the app.' : undefined}>
             <SettingsRow
               icon="credit-card"
               label="Physical card requests"
               subtitle="Ships in 5–7 days · €9 per card"
               trailing={<Switch size="sm" checked={draftPhysicalCards} onChange={() => setDraftPhysicalCards(v => !v)} />}
-              last
+              last={!draftPhysicalCards}
             />
-          </SettingsCard>
-        </div>
-
-        {/* Auto top-up — company-wide, hidden at entity scope */}
-        {!appEntity && (() => {
-          const defaultThreshold = Math.round(deposit2 / 15) * 5;
-          const defaultCollection = deposit2 - defaultThreshold;
-          const threshold = topUpThresholdOverride ?? defaultThreshold;
-          const collection = topUpCollectionOverride ?? defaultCollection;
-          const isCustomThreshold = topUpThresholdOverride != null;
-          const isCustomCollection = topUpCollectionOverride != null;
-          const collectionMonthsRaw = collection / (empCount2 * 12.5);
-          const collectionMonths = Math.round(collectionMonthsRaw);
-          const collectionMonthsLabel = collectionMonthsRaw < 1 ? '< 1 month' : `~${collectionMonths} ${collectionMonths === 1 ? 'month' : 'months'}`;
-          const dailySpend = (empCount2 * 12.5) / 30;
-          const thresholdRunwayDays = Math.round((deposit2 - threshold) / dailySpend);
-          const thresholdRunwayLabel = thresholdRunwayDays < 14
-            ? `~${thresholdRunwayDays}d buffer`
-            : `~${Math.round(thresholdRunwayDays / 7)}w buffer`;
-          const chip1 = Math.max(50, Math.round(empCount2 * 12.5 / 50) * 50);
-          const chip3 = Math.max(50, Math.round(empCount2 * 12.5 * 3 / 50) * 50);
-          const chip6 = Math.max(50, Math.round(empCount2 * 12.5 * 6 / 50) * 50);
-          const coherenceInfo = collectionMonthsRaw < 1
-            ? `At your current team size (${empCount2} employees), each collection covers less than 1 month of card spend — top-ups will fire frequently.`
-            : `At your current team size (${empCount2} employees), each collection covers ~${collectionMonths} ${collectionMonths === 1 ? 'month' : 'months'} of card spend.`;
-          return (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-250)' }}>
-              <div style={SL}>Auto top-up</div>
-              <SettingsCard info={coherenceInfo}>
-                <SettingsRow
-                  icon="trending-down"
-                  label="Trigger balance"
-                  subtitle={isCustomThreshold ? `Custom · was €${defaultThreshold.toLocaleString('de-DE')}` : 'Calculated from deposit'}
-                  value={`€${threshold.toLocaleString('de-DE')} · ${thresholdRunwayLabel}`}
-                  onClick={() => setShowTopUpThresholdModal(true)}
-                />
-                <SettingsRow
-                  icon="circle-dollar-sign"
-                  label="Collection amount"
-                  subtitle={isCustomCollection ? `Custom · was €${defaultCollection.toLocaleString('de-DE')}` : 'Calculated from deposit'}
-                  value={`€${collection.toLocaleString('de-DE')} · ${collectionMonthsLabel}`}
-                  onClick={() => setShowTopUpCollectionModal(true)}
-                  last
-                />
-              </SettingsCard>
-              {showTopUpThresholdModal && (
-                <AmountModal
-                  title="Trigger balance"
-                  label="Top up when balance drops below"
-                  value={threshold}
-                  resetValue={isCustomThreshold ? defaultThreshold : undefined}
-                  onSave={v => { setTopUpThresholdOverride(v === defaultThreshold ? null : v); setShowTopUpThresholdModal(false); }}
-                  onClose={() => setShowTopUpThresholdModal(false)}
-                />
-              )}
-              {showTopUpCollectionModal && (
-                <TopUpCollectionModal
-                  initialValue={collection}
-                  defaultValue={isCustomCollection ? defaultCollection : undefined}
-                  empCount={empCount2}
-                  chip1={chip1} chip3={chip3} chip6={chip6}
-                  onSave={v => { setTopUpCollectionOverride(v === defaultCollection ? null : v); setShowTopUpCollectionModal(false); }}
-                  onClose={() => setShowTopUpCollectionModal(false)}
-                />
-              )}
-            </div>
-          );
-        })()}
-
-        {/* Card delivery — global default + per-entity rows */}
-        {draftPhysicalCards && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-250)' }}>
-            <div style={SL}>Card delivery</div>
-            <SettingsCard>
-              {appEntity ? (
-                <SettingsRow
-                  icon="truck"
-                  label="Delivery address"
-                  value={effectiveDelivery === 'office' ? 'Company address' : 'Employee address'}
-                  subtitle={entityDeliveryOverrides[appEntity] != null ? 'Custom for this entity' : undefined}
-                  onClick={() => setShowEntityDeliveryModal(appEntity)}
-                  last
-                />
-              ) : (
-                <>
-                  {(() => {
+            {draftPhysicalCards && (
+              <div className="section-reveal">
+                {/* In-card delivery sub-group header */}
+                <div style={{
+                  padding: 'var(--space-150) var(--space-200) var(--space-075)',
+                  borderTop: `1px solid ${P.border}`,
+                  fontSize: 'var(--fs-body-xs)',
+                  fontFamily: 'var(--font-display)',
+                  fontWeight: 600,
+                  color: P.inkSoft,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.06em',
+                }}>Delivery</div>
+                {appEntity ? (
+                  <SettingsRow
+                    icon="truck"
+                    label="Delivery address"
+                    value={effectiveDelivery === 'office' ? 'Company address' : 'Employee address'}
+                    subtitle={entityDeliveryOverrides[appEntity] != null ? 'Custom for this entity' : undefined}
+                    onClick={() => setShowEntityDeliveryModal(appEntity)}
+                    last
+                  />
+                ) : (
+                  (() => {
                     const effectiveModes = ENTITIES.map(e => entityDeliveryOverrides[e.id] ?? draftCardDelivery);
                     const allSame = effectiveModes.every(m => m === effectiveModes[0]);
                     const summaryValue = allSame
@@ -8794,43 +8736,56 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, cardDe
                     return (
                       <SettingsRow
                         icon="truck"
-                        label="All entities"
-                        subtitle="Default for entities with no override"
+                        label="Default delivery"
+                        subtitle="Per-entity overrides available at entity scope"
                         value={summaryValue}
                         valueColor={!allSame ? P.inkSoft : undefined}
                         onClick={() => setShowDeliveryModal(true)}
-                        last={false}
+                        last
                       />
                     );
-                  })()}
-                  {ENTITIES.map((ent, idx, arr) => {
-                    const entDelivery = entityDeliveryOverrides[ent.id] ?? draftCardDelivery;
-                    const isOffice = entDelivery === 'office';
-                    const missing = isOffice && !ent.legalAddress;
-                    return (
-                      <SettingsRow
-                        key={ent.id}
-                        icon="building-2"
-                        label={ent.name}
-                        subtitle={isOffice && ent.legalAddress ? ent.legalAddress : undefined}
-                        value={missing ? undefined : isOffice ? 'Company address' : 'Employee address'}
-                        trailing={missing
-                          ? <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-100)' }}>
-                              <DotPill bg={P.warningBorder} color={P.warningDark} size={11}>Address required</DotPill>
-                              <Icon name="chevron-right" size={14} color={P.inkFaint} strokeWidth={1.75} />
-                            </div>
-                          : undefined
-                        }
-                        onClick={() => setShowEntityDeliveryModal(ent.id)}
-                        last={idx === arr.length - 1}
-                      />
-                    );
-                  })}
-                </>
-              )}
-            </SettingsCard>
-          </div>
-        )}
+                  })()
+                )}
+              </div>
+            )}
+          </SettingsCard>
+        </div>
+
+        {/* Auto top-up — company-wide, hidden at entity scope */}
+        {!appEntity && (() => {
+          const threshold = Math.round(deposit2 / 15) * 5;
+          const collection = deposit2 - threshold;
+          const collectionMonthsRaw = collection / (empCount2 * 12.5);
+          const collectionMonths = Math.round(collectionMonthsRaw);
+          const collectionMonthsLabel = collectionMonthsRaw < 1 ? '< 1 month' : `~${collectionMonths} ${collectionMonths === 1 ? 'month' : 'months'}`;
+          const dailySpend = (empCount2 * 12.5) / 30;
+          const thresholdRunwayDays = Math.round((deposit2 - threshold) / dailySpend);
+          const thresholdRunwayLabel = thresholdRunwayDays < 14
+            ? `~${thresholdRunwayDays}d buffer`
+            : `~${Math.round(thresholdRunwayDays / 7)}w buffer`;
+          return (
+            <div>
+              <div style={SL}>Auto top-up</div>
+              <SettingsCard info={`Payflip sets these thresholds automatically based on your funded deposit.`}>
+                {[
+                  { label: 'Balance drops below', value: `€${threshold.toLocaleString('de-DE')}`, meta: thresholdRunwayLabel },
+                  { label: 'We collect', value: `€${collection.toLocaleString('de-DE')}`, meta: collectionMonthsLabel },
+                ].map(({ label, value, meta }, i, arr) => (
+                  <div key={i} style={{
+                    display: 'flex', alignItems: 'baseline', justifyContent: 'space-between',
+                    padding: 'var(--space-150) var(--space-250)',
+                    borderBottom: i < arr.length - 1 ? `1px solid ${P.border}` : 'none',
+                  }}>
+                    <span style={{ fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>{label}</span>
+                    <span style={{ fontSize: 'var(--fs-body-sm)', fontWeight: 500, fontFamily: 'var(--font-display)', color: P.ink }}>
+                      {value} <span style={{ fontSize: 'var(--fs-body-xs)', fontWeight: 400, fontFamily: 'var(--font-body)', color: P.inkSoft }}>{meta}</span>
+                    </span>
+                  </div>
+                ))}
+              </SettingsCard>
+            </div>
+          );
+        })()}
 
         {showDeliveryModal && (
           <PickModal
@@ -9085,13 +9040,16 @@ function AllowancesListPage({ allowances, onSaveAllowance, appEntity = null }) {
   }
 
   return (
-    <div style={{ flex: 1, overflow: 'auto', animation: `screenEnter 180ms ${EASE_OUT}` }}>
-      <div style={{ maxWidth: 680, margin: '0 auto', padding: 'var(--space-500) var(--space-400)', display: 'flex', flexDirection: 'column', gap: 'var(--space-400)' }}>
-        <div>
-          {appEntity && <span style={{ display: 'inline-flex', alignItems: 'center', padding: 'var(--space-025) var(--space-100)', borderRadius: 6, background: P.white, border: `1px solid ${P.border}`, fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginBottom: 'var(--space-150)' }}>{ENTITIES.find(e => e.id === appEntity)?.name}</span>}
-          <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 28, color: P.ink, margin: 0, letterSpacing: '-0.02em' }}>Allowances</h1>
-          <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, margin: 'var(--space-050) 0 0' }}>Belgian flat-rate allowances — enable only what applies to your company</p>
-        </div>
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, overflow: 'hidden', animation: `screenEnter 180ms ${EASE_OUT}` }}>
+      <PageHeader
+        title="Allowances"
+        subtitle="Belgian flat-rate allowances — enable only what applies to your company"
+        badge={appEntity ? ENTITIES.find(e => e.id === appEntity)?.name : null}
+        maxWidth={880}
+        padding="31px 28px 20px"
+      />
+      <div style={{ flex: 1, overflow: 'auto' }}>
+      <div style={{ maxWidth: 880, margin: '0 auto', padding: 'var(--space-300) var(--space-400)', display: 'flex', flexDirection: 'column', gap: 'var(--space-400)' }}>
         <div>
           <div style={SL}>Allowance types</div>
           <SettingsCard>
@@ -9113,6 +9071,7 @@ function AllowancesListPage({ allowances, onSaveAllowance, appEntity = null }) {
             })}
           </SettingsCard>
         </div>
+      </div>
       </div>
     </div>
   );
@@ -9161,15 +9120,16 @@ function ExpenseCategorySettings({ categories, onSave, appEntity = null, receipt
     {settingModal === 'approval-routing' && (
       <PickModal title="Route approvals to" options={APPROVAL_OPTS} value={approvalRouting} onSave={setApprovalRouting} onClose={() => setSettingModal(null)} />
     )}
-    <div style={{ flex: 1, overflow: 'auto', animation: `screenEnter 180ms ${EASE_OUT}` }}>
-      <div style={{ maxWidth: 680, margin: '0 auto', padding: 'var(--space-500) var(--space-400)', display: 'flex', flexDirection: 'column', gap: 'var(--space-400)' }}>
-        <div>
-          <div>
-            {appEntity && <span style={{ display: 'inline-flex', alignItems: 'center', padding: 'var(--space-025) var(--space-100)', borderRadius: 6, background: P.white, border: `1px solid ${P.border}`, fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginBottom: 'var(--space-150)' }}>{ENTITIES.find(e => e.id === appEntity)?.name}</span>}
-            <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 28, color: P.ink, margin: 0, letterSpacing: '-0.02em' }}>Expenses</h1>
-          </div>
-          <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, margin: 'var(--space-050) 0 0' }}>Configure expense categories and reimbursement rules</p>
-        </div>
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, overflow: 'hidden', animation: `screenEnter 180ms ${EASE_OUT}` }}>
+      <PageHeader
+        title="Expenses"
+        subtitle="Configure expense categories and reimbursement rules"
+        badge={appEntity ? ENTITIES.find(e => e.id === appEntity)?.name : null}
+        maxWidth={880}
+        padding="31px 28px 20px"
+      />
+      <div style={{ flex: 1, overflow: 'auto' }}>
+      <div style={{ maxWidth: 880, margin: '0 auto', padding: 'var(--space-300) var(--space-400)', display: 'flex', flexDirection: 'column', gap: 'var(--space-400)' }}>
 
         <div>
           <div style={SL}>Reimbursement</div>
@@ -9204,6 +9164,7 @@ function ExpenseCategorySettings({ categories, onSave, appEntity = null, receipt
           );
         })}
 
+      </div>
       </div>
     </div>
     </>
@@ -9646,16 +9607,16 @@ function TeamAccessSettings({ onNav, adminAccess, onAdminSave, appEntity = null 
       />
     ) : null; })()}
 
-    <div style={{ flex: 1, overflow: 'auto', animation: `screenEnter 180ms ${EASE_OUT}` }}>
-      <div style={{ maxWidth: 680, margin: '0 auto', padding: 'var(--space-500) var(--space-400)', display: 'flex', flexDirection: 'column', gap: 'var(--space-400)' }}>
-
-        <div>
-          <div>
-            {appEntity && <span style={{ display: 'inline-flex', alignItems: 'center', padding: 'var(--space-025) var(--space-100)', borderRadius: 6, background: P.white, border: `1px solid ${P.border}`, fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginBottom: 'var(--space-300)' }}>{ENTITIES.find(e => e.id === appEntity)?.name}</span>}
-            <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 22, color: P.ink, margin: 0, letterSpacing: '-0.02em' }}>Team & access</h1>
-          </div>
-          <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, margin: 'var(--space-050) 0 0' }}>Configure access levels for your admin team</p>
-        </div>
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, overflow: 'hidden', animation: `screenEnter 180ms ${EASE_OUT}` }}>
+      <PageHeader
+        title="Team & access"
+        subtitle="Configure access levels for your admin team"
+        badge={appEntity ? ENTITIES.find(e => e.id === appEntity)?.name : null}
+        maxWidth={880}
+        padding="31px 28px 20px"
+      />
+      <div style={{ flex: 1, overflow: 'auto' }}>
+      <div style={{ maxWidth: 880, margin: '0 auto', padding: 'var(--space-300) var(--space-400)', display: 'flex', flexDirection: 'column', gap: 'var(--space-400)' }}>
 
         <div>
           <div style={SL}>Administrators</div>
@@ -9690,6 +9651,7 @@ function TeamAccessSettings({ onNav, adminAccess, onAdminSave, appEntity = null 
           </div>
         </div>
 
+      </div>
       </div>
     </div>
     </>
@@ -9841,7 +9803,7 @@ function AllowanceSettingsPage({ config, typeInfo, onSave, onBack, backLabel = '
       />
     )}
     <div style={{ flex: 1, overflow: 'auto', animation: `screenEnter 180ms ${EASE_OUT}` }}>
-      <div style={{ maxWidth: 680, margin: '0 auto', padding: 'var(--space-400) var(--space-400) var(--space-1000)', display: 'flex', flexDirection: 'column', gap: 'var(--space-400)' }}>
+      <div style={{ maxWidth: 880, margin: '0 auto', padding: 'var(--space-400) var(--space-400) var(--space-1000)', display: 'flex', flexDirection: 'column', gap: 'var(--space-400)' }}>
 
         <button onClick={onBack} style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-075)', border: 'none', background: 'transparent', cursor: 'pointer', padding: 0, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.inkSoft, alignSelf: 'flex-start' }}>
           <Icon name="chevron-left" size={14} color={P.inkSoft} strokeWidth={2.5} />
@@ -10250,7 +10212,7 @@ function LeaveTypeSettingsPage({ config, allLeaveTypes = [], onSave, onDelete, o
       {tooltip && (
         <div style={{ position: 'fixed', left: tooltip.x, top: tooltip.y - 6, transform: 'translateX(-50%) translateY(-100%)', padding: 'var(--space-050) var(--space-100)', borderRadius: 6, background: P.ink, color: '#fff', fontSize: 'var(--fs-body-xs)', fontWeight: 500, fontFamily: 'var(--font-body)', whiteSpace: 'nowrap', pointerEvents: 'none', zIndex: 9999 }}>{tooltip.text}</div>
       )}
-      <div style={{ maxWidth: 680, margin: '0 auto', padding: 'var(--space-400) var(--space-400) var(--space-1000)', display: 'flex', flexDirection: 'column', gap: 'var(--space-400)' }}>
+      <div style={{ maxWidth: 880, margin: '0 auto', padding: 'var(--space-400) var(--space-400) var(--space-1000)', display: 'flex', flexDirection: 'column', gap: 'var(--space-400)' }}>
 
         {/* Back */}
         <button onClick={onBack} style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-075)', border: 'none', background: 'transparent', cursor: 'pointer', padding: 0, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.inkSoft, alignSelf: 'flex-start' }}>
@@ -10616,29 +10578,26 @@ function TimeOffSettings({ appEntity = null, companyRegime = COMPANY_REGIME_DEFA
 
   return (
     <>
-    <div style={{ flex: 1, overflow: 'auto', animation: `screenEnter 180ms ${EASE_OUT}` }}>
-      <div style={{ maxWidth: 680, margin: '0 auto', padding: 'var(--space-500) var(--space-400)', display: 'flex', flexDirection: 'column', gap: 'var(--space-400)' }}>
-
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-          <div>
-            {appEntity && <span style={{ display: 'inline-flex', alignItems: 'center', padding: 'var(--space-025) var(--space-100)', borderRadius: 6, background: P.white, border: `1px solid ${P.border}`, fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginBottom: 'var(--space-150)' }}>{ENTITIES.find(e => e.id === appEntity)?.name}</span>}
-            <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 28, color: P.ink, margin: 0, letterSpacing: '-0.02em' }}>Time off</h1>
-            <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, margin: 'var(--space-050) 0 0' }}>Configure the leave types available to your employees</p>
-          </div>
-          <Button variant="primary" icon="plus" onClick={() => setLeaveModal('new')} style={{ flexShrink: 0 }}>Add leave type</Button>
-        </div>
-
-        <div style={{ borderBottom: `1px solid ${P.border}` }}>
-          <TabBar
-            tabs={[
-              { id: 'active', label: `Active${activeCount > 0 ? ` (${activeCount})` : ''}` },
-              { id: 'inactive', label: `Inactive${inactiveCount > 0 ? ` (${inactiveCount})` : ''}` },
-            ]}
-            activeTab={tab}
-            onTabChange={setTab}
-            padding="0"
-          />
-        </div>
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, overflow: 'hidden', animation: `screenEnter 180ms ${EASE_OUT}` }}>
+      <PageHeader
+        title="Time off"
+        subtitle="Configure the leave types available to your employees"
+        badge={appEntity ? ENTITIES.find(e => e.id === appEntity)?.name : null}
+        maxWidth={880}
+        padding="31px 28px 20px"
+        children={<Button variant="primary" icon="plus" onClick={() => setLeaveModal('new')} style={{ flexShrink: 0 }}>Add leave type</Button>}
+        tabs={<TabBar
+          tabs={[
+            { id: 'active', label: `Active${activeCount > 0 ? ` (${activeCount})` : ''}` },
+            { id: 'inactive', label: `Inactive${inactiveCount > 0 ? ` (${inactiveCount})` : ''}` },
+          ]}
+          activeTab={tab}
+          onTabChange={setTab}
+          padding="0"
+        />}
+      />
+      <div style={{ flex: 1, overflow: 'auto' }}>
+      <div style={{ maxWidth: 880, margin: '0 auto', padding: 'var(--space-300) var(--space-400)', display: 'flex', flexDirection: 'column', gap: 'var(--space-400)' }}>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-300)' }}>
           {tab === 'inactive' && inactiveCount === 0 && (
@@ -10687,6 +10646,7 @@ function TimeOffSettings({ appEntity = null, companyRegime = COMPANY_REGIME_DEFA
           })}
         </div>
 
+      </div>
       </div>
     </div>
     </>
@@ -10911,7 +10871,7 @@ function EntitiesSettings({ onNav, appEntity = null, companyRegime = COMPANY_REG
     const ent = selectedEntity;
     return (
       <div style={{ flex: 1, overflow: 'auto', animation: `screenEnter 180ms ${EASE_OUT}` }}>
-        <div style={{ maxWidth: 680, margin: '0 auto', padding: 'var(--space-500) var(--space-400)', display: 'flex', flexDirection: 'column', gap: 'var(--space-400)' }}>
+        <div style={{ maxWidth: 880, margin: '0 auto', padding: 'var(--space-500) var(--space-400)', display: 'flex', flexDirection: 'column', gap: 'var(--space-400)' }}>
           <div>
             <button onClick={() => { setSelectedEntity(null); setEditing(null); }}
               style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-075)', background: 'none', border: 'none', padding: 0, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, cursor: 'pointer', marginBottom: 'var(--space-200)' }}>
@@ -10990,15 +10950,16 @@ function EntitiesSettings({ onNav, appEntity = null, companyRegime = COMPANY_REG
   }
 
   return (
-    <div style={{ flex: 1, overflow: 'auto', animation: `screenEnter 180ms ${EASE_OUT}` }}>
-      <div style={{ maxWidth: 680, margin: '0 auto', padding: 'var(--space-500) var(--space-400)', display: 'flex', flexDirection: 'column', gap: 'var(--space-400)' }}>
-
-        {/* Header */}
-        <div>
-          {appEntity && <span style={{ display: 'inline-flex', alignItems: 'center', padding: 'var(--space-025) var(--space-100)', borderRadius: 6, background: P.white, border: `1px solid ${P.border}`, fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginBottom: 'var(--space-300)' }}>{ENTITIES.find(e => e.id === appEntity)?.name}</span>}
-          <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 22, color: P.ink, margin: 0, letterSpacing: '-0.02em' }}>Entities</h1>
-          <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, margin: 'var(--space-050) 0 0' }}>Each entity inherits company settings unless a specific value is set.</p>
-        </div>
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, overflow: 'hidden', animation: `screenEnter 180ms ${EASE_OUT}` }}>
+      <PageHeader
+        title="Entities"
+        subtitle="Each entity inherits company settings unless a specific value is set."
+        badge={appEntity ? ENTITIES.find(e => e.id === appEntity)?.name : null}
+        maxWidth={880}
+        padding="31px 28px 20px"
+      />
+      <div style={{ flex: 1, overflow: 'auto' }}>
+      <div style={{ maxWidth: 880, margin: '0 auto', padding: 'var(--space-300) var(--space-400)', display: 'flex', flexDirection: 'column', gap: 'var(--space-400)' }}>
 
         {/* Entity list */}
         <div style={card}>
@@ -11030,6 +10991,7 @@ function EntitiesSettings({ onNav, appEntity = null, companyRegime = COMPANY_REG
         <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
           <Button variant="secondary" icon="plus" onClick={() => {}}>Add entity</Button>
         </div>
+      </div>
       </div>
 
     </div>
@@ -11262,7 +11224,7 @@ function DocumentsSettings({ appEntity = null, documents = [], onDocumentsChange
   const hasDeactivated = visibleDocs.some(d => d.deactivated);
 
   return (
-    <div style={{ flex: 1, overflow: 'auto', animation: `screenEnter 180ms ${EASE_OUT}` }}>
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, overflow: 'hidden', animation: `screenEnter 180ms ${EASE_OUT}` }}>
       {addOpen && (
         <AddDocumentModal
           appEntity={appEntity}
@@ -11292,23 +11254,16 @@ function DocumentsSettings({ appEntity = null, documents = [], onDocumentsChange
           onClose={() => setEditDoc(null)}
         />
       )}
-
-      <div style={{ maxWidth: 780, margin: '0 auto', padding: 'var(--space-500) var(--space-400)', display: 'flex', flexDirection: 'column', gap: 'var(--space-300)' }}>
-
-        <div>
-          {appEntity && (
-            <span style={{ display: 'inline-flex', alignItems: 'center', padding: 'var(--space-025) var(--space-100)', borderRadius: 6, background: P.white, border: `1px solid ${P.border}`, fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginBottom: 'var(--space-300)' }}>
-              {entityName}
-            </span>
-          )}
-          <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 22, color: P.ink, margin: 0, letterSpacing: '-0.02em' }}>Documents</h1>
-          <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, margin: 'var(--space-050) 0 0' }}>Manage document templates and employee requirements</p>
-        </div>
-
-        {/* Tabs */}
-        <div style={{ borderBottom: `1px solid ${P.border}`, marginBottom: 'var(--space-100)' }}>
-          <TabBar tabs={tabs} activeTab={tab} onTabChange={v => { setTab(v); setDocFilter('active'); }} padding="0" />
-        </div>
+      <PageHeader
+        title="Documents"
+        subtitle="Manage document templates and employee requirements"
+        badge={entityName}
+        maxWidth={880}
+        padding="31px 28px 20px"
+        tabs={<TabBar tabs={tabs} activeTab={tab} onTabChange={v => { setTab(v); setDocFilter('active'); }} padding="0" />}
+      />
+      <div style={{ flex: 1, overflow: 'auto' }}>
+      <div style={{ maxWidth: 880, margin: '0 auto', padding: 'var(--space-300) var(--space-400)', display: 'flex', flexDirection: 'column', gap: 'var(--space-300)' }}>
 
         {/* Status filter — only shown once there's something deactivated */}
         {hasDeactivated && (
@@ -11366,6 +11321,7 @@ function DocumentsSettings({ appEntity = null, documents = [], onDocumentsChange
         )}
 
       </div>
+      </div>
     </div>
   );
 }
@@ -11379,13 +11335,16 @@ function PayrollSettings({ companyRegime, onRegimeChange, appEntity = null, onTo
     { value: 40, label: '40h / week', sub: '12 ADV days / year' },
   ];
   return (
-    <div style={{ flex: 1, overflow: 'auto', animation: `screenEnter 180ms ${EASE_OUT}` }}>
-      <div style={{ maxWidth: 680, margin: '0 auto', padding: 'var(--space-500) var(--space-400)', display: 'flex', flexDirection: 'column', gap: 'var(--space-400)' }}>
-        <div>
-          {appEntity && <span style={{ display: 'inline-flex', alignItems: 'center', padding: 'var(--space-025) var(--space-100)', borderRadius: 6, background: P.white, border: `1px solid ${P.border}`, fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginBottom: 'var(--space-300)' }}>{ENTITIES.find(e => e.id === appEntity)?.name}</span>}
-          <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 22, color: P.ink, margin: 0, letterSpacing: '-0.02em' }}>Payroll</h1>
-          <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, margin: 'var(--space-050) 0 0' }}>Configure work regime and payroll integration</p>
-        </div>
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, overflow: 'hidden', animation: `screenEnter 180ms ${EASE_OUT}` }}>
+      <PageHeader
+        title="Payroll"
+        subtitle="Configure work regime and payroll integration"
+        badge={appEntity ? ENTITIES.find(e => e.id === appEntity)?.name : null}
+        maxWidth={880}
+        padding="31px 28px 20px"
+      />
+      <div style={{ flex: 1, overflow: 'auto' }}>
+      <div style={{ maxWidth: 880, margin: '0 auto', padding: 'var(--space-300) var(--space-400)', display: 'flex', flexDirection: 'column', gap: 'var(--space-400)' }}>
 
         <div>
           <div style={SL}>Work regime</div>
@@ -11414,6 +11373,7 @@ function PayrollSettings({ companyRegime, onRegimeChange, appEntity = null, onTo
             </div>
           </div>
         </div>
+      </div>
       </div>
     </div>
   );
@@ -11582,29 +11542,26 @@ function BenefitsSettings({ appEntity = null }) {
       />
     )}
 
-    <div style={{ flex: 1, overflow: 'auto', animation: `screenEnter 180ms ${EASE_OUT}` }}>
-      <div style={{ maxWidth: 680, margin: '0 auto', padding: 'var(--space-500) var(--space-400)', display: 'flex', flexDirection: 'column', gap: 'var(--space-400)' }}>
-
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-          <div>
-            {appEntity && <span style={{ display: 'inline-flex', alignItems: 'center', padding: 'var(--space-025) var(--space-100)', borderRadius: 6, background: P.white, border: `1px solid ${P.border}`, fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginBottom: 'var(--space-150)' }}>{ENTITIES.find(e => e.id === appEntity)?.name}</span>}
-            <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 28, color: P.ink, margin: 0, letterSpacing: '-0.02em' }}>Benefits</h1>
-            <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, margin: 'var(--space-050) 0 0' }}>Configure the benefit types employees can request</p>
-          </div>
-          <Button variant="primary" icon="plus" onClick={() => setModal('new')} style={{ flexShrink: 0 }}>Add benefit type</Button>
-        </div>
-
-        <div style={{ borderBottom: `1px solid ${P.border}` }}>
-          <TabBar
-            tabs={[
-              { id: 'active',   label: `Active${activeCount > 0 ? ` (${activeCount})` : ''}` },
-              { id: 'inactive', label: `Inactive${inactiveCount > 0 ? ` (${inactiveCount})` : ''}` },
-            ]}
-            activeTab={tab}
-            onTabChange={setTab}
-            padding="0"
-          />
-        </div>
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, overflow: 'hidden', animation: `screenEnter 180ms ${EASE_OUT}` }}>
+      <PageHeader
+        title="Benefits"
+        subtitle="Configure the benefit types employees can request"
+        badge={appEntity ? ENTITIES.find(e => e.id === appEntity)?.name : null}
+        maxWidth={880}
+        padding="31px 28px 20px"
+        children={<Button variant="primary" icon="plus" onClick={() => setModal('new')} style={{ flexShrink: 0 }}>Add benefit type</Button>}
+        tabs={<TabBar
+          tabs={[
+            { id: 'active',   label: `Active${activeCount > 0 ? ` (${activeCount})` : ''}` },
+            { id: 'inactive', label: `Inactive${inactiveCount > 0 ? ` (${inactiveCount})` : ''}` },
+          ]}
+          activeTab={tab}
+          onTabChange={setTab}
+          padding="0"
+        />}
+      />
+      <div style={{ flex: 1, overflow: 'auto' }}>
+      <div style={{ maxWidth: 880, margin: '0 auto', padding: 'var(--space-300) var(--space-400)', display: 'flex', flexDirection: 'column', gap: 'var(--space-400)' }}>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-050)' }}>
           {tab === 'inactive' && inactiveCount === 0 && (
@@ -11640,6 +11597,7 @@ function BenefitsSettings({ appEntity = null }) {
           })()}
         </div>
 
+      </div>
       </div>
     </div>
     </>
@@ -12114,10 +12072,86 @@ function ComponentLibraryScreen() {
   );
 }
 
+function SettingsLandingScreen({ onNav }) {
+  const PERSONAL_CARDS = [
+    { id: 'settings-notifications', icon: 'bell',      label: 'Notifications',   desc: 'Email and in-app alert preferences' },
+    { id: 'settings-account',       icon: 'user',      label: 'Account settings', desc: 'Password, language and profile info' },
+  ];
+  const COMPANY_CARDS = [
+    { id: 'settings-entities',     icon: 'building-2',      label: 'Entities',       desc: 'Legal entities, addresses and local settings' },
+    { id: 'settings-budgets',      icon: 'wallet',          label: 'Budgets',         desc: 'Monthly expense and allowance limits' },
+    { id: 'settings-benefits',     icon: 'heart-handshake', label: 'Benefits',        desc: 'Benefit types offered to employees' },
+    { id: 'settings-packages',     icon: 'package',         label: 'Packages',        desc: 'Compensation packages and templates' },
+    { id: 'settings-documents',    icon: 'file-text',       label: 'Documents',       desc: 'Document templates and e-sign settings' },
+    { id: 'settings-timeoff',      icon: 'umbrella',        label: 'Time off',        desc: 'Leave policies, types and accrual rules' },
+    { id: 'settings-payroll',      icon: 'landmark',        label: 'Payroll',         desc: 'Payroll cycle and payment configuration' },
+    { id: 'settings-allowances',   icon: 'coins',           label: 'Allowances',      desc: 'Recurring allowance categories' },
+    { id: 'settings-expenses',     icon: 'receipt',         label: 'Expenses',        desc: 'Expense categories and approval rules' },
+    { id: 'settings-cardrules',    icon: 'credit-card',     label: 'Payflip Card',    desc: 'Card limits and physical card delivery' },
+    { id: 'settings-integrations', icon: 'plug',            label: 'Integrations',    desc: 'Connected apps and API access' },
+    { id: 'settings-team',         icon: 'shield-check',    label: 'Team & access',   desc: 'Admin roles and permissions' },
+    { id: 'settings-billing',      icon: 'receipt-text',    label: 'Billing',         desc: 'Plan, invoices and payment methods' },
+  ];
+  function SettingCard({ item }) {
+    const [hovered, setHovered] = React.useState(false);
+    return (
+      <div
+        onClick={() => onNav(item.id)}
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+        style={{
+          border: `1px solid ${P.border}`,
+          borderRadius: 12,
+          background: hovered ? P.bg : P.white,
+          padding: 'var(--space-200)',
+          cursor: 'pointer',
+          display: 'flex',
+          gap: 'var(--space-150)',
+          alignItems: 'center',
+          transition: `background 120ms ${EASE_OUT}`,
+        }}
+      >
+        <div style={{
+          width: 36, height: 36, flexShrink: 0,
+          borderRadius: 10, background: P.bg,
+          border: `1px solid ${P.border}`,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>
+          <Icon name={item.icon} size={16} color={P.ink} strokeWidth={1.5} />
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: P.ink }}>{item.label}</div>
+          <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginTop: 'var(--space-025)' }}>{item.desc}</div>
+        </div>
+        <Icon name="chevron-right" size={14} color={P.inkFaint} strokeWidth={1.75} style={{ flexShrink: 0 }} />
+      </div>
+    );
+  }
+  return (
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, overflow: 'hidden auto', animation: `screenEnter 180ms ${EASE_OUT}` }}>
+      <PageHeader title="Settings" subtitle="Manage your personal preferences and company configuration" maxWidth={880} padding="31px 28px 20px" />
+      <div style={{ padding: 'var(--space-250)', maxWidth: 880, width: '100%', margin: '0 auto' }}>
+        <div style={{ marginBottom: 'var(--space-400)' }}>
+          <div style={SL}>Personal</div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 'var(--space-150)' }}>
+            {PERSONAL_CARDS.map(item => <SettingCard key={item.id} item={item} />)}
+          </div>
+        </div>
+        <div>
+          <div style={SL}>Company</div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 'var(--space-150)' }}>
+            {COMPANY_CARDS.map(item => <SettingCard key={item.id} item={item} />)}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function StubScreen({ title, description }) {
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, overflow: 'hidden', animation: `screenEnter 180ms ${EASE_OUT}` }}>
-      <PageHeader title={title} subtitle={description} />
+      <PageHeader title={title} subtitle={description} maxWidth={880} padding="31px 28px 20px" />
       <div style={{ flex: 1, overflow: 'auto', padding: 'var(--space-250)' }}>
         <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 12, padding: 'var(--space-300)', maxWidth: 480, color: P.inkFaint, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)' }}>
           Coming soon
@@ -13496,6 +13530,7 @@ function App() {
         {screen === 'choices' && <ChoicesScreen key={appEntity ?? 'all'} choices={entityFilteredChoices} onApprove={approveChoice} onDecline={declineChoice} onDetail={setChoiceDetail} appEntity={appEntity} />}
         {screen === 'payroll-overview' && <StubScreen title="Payroll Overview" description="Monthly payroll run and submission" />}
         {screen === 'payroll-reports' && <StubScreen title="Payroll Reports" description="Reporting and exports" />}
+        {screen === 'settings-landing' && <SettingsLandingScreen onNav={handleNav} />}
         {screen === 'settings-allowances' && <AllowancesListPage key={appEntity ?? 'all'} allowances={allowances} onSaveAllowance={updated => setAllowances(prev => prev.map(a => a.id === updated.id ? updated : a))} appEntity={appEntity} />}
         {screen === 'settings-expenses' && <ExpenseCategorySettings key={appEntity ?? 'all'} categories={expenseCategories} onSave={setExpenseCategories} appEntity={appEntity} receiptAlwaysRequired={receiptAlwaysRequired} onReceiptPolicyChange={setReceiptAlwaysRequired} requireApproval={requireApproval} onRequireApprovalChange={setRequireApproval} />}
         {screen === 'settings-team' && <TeamAccessSettings key={appEntity ?? 'all'} onNav={setScreen} adminAccess={adminAccess} onAdminSave={handleAdminSave} appEntity={appEntity} />}
@@ -13507,7 +13542,7 @@ function App() {
         {screen === 'settings-cardrules' && <CardRulesSettings key={appEntity ?? 'all'} physicalCardsAllowed={physicalCardsAllowed} onPhysicalCardsChange={setPhysicalCardsAllowed} cardDelivery={cardDelivery} onCardDeliveryChange={setCardDelivery} onToast={addToast} mobilityWidgetState={mobilityWidgetState} onMobilityWidgetStateChange={setMobilityWidgetState} onNav={handleNav} appEntity={appEntity} />}
         {screen === 'changelog' && <ChangelogScreen />}
         {screen === 'components' && <ComponentLibraryScreen />}
-        {screen.startsWith('settings-') && screen !== 'settings-allowances' && screen !== 'settings-expenses' && screen !== 'settings-team' && screen !== 'settings-timeoff' && screen !== 'settings-entities' && screen !== 'settings-documents' && screen !== 'settings-payroll' && screen !== 'settings-benefits' && screen !== 'settings-cardrules' && <StubScreen title={SETTINGS_TITLES[screen] || 'Settings'} description={`Configure ${(SETTINGS_TITLES[screen] || 'settings').toLowerCase()}`} />}
+        {screen.startsWith('settings-') && screen !== 'settings-landing' && screen !== 'settings-allowances' && screen !== 'settings-expenses' && screen !== 'settings-team' && screen !== 'settings-timeoff' && screen !== 'settings-entities' && screen !== 'settings-documents' && screen !== 'settings-payroll' && screen !== 'settings-benefits' && screen !== 'settings-cardrules' && <StubScreen title={SETTINGS_TITLES[screen] || 'Settings'} description={`Configure ${(SETTINGS_TITLES[screen] || 'settings').toLowerCase()}`} />}
       </div>
 
       {calDetail && (
@@ -13619,6 +13654,13 @@ function App() {
           onSave={(req) => { saveRequest(req); setFollowUpModalOpen(false); setFollowUpPrompt(null); }}
         />
       )}
+
+      <ProtoDevPanel
+        widgetMode={mobilityWidgetState.widgetMode}
+        switchMode={(mode) => setMobilityWidgetState(prev => ({ ...prev, widgetMode: mode, hidden: false, step: 1, mandateDenied: false, mandateValidated: false, depositFailed: false, live: false, liveVisible: false }))}
+        ws={mobilityWidgetState}
+        setWs={(updater) => setMobilityWidgetState(prev => typeof updater === 'function' ? { ...prev, ...updater(prev) } : { ...prev, ...updater })}
+      />
     </div>
   );
 }
