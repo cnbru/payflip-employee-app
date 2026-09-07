@@ -10848,7 +10848,7 @@ function AddressEditModal({ title, currentAddress, defaultAddress, onSave, onSav
             <Switch size="sm" checked={separateDelivery} onChange={() => setSeparateDelivery(v => !v)} />
           </div>
           {separateDelivery && (
-            <div className="section-reveal" style={{ background: P.bg, border: `1px solid ${P.border}`, borderRadius: 10, padding: 'var(--space-200)', display: 'flex', flexDirection: 'column', gap: 'var(--space-150)' }}>
+            <div className="section-reveal" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-150)', paddingTop: 'var(--space-050)' }}>
               <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>Delivery address</div>
               <AddressFields s={dStreet} setS={setDStreet} n={dNumber} setN={setDNumber} pc={dPostalCode} setPc={setDPostalCode} c={dCity} setC={setDCity} />
             </div>
