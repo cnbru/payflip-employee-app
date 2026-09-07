@@ -11026,7 +11026,7 @@ function EntitiesSettings({ onNav, appEntity = null, companyRegime = COMPANY_REG
                   const shownVal = usingDefault ? (regime[field.key] || '—') : (displayVal || '—');
                   const inheritedTrailing = usingDefault && regime[field.key] ? (
                     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-150)' }}>
-                      <DotPill dot={false} bg={P.bg} color={P.inkSoft} border size={11}>From company</DotPill>
+                      <DotPill dot={false} bg={P.bg} color={P.inkSoft} border size={11}>Company default</DotPill>
                       <Icon name="chevron-right" size={16} color={P.inkFaint} strokeWidth={1.75} />
                     </span>
                   ) : undefined;
