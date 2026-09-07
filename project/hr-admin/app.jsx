@@ -11042,11 +11042,11 @@ function EntitiesSettings({ onNav, appEntity = null, companyRegime = COMPANY_REG
                 title={`${editing.label} — ${editing.entName}`}
                 currentAddress={entityOverrides[editing.entId]?.deliveryAddress || ''}
                 onSave={addr => setEntityOverrides(prev => ({ ...prev, [editing.entId]: { ...(prev[editing.entId] || {}), deliveryAddress: addr || null } }))}
-                onRemove={() => setEntityOverrides(prev => {
+                onRemove={entityOverrides[editing.entId]?.deliveryAddress ? () => setEntityOverrides(prev => {
                   const copy = { ...(prev[editing.entId] || {}) };
                   delete copy.deliveryAddress;
                   return { ...prev, [editing.entId]: copy };
-                })}
+                }) : undefined}
                 onClose={() => setEditing(null)}
               />
             );
