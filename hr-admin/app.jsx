@@ -229,18 +229,19 @@ function CardFooter({ children, divider }) {
   );
 }
 
-function SettingsCard({ children, info, infoVariant }) {
-  const infoBg    = infoVariant === 'blue' ? 'var(--blue-100)'  : 'transparent';
-  const infoBorder= infoVariant === 'blue' ? 'var(--blue-200)'  : P.border;
-  const infoColor = infoVariant === 'blue' ? 'var(--blue-700)'  : P.inkSoft;
-  const infoIcon  = infoVariant === 'blue' ? 'var(--blue-500)'  : P.inkSoft;
+function SettingsCard({ children, info, infoVariant, infoAction }) {
+  const infoBg    = infoVariant === 'blue' ? 'var(--blue-100)'  : infoVariant === 'warning' ? P.warningBg     : 'transparent';
+  const infoBorder= infoVariant === 'blue' ? 'var(--blue-200)'  : infoVariant === 'warning' ? P.warningBorder : P.border;
+  const infoColor = infoVariant === 'blue' ? 'var(--blue-700)'  : infoVariant === 'warning' ? P.warningDark   : P.inkSoft;
+  const infoIcon  = infoVariant === 'blue' ? 'var(--blue-500)'  : infoVariant === 'warning' ? 'var(--warning-500)' : P.inkSoft;
+  const infoIconName = infoVariant === 'warning' ? 'alert-triangle' : 'info';
   return (
     <div style={{ border: `1px solid ${P.border}`, borderRadius: 16, overflow: 'clip', background: P.white }}>
       {children}
       {info && (
         <div style={{ borderTop: `1px solid ${infoBorder}`, background: infoBg, padding: 'var(--space-150) var(--space-200)', display: 'flex', alignItems: 'flex-start', gap: 'var(--space-100)' }}>
-          <Icon name="info" size={13} color={infoIcon} strokeWidth={2} style={{ flexShrink: 0, marginTop: 'var(--space-025)' }} />
-          <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: infoColor }}>{info}</span>
+          <Icon name={infoIconName} size={13} color={infoIcon} strokeWidth={2} style={{ flexShrink: 0, marginTop: 'var(--space-025)' }} />
+          <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: infoColor, flex: 1 }}>{info}{infoAction && <><br /><span onClick={infoAction.onClick} style={{ textDecoration: 'underline', cursor: 'pointer' }}>{infoAction.label}</span></>}</span>
         </div>
       )}
     </div>
@@ -607,7 +608,7 @@ const HOLIDAY_ICON = {
 
 // ── Entity data ───────────────────────────────────────────────────────────
 const ENTITIES = [
-  { id: 'lumio-group',  name: 'Lumio Group',      jc: 'PC 200', payrollProvider: 'SD Worx', integrationId: 'SDWX-4821',  employeeCount: 15, legalAddress: 'Rue de la Loi 42, 1040 Brussels' },
+  { id: 'lumio-group',  name: 'Lumio Group',      jc: 'PC 200', payrollProvider: 'SD Worx', integrationId: 'SDWX-4821',  employeeCount: 15, legalAddress: 'Rue de la Loi 42, 1040 Brussels', deliveryAddress: 'Rue de la Loi 42, 1040 Brussels' },
   { id: 'lumio-france', name: 'Lumio Consulting', jc: 'PC 218', payrollProvider: 'ADP',     integrationId: 'ADP-BE-1192', employeeCount: 4,  emailDomain: 'lumio-consulting.be', legalAddress: 'Avenue Louise 149, 1050 Brussels' },
   { id: 'lumio-nl',     name: 'Lumio Digital',    jc: 'PC 304', payrollProvider: 'Partena', integrationId: null,          employeeCount: 4,  emailDomain: 'lumiodigital.be', legalAddress: 'Antwerpsesteenweg 124, 2000 Antwerp' },
 ];
@@ -2538,6 +2539,109 @@ function EmployeeCombobox({ value, onChange, employees, error, autoFocus }) {
           )) : (
             <div style={{ padding: 'var(--space-200) var(--space-150)', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkFaint, textAlign: 'center' }}>No employees found</div>
           )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+const PC_OPTS = [
+  'PC 100 — Auxiliary committee for workers',
+  'PC 102 — Hotels, restaurants, catering',
+  'PC 111 — Chemical industry',
+  'PC 118 — Food industry',
+  'PC 124 — Construction',
+  'PC 140 — Transport & logistics',
+  'PC 200 — White-collar commercial employees',
+  'PC 201 — Retail employees',
+  'PC 207 — Liberal professions',
+  'PC 218 — Food trade (white collar)',
+  'PC 220 — Graphic arts (white collar)',
+  'PC 226 — Insurance sector',
+  'PC 227 — Credit sector',
+  'PC 302 — Hotel & catering',
+  'PC 304 — Cleaning & maintenance',
+  'PC 305 — IT sector',
+  'PC 306 — Telecom',
+  'PC 308 — Social profit',
+  'PC 317 — Hairdressers',
+  'PC 320 — Architecture offices',
+  'PC 321 — Real estate agents',
+];
+
+function PCCombobox({ value, onChange }) {
+  const [query, setQuery] = useState('');
+  const [open, setOpen] = useState(false);
+  const { rendered: menuRendered, visible: menuVisible } = usePopoverTransition(open);
+  const ref = useRef(null);
+  const inputRef = useRef(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const close = (e) => { if (ref.current && !ref.current.contains(e.target)) { setOpen(false); setQuery(''); } };
+    document.addEventListener('mousedown', close);
+    return () => document.removeEventListener('mousedown', close);
+  }, [open]);
+
+  const filtered = React.useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return PC_OPTS;
+    return PC_OPTS.filter(o => o.toLowerCase().includes(q));
+  }, [query]);
+
+  const handleSelect = (opt) => { onChange(opt); setQuery(''); setOpen(false); };
+  const handleFocus = () => { setQuery(''); setOpen(true); };
+  const handleBlur = () => { setTimeout(() => { setOpen(false); setQuery(''); }, 150); };
+
+  return (
+    <div ref={ref} style={{ position: 'relative' }}>
+      <div style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 'var(--space-100)',
+        border: `1px solid ${open ? 'var(--gray-400)' : P.border}`, borderRadius: 8,
+        background: P.white, padding: '10px 12px', boxSizing: 'border-box',
+      }}>
+        <input
+          ref={inputRef}
+          value={open ? query : (value || '')}
+          onChange={e => { setQuery(e.target.value); if (!open) setOpen(true); }}
+          onFocus={handleFocus}
+          onBlur={handleBlur}
+          placeholder="Search by name or number…"
+          style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, minWidth: 0 }}
+        />
+        {value && !open ? (
+          <button type="button" onMouseDown={e => { e.preventDefault(); onChange(''); setQuery(''); inputRef.current?.focus(); }}
+            style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: 0, display: 'flex', flexShrink: 0 }}>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={P.inkFaint} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        ) : (
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={P.inkFaint} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+            style={{ flexShrink: 0, transition: `transform 150ms ${EASE_OUT}`, transform: open ? 'rotate(180deg)' : 'none', pointerEvents: 'none' }}>
+            <polyline points="6 9 12 15 18 9"/>
+          </svg>
+        )}
+      </div>
+      {menuRendered && (
+        <div style={{
+          position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0, zIndex: 400,
+          background: P.white, border: `1px solid ${P.border}`, borderRadius: 10,
+          boxShadow: '0 4px 16px rgba(15,13,40,0.10)', overflow: 'hidden', overflowY: 'auto', maxHeight: 220,
+          ...popoverStyle(menuVisible, 'top left'),
+        }}>
+          {filtered.length === 0 ? (
+            <div style={{ padding: '10px 12px', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft }}>No results</div>
+          ) : filtered.map(opt => (
+            <button key={opt} type="button" onMouseDown={() => handleSelect(opt)} style={{
+              display: 'block', width: '100%', textAlign: 'left', padding: '8px 12px',
+              border: 'none', cursor: 'pointer', background: value === opt ? P.bg : 'transparent',
+              fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink,
+            }}
+            onMouseEnter={e => e.currentTarget.style.background = P.bg}
+            onMouseLeave={e => e.currentTarget.style.background = value === opt ? P.bg : 'transparent'}
+            >{opt}</button>
+          ))}
         </div>
       )}
     </div>
@@ -8695,9 +8799,24 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, cardDe
         </div>}
 
         {/* Physical cards — issuance toggle + delivery sub-group in one card */}
+        {(() => {
+          const entitiesMissing = ENTITIES.filter(e => !e.deliveryAddress);
+          const deliveryGap = draftPhysicalCards && draftCardDelivery === 'office' && entitiesMissing.length > 0;
+          const missingNames = entitiesMissing.map(e => e.name).join(', ');
+          return (
         <div>
           <div style={SL}>Physical cards</div>
-          <SettingsCard info={!draftPhysicalCards ? 'Physical cards are optional. Enable them to let employees request a card from the Payflip app. Ships in 5–7 days · €9 per card.' : undefined}>
+          <SettingsCard
+            info={
+              !draftPhysicalCards
+                ? 'Physical cards are optional. Enable them to let employees request a card from the Payflip app. Ships in 5–7 days · €9 per card.'
+                : deliveryGap
+                ? `${entitiesMissing.length} of ${ENTITIES.length} ${entitiesMissing.length === 1 ? 'entity has' : 'entities have'} no delivery address — ${missingNames} will fall back to the registered address.`
+                : undefined
+            }
+            infoVariant={deliveryGap ? 'warning' : undefined}
+            infoAction={deliveryGap ? { label: 'Configure in Entities', onClick: () => onNav && onNav('settings-entities') } : undefined}
+          >
             <SettingsRow
               icon="credit-card"
               label="Allow physical card requests"
@@ -8709,8 +8828,8 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, cardDe
                 {appEntity ? (
                   <SettingsRow
                     icon="truck"
-                    label="Set delivery address"
-                    value={effectiveDelivery === 'office' ? 'Company address' : 'Employee address'}
+                    label="Card delivery"
+                    value={effectiveDelivery === 'office' ? 'Entity delivery address' : "Employee's home address"}
                     subtitle={entityDeliveryOverrides[appEntity] != null ? 'Custom for this entity' : undefined}
                     onClick={() => setShowEntityDeliveryModal(appEntity)}
                     last
@@ -8720,13 +8839,12 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, cardDe
                     const effectiveModes = ENTITIES.map(e => entityDeliveryOverrides[e.id] ?? draftCardDelivery);
                     const allSame = effectiveModes.every(m => m === effectiveModes[0]);
                     const summaryValue = allSame
-                      ? (effectiveModes[0] === 'office' ? 'Company address' : 'Employee address')
+                      ? (effectiveModes[0] === 'office' ? 'Entity delivery address' : "Employee's home address")
                       : 'Varies by entity';
                     return (
                       <SettingsRow
                         icon="truck"
-                        label="Set delivery method"
-
+                        label="Card delivery"
                         value={summaryValue}
                         valueColor={!allSame ? P.inkSoft : undefined}
                         onClick={() => setShowDeliveryModal(true)}
@@ -8739,6 +8857,8 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, cardDe
             )}
           </SettingsCard>
         </div>
+          );
+        })()}
 
         {/* Auto top-up — company-wide, hidden at entity scope */}
         {!appEntity && (() => {
@@ -8776,18 +8896,20 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, cardDe
           );
         })()}
 
-        {showDeliveryModal && (
+        {showDeliveryModal && (() => {
+          return (
           <PickModal
-            title="Set delivery method"
+            title="Card delivery"
             options={[
-              { value: 'home', label: <span style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-100)' }}>Employee address<DotPill dot={false} size={11} bg="var(--blue-100)" color="var(--blue-500)" border padding="1px 6px">€9 / card</DotPill></span>, hint: 'Employees request a card from the Payflip app and enter their home address.' },
-              { value: 'office', label: <span style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-100)' }}>Company address<DotPill dot={false} size={11} bg="var(--blue-100)" color="var(--blue-500)" border padding="1px 6px">€9 / card</DotPill></span>, hint: 'Cards ship to each entity\'s configured delivery address.' },
+              { value: 'home', label: <span style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-100)' }}>Employee's home address<DotPill dot={false} size={11} bg="var(--blue-100)" color="var(--blue-500)" border padding="1px 6px">€9 / card</DotPill></span>, hint: 'Each employee enters their address when ordering.' },
+              { value: 'office', label: <span style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-100)' }}>Entity delivery address<DotPill dot={false} size={11} bg="var(--blue-100)" color="var(--blue-500)" border padding="1px 6px">€9 / card</DotPill></span>, hint: 'Ships to each entity\'s configured delivery address.' },
             ]}
             value={draftCardDelivery}
             onSave={v => { setDraftCardDelivery(v); }}
             onClose={() => setShowDeliveryModal(false)}
           />
-        )}
+          );
+        })()}
         {showEntityDeliveryModal && (() => {
           const ent = ENTITIES.find(e => e.id === showEntityDeliveryModal);
           const entDelivery = entityDeliveryOverrides[showEntityDeliveryModal] ?? draftCardDelivery;
@@ -10761,6 +10883,131 @@ function ChoicesScreen({ choices, onApprove, onDecline, onDetail, appEntity = nu
 }
 
 
+// ── Address helpers ───────────────────────────────────────────────────────
+function parseAddressBE(str) {
+  if (!str) return { street: '', number: '', postalCode: '', city: '' };
+  const [streetPart = '', cityPart = ''] = str.split(', ');
+  const numMatch = streetPart.match(/^(.*?)\s+(\d+\w*)\s*$/);
+  const street = numMatch ? numMatch[1] : streetPart;
+  const number = numMatch ? numMatch[2] : '';
+  const cityMatch = cityPart.match(/^(\d{4})\s+(.*)$/);
+  const postalCode = cityMatch ? cityMatch[1] : '';
+  const city = cityMatch ? cityMatch[2] : cityPart;
+  return { street, number, postalCode, city };
+}
+function formatAddressBE({ street, number, postalCode, city }) {
+  const streetLine = [street, number].filter(Boolean).join(' ');
+  const cityLine = [postalCode, city].filter(Boolean).join(' ');
+  return [streetLine, cityLine].filter(Boolean).join(', ');
+}
+
+const addrInputStyle = { width: '100%', border: `1px solid ${P.border}`, borderRadius: 8, padding: 'var(--space-100) var(--space-150)', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, outline: 'none', boxSizing: 'border-box' };
+const addrLabelStyle = { display: 'block', fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginBottom: 'var(--space-075)' };
+
+function AddressFields({ s, setS, n, setN, pc, setPc, c, setC, autoFocus }) {
+  return (
+    <>
+      <div style={{ display: 'flex', gap: 'var(--space-150)' }}>
+        <div style={{ flex: 3 }}>
+          <label style={addrLabelStyle}>Street</label>
+          <input autoFocus={autoFocus} value={s} onChange={e => setS(e.target.value)} placeholder="Rue de la Loi" style={addrInputStyle} />
+        </div>
+        <div style={{ flex: 1 }}>
+          <label style={addrLabelStyle}>No.</label>
+          <input value={n} onChange={e => setN(e.target.value)} placeholder="42" style={addrInputStyle} />
+        </div>
+      </div>
+      <div style={{ display: 'flex', gap: 'var(--space-150)' }}>
+        <div style={{ flex: 1 }}>
+          <label style={addrLabelStyle}>Postal code</label>
+          <input value={pc} onChange={e => setPc(e.target.value)} placeholder="1040" style={addrInputStyle} />
+        </div>
+        <div style={{ flex: 2 }}>
+          <label style={addrLabelStyle}>City</label>
+          <input value={c} onChange={e => setC(e.target.value)} placeholder="Brussels" style={addrInputStyle} />
+        </div>
+      </div>
+    </>
+  );
+}
+
+function AddressEditModal({ title, currentAddress, defaultAddress, onSave, onClose }) {
+  const parsed = parseAddressBE(currentAddress || defaultAddress || '');
+  const [street, setStreet] = React.useState(parsed.street);
+  const [number, setNumber] = React.useState(parsed.number);
+  const [postalCode, setPostalCode] = React.useState(parsed.postalCode);
+  const [city, setCity] = React.useState(parsed.city);
+
+  return (
+    <ModalShell title={title} onClose={onClose} width={480}
+      footer={close => (
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-150)', padding: 'var(--space-200) var(--space-300)', borderTop: `1px solid ${P.border}` }}>
+          <Button variant="secondary" onClick={close}>Cancel</Button>
+          <Button variant="primary" onClick={() => { onSave(formatAddressBE({ street, number, postalCode, city })); close(); }}>Save</Button>
+        </div>
+      )}>
+      {() => (
+        <div style={{ padding: 'var(--space-200) var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-150)' }}>
+          <AddressFields s={street} setS={setStreet} n={number} setN={setNumber} pc={postalCode} setPc={setPostalCode} c={city} setC={setCity} autoFocus />
+        </div>
+      )}
+    </ModalShell>
+  );
+}
+
+function DeliveryAddressEditModal({ title, currentAddress, registeredAddress, onSave, onClose }) {
+  const parsedReg = parseAddressBE(registeredAddress || '');
+  const parsedCurrent = parseAddressBE(currentAddress || '');
+  const sameAsReg = currentAddress && currentAddress === registeredAddress;
+  const [useRegistered, setUseRegistered] = React.useState(!!sameAsReg);
+  const [street, setStreet] = React.useState(parsedCurrent.street);
+  const [number, setNumber] = React.useState(parsedCurrent.number);
+  const [postalCode, setPostalCode] = React.useState(parsedCurrent.postalCode);
+  const [city, setCity] = React.useState(parsedCurrent.city);
+
+  const handleToggle = (val) => {
+    setUseRegistered(val);
+    if (val) {
+      setStreet(parsedReg.street);
+      setNumber(parsedReg.number);
+      setPostalCode(parsedReg.postalCode);
+      setCity(parsedReg.city);
+    } else {
+      setStreet(''); setNumber(''); setPostalCode(''); setCity('');
+    }
+  };
+
+  const disabled = useRegistered;
+
+  return (
+    <ModalShell title={title} onClose={onClose} width={480}
+      footer={close => (
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-150)', padding: 'var(--space-200) var(--space-300)', borderTop: `1px solid ${P.border}` }}>
+          <Button variant="secondary" onClick={close}>Cancel</Button>
+          <Button variant="primary" onClick={() => {
+            const addr = useRegistered ? registeredAddress : formatAddressBE({ street, number, postalCode, city });
+            onSave(addr || null);
+            close();
+          }}>Save</Button>
+        </div>
+      )}>
+      {() => (
+        <div style={{ padding: 'var(--space-200) var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-150)' }}>
+          <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', userSelect: 'none' }}>
+            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: P.ink }}>Same as registered address</span>
+            <Switch checked={useRegistered} onChange={() => handleToggle(!useRegistered)} />
+          </label>
+          {!useRegistered && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-150)', paddingTop: 'var(--space-050)' }} className="section-reveal">
+              <AddressFields s={street} setS={setStreet} n={number} setN={setNumber} pc={postalCode} setPc={setPostalCode} c={city} setC={setCity} autoFocus />
+            </div>
+          )}
+        </div>
+      )}
+    </ModalShell>
+  );
+}
+
 // ── Entities settings screen ──────────────────────────────────────────────
 function EntitiesSettings({ onNav, appEntity = null, companyRegime = COMPANY_REGIME_DEFAULTS, onRegimeChange }) {
   const [selectedEntity, setSelectedEntity] = useState(null);
@@ -10768,6 +11015,10 @@ function EntitiesSettings({ onNav, appEntity = null, companyRegime = COMPANY_REG
   const [editing, setEditing] = useState(null);
   const [editValue, setEditValue] = useState('');
   const [entityOverrides, setEntityOverrides] = useState({});
+  const [showAddEntity, setShowAddEntity] = useState(false);
+  const [newEntityName, setNewEntityName] = useState('');
+  const [newEntityJC, setNewEntityJC] = useState('');
+  const [extraEntities, setExtraEntities] = useState([]);
 
   const regime = { ...COMPANY_REGIME_DEFAULTS, ...companyRegime };
 
@@ -10873,26 +11124,59 @@ function EntitiesSettings({ onNav, appEntity = null, companyRegime = COMPANY_REG
           <div>
             <div style={SL}>Settings</div>
             <SettingsCard>
-              {allEntityFields.map((field, idx) => {
-                const rawVal = getEntValue(ent, field.key);
-                const usingDefault = field.inheritable && !rawVal;
-                const displayVal = rawVal || null;
-                const isOverride = field.inheritable && !!rawVal;
-                const shownVal = usingDefault ? (regime[field.key] || '—') : (displayVal || '—');
-                const overrideBadge = <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: 'var(--bg-primary-default)', background: 'rgb(243, 240, 255)', borderRadius: 10, padding: 'var(--space-025) var(--space-100)', whiteSpace: 'nowrap' }}>Override</span>;
-                return (
-                  <SettingsRow
-                    key={field.key}
-                    icon={field.icon}
-                    label={field.label}
-                    value={shownVal}
-                    valueColor={usingDefault ? P.inkFaint : P.inkSoft}
-                    trailing={isOverride ? overrideBadge : undefined}
-                    onClick={() => openEntityFieldEdit(ent, field)}
-                    last={idx === allEntityFields.length - 1}
-                  />
-                );
-              })}
+              {(() => {
+                const deliveryAddr = entityOverrides[ent.id]?.deliveryAddress || null;
+                const rows = allEntityFields.map((field) => {
+                  const rawVal = getEntValue(ent, field.key);
+                  const usingDefault = field.inheritable && !rawVal;
+                  const displayVal = rawVal || null;
+                  const shownVal = usingDefault ? (regime[field.key] || '—') : (displayVal || '—');
+                  const inheritedTrailing = usingDefault && regime[field.key] ? (
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-150)' }}>
+                      <DotPill dot={false} bg={P.bg} color={P.inkSoft} border size={11}>Company default</DotPill>
+                      <Icon name="chevron-right" size={16} color={P.inkFaint} strokeWidth={1.75} />
+                    </span>
+                  ) : undefined;
+                  return { key: field.key, el: (
+                    <SettingsRow
+                      key={field.key}
+                      icon={field.icon}
+                      label={field.label}
+                      value={shownVal}
+                      valueColor={usingDefault ? P.inkFaint : P.inkSoft}
+                      trailing={inheritedTrailing}
+                      onClick={() => openEntityFieldEdit(ent, field)}
+                    />
+                  )};
+                });
+                // Always inject delivery address row after legalAddress
+                const result = [];
+                rows.forEach(r => {
+                  result.push(r.el);
+                  if (r.key === 'legalAddress') {
+                    result.push(
+                      <SettingsRow
+                        key="deliveryAddress"
+                        icon="truck"
+                        label="Delivery address"
+                        value={deliveryAddr || undefined}
+                        valueColor={P.inkSoft}
+                        trailing={!deliveryAddr ? (
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-150)' }}>
+                            <DotPill bg={P.warningBg} color={P.warningDark} size={11}>Not set</DotPill>
+                            <Icon name="chevron-right" size={16} color={P.inkFaint} strokeWidth={1.75} />
+                          </span>
+                        ) : undefined}
+                        onClick={() => setEditing({ scope: 'entity', entId: ent.id, entName: ent.name, field: 'deliveryAddress', label: 'Delivery address' })}
+                      />
+                    );
+                  }
+                });
+                // Set last on final element
+                const last = result[result.length - 1];
+                result[result.length - 1] = React.cloneElement(last, { last: true });
+                return result;
+              })()}
             </SettingsCard>
           </div>
         </div>
@@ -10900,6 +11184,28 @@ function EntitiesSettings({ onNav, appEntity = null, companyRegime = COMPANY_REG
         {/* Field edit modal */}
         {editing && (() => {
           const save = saveEntity;
+          if (editing.field === 'legalAddress') {
+            return (
+              <AddressEditModal
+                title={`${editing.label} — ${editing.entName}`}
+                currentAddress={editValue || null}
+                defaultAddress={editing.defaultValue}
+                onSave={addr => setEntityOverrides(prev => ({ ...prev, [editing.entId]: { ...(prev[editing.entId] || {}), legalAddress: addr || null } }))}
+                onClose={() => setEditing(null)}
+              />
+            );
+          }
+          if (editing.field === 'deliveryAddress') {
+            return (
+              <DeliveryAddressEditModal
+                title={`${editing.label} — ${editing.entName}`}
+                currentAddress={entityOverrides[editing.entId]?.deliveryAddress || ''}
+                registeredAddress={(() => { const ent = ENTITIES.find(e => e.id === editing.entId); return entityOverrides[editing.entId]?.legalAddress || ent?.legalAddress || ''; })()}
+                onSave={addr => setEntityOverrides(prev => ({ ...prev, [editing.entId]: { ...(prev[editing.entId] || {}), deliveryAddress: addr || null } }))}
+                onClose={() => setEditing(null)}
+              />
+            );
+          }
           return (
             <ModalShell title={`${editing.label} — ${editing.entName}`} onClose={() => setEditing(null)} width={440}
               footer={close => (
@@ -10946,17 +11252,19 @@ function EntitiesSettings({ onNav, appEntity = null, companyRegime = COMPANY_REG
         badge={appEntity ? ENTITIES.find(e => e.id === appEntity)?.name : null}
         maxWidth={880}
         padding="31px 28px 20px"
-      />
+      >
+        <Button variant="primary" icon="plus" onClick={() => { setNewEntityName(''); setNewEntityJC(''); setShowAddEntity(true); }}>Add entity</Button>
+      </PageHeader>
       <div style={{ flex: 1, overflow: 'auto' }}>
       <div style={{ maxWidth: 880, margin: '0 auto', padding: 'var(--space-300) var(--space-400)', display: 'flex', flexDirection: 'column', gap: 'var(--space-400)' }}>
 
         {/* Entity list */}
         <div style={card}>
-          {ENTITIES.map((ent, idx) => {
-            const overrides = countOverrides(ent);
+          {[...ENTITIES, ...extraEntities].map((ent, idx, all) => {
+            const missingDelivery = !ent.deliveryAddress && !entityOverrides[ent.id]?.deliveryAddress;
             return (
               <div key={ent.id} onClick={() => setSelectedEntity(ent)}
-                style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-200)', padding: 'var(--space-200) var(--space-250)', borderBottom: idx < ENTITIES.length - 1 ? `1px solid ${P.border}` : 'none', cursor: 'pointer', transition: 'background 100ms' }}
+                style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-200)', padding: 'var(--space-200) var(--space-250)', borderBottom: idx < all.length - 1 ? `1px solid ${P.border}` : 'none', cursor: 'pointer', transition: 'background 100ms' }}
                 onMouseEnter={e => e.currentTarget.style.background = P.bg}
                 onMouseLeave={e => e.currentTarget.style.background = ''}>
                 <div style={{ width: 36, height: 36, borderRadius: 10, background: P.bg, border: `1px solid ${P.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -10966,10 +11274,8 @@ function EntitiesSettings({ onNav, appEntity = null, companyRegime = COMPANY_REG
                   <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink }}>{ent.name}</div>
                   <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginTop: 'var(--space-025)' }}>{ent.jc} · {ent.employeeCount} employees</div>
                 </div>
-                {overrides > 0 && (
-                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.action, background: '#f3f0ff', padding: 'var(--space-025) var(--space-100)', borderRadius: 10, whiteSpace: 'nowrap' }}>
-                    {overrides} override{overrides !== 1 ? 's' : ''}
-                  </span>
+                {missingDelivery && (
+                  <DotPill bg={P.warningBg} color={P.warningDark} size={11}>No delivery address</DotPill>
                 )}
                 <Icon name="chevron-right" size={16} color={P.inkFaint} strokeWidth={1.75} style={{ flexShrink: 0 }} />
               </div>
@@ -10977,11 +11283,54 @@ function EntitiesSettings({ onNav, appEntity = null, companyRegime = COMPANY_REG
           })}
         </div>
 
-        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-          <Button variant="secondary" icon="plus" onClick={() => {}}>Add entity</Button>
-        </div>
       </div>
       </div>
+
+      {showAddEntity && (
+        <ModalShell
+          title="Add entity"
+          onClose={() => setShowAddEntity(false)}
+          width={440}
+          footer={close => (
+            <div style={{ padding: 'var(--space-200) var(--space-300)', borderTop: `1px solid ${P.border}`, display: 'flex', gap: 'var(--space-125)', justifyContent: 'flex-end' }}>
+              <Button variant="secondary" onClick={close}>Cancel</Button>
+              <Button variant="primary" onClick={() => {
+                const jcCode = newEntityJC.split(' — ')[0].trim();
+                const id = newEntityName.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+                setExtraEntities(prev => [...prev, { id, name: newEntityName.trim(), jc: jcCode, employeeCount: 0 }]);
+                close();
+              }} disabled={!newEntityName.trim() || !newEntityJC.trim()}>Add entity</Button>
+            </div>
+          )}
+        >
+          {() => (
+            <div style={{ padding: 'var(--space-250) var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-250)' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-075)' }}>
+                <label style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.inkSoft }}>Entity name</label>
+                <input
+                  autoFocus
+                  value={newEntityName}
+                  onChange={e => setNewEntityName(e.target.value)}
+                  placeholder="e.g. Lumio Digital"
+                  style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, border: `1px solid ${P.border}`, borderRadius: 8, padding: '10px 12px', outline: 'none', width: '100%' }}
+                  onFocus={e => e.target.style.borderColor = 'var(--gray-400)'}
+                  onBlur={e => e.target.style.borderColor = P.border}
+                />
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-075)' }}>
+                <label style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.inkSoft }}>Joint committee (PC)</label>
+                <PCCombobox value={newEntityJC} onChange={setNewEntityJC} />
+              </div>
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: 'var(--space-100)', background: P.bg, border: `1px solid ${P.border}`, borderRadius: 8, padding: 'var(--space-150) var(--space-200)' }}>
+                <Icon name="info" size={14} color={P.inkSoft} strokeWidth={2} style={{ flexShrink: 0, marginTop: 2 }} />
+                <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, lineHeight: 1.5 }}>
+                  All other settings — address, legal representative, email domain — will be inherited from <strong>{ENTITIES[0].name}</strong> until you set them specifically for this entity.
+                </span>
+              </div>
+            </div>
+          )}
+        </ModalShell>
+      )}
 
     </div>
   );
