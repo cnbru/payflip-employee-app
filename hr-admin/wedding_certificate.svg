@@ -1,0 +1,88 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 595 842" width="595" height="842">
+  <!-- Background -->
+  <rect width="595" height="842" fill="white"/>
+
+  <!-- Decorative border -->
+  <rect x="20" y="20" width="555" height="802" rx="4" fill="none" stroke="#c8a96e" stroke-width="1.5"/>
+  <rect x="26" y="26" width="543" height="790" rx="3" fill="none" stroke="#e8d5a8" stroke-width="0.8"/>
+
+  <!-- Corner ornaments -->
+  <text x="30" y="48" font-family="Georgia, serif" font-size="18" fill="#c8a96e" opacity="0.7">❧</text>
+  <text x="551" y="48" font-family="Georgia, serif" font-size="18" fill="#c8a96e" opacity="0.7" text-anchor="end">❧</text>
+  <text x="30" y="820" font-family="Georgia, serif" font-size="18" fill="#c8a96e" opacity="0.7">❧</text>
+  <text x="551" y="820" font-family="Georgia, serif" font-size="18" fill="#c8a96e" opacity="0.7" text-anchor="end">❧</text>
+
+  <!-- Header: commune seal area -->
+  <text x="298" y="76" font-family="Arial, sans-serif" font-size="10" fill="#888" text-anchor="middle" letter-spacing="3">COMMUNE D'IXELLES · GEMEENTE ELSENE</text>
+  <text x="298" y="90" font-family="Arial, sans-serif" font-size="9.5" fill="#aaa" text-anchor="middle">Service de l'État Civil · Dienst Burgerlijke Stand</text>
+
+  <!-- Thin rule -->
+  <line x1="80" y1="100" x2="515" y2="100" stroke="#e0cc9a" stroke-width="0.8"/>
+
+  <!-- Title -->
+  <text x="298" y="138" font-family="Georgia, serif" font-size="20" font-weight="bold" fill="#4a3520" text-anchor="middle">Acte de Mariage</text>
+  <text x="298" y="158" font-family="Georgia, serif" font-size="14" fill="#7a6040" text-anchor="middle" font-style="italic">Huwelijksakte</text>
+
+  <!-- Thin rule -->
+  <line x1="140" y1="170" x2="455" y2="170" stroke="#c8a96e" stroke-width="1"/>
+
+  <!-- Intro paragraph -->
+  <text x="298" y="204" font-family="Georgia, serif" font-size="11" fill="#333" text-anchor="middle">L'an deux mille vingt-six, le dix-neuvième jour de mars,</text>
+  <text x="298" y="220" font-family="Georgia, serif" font-size="11" fill="#333" text-anchor="middle">par-devant nous, Officier de l'État Civil de la commune d'Ixelles,</text>
+  <text x="298" y="236" font-family="Georgia, serif" font-size="11" fill="#333" text-anchor="middle">ont comparu en vue de contracter mariage :</text>
+
+  <!-- Groom block -->
+  <rect x="48" y="252" width="499" height="80" rx="3" fill="#fdfaf4" stroke="#e0cc9a" stroke-width="1"/>
+  <text x="64" y="272" font-family="Arial, sans-serif" font-size="9.5" fill="#888" letter-spacing="1.5">ÉPOUX / ECHTGENOOT</text>
+  <text x="64" y="290" font-family="Arial, sans-serif" font-size="11.5" font-weight="700" fill="#2a1a08">Bram Goossens</text>
+  <text x="64" y="306" font-family="Arial, sans-serif" font-size="10" fill="#555">né le 4 août 1988 à Gand · Nationalité belge</text>
+  <text x="64" y="320" font-family="Arial, sans-serif" font-size="10" fill="#555">domicilié : Rue du Trône 48, 1050 Ixelles</text>
+
+  <!-- Bride block -->
+  <rect x="48" y="344" width="499" height="80" rx="3" fill="#fdfaf4" stroke="#e0cc9a" stroke-width="1"/>
+  <text x="64" y="364" font-family="Arial, sans-serif" font-size="9.5" fill="#888" letter-spacing="1.5">ÉPOUSE / ECHTGENOTE</text>
+  <text x="64" y="382" font-family="Arial, sans-serif" font-size="11.5" font-weight="700" fill="#2a1a08">Amélie De Wolf</text>
+  <text x="64" y="398" font-family="Arial, sans-serif" font-size="10" fill="#555">née le 17 novembre 1990 à Bruxelles · Nationalité belge</text>
+  <text x="64" y="412" font-family="Arial, sans-serif" font-size="10" fill="#555">domiciliée : Rue du Trône 48, 1050 Ixelles</text>
+
+  <!-- Celebration text -->
+  <text x="298" y="452" font-family="Georgia, serif" font-size="11" fill="#333" text-anchor="middle">Les comparants ont déclaré vouloir se prendre pour époux et, après</text>
+  <text x="298" y="468" font-family="Georgia, serif" font-size="11" fill="#333" text-anchor="middle">avoir reçu leur consentement mutuel, nous les avons déclarés unis</text>
+  <text x="298" y="484" font-family="Georgia, serif" font-size="11" fill="#333" text-anchor="middle">par les liens du mariage en présence des témoins soussignés.</text>
+
+  <!-- Date prominent -->
+  <text x="298" y="520" font-family="Georgia, serif" font-size="13" font-weight="bold" fill="#4a3520" text-anchor="middle">Célébré le jeudi 19 mars 2026 à 11h00</text>
+
+  <!-- Witnesses -->
+  <text x="100" y="556" font-family="Arial, sans-serif" font-size="9.5" fill="#888" text-anchor="middle" letter-spacing="1">TÉMOIN 1</text>
+  <text x="100" y="572" font-family="Arial, sans-serif" font-size="10.5" fill="#333" text-anchor="middle">Jan Goossens</text>
+  <text x="100" y="586" font-family="Arial, sans-serif" font-size="9.5" fill="#888" text-anchor="middle">frère de l'époux</text>
+
+  <text x="298" y="556" font-family="Arial, sans-serif" font-size="9.5" fill="#888" text-anchor="middle" letter-spacing="1">TÉMOIN 2</text>
+  <text x="298" y="572" font-family="Arial, sans-serif" font-size="10.5" fill="#333" text-anchor="middle">Nathalie Dubois</text>
+  <text x="298" y="586" font-family="Arial, sans-serif" font-size="9.5" fill="#888" text-anchor="middle">amie de l'épouse</text>
+
+  <!-- Signature lines -->
+  <line x1="56" y1="650" x2="196" y2="650" stroke="#bbb" stroke-width="1"/>
+  <text x="126" y="664" font-family="Arial, sans-serif" font-size="9.5" fill="#888" text-anchor="middle">Signature des époux</text>
+
+  <line x1="230" y1="650" x2="365" y2="650" stroke="#bbb" stroke-width="1"/>
+  <text x="298" y="664" font-family="Arial, sans-serif" font-size="9.5" fill="#888" text-anchor="middle">Signature des témoins</text>
+
+  <line x1="400" y1="650" x2="540" y2="650" stroke="#bbb" stroke-width="1"/>
+  <text x="470" y="664" font-family="Arial, sans-serif" font-size="9.5" fill="#888" text-anchor="middle">L'Officier d'État Civil</text>
+
+  <!-- Official stamp -->
+  <circle cx="470" cy="612" r="34" fill="none" stroke="#c8a96e" stroke-width="1.8" opacity="0.5"/>
+  <circle cx="470" cy="612" r="29" fill="none" stroke="#c8a96e" stroke-width="0.8" opacity="0.3"/>
+  <text x="470" y="606" font-family="Arial, sans-serif" font-size="7" fill="#7a6040" text-anchor="middle" opacity="0.7">COMMUNE D'IXELLES</text>
+  <text x="470" y="616" font-family="Arial, sans-serif" font-size="6.5" fill="#7a6040" text-anchor="middle" opacity="0.7">ÉTAT CIVIL · 2026</text>
+  <text x="470" y="626" font-family="Arial, sans-serif" font-size="6" fill="#7a6040" text-anchor="middle" opacity="0.5">N° 2026/0847</text>
+
+  <!-- Registration -->
+  <text x="298" y="700" font-family="Arial, sans-serif" font-size="9.5" fill="#aaa" text-anchor="middle">Acte n° 2026/0847 · Registre des mariages · Tome XLII folio 12</text>
+
+  <!-- Footer rule -->
+  <line x1="80" y1="712" x2="515" y2="712" stroke="#e0cc9a" stroke-width="0.8"/>
+  <text x="298" y="726" font-family="Arial, sans-serif" font-size="8.5" fill="#bbb" text-anchor="middle">Délivré conformément aux registres de l'état civil · Afgeleverd overeenkomstig de registers van de burgerlijke stand</text>
+</svg>
