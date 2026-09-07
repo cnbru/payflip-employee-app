@@ -8697,11 +8697,10 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, cardDe
         {/* Physical cards — issuance toggle + delivery sub-group in one card */}
         <div>
           <div style={SL}>Physical cards</div>
-          <SettingsCard info={!draftPhysicalCards ? 'Physical cards are optional. Enable them to let employees request a card from the app.' : undefined}>
+          <SettingsCard info={!draftPhysicalCards ? 'Physical cards are optional. Enable them to let employees request a card from the Payflip app. Ships in 5–7 days · €9 per card.' : undefined}>
             <SettingsRow
               icon="credit-card"
               label="Physical card requests"
-              subtitle="Ships in 5–7 days · €9 per card"
               trailing={<Switch size="sm" checked={draftPhysicalCards} onChange={() => setDraftPhysicalCards(v => !v)} />}
               last={!draftPhysicalCards}
             />
