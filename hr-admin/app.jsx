@@ -7091,24 +7091,30 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
                     </button>
                   </div>
                   {/* Stat grid */}
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', borderTop: `1px solid ${P.borderLight || P.border}` }}>
-                    <div style={{ padding: 'var(--space-150) var(--space-200)', display: 'flex', flexDirection: 'column', gap: 'var(--space-075)' }}>
+                  <div style={{ height: 1, background: P.borderLight || P.border, margin: '0 var(--space-200)' }} />
+                  <div style={{ position: 'relative', display: 'grid', gridTemplateColumns: '1fr 1fr' }}>
+                    <div style={{ position: 'absolute', left: '50%', top: 'var(--space-150)', bottom: 'var(--space-150)', width: 1, background: P.borderLight || P.border }} />
+                    <div style={{ padding: 'var(--space-150) var(--space-200)', display: 'flex', flexDirection: 'column', gap: 'var(--space-125)' }}>
                       <div style={{ width: 26, height: 26, borderRadius: 6, background: P.white, border: `1px solid ${P.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: P.inkSoft }}>
                         <Icon name="users" size={13} color={P.inkSoft} strokeWidth={1.75} />
                       </div>
-                      <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 17, color: P.ink, letterSpacing: '-0.02em', fontVariantNumeric: 'tabular-nums', lineHeight: 1 }}>
-                        {Math.round(deposit / (empCount * 12.5)) >= 1 ? `~${Math.round(deposit / (empCount * 12.5))} months` : '< 1 month'}
-                      </span>
-                      <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, lineHeight: 1.35 }}>coverage for {empCount} employees</span>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-050)' }}>
+                        <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 17, color: P.ink, letterSpacing: '-0.02em', fontVariantNumeric: 'tabular-nums', lineHeight: 1 }}>
+                          {Math.round(deposit / (empCount * 12.5)) >= 1 ? `~${Math.round(deposit / (empCount * 12.5))} months` : '< 1 month'}
+                        </span>
+                        <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, lineHeight: 1.35 }}>coverage for {empCount} employees</span>
+                      </div>
                     </div>
-                    <div style={{ padding: 'var(--space-150) var(--space-200)', display: 'flex', flexDirection: 'column', gap: 'var(--space-075)', borderLeft: `1px solid ${P.borderLight || P.border}` }}>
+                    <div style={{ padding: 'var(--space-150) var(--space-200)', display: 'flex', flexDirection: 'column', gap: 'var(--space-125)' }}>
                       <div style={{ width: 26, height: 26, borderRadius: 6, background: P.white, border: `1px solid ${P.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: P.inkSoft }}>
                         <Icon name="refresh-cw" size={13} color={P.inkSoft} strokeWidth={1.75} />
                       </div>
-                      <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 17, color: P.ink, letterSpacing: '-0.02em', fontVariantNumeric: 'tabular-nums', lineHeight: 1 }}>
-                        €{Math.round(deposit / 15) * 5 >= 50 ? (Math.round(deposit / 15) * 5).toLocaleString('de-DE') : 50}
-                      </span>
-                      <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, lineHeight: 1.35 }}>auto top-up trigger</span>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-050)' }}>
+                        <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 17, color: P.ink, letterSpacing: '-0.02em', fontVariantNumeric: 'tabular-nums', lineHeight: 1 }}>
+                          €{Math.round(deposit / 15) * 5 >= 50 ? (Math.round(deposit / 15) * 5).toLocaleString('de-DE') : 50}
+                        </span>
+                        <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, lineHeight: 1.35 }}>auto top-up trigger</span>
+                      </div>
                     </div>
                   </div>
                 </div>
