@@ -8794,16 +8794,12 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, cardDe
         })()}
 
         {showDeliveryModal && (() => {
-          const entitiesMissing = ENTITIES.filter(e => !e.deliveryAddress);
-          const officeHint = entitiesMissing.length === 0
-            ? `Cards ship to each entity's configured delivery address. All ${ENTITIES.length} entities are configured.`
-            : `Cards ship to each entity's delivery address. ${entitiesMissing.length} of ${ENTITIES.length} ${entitiesMissing.length === 1 ? 'entity has' : 'entities have'} no delivery address and will fall back to the registered address: ${entitiesMissing.map(e => e.name).join(', ')}.`;
           return (
           <PickModal
             title="Card delivery"
             options={[
-              { value: 'home', label: <span style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-100)' }}>Employee's home address<DotPill dot={false} size={11} bg="var(--blue-100)" color="var(--blue-500)" border padding="1px 6px">€9 / card</DotPill></span>, hint: 'Employees enter their home address when requesting a card in the Payflip app.' },
-              { value: 'office', label: <span style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-100)' }}>Entity delivery address<DotPill dot={false} size={11} bg="var(--blue-100)" color="var(--blue-500)" border padding="1px 6px">€9 / card</DotPill></span>, hint: officeHint },
+              { value: 'home', label: <span style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-100)' }}>Employee's home address<DotPill dot={false} size={11} bg="var(--blue-100)" color="var(--blue-500)" border padding="1px 6px">€9 / card</DotPill></span>, hint: 'Each employee enters their address when ordering.' },
+              { value: 'office', label: <span style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-100)' }}>Entity delivery address<DotPill dot={false} size={11} bg="var(--blue-100)" color="var(--blue-500)" border padding="1px 6px">€9 / card</DotPill></span>, hint: 'Ships to each entity\'s configured delivery address.' },
             ]}
             value={draftCardDelivery}
             onSave={v => { setDraftCardDelivery(v); }}
