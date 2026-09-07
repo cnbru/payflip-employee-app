@@ -7083,9 +7083,9 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
                   {/* Amount row */}
                   <div style={{ padding: 'var(--space-200) var(--space-250)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 'var(--space-150)' }}>
                     <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 28, color: P.ink, letterSpacing: '-0.03em', lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>€{deposit.toLocaleString('de-DE')}</span>
-                    <button onClick={() => { setAmountInput(deposit.toString()); setDebouncedAmountInput(deposit.toString()); setAmountFocused(true); setShowAmountModal(true); }} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '5px 10px 5px 8px', border: `1px solid ${P.border}`, borderRadius: 7, background: 'transparent', cursor: 'pointer', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', fontWeight: 600, color: P.inkSoft, whiteSpace: 'nowrap', flexShrink: 0, transition: 'background 100ms ease-out, border-color 100ms ease-out, color 100ms ease-out' }}
-                      onMouseEnter={e => { e.currentTarget.style.background = P.white; e.currentTarget.style.borderColor = P.ink; e.currentTarget.style.color = P.ink; }}
-                      onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = P.border; e.currentTarget.style.color = P.inkSoft; }}>
+                    <button onClick={() => { setAmountInput(deposit.toString()); setDebouncedAmountInput(deposit.toString()); setAmountFocused(true); setShowAmountModal(true); }} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '5px 10px 5px 8px', border: `1px solid ${P.border}`, borderRadius: 7, background: P.white, cursor: 'pointer', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', fontWeight: 600, color: P.inkSoft, whiteSpace: 'nowrap', flexShrink: 0, transition: 'background 100ms ease-out, border-color 100ms ease-out, color 100ms ease-out' }}
+                      onMouseEnter={e => { e.currentTarget.style.borderColor = P.ink; e.currentTarget.style.color = P.ink; }}
+                      onMouseLeave={e => { e.currentTarget.style.borderColor = P.border; e.currentTarget.style.color = P.inkSoft; }}>
                       <Icon name="pencil" size={11} color="currentColor" strokeWidth={2} />
                       Edit
                     </button>
