@@ -10785,7 +10785,8 @@ function AddressEditModal({ title, currentAddress, defaultAddress, onSave, onSav
   const [number, setNumber] = React.useState(parsed.number);
   const [postalCode, setPostalCode] = React.useState(parsed.postalCode);
   const [city, setCity] = React.useState(parsed.city);
-  const [sameDelivery, setSameDelivery] = React.useState(true);
+  // "Use a separate delivery address" — off by default (same address)
+  const [separateDelivery, setSeparateDelivery] = React.useState(false);
   const [dStreet, setDStreet] = React.useState('');
   const [dNumber, setDNumber] = React.useState('');
   const [dPostalCode, setDPostalCode] = React.useState('');
@@ -10798,7 +10799,7 @@ function AddressEditModal({ title, currentAddress, defaultAddress, onSave, onSav
     const addr = formatAddressBE({ street, number, postalCode, city });
     onSave(addr);
     if (onSaveDelivery) {
-      onSaveDelivery(sameDelivery ? null : formatAddressBE({ street: dStreet, number: dNumber, postalCode: dPostalCode, city: dCity }));
+      onSaveDelivery(separateDelivery ? formatAddressBE({ street: dStreet, number: dNumber, postalCode: dPostalCode, city: dCity }) : null);
     }
     close();
   };
@@ -10841,14 +10842,14 @@ function AddressEditModal({ title, currentAddress, defaultAddress, onSave, onSav
           <AddressFields s={street} setS={setStreet} n={number} setN={setNumber} pc={postalCode} setPc={setPostalCode} c={city} setC={setCity} autoFocus />
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 'var(--space-200)', paddingTop: 'var(--space-100)' }}>
             <div>
-              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: P.ink }}>Ship cards to this address</div>
+              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: P.ink }}>Use a separate delivery address</div>
               <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginTop: 'var(--space-025)' }}>When delivery is set to "Company address" for this entity</div>
             </div>
-            <Switch size="sm" checked={sameDelivery} onChange={() => setSameDelivery(v => !v)} />
+            <Switch size="sm" checked={separateDelivery} onChange={() => setSeparateDelivery(v => !v)} />
           </div>
-          {!sameDelivery && (
-            <div className="section-reveal" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-150)' }}>
-              <div style={Object.assign({}, SL, { marginBottom: 0 })}>Delivery address</div>
+          {separateDelivery && (
+            <div className="section-reveal" style={{ background: P.bg, border: `1px solid ${P.border}`, borderRadius: 10, padding: 'var(--space-200)', display: 'flex', flexDirection: 'column', gap: 'var(--space-150)' }}>
+              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>Delivery address</div>
               <AddressFields s={dStreet} setS={setDStreet} n={dNumber} setN={setDNumber} pc={dPostalCode} setPc={setDPostalCode} c={dCity} setC={setDCity} />
             </div>
           )}
