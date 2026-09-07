@@ -10809,51 +10809,53 @@ function AddressFields({ s, setS, n, setN, pc, setPc, c, setC, autoFocus }) {
   );
 }
 
-function AddressEditModal({ title, currentAddress, defaultAddress, onSave, onSaveDelivery, onClose }) {
+function AddressEditModal({ title, currentAddress, defaultAddress, onSave, onClose }) {
   const parsed = parseAddressBE(currentAddress || defaultAddress || '');
   const [street, setStreet] = React.useState(parsed.street);
   const [number, setNumber] = React.useState(parsed.number);
   const [postalCode, setPostalCode] = React.useState(parsed.postalCode);
   const [city, setCity] = React.useState(parsed.city);
-  // "Use a separate delivery address" — off by default (same address)
-  const [separateDelivery, setSeparateDelivery] = React.useState(false);
-  const [dStreet, setDStreet] = React.useState('');
-  const [dNumber, setDNumber] = React.useState('');
-  const [dPostalCode, setDPostalCode] = React.useState('');
-  const [dCity, setDCity] = React.useState('');
-
-  const handleSave = (close) => {
-    const addr = formatAddressBE({ street, number, postalCode, city });
-    onSave(addr);
-    if (onSaveDelivery) {
-      onSaveDelivery(separateDelivery ? formatAddressBE({ street: dStreet, number: dNumber, postalCode: dPostalCode, city: dCity }) : null);
-    }
-    close();
-  };
 
   return (
     <ModalShell title={title} onClose={onClose} width={480}
       footer={close => (
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-150)', padding: 'var(--space-200) var(--space-300)', borderTop: `1px solid ${P.border}` }}>
           <Button variant="secondary" onClick={close}>Cancel</Button>
-          <Button variant="primary" onClick={() => handleSave(close)}>Save</Button>
+          <Button variant="primary" onClick={() => { onSave(formatAddressBE({ street, number, postalCode, city })); close(); }}>Save</Button>
+        </div>
+      )}>
+      {() => (
+        <div style={{ padding: 'var(--space-200) var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-150)' }}>
+          <AddressFields s={street} setS={setStreet} n={number} setN={setNumber} pc={postalCode} setPc={setPostalCode} c={city} setC={setCity} autoFocus />
+        </div>
+      )}
+    </ModalShell>
+  );
+}
+
+function DeliveryAddressEditModal({ title, currentAddress, onSave, onRemove, onClose }) {
+  const parsed = parseAddressBE(currentAddress || '');
+  const [street, setStreet] = React.useState(parsed.street);
+  const [number, setNumber] = React.useState(parsed.number);
+  const [postalCode, setPostalCode] = React.useState(parsed.postalCode);
+  const [city, setCity] = React.useState(parsed.city);
+
+  return (
+    <ModalShell title={title} onClose={onClose} width={480}
+      footer={close => (
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-150)', padding: 'var(--space-200) var(--space-300)', borderTop: `1px solid ${P.border}` }}>
+          <Button variant="secondary" onClick={close}>Cancel</Button>
+          <Button variant="primary" onClick={() => { onSave(formatAddressBE({ street, number, postalCode, city })); close(); }}>Save</Button>
         </div>
       )}>
       {close => (
         <div style={{ padding: 'var(--space-200) var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-150)' }}>
           <AddressFields s={street} setS={setStreet} n={number} setN={setNumber} pc={postalCode} setPc={setPostalCode} c={city} setC={setCity} autoFocus />
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 'var(--space-200)', paddingTop: 'var(--space-100)' }}>
-            <div>
-              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: P.ink }}>Use a separate delivery address</div>
-              <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginTop: 'var(--space-025)' }}>When delivery is set to "Company address" for this entity</div>
-            </div>
-            <Switch size="sm" checked={separateDelivery} onChange={() => setSeparateDelivery(v => !v)} />
-          </div>
-          {separateDelivery && (
-            <div className="section-reveal" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-150)', borderTop: `1px solid ${P.border}`, paddingTop: 'var(--space-200)', marginTop: 'var(--space-050)' }}>
-              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink }}>Delivery address</div>
-              <AddressFields s={dStreet} setS={setDStreet} n={dNumber} setN={setDNumber} pc={dPostalCode} setPc={setDPostalCode} c={dCity} setC={setDCity} />
-            </div>
+          {onRemove && (
+            <button type="button" onClick={() => { onRemove(); close(); }}
+              style={{ background: 'none', border: 'none', padding: 0, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, cursor: 'pointer', textAlign: 'left', textDecoration: 'underline', paddingTop: 'var(--space-050)' }}>
+              Remove delivery address override
+            </button>
           )}
         </div>
       )}
@@ -10973,26 +10975,49 @@ function EntitiesSettings({ onNav, appEntity = null, companyRegime = COMPANY_REG
           <div>
             <div style={SL}>Settings</div>
             <SettingsCard>
-              {allEntityFields.map((field, idx) => {
-                const rawVal = getEntValue(ent, field.key);
-                const usingDefault = field.inheritable && !rawVal;
-                const displayVal = rawVal || null;
-                const isOverride = field.inheritable && !!rawVal;
-                const shownVal = usingDefault ? (regime[field.key] || '—') : (displayVal || '—');
-                const overrideBadge = <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: 'var(--bg-primary-default)', background: 'rgb(243, 240, 255)', borderRadius: 10, padding: 'var(--space-025) var(--space-100)', whiteSpace: 'nowrap' }}>Override</span>;
-                return (
-                  <SettingsRow
-                    key={field.key}
-                    icon={field.icon}
-                    label={field.label}
-                    value={shownVal}
-                    valueColor={usingDefault ? P.inkFaint : P.inkSoft}
-                    trailing={isOverride ? overrideBadge : undefined}
-                    onClick={() => openEntityFieldEdit(ent, field)}
-                    last={idx === allEntityFields.length - 1}
-                  />
-                );
-              })}
+              {(() => {
+                const deliveryAddr = entityOverrides[ent.id]?.deliveryAddress || null;
+                const rows = allEntityFields.map((field) => {
+                  const rawVal = getEntValue(ent, field.key);
+                  const usingDefault = field.inheritable && !rawVal;
+                  const displayVal = rawVal || null;
+                  const isOverride = field.inheritable && !!rawVal;
+                  const shownVal = usingDefault ? (regime[field.key] || '—') : (displayVal || '—');
+                  const overrideBadge = <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: 'var(--bg-primary-default)', background: 'rgb(243, 240, 255)', borderRadius: 10, padding: 'var(--space-025) var(--space-100)', whiteSpace: 'nowrap' }}>Override</span>;
+                  return { key: field.key, el: (
+                    <SettingsRow
+                      key={field.key}
+                      icon={field.icon}
+                      label={field.label}
+                      value={shownVal}
+                      valueColor={usingDefault ? P.inkFaint : P.inkSoft}
+                      trailing={isOverride ? overrideBadge : undefined}
+                      onClick={() => openEntityFieldEdit(ent, field)}
+                    />
+                  )};
+                });
+                // Inject delivery address row after legalAddress if one is set
+                const result = [];
+                rows.forEach(r => {
+                  result.push(r.el);
+                  if (r.key === 'legalAddress' && deliveryAddr) {
+                    result.push(
+                      <SettingsRow
+                        key="deliveryAddress"
+                        icon="truck"
+                        label="Delivery address"
+                        value={deliveryAddr}
+                        valueColor={P.inkSoft}
+                        onClick={() => setEditing({ scope: 'entity', entId: ent.id, entName: ent.name, field: 'deliveryAddress', label: 'Delivery address' })}
+                      />
+                    );
+                  }
+                });
+                // Set last on final element
+                const last = result[result.length - 1];
+                result[result.length - 1] = React.cloneElement(last, { last: true });
+                return result;
+              })()}
             </SettingsCard>
           </div>
         </div>
@@ -11007,9 +11032,21 @@ function EntitiesSettings({ onNav, appEntity = null, companyRegime = COMPANY_REG
                 currentAddress={editValue || null}
                 defaultAddress={editing.defaultValue}
                 onSave={addr => setEntityOverrides(prev => ({ ...prev, [editing.entId]: { ...(prev[editing.entId] || {}), legalAddress: addr || null } }))}
-                onSaveDelivery={deliveryAddr => {
-                  if (deliveryAddr) setEntityOverrides(prev => ({ ...prev, [editing.entId]: { ...(prev[editing.entId] || {}), deliveryAddress: deliveryAddr } }));
-                }}
+                onClose={() => setEditing(null)}
+              />
+            );
+          }
+          if (editing.field === 'deliveryAddress') {
+            return (
+              <DeliveryAddressEditModal
+                title={`${editing.label} — ${editing.entName}`}
+                currentAddress={entityOverrides[editing.entId]?.deliveryAddress || ''}
+                onSave={addr => setEntityOverrides(prev => ({ ...prev, [editing.entId]: { ...(prev[editing.entId] || {}), deliveryAddress: addr || null } }))}
+                onRemove={() => setEntityOverrides(prev => {
+                  const copy = { ...(prev[editing.entId] || {}) };
+                  delete copy.deliveryAddress;
+                  return { ...prev, [editing.entId]: copy };
+                })}
                 onClose={() => setEditing(null)}
               />
             );
