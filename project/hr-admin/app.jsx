@@ -11052,10 +11052,7 @@ function EntitiesSettings({ onNav, appEntity = null, companyRegime = COMPANY_REG
                         valueColor={P.inkSoft}
                         trailing={!deliveryAddr ? (
                           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-150)' }}>
-                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-075)', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.warningDark, background: P.warningBg, padding: 'var(--space-025) var(--space-100)', borderRadius: 10, whiteSpace: 'nowrap' }}>
-                              <Icon name="alert-triangle" size={11} color={P.warningDark} strokeWidth={2} />
-                              Not set
-                            </span>
+                            <DotPill bg={P.warningBg} color={P.warningDark} size={11}>Not set</DotPill>
                             <Icon name="chevron-right" size={16} color={P.inkFaint} strokeWidth={1.75} />
                           </span>
                         ) : undefined}
@@ -11165,10 +11162,7 @@ function EntitiesSettings({ onNav, appEntity = null, companyRegime = COMPANY_REG
                   <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginTop: 'var(--space-025)' }}>{ent.jc} · {ent.employeeCount} employees</div>
                 </div>
                 {missingDelivery && (
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-075)', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.warningDark, background: P.warningBg, padding: 'var(--space-025) var(--space-100)', borderRadius: 10, whiteSpace: 'nowrap' }}>
-                    <Icon name="alert-triangle" size={11} color={P.warningDark} strokeWidth={2} />
-                    No delivery address
-                  </span>
+                  <DotPill bg={P.warningBg} color={P.warningDark} size={11}>No delivery address</DotPill>
                 )}
                 <Icon name="chevron-right" size={16} color={P.inkFaint} strokeWidth={1.75} style={{ flexShrink: 0 }} />
               </div>
