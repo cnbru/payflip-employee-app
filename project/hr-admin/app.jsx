@@ -8431,7 +8431,7 @@ function EntityDeliveryModal({ entityId, entityName, legalAddress, currentDelive
       )}
     >
       <div style={{ padding: 'var(--space-200)', display: 'flex', flexDirection: 'column', gap: 'var(--space-100)' }}>
-        {opt('home', 'Employee address', 'Each employee enters their home address when requesting a card. Ships in 5–7 days · €9 per card.', mode === 'home')}
+        {opt('home', <span style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-100)' }}>Employee address<DotPill dot={false} size={11} bg="var(--blue-100)" color="var(--blue-500)" border padding="1px 6px">€9 / card</DotPill></span>, 'Employees request a card from the Payflip app and enter their home address.', mode === 'home')}
         {opt('office', 'Company address', legalAddress || 'No address configured — add it in Entity settings.', mode === 'office')}
       </div>
     </ModalShell>
@@ -8792,8 +8792,8 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, cardDe
           <PickModal
             title="Card delivery default"
             options={[
-              { value: 'home', label: 'Employee address', hint: 'Each employee enters their home address when requesting a card. Ships in 5–7 days · €9 per card.' },
-              { value: 'office', label: 'Company address', hint: 'Cards ship to each entity\'s configured delivery address. Ships in 5–7 days · €9 per card.' },
+              { value: 'home', label: <span style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-100)' }}>Employee address<DotPill dot={false} size={11} bg="var(--blue-100)" color="var(--blue-500)" border padding="1px 6px">€9 / card</DotPill></span>, hint: 'Employees request a card from the Payflip app and enter their home address.' },
+              { value: 'office', label: <span style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-100)' }}>Company address<DotPill dot={false} size={11} bg="var(--blue-100)" color="var(--blue-500)" border padding="1px 6px">€9 / card</DotPill></span>, hint: 'Cards ship to each entity\'s configured delivery address.' },
             ]}
             value={draftCardDelivery}
             onSave={v => { setDraftCardDelivery(v); }}
