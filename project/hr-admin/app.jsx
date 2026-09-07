@@ -4631,6 +4631,8 @@ function ExpensesScreen({ expenses, categories, onApprove, onDetail, onRejectDir
 const PAGE_SIZE = 10;
 
 function RequestsScreen({ requests, onApprove, onDecline, onSave, onCancel, onViewInCalendar, onNav, appEntity = null }) {
+  const MONTH_ORDER = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const MONTH_FULL = { Jan:'January',Feb:'February',Mar:'March',Apr:'April',May:'May',Jun:'June',Jul:'July',Aug:'August',Sep:'September',Oct:'October',Nov:'November',Dec:'December' };
   const showEntity = !appEntity;
   const [tab, setTab] = useState('pending');
   const [page, setPage] = useState(1);
@@ -4639,6 +4641,7 @@ function RequestsScreen({ requests, onApprove, onDecline, onSave, onCancel, onVi
   const [editReq, setEditReq] = useState(null);
   const [addOpen, setAddOpen] = useState(false);
   const [selected, setSelected] = useState(new Set());
+  const [monthFilter, setMonthFilter] = useState('all');
   const prevPendingIdsRef = useRef(new Set());
   const removalTimersRef = useRef(new Set());
   const [removingIds, setRemovingIds] = useState(() => new Set());
@@ -4663,6 +4666,9 @@ function RequestsScreen({ requests, onApprove, onDecline, onSave, onCancel, onVi
   const [searchText, setSearchText] = useState('');
   const [leaveFilter, setLeaveFilter] = useState('all');
   const [deptFilter, setDeptFilter] = useState('all');
+  const allMonths = [...new Set(requests.map(r => r.startDate.split(' ').pop()))].sort((a, b) => MONTH_ORDER.indexOf(b) - MONTH_ORDER.indexOf(a));
+  const monthOpts = [['all', 'All months'], ...allMonths.map(m => [m, MONTH_FULL[m] || m])];
+  const resetFilters = (fn) => { fn(); setPage(1); setSelected(new Set()); };
   const filtered = (tab === 'pending' ? requests.filter(r => r.status === 'pending')
     : tab === 'approved' ? requests.filter(r => r.status === 'approved')
     : tab === 'declined' ? requests.filter(r => r.status === 'rejected')
@@ -4672,6 +4678,7 @@ function RequestsScreen({ requests, onApprove, onDecline, onSave, onCancel, onVi
       if (searchText.trim() && !(emp?.name || r.employee).toLowerCase().includes(searchText.trim().toLowerCase())) return false;
       if (leaveFilter !== 'all' && r.type !== leaveFilter) return false;
       if (deptFilter !== 'all' && emp?.department !== deptFilter) return false;
+      if (monthFilter !== 'all' && r.startDate.split(' ').pop() !== monthFilter) return false;
       return true;
     });
   const pageCount = Math.ceil(filtered.length / PAGE_SIZE);
@@ -4711,10 +4718,11 @@ function RequestsScreen({ requests, onApprove, onDecline, onSave, onCancel, onVi
         <Button variant="primary" icon="Plus" onClick={() => setAddOpen(true)}>Add time off</Button>
       </PageHeader>
       <FilterToolbar
-        searchText={searchText} onSearch={v => { setSearchText(v); setPage(1); }}
-        filter={leaveFilter} onFilter={v => { setLeaveFilter(v); setPage(1); }}
-        deptFilter={deptFilter} onDeptFilter={v => { setDeptFilter(v); setPage(1); }}
+        searchText={searchText} onSearch={v => resetFilters(() => setSearchText(v))}
+        filter={leaveFilter} onFilter={v => resetFilters(() => setLeaveFilter(v))}
+        deptFilter={deptFilter} onDeptFilter={v => resetFilters(() => setDeptFilter(v))}
       >
+        <FilterDropdown label="All months" active={monthFilter} opts={monthOpts} onSelect={v => resetFilters(() => setMonthFilter(v))} minWidth={130} />
         {selected.size > 0 && (
           <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 'var(--space-100)' }}>
             {selectedPending.length > 0 && (
@@ -13757,6 +13765,7 @@ function App() {
         'Unpaid absence': null,
       };
     }
+    init['thomas-janssens']['Extra-legal leave'] = 3;
     return init;
   });
 
