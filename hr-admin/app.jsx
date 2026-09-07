@@ -8707,17 +8707,6 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, cardDe
             />
             {draftPhysicalCards && (
               <div className="section-reveal">
-                {/* In-card delivery sub-group header */}
-                <div style={{
-                  padding: 'var(--space-150) var(--space-200) var(--space-075)',
-                  borderTop: `1px solid ${P.border}`,
-                  fontSize: 'var(--fs-body-xs)',
-                  fontFamily: 'var(--font-display)',
-                  fontWeight: 600,
-                  color: P.inkSoft,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.06em',
-                }}>Delivery</div>
                 {appEntity ? (
                   <SettingsRow
                     icon="truck"
