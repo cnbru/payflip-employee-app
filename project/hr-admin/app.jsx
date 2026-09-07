@@ -8709,8 +8709,8 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, cardDe
                 {appEntity ? (
                   <SettingsRow
                     icon="truck"
-                    label="Set delivery address"
-                    value={effectiveDelivery === 'office' ? 'Company address' : 'Employee address'}
+                    label="Card delivery"
+                    value={effectiveDelivery === 'office' ? 'Entity delivery address' : "Employee's home address"}
                     subtitle={entityDeliveryOverrides[appEntity] != null ? 'Custom for this entity' : undefined}
                     onClick={() => setShowEntityDeliveryModal(appEntity)}
                     last
@@ -8720,13 +8720,12 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, cardDe
                     const effectiveModes = ENTITIES.map(e => entityDeliveryOverrides[e.id] ?? draftCardDelivery);
                     const allSame = effectiveModes.every(m => m === effectiveModes[0]);
                     const summaryValue = allSame
-                      ? (effectiveModes[0] === 'office' ? 'Company address' : 'Employee address')
+                      ? (effectiveModes[0] === 'office' ? 'Entity delivery address' : "Employee's home address")
                       : 'Varies by entity';
                     return (
                       <SettingsRow
                         icon="truck"
-                        label="Set delivery method"
-
+                        label="Card delivery"
                         value={summaryValue}
                         valueColor={!allSame ? P.inkSoft : undefined}
                         onClick={() => setShowDeliveryModal(true)}
@@ -8778,10 +8777,10 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, cardDe
 
         {showDeliveryModal && (
           <PickModal
-            title="Set delivery method"
+            title="Card delivery"
             options={[
-              { value: 'home', label: <span style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-100)' }}>Employee address<DotPill dot={false} size={11} bg="var(--blue-100)" color="var(--blue-500)" border padding="1px 6px">€9 / card</DotPill></span>, hint: 'Employees request a card from the Payflip app and enter their home address.' },
-              { value: 'office', label: <span style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-100)' }}>Company address<DotPill dot={false} size={11} bg="var(--blue-100)" color="var(--blue-500)" border padding="1px 6px">€9 / card</DotPill></span>, hint: 'Cards ship to each entity\'s configured delivery address.' },
+              { value: 'home', label: <span style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-100)' }}>Employee's home address<DotPill dot={false} size={11} bg="var(--blue-100)" color="var(--blue-500)" border padding="1px 6px">€9 / card</DotPill></span>, hint: 'Employees enter their home address when requesting a card in the Payflip app.' },
+              { value: 'office', label: <span style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-100)' }}>Entity delivery address<DotPill dot={false} size={11} bg="var(--blue-100)" color="var(--blue-500)" border padding="1px 6px">€9 / card</DotPill></span>, hint: 'Cards ship to each entity\'s delivery address (or registered address if none is set).' },
             ]}
             value={draftCardDelivery}
             onSave={v => { setDraftCardDelivery(v); }}
