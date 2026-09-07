@@ -11023,9 +11023,13 @@ function EntitiesSettings({ onNav, appEntity = null, companyRegime = COMPANY_REG
                   const rawVal = getEntValue(ent, field.key);
                   const usingDefault = field.inheritable && !rawVal;
                   const displayVal = rawVal || null;
-                  const isOverride = field.inheritable && !!rawVal;
                   const shownVal = usingDefault ? (regime[field.key] || '—') : (displayVal || '—');
-                  const overrideBadge = <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: 'var(--bg-primary-default)', background: 'rgb(243, 240, 255)', borderRadius: 10, padding: 'var(--space-025) var(--space-100)', whiteSpace: 'nowrap' }}>Override</span>;
+                  const inheritedTrailing = usingDefault && regime[field.key] ? (
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-150)' }}>
+                      <DotPill dot={false} bg={P.bg} color={P.inkSoft} border size={11}>From company</DotPill>
+                      <Icon name="chevron-right" size={16} color={P.inkFaint} strokeWidth={1.75} />
+                    </span>
+                  ) : undefined;
                   return { key: field.key, el: (
                     <SettingsRow
                       key={field.key}
@@ -11033,7 +11037,7 @@ function EntitiesSettings({ onNav, appEntity = null, companyRegime = COMPANY_REG
                       label={field.label}
                       value={shownVal}
                       valueColor={usingDefault ? P.inkFaint : P.inkSoft}
-                      trailing={isOverride ? overrideBadge : undefined}
+                      trailing={inheritedTrailing}
                       onClick={() => openEntityFieldEdit(ent, field)}
                     />
                   )};
