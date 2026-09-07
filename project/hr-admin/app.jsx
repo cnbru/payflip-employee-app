@@ -229,18 +229,19 @@ function CardFooter({ children, divider }) {
   );
 }
 
-function SettingsCard({ children, info, infoVariant }) {
-  const infoBg    = infoVariant === 'blue' ? 'var(--blue-100)'  : 'transparent';
-  const infoBorder= infoVariant === 'blue' ? 'var(--blue-200)'  : P.border;
-  const infoColor = infoVariant === 'blue' ? 'var(--blue-700)'  : P.inkSoft;
-  const infoIcon  = infoVariant === 'blue' ? 'var(--blue-500)'  : P.inkSoft;
+function SettingsCard({ children, info, infoVariant, infoAction }) {
+  const infoBg    = infoVariant === 'blue' ? 'var(--blue-100)'  : infoVariant === 'warning' ? P.warningBg     : 'transparent';
+  const infoBorder= infoVariant === 'blue' ? 'var(--blue-200)'  : infoVariant === 'warning' ? P.warningBorder : P.border;
+  const infoColor = infoVariant === 'blue' ? 'var(--blue-700)'  : infoVariant === 'warning' ? P.warningDark   : P.inkSoft;
+  const infoIcon  = infoVariant === 'blue' ? 'var(--blue-500)'  : infoVariant === 'warning' ? 'var(--warning-500)' : P.inkSoft;
+  const infoIconName = infoVariant === 'warning' ? 'alert-triangle' : 'info';
   return (
     <div style={{ border: `1px solid ${P.border}`, borderRadius: 16, overflow: 'clip', background: P.white }}>
       {children}
       {info && (
         <div style={{ borderTop: `1px solid ${infoBorder}`, background: infoBg, padding: 'var(--space-150) var(--space-200)', display: 'flex', alignItems: 'flex-start', gap: 'var(--space-100)' }}>
-          <Icon name="info" size={13} color={infoIcon} strokeWidth={2} style={{ flexShrink: 0, marginTop: 'var(--space-025)' }} />
-          <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: infoColor }}>{info}</span>
+          <Icon name={infoIconName} size={13} color={infoIcon} strokeWidth={2} style={{ flexShrink: 0, marginTop: 'var(--space-025)' }} />
+          <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: infoColor, flex: 1 }}>{info}{infoAction && <> · <span onClick={infoAction.onClick} style={{ textDecoration: 'underline', cursor: 'pointer' }}>{infoAction.label}</span></>}</span>
         </div>
       )}
     </div>
@@ -607,7 +608,7 @@ const HOLIDAY_ICON = {
 
 // ── Entity data ───────────────────────────────────────────────────────────
 const ENTITIES = [
-  { id: 'lumio-group',  name: 'Lumio Group',      jc: 'PC 200', payrollProvider: 'SD Worx', integrationId: 'SDWX-4821',  employeeCount: 15, legalAddress: 'Rue de la Loi 42, 1040 Brussels' },
+  { id: 'lumio-group',  name: 'Lumio Group',      jc: 'PC 200', payrollProvider: 'SD Worx', integrationId: 'SDWX-4821',  employeeCount: 15, legalAddress: 'Rue de la Loi 42, 1040 Brussels', deliveryAddress: 'Rue de la Loi 42, 1040 Brussels' },
   { id: 'lumio-france', name: 'Lumio Consulting', jc: 'PC 218', payrollProvider: 'ADP',     integrationId: 'ADP-BE-1192', employeeCount: 4,  emailDomain: 'lumio-consulting.be', legalAddress: 'Avenue Louise 149, 1050 Brussels' },
   { id: 'lumio-nl',     name: 'Lumio Digital',    jc: 'PC 304', payrollProvider: 'Partena', integrationId: null,          employeeCount: 4,  emailDomain: 'lumiodigital.be', legalAddress: 'Antwerpsesteenweg 124, 2000 Antwerp' },
 ];
@@ -8695,9 +8696,24 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, cardDe
         </div>}
 
         {/* Physical cards — issuance toggle + delivery sub-group in one card */}
+        {(() => {
+          const entitiesMissing = ENTITIES.filter(e => !e.deliveryAddress);
+          const deliveryGap = draftPhysicalCards && draftCardDelivery === 'office' && entitiesMissing.length > 0;
+          const missingNames = entitiesMissing.map(e => e.name).join(', ');
+          return (
         <div>
           <div style={SL}>Physical cards</div>
-          <SettingsCard info={!draftPhysicalCards ? 'Physical cards are optional. Enable them to let employees request a card from the Payflip app. Ships in 5–7 days · €9 per card.' : undefined}>
+          <SettingsCard
+            info={
+              !draftPhysicalCards
+                ? 'Physical cards are optional. Enable them to let employees request a card from the Payflip app. Ships in 5–7 days · €9 per card.'
+                : deliveryGap
+                ? `${entitiesMissing.length} of ${ENTITIES.length} ${entitiesMissing.length === 1 ? 'entity has' : 'entities have'} no delivery address — ${missingNames} will fall back to the registered address.`
+                : undefined
+            }
+            infoVariant={deliveryGap ? 'warning' : undefined}
+            infoAction={deliveryGap ? { label: 'Configure in Entities', onClick: () => onNav && onNav('settings-entities') } : undefined}
+          >
             <SettingsRow
               icon="credit-card"
               label="Allow physical card requests"
@@ -8738,6 +8754,8 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, cardDe
             )}
           </SettingsCard>
         </div>
+          );
+        })()}
 
         {/* Auto top-up — company-wide, hidden at entity scope */}
         {!appEntity && (() => {
@@ -8775,18 +8793,24 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, cardDe
           );
         })()}
 
-        {showDeliveryModal && (
+        {showDeliveryModal && (() => {
+          const entitiesMissing = ENTITIES.filter(e => !e.deliveryAddress);
+          const officeHint = entitiesMissing.length === 0
+            ? `Cards ship to each entity's configured delivery address. All ${ENTITIES.length} entities are configured.`
+            : `Cards ship to each entity's delivery address. ${entitiesMissing.length} of ${ENTITIES.length} ${entitiesMissing.length === 1 ? 'entity has' : 'entities have'} no delivery address and will fall back to the registered address: ${entitiesMissing.map(e => e.name).join(', ')}.`;
+          return (
           <PickModal
             title="Card delivery"
             options={[
               { value: 'home', label: <span style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-100)' }}>Employee's home address<DotPill dot={false} size={11} bg="var(--blue-100)" color="var(--blue-500)" border padding="1px 6px">€9 / card</DotPill></span>, hint: 'Employees enter their home address when requesting a card in the Payflip app.' },
-              { value: 'office', label: <span style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-100)' }}>Entity delivery address<DotPill dot={false} size={11} bg="var(--blue-100)" color="var(--blue-500)" border padding="1px 6px">€9 / card</DotPill></span>, hint: 'Cards ship to each entity\'s delivery address (or registered address if none is set).' },
+              { value: 'office', label: <span style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-100)' }}>Entity delivery address<DotPill dot={false} size={11} bg="var(--blue-100)" color="var(--blue-500)" border padding="1px 6px">€9 / card</DotPill></span>, hint: officeHint },
             ]}
             value={draftCardDelivery}
             onSave={v => { setDraftCardDelivery(v); }}
             onClose={() => setShowDeliveryModal(false)}
           />
-        )}
+          );
+        })()}
         {showEntityDeliveryModal && (() => {
           const ent = ENTITIES.find(e => e.id === showEntityDeliveryModal);
           const entDelivery = entityDeliveryOverrides[showEntityDeliveryModal] ?? draftCardDelivery;
