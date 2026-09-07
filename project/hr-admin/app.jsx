@@ -1891,6 +1891,7 @@ function Sidebar({ active, onNav, pendingCount, sidebarMode, onSetSidebarMode, a
 // ── Action menu (···) ──────────────────────────────────────────────────────
 function ActionMenu({ req, onApprove, onDecline, onViewDetails, onEdit, onCancel, onViewInCalendar }) {
   const [open, setOpen] = useState(false);
+  const [cancelConfirm, setCancelConfirm] = useState(false);
   const { rendered: menuRendered, visible: menuVisible } = usePopoverTransition(open);
   const ref = useRef(null);
   useEffect(() => {
@@ -1907,7 +1908,7 @@ function ActionMenu({ req, onApprove, onDecline, onViewDetails, onEdit, onCancel
     onViewInCalendar && { icon: 'Calendar', label: 'View in calendar', fn: () => onViewInCalendar(req), color: P.ink },
     onEdit && { icon: 'Pencil', label: 'Edit', fn: onEdit, color: P.ink },
     req?.document && { icon: 'Download', label: 'Download document', fn: () => {}, color: P.ink },
-    req?.status === 'approved' && { icon: 'Trash2', label: 'Cancel absence', fn: onCancel, color: P.dangerDark },
+    req?.status === 'approved' && { icon: 'Trash2', label: 'Cancel absence', fn: () => setCancelConfirm(true), color: P.dangerDark },
   ].filter(Boolean);
 
   return (
@@ -1941,20 +1942,33 @@ function ActionMenu({ req, onApprove, onDecline, onViewDetails, onEdit, onCancel
           ))}
         </div>
       )}
+      {cancelConfirm && (
+        <ReasonModal
+          title="Cancel absence"
+          description={`You're cancelling this absence. This cannot be undone.`}
+          confirmLabel="Cancel absence"
+          requireReason={false}
+          showNotify={true}
+          onClose={() => setCancelConfirm(false)}
+          onConfirm={(reason) => { setCancelConfirm(false); onCancel?.(); }}
+        />
+      )}
     </div>
   );
 }
 
 // ── Reason modal (decline / cancel) ───────────────────────────────────────
-function ReasonModal({ title, description, confirmLabel, confirmColor = P.danger, onConfirm, onClose }) {
+function ReasonModal({ title, description, confirmLabel, confirmColor = P.danger, onConfirm, onClose, requireReason = true, showNotify = false, notifyDefault = false }) {
   const [reason, setReason] = useState('');
+  const [notify, setNotify] = useState(notifyDefault);
+  const canConfirm = requireReason ? !!reason.trim() : true;
   return (
     <ModalShell title={title} onClose={onClose}
       footer={close => (
         <div style={{ padding: 'var(--space-200) var(--space-300)', borderTop: `1px solid ${P.border}`, display: 'flex', gap: 'var(--space-125)', justifyContent: 'flex-end' }}>
           <Button variant="secondary" onClick={close}>Back</Button>
-          <Button variant="primary" disabled={!reason.trim()} onClick={() => { onConfirm(reason.trim()); close(); }}
-            style={{ padding: 'var(--space-100) var(--space-250)', background: reason.trim() ? confirmColor : P.border, color: reason.trim() ? '#fff' : P.inkFaint }}>
+          <Button variant="primary" disabled={!canConfirm} onClick={() => { onConfirm(reason.trim(), notify); close(); }}
+            style={{ padding: 'var(--space-100) var(--space-250)', background: canConfirm ? confirmColor : P.border, color: canConfirm ? '#fff' : P.inkFaint }}>
             {confirmLabel}
           </Button>
         </div>
@@ -1965,7 +1979,7 @@ function ReasonModal({ title, description, confirmLabel, confirmColor = P.danger
         )}
         <div>
           <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.inkSoft, marginBottom: 'var(--space-075)' }}>
-            Reason <span style={{ fontWeight: 400, color: P.inkFaint }}>(required)</span>
+            Reason {requireReason ? <span style={{ fontWeight: 400, color: P.inkFaint }}>(required)</span> : <span style={{ fontWeight: 400, color: P.inkFaint }}>(optional)</span>}
           </label>
           <textarea
             autoFocus
@@ -1981,6 +1995,15 @@ function ReasonModal({ title, description, confirmLabel, confirmColor = P.danger
             }}
           />
         </div>
+        {showNotify && (
+          <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-125)', padding: 'var(--space-125) var(--space-150)', borderRadius: 8, border: `1px solid ${P.border}`, background: P.bg, cursor: 'pointer', userSelect: 'none' }}>
+            <Switch checked={notify} size="sm" onChange={() => setNotify(v => !v)} />
+            <div style={{ flex: 1 }}>
+              <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink }}>Notify employee</div>
+              <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginTop: 'var(--space-025)' }}>Send an email with the reason</div>
+            </div>
+          </label>
+        )}
       </div>
     </ModalShell>
   );
@@ -2002,6 +2025,7 @@ function CalendarDrawer({ req, requests, onClose, onApprove, onDecline, onCancel
   const [editMode, setEditMode] = React.useState(false);
   const [cancelMode, setCancelMode] = React.useState(false);
   const [cancelReason, setCancelReason] = React.useState('');
+  const [cancelNotify, setCancelNotify] = React.useState(false);
   const [declineMode, setDeclineMode] = React.useState(!!initialDeclineMode);
   const [declineReason, setDeclineReason] = React.useState('');
   const [docFullscreen, setDocFullscreen] = React.useState(false);
@@ -2355,6 +2379,13 @@ function CalendarDrawer({ req, requests, onClose, onApprove, onDecline, onCancel
                     <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 'var(--space-075)' }}>Reason <span style={{ textTransform: 'none', fontWeight: 400 }}>(optional)</span></label>
                     <textarea value={cancelReason} onChange={e => setCancelReason(e.target.value)} placeholder="Add a reason…" rows={3} style={{ width: '100%', padding: 'var(--space-125) var(--space-150)', borderRadius: 8, border: `1px solid ${P.border}`, background: P.bg, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, resize: 'none', lineHeight: 1.5, boxSizing: 'border-box', outline: 'none' }} />
                   </div>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-125)', padding: 'var(--space-125) var(--space-150)', borderRadius: 8, border: `1px solid ${P.border}`, background: P.bg, cursor: 'pointer', userSelect: 'none' }}>
+                    <Switch checked={cancelNotify} size="sm" onChange={() => setCancelNotify(v => !v)} />
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink }}>Notify employee</div>
+                      <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginTop: 'var(--space-025)' }}>Send an email with the reason for cancellation</div>
+                    </div>
+                  </label>
                 </div>
                 <div style={{ flexShrink: 0, padding: 'var(--space-150) var(--space-250)', borderTop: `1px solid ${P.border}`, display: 'flex', gap: 'var(--space-125)' }}>
                   <button onClick={exitCancel} style={{ flex: 1, padding: 'var(--space-125) 0', borderRadius: 10, border: `1px solid ${P.border}`, background: 'transparent', color: P.inkSoft, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)' }}>Go back</button>
@@ -2876,7 +2907,7 @@ function ModalCalendar({ startDate, endDate, focusedField, onDateTap, pickedDate
 }
 
 // ── Add / Edit time off modal ──────────────────────────────────────────────
-function AddTimeOffModal({ existing, onClose, onSave, requests = [], defaultDate, defaultEmployee, defaultHalfDay }) {
+function AddTimeOffModal({ existing, onClose, onSave, requests = [], defaultDate, defaultEmployee, defaultHalfDay, leaveTypes = [] }) {
   const isEdit = !!existing?.id;
   const lockEmployee = existing?._lockEmployee;
   const [empId, setEmpId]     = useState(existing?.employee || defaultEmployee || '');
@@ -2889,7 +2920,8 @@ function AddTimeOffModal({ existing, onClose, onSave, requests = [], defaultDate
   const [halfDay, setHalfDay] = useState(existing?._halfDay || (defaultDate && defaultHalfDay ? { [defaultDate]: defaultHalfDay } : {}));
   const [showEditSelection, setShowEditSelection] = useState(false);
   const [attachment, setAttachment] = useState(null);
-  const [notifyEmployee, setNotifyEmployee] = useState(false);
+  const [notifyEmployee, setNotifyEmployee] = useState(true);
+  const [requestDocNotify, setRequestDocNotify] = useState(false);
   const [scope, setScope] = useState(existing?._isCompanyEvent ? 'collective' : 'one');
   const [rangeFrom, setRangeFrom] = useState(() => existing?.startDate ? (toISOInput(existing.startDate) || '') : defaultDate || '');
   const [rangeTo, setRangeTo]     = useState(() => existing ? (toISOInput(existing.endDate || existing.startDate) || '') : defaultDate || '');
@@ -3096,7 +3128,7 @@ function AddTimeOffModal({ existing, onClose, onSave, requests = [], defaultDate
             <div>
               <label htmlFor="leave-type" style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.inkSoft, marginBottom: 'var(--space-075)' }}>Leave type</label>
               <SelectField id="leave-type" value={type} onChange={e => setType(e.target.value)} style={{ ...inputStyle, cursor: 'pointer' }}>
-                {ALL_LEAVE_TYPES.map(t => (
+                {(leaveTypes.length > 0 ? leaveTypes.filter(lt => lt.active).map(lt => lt.name) : ALL_LEAVE_TYPES).map(t => (
                   <option key={t} value={t}>{t}{ADMIN_ONLY_TYPES.has(t) ? ' (Admin)' : ''}</option>
                 ))}
               </SelectField>
@@ -3240,7 +3272,18 @@ function AddTimeOffModal({ existing, onClose, onSave, requests = [], defaultDate
             <textarea id="add-time-off-note" value={note} onChange={e => setNote(e.target.value)} rows={2} placeholder={scope === 'collective' ? 'e.g. Replacement for Christmas Day which fell on a Sunday…' : 'Reason or additional context…'} onKeyDown={e => { if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') handleSave(close); }} style={{ ...inputStyle, resize: 'none', lineHeight: 1.5 }} />
           </div>
 
-          {/* Document upload + notify toggle — non-blocking */}
+          {/* Notify employee — always shown for individual absences */}
+          {!allEmployees && (
+            <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-125)', padding: 'var(--space-125) var(--space-150)', borderRadius: 8, border: `1px solid ${P.border}`, background: P.bg, cursor: 'pointer', userSelect: 'none' }}>
+              <Switch checked={notifyEmployee} size="sm" onChange={() => setNotifyEmployee(v => !v)} />
+              <div style={{ flex: 1 }}>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink }}>Notify employee</div>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginTop: 'var(--space-025)' }}>Send an email confirming the absence has been added</div>
+              </div>
+            </label>
+          )}
+
+          {/* Document upload + doc-request notify — non-blocking */}
           {(() => {
             const rule = ATTACHMENT_RULES[type];
             if (!rule) return null;
@@ -3275,7 +3318,7 @@ function AddTimeOffModal({ existing, onClose, onSave, requests = [], defaultDate
                 )}
                 {!attachment && (
                   <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-125)', marginTop: 'var(--space-100)', padding: 'var(--space-125) var(--space-150)', borderRadius: 8, border: `1px solid ${P.border}`, background: P.bg, cursor: 'pointer', userSelect: 'none' }}>
-                    <Switch checked={notifyEmployee} size="sm" onChange={() => setNotifyEmployee(v => !v)} />
+                    <Switch checked={requestDocNotify} size="sm" onChange={() => setRequestDocNotify(v => !v)} />
                     <div style={{ flex: 1 }}>
                       <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink }}>Request {rule.label.toLowerCase()} from employee</div>
                       <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginTop: 'var(--space-025)' }}>Sends an email asking the employee to upload the document</div>
@@ -5906,8 +5949,52 @@ function EditBalancesModal({ emp, balances, onSave, onClose, isNewEmployee, onCo
   );
 }
 
+// ── Grant leave entitlement modal ─────────────────────────────────────────
+function GrantLeaveModal({ leaveTypes, emp, employeeBalance, onSave, onClose }) {
+  const customTypes = leaveTypes.filter(lt => !ALL_LEAVE_TYPES.includes(lt.name) && lt.active);
+  const [selectedType, setSelectedType] = useState(customTypes[0]?.name || '');
+  const [days, setDays] = useState('');
+  const inputStyle = { width: '100%', padding: 'var(--space-100) var(--space-125)', borderRadius: 7, border: `1px solid ${P.border}`, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, outline: 'none', background: P.white };
+  const canSave = selectedType && days !== '' && parseFloat(days) > 0;
+  return (
+    <ModalShell title="Assign leave entitlement" onClose={onClose} width={420}
+      footer={close => (
+        <div style={{ padding: 'var(--space-200) var(--space-300)', borderTop: `1px solid ${P.border}`, display: 'flex', gap: 'var(--space-125)', justifyContent: 'flex-end' }}>
+          <Button variant="secondary" onClick={close}>Cancel</Button>
+          <Button variant="primary" disabled={!canSave} onClick={() => { onSave(selectedType, parseFloat(days)); close(); }}>Grant entitlement</Button>
+        </div>
+      )}>
+      <div style={{ padding: 'var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-200)' }}>
+        {customTypes.length === 0 ? (
+          <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: 1.5 }}>
+            No custom leave types found. Create one in <strong>Settings → Time off</strong> first, then assign it here.
+          </p>
+        ) : (
+          <>
+            <div>
+              <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.inkSoft, marginBottom: 'var(--space-075)' }}>Leave type</label>
+              <SelectField value={selectedType} onChange={e => setSelectedType(e.target.value)} style={{ ...inputStyle, cursor: 'pointer' }}>
+                {customTypes.map(lt => <option key={lt.name} value={lt.name}>{lt.name}</option>)}
+              </SelectField>
+            </div>
+            <div>
+              <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.inkSoft, marginBottom: 'var(--space-075)' }}>Days</label>
+              <input type="number" min="0.5" step="0.5" value={days} onChange={e => setDays(e.target.value)} placeholder="e.g. 6" style={inputStyle} />
+              {selectedType && employeeBalance[selectedType] !== undefined && (
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginTop: 'var(--space-050)' }}>
+                  Currently {employeeBalance[selectedType]} days assigned
+                </div>
+              )}
+            </div>
+          </>
+        )}
+      </div>
+    </ModalShell>
+  );
+}
+
 // ── Employee detail screen ────────────────────────────────────────────────
-function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, onApprove, onDecline, onViewTeamCalendar, employeeBalance, onUpdateBalance, needsSetup, confirmedDate, onConfirmBalances, onToast, adminAccess, onAdminSave, companyRegime, onEmployeeUpdate, getEmpWithOverrides, physicalCardsAllowed, mobilityWidgetState, initialTab = 'choices', unmatchedRecord, onResolveUnmatched, onStartOffboarding, isOnboarding = false }) {
+function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, onApprove, onDecline, onViewTeamCalendar, employeeBalance, onUpdateBalance, needsSetup, confirmedDate, onConfirmBalances, onToast, adminAccess, onAdminSave, companyRegime, onEmployeeUpdate, getEmpWithOverrides, physicalCardsAllowed, mobilityWidgetState, initialTab = 'choices', unmatchedRecord, onResolveUnmatched, onStartOffboarding, isOnboarding = false, leaveTypes = [] }) {
   const emp = getEmpWithOverrides ? getEmpWithOverrides(employeeId) : EMPLOYEES[employeeId];
   const [activeTab, setActiveTab] = useState(initialTab);
   const tabMountedRef = useRef(false);
@@ -5919,6 +6006,7 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, o
   const [addModal, setAddModal] = useState(null); // null | 'add' | request object (edit)
   const [cancelAction, setCancelAction] = useState(null);
   const [editBalancesOpen, setEditBalancesOpen] = useState(false);
+  const [grantLeaveOpen, setGrantLeaveOpen] = useState(false);
   const [detailReq, setDetailReq] = useState(null);
   const [empMenuOpen, setEmpMenuOpen] = useState(false);
   const [deactivateConfirm, setDeactivateConfirm] = useState(false);
@@ -5943,14 +6031,24 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, o
   }, [requests, employeeId]);
 
   const balances = useMemo(() => {
-    return ALL_LEAVE_TYPES.map(type => {
+    const standard = ALL_LEAVE_TYPES.map(type => {
       const active = empReqs.filter(r => r.type === type && r.status !== 'rejected');
       const used = active.reduce((s, r) => s + (r.days || 1), 0);
       const defaultEntitled = type === 'Statutory annual leave' ? emp.entitlement : type === 'ADV / RTT' ? calcAdvDays(companyRegime || COMPANY_REGIME_DEFAULTS, emp) : type === 'Extra-legal leave' ? 4 : null;
       const entitled = (employeeBalance && employeeBalance[type] !== undefined) ? employeeBalance[type] : defaultEntitled;
       return { type, entitled, used, remaining: entitled != null ? Math.max(0, entitled - used) : null };
     });
-  }, [empReqs, emp, employeeBalance]);
+    const custom = leaveTypes
+      .filter(lt => !ALL_LEAVE_TYPES.includes(lt.name) && lt.active && employeeBalance && employeeBalance[lt.name] !== undefined)
+      .map(lt => {
+        const type = lt.name;
+        const active = empReqs.filter(r => r.type === type && r.status !== 'rejected');
+        const used = active.reduce((s, r) => s + (r.days || 1), 0);
+        const entitled = employeeBalance[type];
+        return { type, entitled, used, remaining: entitled != null ? Math.max(0, entitled - used) : null, color: lt.color };
+      });
+    return [...standard, ...custom];
+  }, [empReqs, emp, employeeBalance, leaveTypes]);
 
   const balancesForModal = useMemo(() =>
     Object.fromEntries(balances.filter(b => b.entitled != null).map(b => [b.type, b.entitled]))
@@ -6124,10 +6222,16 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, o
                   )}
                 </div>
                 {!needsSetup && (
-                  <button onClick={() => setEditBalancesOpen(true)} style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-100)', padding: 'var(--space-100) var(--space-250)', borderRadius: 8, border: `1px solid ${P.border}`, background: P.white, color: P.inkSoft, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)' }}>
-                    <Icon name="Pencil" size={14} color={P.inkSoft} />
-                    Edit balances
-                  </button>
+                  <div style={{ display: 'flex', gap: 'var(--space-100)' }}>
+                    <button onClick={() => setGrantLeaveOpen(true)} style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-100)', padding: 'var(--space-100) var(--space-200)', borderRadius: 8, border: `1px solid ${P.border}`, background: P.white, color: P.inkSoft, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)' }}>
+                      <Icon name="Plus" size={14} color={P.inkSoft} />
+                      Assign
+                    </button>
+                    <button onClick={() => setEditBalancesOpen(true)} style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-100)', padding: 'var(--space-100) var(--space-250)', borderRadius: 8, border: `1px solid ${P.border}`, background: P.white, color: P.inkSoft, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)' }}>
+                      <Icon name="Pencil" size={14} color={P.inkSoft} />
+                      Edit balances
+                    </button>
+                  </div>
                 )}
               </div>
               <div style={{ display: 'flex', gap: 'var(--space-150)', flexWrap: 'wrap' }}>
@@ -6137,7 +6241,7 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, o
                   return (
                     <div key={b.type} style={{ flex: '1 1 160px', background: P.white, border: `1px solid ${P.border}`, borderRadius: 10, padding: 'var(--space-250) var(--space-300)' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-075)', marginBottom: 'var(--space-125)' }}>
-                        <span style={{ width: 10, height: 10, borderRadius: '50%', background: LEAVE_COLORS[b.type], border: `1.5px solid ${LEAVE_BORDER_COLORS[b.type] || P.border}`, flexShrink: 0 }} />
+                        <span style={{ width: 10, height: 10, borderRadius: '50%', background: b.color || LEAVE_COLORS[b.type] || P.inkFaint, border: `1.5px solid ${LEAVE_BORDER_COLORS[b.type] || P.border}`, flexShrink: 0 }} />
                         <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>{b.type}</span>
                       </div>
                       {isLimited ? (
@@ -6239,6 +6343,7 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, o
           requests={requests}
           onClose={() => setAddModal(null)}
           onSave={(req) => { onSave(req); setAddModal(null); }}
+          leaveTypes={leaveTypes}
         />
       )}
 
@@ -6260,6 +6365,16 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, o
           onClose={() => setEditBalancesOpen(false)}
           isNewEmployee={needsSetup}
           onConfirm={onConfirmBalances}
+        />
+      )}
+
+      {grantLeaveOpen && (
+        <GrantLeaveModal
+          leaveTypes={leaveTypes}
+          emp={emp}
+          employeeBalance={employeeBalance || {}}
+          onSave={(type, days) => { onUpdateBalance({ ...(employeeBalance || {}), [type]: days }); onToast?.({ message: `${days} days of ${type} assigned to ${emp.name.split(' ')[0]}`, type: 'approve' }); }}
+          onClose={() => setGrantLeaveOpen(false)}
         />
       )}
 
@@ -9905,7 +10020,7 @@ const DEFAULT_LEAVE_CONFIGS = {
   'Statutory annual leave':      { requiresApproval: true,  declaration: false, docRequired: false, maxDays: 20,   editRequiresApproval: false, cancelRequiresApproval: false, carryover: 'q1',      allowHalfDay: true,  docThresholdDays: 0 },
   'ADV / RTT':                   { requiresApproval: true,  declaration: false, docRequired: false, maxDays: null, editRequiresApproval: false, cancelRequiresApproval: false, carryover: 'forfeit', allowHalfDay: true,  docThresholdDays: 0, advAwardMethod: 'accrued' },
   'Extra-legal leave':           { requiresApproval: true,  declaration: false, docRequired: false, maxDays: null, editRequiresApproval: false, cancelRequiresApproval: false, carryover: 'forfeit', allowHalfDay: true,  docThresholdDays: 0 },
-  'Sick leave':                  { requiresApproval: false, declaration: true,  docRequired: true,  maxDays: null, editRequiresApproval: false, cancelRequiresApproval: false, carryover: null,      allowHalfDay: false, docThresholdDays: 2 },
+  'Sick leave':                  { requiresApproval: false, declaration: true,  docRequired: true,  maxDays: null, editRequiresApproval: false, cancelRequiresApproval: false, carryover: null,      allowHalfDay: false, docThresholdDays: 2, notifyOnSubmit: 'hr-and-manager' },
   'Paternity leave':                 { requiresApproval: false, declaration: false, adminOnly: true, docRequired: false, maxDays: null, editRequiresApproval: false, cancelRequiresApproval: false, carryover: null, allowHalfDay: false, docThresholdDays: 0 },
   'Maternity leave':             { requiresApproval: false, declaration: false, adminOnly: true, docRequired: false, maxDays: null, editRequiresApproval: false, cancelRequiresApproval: false, carryover: null, allowHalfDay: false, docThresholdDays: 0 },
   'Wedding':                     { requiresApproval: false, declaration: false, docRequired: false, maxDays: null, editRequiresApproval: false, cancelRequiresApproval: false, carryover: null, allowHalfDay: false, docThresholdDays: 0 },
@@ -10307,6 +10422,8 @@ function initLeaveTypes() {
         maxDays: cfg.maxDays !== undefined ? cfg.maxDays : 20,
         editRequiresApproval: cfg.editRequiresApproval ?? false,
         cancelRequiresApproval: cfg.cancelRequiresApproval ?? false,
+        approverRole: cfg.approverRole ?? 'hr',
+        notifyOnSubmit: cfg.notifyOnSubmit ?? 'hr',
         carryover: cfg.carryover ?? null,
         allowHalfDay: cfg.allowHalfDay ?? true,
         docThresholdDays: cfg.docThresholdDays ?? 0,
@@ -10355,6 +10472,9 @@ function LeaveTypeSettingsPage({ config, allLeaveTypes = [], onSave, onDelete, o
   const [carryoverCap,          setCarryoverCap]          = useState(defaults.carryoverCap ?? 5);
   const [allowHalfDay,          setAllowHalfDay]          = useState(defaults.allowHalfDay ?? true);
   const [advAwardMethod,        setAdvAwardMethod]        = useState(defaults.advAwardMethod ?? 'lump-sum');
+  const [approverRole,          setApproverRole]          = useState(defaults.approverRole ?? 'hr');
+  const [notifyOnSubmit,        setNotifyOnSubmit]        = useState(defaults.notifyOnSubmit ?? 'hr');
+  const [pickModal,             setPickModal]             = useState(null);
   const [confirmDelete,         setConfirmDelete]         = useState(false);
   const [tooltip,               setTooltip]               = useState(null);
   const [dayLimitTip,           setDayLimitTip]           = useState(false);
@@ -10373,7 +10493,7 @@ function LeaveTypeSettingsPage({ config, allLeaveTypes = [], onSave, onDelete, o
 
   const save = () => {
     if (!name.trim()) return;
-    onSave({ name: name.trim(), color, active, requiresApproval, declaration: defaults.declaration, adminOnly: defaults.adminOnly, docRequired, docThresholdDays: docRequired ? docThresholdDays : 0, limitedDays, maxDays: (limitedDays || defaults.companyPolicy) ? (maxDays || 1) : null, editRequiresApproval, cancelRequiresApproval, carryover: showsAnnualBalance ? carryover : null, carryoverCap: carryover === 'cap' ? (carryoverCap || 5) : null, allowHalfDay, advAwardMethod: defaults.name === 'ADV / RTT' ? advAwardMethod : undefined, statutory: defaults.statutory, companyPolicy: defaults.companyPolicy, statutoryDays: defaults.statutoryDays, statutoryLabel: defaults.statutoryLabel, statutoryNote: defaults.statutoryNote, section: defaults.section, deletable: defaults.deletable ?? true });
+    onSave({ name: name.trim(), color, active, requiresApproval, declaration: defaults.declaration, adminOnly: defaults.adminOnly, docRequired, docThresholdDays: docRequired ? docThresholdDays : 0, limitedDays, maxDays: (limitedDays || defaults.companyPolicy) ? (maxDays || 1) : null, editRequiresApproval, cancelRequiresApproval, carryover: showsAnnualBalance ? carryover : null, carryoverCap: carryover === 'cap' ? (carryoverCap || 5) : null, allowHalfDay, advAwardMethod: defaults.name === 'ADV / RTT' ? advAwardMethod : undefined, statutory: defaults.statutory, companyPolicy: defaults.companyPolicy, statutoryDays: defaults.statutoryDays, statutoryLabel: defaults.statutoryLabel, statutoryNote: defaults.statutoryNote, section: defaults.section, deletable: defaults.deletable ?? true, approverRole, notifyOnSubmit });
     onToast?.({ message: isNew ? `${name.trim()} created` : `${name.trim()} saved`, type: 'approve' });
     onBack();
   };
@@ -10639,10 +10759,60 @@ function LeaveTypeSettingsPage({ config, allLeaveTypes = [], onSave, onDelete, o
                   <div>
                     {settingsRow('Require approval to edit', 'Changes to approved leave are sent back for HR review', editRequiresApproval, () => setEditRequiresApproval(v => !v), false)}
                   </div>
-                  {settingsRow('Require approval to cancel', 'HR must approve before days are returned to balance', cancelRequiresApproval, () => setCancelRequiresApproval(v => !v), true)}
+                  {settingsRow('Require approval to cancel', 'HR must approve before days are returned to balance', cancelRequiresApproval, () => setCancelRequiresApproval(v => !v), false)}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 'var(--space-200)', padding: 'var(--space-200) var(--space-250)', borderBottom: 'none' }}>
+                    <div>
+                      <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: P.ink }}>Approved by</div>
+                      <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, marginTop: 'var(--space-050)' }}>Who reviews and approves the request</div>
+                    </div>
+                    <button onClick={() => setPickModal('approverRole')} style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-075)', padding: '6px 12px', borderRadius: 7, border: `1px solid ${P.border}`, background: P.bg, color: P.ink, cursor: 'pointer', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', flexShrink: 0 }}>
+                      {{ hr: 'HR only', manager: 'Manager', 'manager-then-hr': 'Manager, then HR' }[approverRole]}
+                      <Icon name="chevron-right" size={13} color={P.inkSoft} />
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
+          )}
+
+          <div style={card}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 'var(--space-200)', padding: 'var(--space-200) var(--space-250)' }}>
+              <div>
+                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: P.ink }}>Notify on submission</div>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, marginTop: 'var(--space-050)' }}>Who receives a notification when an employee submits a request</div>
+              </div>
+              <button onClick={() => setPickModal('notifyOnSubmit')} style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-075)', padding: '6px 12px', borderRadius: 7, border: `1px solid ${P.border}`, background: P.bg, color: P.ink, cursor: 'pointer', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', flexShrink: 0 }}>
+                {{ hr: 'HR only', manager: 'Manager', 'hr-and-manager': 'HR and manager' }[notifyOnSubmit]}
+                <Icon name="chevron-right" size={13} color={P.inkSoft} />
+              </button>
+            </div>
+          </div>
+
+          {pickModal === 'approverRole' && (
+            <PickModal
+              title="Approved by"
+              value={approverRole}
+              options={[
+                { value: 'hr', label: 'HR only', hint: 'Leave requests are reviewed by HR' },
+                { value: 'manager', label: 'Manager', hint: 'Direct manager approves the request' },
+                { value: 'manager-then-hr', label: 'Manager, then HR', hint: 'Manager approves first, then HR confirms' },
+              ]}
+              onSave={(v) => setApproverRole(v)}
+              onClose={() => setPickModal(null)}
+            />
+          )}
+          {pickModal === 'notifyOnSubmit' && (
+            <PickModal
+              title="Notify on submission"
+              value={notifyOnSubmit}
+              options={[
+                { value: 'hr', label: 'HR only', hint: 'HR receives an email when a request is submitted' },
+                { value: 'manager', label: 'Manager', hint: 'Direct manager receives the notification' },
+                { value: 'hr-and-manager', label: 'HR and manager', hint: 'Both HR and the direct manager are notified' },
+              ]}
+              onSave={(v) => setNotifyOnSubmit(v)}
+              onClose={() => setPickModal(null)}
+            />
           )}
 
           <div style={card}>
@@ -13949,7 +14119,7 @@ function App() {
         {(screen === 'employees' || screen === 'employees:admin') && <EmployeesScreen key={appEntity ?? 'all'} requests={entityFilteredRequests} onNav={setScreen} initialRoleFilter={screen === 'employees:admin' ? 'Admin' : 'All'} adminAccess={adminAccess} appEntity={appEntity} onAddEmployee={(pf) => { setAddEmployeePrefill({ ...(pf||{}), _draftId: 'draft-' + Date.now() }); setAddEmployeeOpen(true); }} onToast={addToast} matchedEmpInssMap={matchedEmpInssMap} />}
         {screen === 'people-onboarding' && <OnboardingScreen onboardingIds={onboardingIds} drafts={drafts} onSendInvite={handleSendOnboardingInvite} onAddWithoutInvite={handleAddWithoutInvite} onRemoveFromOnboarding={handleRemoveFromOnboarding} onNav={handleNav} onAddEmployee={() => { setAddEmployeePrefill({ _draftId: 'draft-' + Date.now() }); setAddEmployeeOpen(true); }} onContinueDraft={handleContinueDraft} onEditEmployee={handleEditOnboardingEmployee} appEntity={appEntity} />}
         {screen === 'people-offboarding' && <OffboardingScreen offboardingIds={offboardingIds} onCompleteOffboarding={handleCompleteOffboarding} onNav={handleNav} appEntity={appEntity} />}
-        {screen.startsWith('employee-detail:') && (() => { const [, detailEmpId, detailTab] = screen.split(':'); return <EmployeeDetailScreen employeeId={detailEmpId} requests={requests} onNav={setScreen} onSave={saveRequest} onCancel={cancelRequest} onApprove={approve} onDecline={requestDecline} onViewTeamCalendar={(dept) => { setCalendarDeptFilter(dept || null); setScreen('team-absences'); }} employeeBalance={employeeBalances[detailEmpId]} onUpdateBalance={(newBal) => updateBalances(detailEmpId, newBal)} needsSetup={needsBalanceSetup.has(detailEmpId)} confirmedDate={balanceConfirmedDates[detailEmpId]} onConfirmBalances={() => confirmBalancesFor(detailEmpId)} onToast={addToast} adminAccess={adminAccess} onAdminSave={handleAdminSave} companyRegime={companyRegime} onEmployeeUpdate={handleEmployeeUpdate} getEmpWithOverrides={getEmpWithOverrides} physicalCardsAllowed={physicalCardsAllowed} mobilityWidgetState={mobilityWidgetState} initialTab={detailTab || (freshEmployeeId === detailEmpId ? 'details' : 'choices')} unmatchedRecord={matchedEmpInssMap.get(detailEmpId)} onResolveUnmatched={resolveUnmatched} onStartOffboarding={handleStartOffboarding} isOnboarding={onboardingIds.has(detailEmpId)} />; })()}
+        {screen.startsWith('employee-detail:') && (() => { const [, detailEmpId, detailTab] = screen.split(':'); return <EmployeeDetailScreen employeeId={detailEmpId} requests={requests} onNav={setScreen} onSave={saveRequest} onCancel={cancelRequest} onApprove={approve} onDecline={requestDecline} onViewTeamCalendar={(dept) => { setCalendarDeptFilter(dept || null); setScreen('team-absences'); }} employeeBalance={employeeBalances[detailEmpId]} onUpdateBalance={(newBal) => updateBalances(detailEmpId, newBal)} needsSetup={needsBalanceSetup.has(detailEmpId)} confirmedDate={balanceConfirmedDates[detailEmpId]} onConfirmBalances={() => confirmBalancesFor(detailEmpId)} onToast={addToast} adminAccess={adminAccess} onAdminSave={handleAdminSave} companyRegime={companyRegime} onEmployeeUpdate={handleEmployeeUpdate} getEmpWithOverrides={getEmpWithOverrides} physicalCardsAllowed={physicalCardsAllowed} mobilityWidgetState={mobilityWidgetState} initialTab={detailTab || (freshEmployeeId === detailEmpId ? 'details' : 'choices')} unmatchedRecord={matchedEmpInssMap.get(detailEmpId)} onResolveUnmatched={resolveUnmatched} onStartOffboarding={handleStartOffboarding} isOnboarding={onboardingIds.has(detailEmpId)} leaveTypes={leaveTypes} />; })()}
         {screen === 'expenses' && <ExpensesScreen key={appEntity ?? 'all'} expenses={entityFilteredExpenses} categories={expenseCategories} onApprove={approveExpense} onDetail={(exp) => { setExpDetailRejectMode(false); setExpDetail(exp); }} onRejectDirectly={(exp) => { setExpDetailRejectMode(true); setExpDetail(exp); }} onAdd={addExpense} appEntity={appEntity} receiptAlwaysRequired={receiptAlwaysRequired} requireApproval={requireApproval} onGoToSettings={() => setScreen('settings-expenses')} />}
         {screen === 'choices' && <ChoicesScreen key={appEntity ?? 'all'} choices={entityFilteredChoices} onApprove={approveChoice} onDecline={declineChoice} onDetail={setChoiceDetail} appEntity={appEntity} />}
         {screen === 'payroll-overview' && <StubScreen title="Payroll Overview" description="Monthly payroll run and submission" />}
