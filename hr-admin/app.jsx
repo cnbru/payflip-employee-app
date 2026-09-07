@@ -8700,7 +8700,7 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, cardDe
           <SettingsCard info={!draftPhysicalCards ? 'Physical cards are optional. Enable them to let employees request a card from the Payflip app. Ships in 5–7 days · €9 per card.' : undefined}>
             <SettingsRow
               icon="credit-card"
-              label="Physical card requests"
+              label="Allow physical card requests"
               trailing={<Switch size="sm" checked={draftPhysicalCards} onChange={() => setDraftPhysicalCards(v => !v)} />}
               last={!draftPhysicalCards}
             />
@@ -8709,7 +8709,7 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, cardDe
                 {appEntity ? (
                   <SettingsRow
                     icon="truck"
-                    label="Delivery address"
+                    label="Set delivery address"
                     value={effectiveDelivery === 'office' ? 'Company address' : 'Employee address'}
                     subtitle={entityDeliveryOverrides[appEntity] != null ? 'Custom for this entity' : undefined}
                     onClick={() => setShowEntityDeliveryModal(appEntity)}
@@ -8725,7 +8725,7 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, cardDe
                     return (
                       <SettingsRow
                         icon="truck"
-                        label="Default delivery"
+                        label="Set delivery method"
 
                         value={summaryValue}
                         valueColor={!allSame ? P.inkSoft : undefined}
@@ -8778,7 +8778,7 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, cardDe
 
         {showDeliveryModal && (
           <PickModal
-            title="Card delivery default"
+            title="Set delivery method"
             options={[
               { value: 'home', label: <span style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-100)' }}>Employee address<DotPill dot={false} size={11} bg="var(--blue-100)" color="var(--blue-500)" border padding="1px 6px">€9 / card</DotPill></span>, hint: 'Employees request a card from the Payflip app and enter their home address.' },
               { value: 'office', label: <span style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-100)' }}>Company address<DotPill dot={false} size={11} bg="var(--blue-100)" color="var(--blue-500)" border padding="1px 6px">€9 / card</DotPill></span>, hint: 'Cards ship to each entity\'s configured delivery address.' },
