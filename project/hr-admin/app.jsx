@@ -6008,6 +6008,8 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, o
   const [editBalancesOpen, setEditBalancesOpen] = useState(false);
   const [grantLeaveOpen, setGrantLeaveOpen] = useState(false);
   const [detailReq, setDetailReq] = useState(null);
+  const [leaveSubTab, setLeaveSubTab] = useState('balances');
+  const [requestStatusFilter, setRequestStatusFilter] = useState('all');
   const [empMenuOpen, setEmpMenuOpen] = useState(false);
   const [deactivateConfirm, setDeactivateConfirm] = useState(false);
   const empMenuRef = useRef(null);
@@ -6053,6 +6055,19 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, o
   const balancesForModal = useMemo(() =>
     Object.fromEntries(balances.filter(b => b.entitled != null).map(b => [b.type, b.entitled]))
   , [balances]);
+
+  const pendingCount = empReqs.filter(r => r.status === 'pending').length;
+  const filteredReqs = useMemo(() => {
+    const sorted = [...empReqs].sort((a, b) => {
+      if (a.status === 'pending' && b.status !== 'pending') return -1;
+      if (a.status !== 'pending' && b.status === 'pending') return 1;
+      return 0;
+    });
+    if (requestStatusFilter === 'all') return sorted;
+    return sorted.filter(r => r.status === requestStatusFilter);
+  }, [empReqs, requestStatusFilter]);
+  const leaveThStyle = { textAlign: 'left', padding: 'var(--space-100) var(--space-200)', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.inkSoft, textTransform: 'uppercase', letterSpacing: '0.04em' };
+  const leaveStatusFilters = ['all', 'pending', 'approved', 'declined', 'cancelled'];
 
   const tabs = [
     { id: 'choices', label: 'Choices' },
@@ -6128,198 +6143,178 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, o
       {/* Tab content */}
       <div style={{ flex: 1, overflow: 'auto', padding: 'var(--space-500) var(--space-400) var(--space-400)' }}>
         {activeTab === 'timeoff' ? (
-          <div>
-            {needsSetup && (
-              <div style={{ background: P.warningBg, border: '1px solid var(--warning-200)', borderRadius: 10, padding: 'var(--space-200) var(--space-250)', marginBottom: 'var(--space-250)', display: 'flex', alignItems: 'center', gap: 'var(--space-200)' }}>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.warningDark }}>Confirm {emp.name.split(' ')[0]}'s leave balances</div>
-                  <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: '#78350f', marginTop: 'var(--space-025)' }}>These are company defaults — adjust any values if needed, then confirm so {emp.name.split(' ')[0]} can request time off.</div>
+            <div>
+              {/* Sub-tab bar */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: `1px solid ${P.border}`, marginBottom: 'var(--space-400)' }}>
+                <div style={{ display: 'flex' }}>
+                  {[{ id: 'balances', label: 'Balances' }, { id: 'requests', label: 'Requests', count: pendingCount }].map(t => (
+                    <button key={t.id} onClick={() => setLeaveSubTab(t.id)} style={{
+                      display: 'flex', alignItems: 'center', gap: 'var(--space-075)',
+                      padding: 'var(--space-100) 0', marginRight: 'var(--space-350)',
+                      border: 'none', background: 'transparent', cursor: 'pointer',
+                      fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)',
+                      color: leaveSubTab === t.id ? P.ink : P.inkSoft,
+                      borderBottom: leaveSubTab === t.id ? `2px solid ${P.ink}` : '2px solid transparent',
+                      marginBottom: -1, transition: 'color 120ms ease',
+                    }}>
+                      {t.label}
+                      {t.count > 0 && (
+                        <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minWidth: 18, height: 18, borderRadius: 999, background: P.warningBg, border: `1px solid var(--warning-200)`, color: P.warningDark, fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 11, padding: '0 5px' }}>{t.count}</span>
+                      )}
+                    </button>
+                  ))}
                 </div>
-                <button onClick={() => setEditBalancesOpen(true)} style={{ padding: 'var(--space-100) var(--space-200)', borderRadius: 8, border: 'none', background: P.action, color: '#fff', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', flexShrink: 0, whiteSpace: 'nowrap' }}>
-                  Review & confirm
-                </button>
-              </div>
-            )}
-            {/* Requested time off */}
-            <div style={{ marginBottom: 'var(--space-500)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-150)' }}>
-                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-md)', color: P.ink }}>Requested time off</span>
-                <Button variant="primary" icon="Plus" onClick={() => setAddModal('add')}>Add time off</Button>
-              </div>
-              {empReqs.filter(r => r.status === 'pending').length > 0 ? (
-                <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 12, overflow: 'visible' }}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)' }}>
-                    <thead>
-                      <tr style={{ borderBottom: `1px solid ${P.border}` }}>
-                        <th style={{ width: '20%', textAlign: 'left', padding: 'var(--space-100) var(--space-250)', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Date from</th>
-                        <th style={{ width: '20%', textAlign: 'left', padding: 'var(--space-100) var(--space-200)', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Date to</th>
-                        <th style={{ width: '25%', textAlign: 'left', padding: 'var(--space-100) var(--space-200)', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Type</th>
-                        <th style={{ width: '15%', textAlign: 'center', padding: 'var(--space-100) var(--space-200)', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Days</th>
-                        <th style={{ width: '15%', textAlign: 'left', padding: 'var(--space-100) var(--space-200)', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Status</th>
-                        <th style={{ width: 40 }}></th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {empReqs.filter(r => r.status === 'pending').map((req, idx, arr) => (
-                        <tr key={req.id} onClick={() => setDetailReq(req)} style={{ borderBottom: idx < arr.length - 1 ? `1px solid ${P.border}` : 'none', cursor: 'pointer' }}>
-                          <td style={{ padding: 'var(--space-150) var(--space-250)', fontSize: 'var(--fs-body-sm)', color: P.ink }}>{req.startDate}</td>
-                          <td style={{ padding: 'var(--space-150) var(--space-200)', fontSize: 'var(--fs-body-sm)', color: req.endDate && req.endDate !== req.startDate ? P.ink : P.inkFaint }}>
-                            {req.endDate && req.endDate !== req.startDate ? req.endDate : '—'}
-                          </td>
-                          <td style={{ padding: 'var(--space-150) var(--space-200)' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-100)' }}>
-                              <span style={{ width: 10, height: 10, borderRadius: '50%', background: LEAVE_COLORS[req.type] || P.inkFaint, border: `1.5px solid ${LEAVE_BORDER_COLORS[req.type] || P.border}`, flexShrink: 0 }} />
-                              <span style={{ fontSize: 'var(--fs-body-sm)', color: P.ink }}>{req.type}</span>
-                            </div>
-                          </td>
-                          <td style={{ padding: 'var(--space-150) var(--space-200)', fontSize: 'var(--fs-body-sm)', textAlign: 'center', color: P.ink }}>
-                            {req.days === 0.5 ? (
-                              <span>{'½'}<span style={{ fontSize: 'var(--fs-body-xs)', color: P.inkFaint, marginLeft: 'var(--space-050)' }}>{req.halfDay || ''}</span></span>
-                            ) : req.days || 1}
-                          </td>
-                          <td style={{ padding: 'var(--space-150) var(--space-200)' }}><StatusPill status={req.status} /></td>
-                          <td style={{ padding: 'var(--space-125) var(--space-200)' }} onClick={e => e.stopPropagation()}>
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 'var(--space-050)' }}>
-                              <button title="Decline" onClick={() => setDetailReq({ ...req, _declineMode: true })}
-                                onMouseEnter={e => { e.currentTarget.style.background = P.dangerBg; e.currentTarget.style.borderColor = P.dangerBorder; }}
-                                onMouseLeave={e => { e.currentTarget.style.background = P.dangerBg; e.currentTarget.style.borderColor = P.dangerBorder; }}
-                                style={{ width: 28, height: 28, borderRadius: 6, border: '1px solid var(--alert-200)', background: P.dangerBg, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                                <Icon name="X" size={14} color={P.danger} strokeWidth={2.5} />
-                              </button>
-                              <button title="Approve" onClick={() => onApprove(req.id)}
-                                onMouseEnter={e => { e.currentTarget.style.background = P.successBg; e.currentTarget.style.borderColor = P.successBorder; }}
-                                onMouseLeave={e => { e.currentTarget.style.background = P.successBg; e.currentTarget.style.borderColor = P.successBorder; }}
-                                style={{ width: 28, height: 28, borderRadius: 6, border: '1px solid var(--success-200)', background: P.successBg, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                                <Icon name="Check" size={14} color={P.success} strokeWidth={2.5} />
-                              </button>
-                              <ActionMenu req={req}
-                                onApprove={() => onApprove(req.id)}
-                                onDecline={() => onDecline(req.id)}
-                                onEdit={() => setAddModal(req)}
-                                onCancel={() => setCancelAction(req)}
-                              />
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              ) : (
-                <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 12, padding: 'var(--space-300) var(--space-250)', textAlign: 'center' }}>
-                  <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkFaint }}>No pending requests</div>
-                </div>
-              )}
-            </div>
-
-            {/* Balances card */}
-            <div style={{ marginBottom: 'var(--space-500)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-150)' }}>
-                <div>
-                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-md)', color: P.ink }}>Balances <span style={{ fontWeight: 500, color: P.inkSoft }}>· {new Date().getFullYear()}</span></span>
-                  {confirmedDate && (
-                    <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkFaint, marginTop: 'var(--space-025)' }}>Confirmed on {confirmedDate}</div>
+                <div style={{ display: 'flex', gap: 'var(--space-100)', paddingBottom: 'var(--space-100)' }}>
+                  {leaveSubTab === 'balances' && !needsSetup && (
+                    <>
+                      <Button variant="secondary" icon="Plus" onClick={() => setGrantLeaveOpen(true)}>Assign</Button>
+                      <Button variant="secondary" icon="Pencil" onClick={() => setEditBalancesOpen(true)}>Edit balances</Button>
+                    </>
+                  )}
+                  {leaveSubTab === 'requests' && (
+                    <Button variant="primary" icon="Plus" onClick={() => setAddModal('add')}>Add time off</Button>
                   )}
                 </div>
-                {!needsSetup && (
-                  <div style={{ display: 'flex', gap: 'var(--space-100)' }}>
-                    <button onClick={() => setGrantLeaveOpen(true)} style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-100)', padding: 'var(--space-100) var(--space-200)', borderRadius: 8, border: `1px solid ${P.border}`, background: P.white, color: P.inkSoft, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)' }}>
-                      <Icon name="Plus" size={14} color={P.inkSoft} />
-                      Assign
-                    </button>
-                    <button onClick={() => setEditBalancesOpen(true)} style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-100)', padding: 'var(--space-100) var(--space-250)', borderRadius: 8, border: `1px solid ${P.border}`, background: P.white, color: P.inkSoft, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)' }}>
-                      <Icon name="Pencil" size={14} color={P.inkSoft} />
-                      Edit balances
-                    </button>
-                  </div>
-                )}
               </div>
-              <div style={{ display: 'flex', gap: 'var(--space-150)', flexWrap: 'wrap' }}>
-                {balances.filter(b => b.entitled != null || b.type === 'ADV / RTT' || b.type === 'Extra-legal leave').map(b => {
-                  const isLimited = b.entitled != null;
-                  const isLow = isLimited && b.remaining === 0;
-                  return (
-                    <div key={b.type} style={{ flex: '1 1 160px', background: P.white, border: `1px solid ${P.border}`, borderRadius: 10, padding: 'var(--space-250) var(--space-300)' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-075)', marginBottom: 'var(--space-125)' }}>
-                        <span style={{ width: 10, height: 10, borderRadius: '50%', background: b.color || LEAVE_COLORS[b.type] || P.inkFaint, border: `1.5px solid ${LEAVE_BORDER_COLORS[b.type] || P.border}`, flexShrink: 0 }} />
-                        <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>{b.type}</span>
-                      </div>
-                      {isLimited ? (
-                        <>
-                          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 30, color: isLow ? P.danger : P.ink, lineHeight: 1 }}>
-                            {b.remaining ?? 0}
-                            <span style={{ fontSize: 'var(--fs-body-sm)', fontWeight: 500, color: P.inkSoft }}> / {b.entitled} days</span>
-                          </div>
-                          <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkFaint, marginTop: 'var(--space-075)' }}>{b.used} used</div>
-                        </>
-                      ) : (
-                        <>
-                          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 30, color: P.ink, lineHeight: 1 }}>
-                            {b.used}
-                            <span style={{ fontSize: 'var(--fs-body-sm)', fontWeight: 500, color: P.inkSoft }}> days</span>
-                          </div>
-                          <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkFaint, marginTop: 'var(--space-075)' }}>taken · no limit</div>
-                        </>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
 
-            {/* Absence history */}
-            <div>
-              <div style={{ marginBottom: 'var(--space-150)' }}>
-                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-md)', color: P.ink }}>Absence history</span>
-              </div>
-              <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 12, overflow: 'visible' }}>
-              {empReqs.filter(r => r.status !== 'pending').length === 0 ? (
-                <EmptyState icon="calendar-off" title="No absences recorded yet" />
-              ) : (
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)' }}>
-                  <thead>
-                    <tr style={{ borderBottom: `1px solid ${P.border}` }}>
-                      <th style={{ width: '20%', textAlign: 'left', padding: 'var(--space-100) var(--space-250)', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Date from</th>
-                      <th style={{ width: '20%', textAlign: 'left', padding: 'var(--space-100) var(--space-200)', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Date to</th>
-                      <th style={{ width: '25%', textAlign: 'left', padding: 'var(--space-100) var(--space-200)', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Type</th>
-                      <th style={{ width: '15%', textAlign: 'center', padding: 'var(--space-100) var(--space-200)', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Days</th>
-                      <th style={{ width: '15%', textAlign: 'left', padding: 'var(--space-100) var(--space-200)', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Status</th>
-                      <th style={{ width: 40 }}></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {empReqs.filter(r => r.status !== 'pending').map((req, idx, arr) => (
-                      <tr key={req.id} onClick={() => setDetailReq(req)} style={{ borderBottom: idx < arr.length - 1 ? `1px solid ${P.border}` : 'none', cursor: 'pointer' }}>
-                        <td style={{ padding: 'var(--space-150) var(--space-250)', fontSize: 'var(--fs-body-sm)', color: P.ink }}>{req.startDate}</td>
-                        <td style={{ padding: 'var(--space-150) var(--space-200)', fontSize: 'var(--fs-body-sm)', color: req.endDate && req.endDate !== req.startDate ? P.ink : P.inkFaint }}>
-                          {req.endDate && req.endDate !== req.startDate ? req.endDate : '—'}
-                        </td>
-                        <td style={{ padding: 'var(--space-150) var(--space-200)' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-100)' }}>
-                            <span style={{ width: 10, height: 10, borderRadius: '50%', background: LEAVE_COLORS[req.type] || P.inkFaint, border: `1.5px solid ${LEAVE_BORDER_COLORS[req.type] || P.border}`, flexShrink: 0 }} />
-                            <span style={{ fontSize: 'var(--fs-body-sm)', color: P.ink }}>{req.type}</span>
+              {/* Balances sub-tab */}
+              {leaveSubTab === 'balances' && (
+                <div>
+                  {needsSetup && (
+                    <div style={{ background: P.warningBg, border: '1px solid var(--warning-200)', borderRadius: 10, padding: 'var(--space-200) var(--space-250)', marginBottom: 'var(--space-300)', display: 'flex', alignItems: 'center', gap: 'var(--space-200)' }}>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.warningDark }}>Confirm {emp.name.split(' ')[0]}'s leave balances</div>
+                        <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: '#78350f', marginTop: 'var(--space-025)' }}>These are company defaults — adjust any values if needed, then confirm so {emp.name.split(' ')[0]} can request time off.</div>
+                      </div>
+                      <button onClick={() => setEditBalancesOpen(true)} style={{ padding: 'var(--space-100) var(--space-200)', borderRadius: 8, border: 'none', background: P.action, color: '#fff', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', flexShrink: 0, whiteSpace: 'nowrap' }}>
+                        Review & confirm
+                      </button>
+                    </div>
+                  )}
+                  {confirmedDate && (
+                    <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkFaint, marginBottom: 'var(--space-200)' }}>Confirmed on {confirmedDate}</div>
+                  )}
+                  <div style={{ display: 'flex', gap: 'var(--space-150)', flexWrap: 'wrap' }}>
+                    {balances.filter(b => b.entitled != null || b.type === 'ADV / RTT' || b.type === 'Extra-legal leave').map(b => {
+                      const isLimited = b.entitled != null;
+                      const isLow = isLimited && b.remaining === 0;
+                      return (
+                        <div key={b.type} style={{ flex: '1 1 160px', minWidth: 160, maxWidth: 240, background: P.white, border: `1px solid ${P.border}`, borderRadius: 10, padding: 'var(--space-250) var(--space-300)' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-075)', marginBottom: 'var(--space-125)' }}>
+                            <span style={{ width: 10, height: 10, borderRadius: '50%', background: b.color || LEAVE_COLORS[b.type] || P.inkFaint, border: `1.5px solid ${LEAVE_BORDER_COLORS[b.type] || P.border}`, flexShrink: 0 }} />
+                            <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>{b.type}</span>
                           </div>
-                        </td>
-                        <td style={{ padding: 'var(--space-150) var(--space-200)', fontSize: 'var(--fs-body-sm)', textAlign: 'center', color: P.ink }}>
-                          {req.days === 0.5 ? (
-                            <span>{'½'}<span style={{ fontSize: 'var(--fs-body-xs)', color: P.inkFaint, marginLeft: 'var(--space-050)' }}>{req.halfDay || ''}</span></span>
-                          ) : req.days || 1}
-                        </td>
-                        <td style={{ padding: 'var(--space-150) var(--space-200)' }}><StatusPill status={req.status} /></td>
-                        <td style={{ padding: 'var(--space-125) var(--space-200)' }} onClick={e => e.stopPropagation()}>
-                          <ActionMenu req={req}
-                            onEdit={() => setAddModal(req)}
-                            onCancel={() => setCancelAction(req)}
-                          />
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                          {isLimited ? (
+                            <>
+                              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 28, color: isLow ? P.danger : P.ink, lineHeight: 1 }}>
+                                {b.remaining ?? 0}
+                                <span style={{ fontSize: 'var(--fs-body-sm)', fontWeight: 500, color: P.inkSoft }}> / {b.entitled} days</span>
+                              </div>
+                              <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginTop: 'var(--space-075)' }}>{b.used} used</div>
+                            </>
+                          ) : (
+                            <>
+                              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 28, color: P.ink, lineHeight: 1 }}>
+                                {b.used}
+                                <span style={{ fontSize: 'var(--fs-body-sm)', fontWeight: 500, color: P.inkSoft }}> days</span>
+                              </div>
+                              <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginTop: 'var(--space-075)' }}>taken · no limit</div>
+                            </>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
               )}
-              </div>
+
+              {/* Requests sub-tab */}
+              {leaveSubTab === 'requests' && (
+                <div>
+                  {/* Status filter chips */}
+                  <div style={{ display: 'flex', gap: 'var(--space-075)', marginBottom: 'var(--space-250)' }}>
+                    {leaveStatusFilters.map(f => (
+                      <button key={f} onClick={() => setRequestStatusFilter(f)} style={{
+                        padding: 'var(--space-050) var(--space-150)', borderRadius: 999,
+                        border: `1px solid ${requestStatusFilter === f ? P.ink : P.border}`,
+                        background: requestStatusFilter === f ? P.ink : P.white,
+                        color: requestStatusFilter === f ? P.white : P.inkSoft,
+                        fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)',
+                        cursor: 'pointer', textTransform: 'capitalize', transition: 'all 120ms ease',
+                      }}>{f === 'all' ? 'All' : f.charAt(0).toUpperCase() + f.slice(1)}</button>
+                    ))}
+                  </div>
+                  <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 12, overflow: 'visible' }}>
+                    {filteredReqs.length === 0 ? (
+                      <EmptyState icon="calendar-off" title="No requests" subtitle={requestStatusFilter !== 'all' ? `No ${requestStatusFilter} requests` : 'No time off recorded yet'} />
+                    ) : (
+                      <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)' }}>
+                        <thead>
+                          <tr style={{ borderBottom: `1px solid ${P.border}` }}>
+                            <th style={{ ...leaveThStyle, width: '20%', paddingLeft: 'var(--space-250)' }}>Date from</th>
+                            <th style={{ ...leaveThStyle, width: '20%' }}>Date to</th>
+                            <th style={{ ...leaveThStyle, width: '25%' }}>Type</th>
+                            <th style={{ ...leaveThStyle, width: '10%', textAlign: 'center' }}>Days</th>
+                            <th style={{ ...leaveThStyle, width: '15%' }}>Status</th>
+                            <th style={{ width: 120 }}></th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {filteredReqs.map((req, idx, arr) => (
+                            <tr key={req.id} onClick={() => setDetailReq(req)} style={{ borderBottom: idx < arr.length - 1 ? `1px solid ${P.border}` : 'none', cursor: 'pointer' }}
+                              onMouseEnter={e => e.currentTarget.style.background = P.bg}
+                              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                              <td style={{ padding: 'var(--space-150) var(--space-250)', fontSize: 'var(--fs-body-sm)', color: P.ink }}>{req.startDate}</td>
+                              <td style={{ padding: 'var(--space-150) var(--space-200)', fontSize: 'var(--fs-body-sm)', color: req.endDate && req.endDate !== req.startDate ? P.ink : P.inkSoft }}>
+                                {req.endDate && req.endDate !== req.startDate ? req.endDate : '—'}
+                              </td>
+                              <td style={{ padding: 'var(--space-150) var(--space-200)' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-100)' }}>
+                                  <span style={{ width: 10, height: 10, borderRadius: '50%', background: LEAVE_COLORS[req.type] || P.inkFaint, border: `1.5px solid ${LEAVE_BORDER_COLORS[req.type] || P.border}`, flexShrink: 0 }} />
+                                  <span style={{ fontSize: 'var(--fs-body-sm)', color: P.ink }}>{req.type}</span>
+                                </div>
+                              </td>
+                              <td style={{ padding: 'var(--space-150) var(--space-200)', fontSize: 'var(--fs-body-sm)', textAlign: 'center', color: P.ink }}>
+                                {req.days === 0.5 ? (
+                                  <span>½<span style={{ fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginLeft: 'var(--space-050)' }}>{req.halfDay || ''}</span></span>
+                                ) : req.days || 1}
+                              </td>
+                              <td style={{ padding: 'var(--space-150) var(--space-200)' }}><StatusPill status={req.status} /></td>
+                              <td style={{ padding: 'var(--space-125) var(--space-200)' }} onClick={e => e.stopPropagation()}>
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 'var(--space-050)' }}>
+                                  {req.status === 'pending' && (
+                                    <>
+                                      <button title="Decline" onClick={() => setDetailReq({ ...req, _declineMode: true })}
+                                        onMouseEnter={e => { e.currentTarget.style.background = P.dangerBg; e.currentTarget.style.borderColor = P.dangerBorder; }}
+                                        onMouseLeave={e => { e.currentTarget.style.background = P.dangerBg; e.currentTarget.style.borderColor = P.dangerBorder; }}
+                                        style={{ width: 28, height: 28, borderRadius: 6, border: '1px solid var(--alert-200)', background: P.dangerBg, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                        <Icon name="X" size={14} color={P.danger} strokeWidth={2.5} />
+                                      </button>
+                                      <button title="Approve" onClick={() => onApprove(req.id)}
+                                        onMouseEnter={e => { e.currentTarget.style.background = P.successBg; e.currentTarget.style.borderColor = P.successBorder; }}
+                                        onMouseLeave={e => { e.currentTarget.style.background = P.successBg; e.currentTarget.style.borderColor = P.successBorder; }}
+                                        style={{ width: 28, height: 28, borderRadius: 6, border: '1px solid var(--success-200)', background: P.successBg, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                        <Icon name="Check" size={14} color={P.success} strokeWidth={2.5} />
+                                      </button>
+                                    </>
+                                  )}
+                                  <ActionMenu req={req}
+                                    onApprove={req.status === 'pending' ? () => onApprove(req.id) : undefined}
+                                    onDecline={req.status === 'pending' ? () => onDecline(req.id) : undefined}
+                                    onEdit={() => setAddModal(req)}
+                                    onCancel={() => setCancelAction(req)}
+                                  />
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
-          </div>
         ) : activeTab === 'choices' ? (
           <div><ChoicesTab empId={employeeId} /></div>
         ) : activeTab === 'budgets' ? (
