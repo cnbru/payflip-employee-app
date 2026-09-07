@@ -10996,18 +10996,18 @@ function EntitiesSettings({ onNav, appEntity = null, companyRegime = COMPANY_REG
                     />
                   )};
                 });
-                // Inject delivery address row after legalAddress if one is set
+                // Always inject delivery address row after legalAddress
                 const result = [];
                 rows.forEach(r => {
                   result.push(r.el);
-                  if (r.key === 'legalAddress' && deliveryAddr) {
+                  if (r.key === 'legalAddress') {
                     result.push(
                       <SettingsRow
                         key="deliveryAddress"
                         icon="truck"
                         label="Delivery address"
-                        value={deliveryAddr}
-                        valueColor={P.inkSoft}
+                        value={deliveryAddr || '—'}
+                        valueColor={deliveryAddr ? P.inkSoft : P.inkFaint}
                         onClick={() => setEditing({ scope: 'entity', entId: ent.id, entName: ent.name, field: 'deliveryAddress', label: 'Delivery address' })}
                       />
                     );
