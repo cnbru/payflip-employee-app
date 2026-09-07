@@ -8727,7 +8727,7 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, cardDe
                       <SettingsRow
                         icon="truck"
                         label="Default delivery"
-                        subtitle="Per-entity overrides available at entity scope"
+
                         value={summaryValue}
                         valueColor={!allSame ? P.inkSoft : undefined}
                         onClick={() => setShowDeliveryModal(true)}
