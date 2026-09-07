@@ -10761,6 +10761,114 @@ function ChoicesScreen({ choices, onApprove, onDecline, onDetail, appEntity = nu
 }
 
 
+// ── Address helpers ───────────────────────────────────────────────────────
+function parseAddressBE(str) {
+  if (!str) return { street: '', number: '', postalCode: '', city: '' };
+  const [streetPart = '', cityPart = ''] = str.split(', ');
+  const numMatch = streetPart.match(/^(.*?)\s+(\d+\w*)\s*$/);
+  const street = numMatch ? numMatch[1] : streetPart;
+  const number = numMatch ? numMatch[2] : '';
+  const cityMatch = cityPart.match(/^(\d{4})\s+(.*)$/);
+  const postalCode = cityMatch ? cityMatch[1] : '';
+  const city = cityMatch ? cityMatch[2] : cityPart;
+  return { street, number, postalCode, city };
+}
+function formatAddressBE({ street, number, postalCode, city }) {
+  const streetLine = [street, number].filter(Boolean).join(' ');
+  const cityLine = [postalCode, city].filter(Boolean).join(' ');
+  return [streetLine, cityLine].filter(Boolean).join(', ');
+}
+
+function AddressEditModal({ title, currentAddress, defaultAddress, isOverriding, onSave, onSaveDelivery, onReset, onClose }) {
+  const parsed = parseAddressBE(currentAddress || defaultAddress || '');
+  const [street, setStreet] = React.useState(parsed.street);
+  const [number, setNumber] = React.useState(parsed.number);
+  const [postalCode, setPostalCode] = React.useState(parsed.postalCode);
+  const [city, setCity] = React.useState(parsed.city);
+  const [sameDelivery, setSameDelivery] = React.useState(true);
+  const [dStreet, setDStreet] = React.useState('');
+  const [dNumber, setDNumber] = React.useState('');
+  const [dPostalCode, setDPostalCode] = React.useState('');
+  const [dCity, setDCity] = React.useState('');
+
+  const inputStyle = { width: '100%', border: `1px solid ${P.border}`, borderRadius: 8, padding: 'var(--space-100) var(--space-150)', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, outline: 'none', boxSizing: 'border-box' };
+  const labelStyle = { display: 'block', fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginBottom: 'var(--space-075)' };
+
+  const handleSave = (close) => {
+    const addr = formatAddressBE({ street, number, postalCode, city });
+    onSave(addr);
+    if (onSaveDelivery) {
+      onSaveDelivery(sameDelivery ? null : formatAddressBE({ street: dStreet, number: dNumber, postalCode: dPostalCode, city: dCity }));
+    }
+    close();
+  };
+
+  const AddressFields = ({ s, setS, n, setN, pc, setPc, c, setC, autoFocus }) => (
+    <>
+      <div style={{ display: 'flex', gap: 'var(--space-150)' }}>
+        <div style={{ flex: 3 }}>
+          <label style={labelStyle}>Street</label>
+          <input autoFocus={autoFocus} value={s} onChange={e => setS(e.target.value)} placeholder="Rue de la Loi" style={inputStyle} />
+        </div>
+        <div style={{ flex: 1 }}>
+          <label style={labelStyle}>No.</label>
+          <input value={n} onChange={e => setN(e.target.value)} placeholder="42" style={inputStyle} />
+        </div>
+      </div>
+      <div style={{ display: 'flex', gap: 'var(--space-150)' }}>
+        <div style={{ flex: 1 }}>
+          <label style={labelStyle}>Postal code</label>
+          <input value={pc} onChange={e => setPc(e.target.value)} placeholder="1040" style={inputStyle} />
+        </div>
+        <div style={{ flex: 2 }}>
+          <label style={labelStyle}>City</label>
+          <input value={c} onChange={e => setC(e.target.value)} placeholder="Brussels" style={inputStyle} />
+        </div>
+      </div>
+    </>
+  );
+
+  return (
+    <ModalShell title={title} onClose={onClose} width={480}
+      footer={close => (
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-150)', padding: 'var(--space-200) var(--space-300)', borderTop: `1px solid ${P.border}` }}>
+          <Button variant="secondary" onClick={close}>Cancel</Button>
+          <Button variant="primary" onClick={() => handleSave(close)}>Save</Button>
+        </div>
+      )}>
+      {close => (
+        <div style={{ padding: 'var(--space-200) var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-150)' }}>
+          {isOverriding && defaultAddress && (
+            <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, lineHeight: 1.5 }}>
+              Overriding company default ({defaultAddress}).
+            </div>
+          )}
+          <AddressFields s={street} setS={setStreet} n={number} setN={setNumber} pc={postalCode} setPc={setPostalCode} c={city} setC={setCity} autoFocus />
+          {onReset && (
+            <button type="button" onClick={() => { onReset(); close(); }}
+              style={{ background: 'none', border: 'none', padding: 0, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, cursor: 'pointer', textAlign: 'left', textDecoration: 'underline' }}>
+              Reset to company default ({defaultAddress})
+            </button>
+          )}
+          <div style={{ borderTop: `1px solid ${P.border}`, margin: '0 calc(-1 * var(--space-300))', padding: 'var(--space-175) var(--space-300) 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 'var(--space-200)' }}>
+            <div>
+              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: P.ink }}>Ship cards to this address</div>
+              <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginTop: 'var(--space-025)' }}>When delivery is set to "Company address" for this entity</div>
+            </div>
+            <Switch size="sm" checked={sameDelivery} onChange={() => setSameDelivery(v => !v)} />
+          </div>
+          {!sameDelivery && (
+            <div className="section-reveal" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-150)', paddingTop: 'var(--space-050)' }}>
+              <div style={Object.assign({}, SL, { marginBottom: 0 })}>Delivery address</div>
+              <AddressFields s={dStreet} setS={setDStreet} n={dNumber} setN={setDNumber} pc={dPostalCode} setPc={setDPostalCode} c={dCity} setC={setDCity} />
+            </div>
+          )}
+        </div>
+      )}
+    </ModalShell>
+  );
+}
+
 // ── Entities settings screen ──────────────────────────────────────────────
 function EntitiesSettings({ onNav, appEntity = null, companyRegime = COMPANY_REGIME_DEFAULTS, onRegimeChange }) {
   const [selectedEntity, setSelectedEntity] = useState(null);
@@ -10900,6 +11008,22 @@ function EntitiesSettings({ onNav, appEntity = null, companyRegime = COMPANY_REG
         {/* Field edit modal */}
         {editing && (() => {
           const save = saveEntity;
+          if (editing.field === 'legalAddress') {
+            return (
+              <AddressEditModal
+                title={`${editing.label} — ${editing.entName}`}
+                currentAddress={editValue || null}
+                defaultAddress={editing.defaultValue}
+                isOverriding={!editing.usingDefault && !!editing.defaultValue}
+                onSave={addr => setEntityOverrides(prev => ({ ...prev, [editing.entId]: { ...(prev[editing.entId] || {}), legalAddress: addr || null } }))}
+                onSaveDelivery={deliveryAddr => {
+                  if (deliveryAddr) setEntityOverrides(prev => ({ ...prev, [editing.entId]: { ...(prev[editing.entId] || {}), deliveryAddress: deliveryAddr } }));
+                }}
+                onReset={!editing.usingDefault ? () => resetToDefault(editing.entId, editing.field) : undefined}
+                onClose={() => setEditing(null)}
+              />
+            );
+          }
           return (
             <ModalShell title={`${editing.label} — ${editing.entName}`} onClose={() => setEditing(null)} width={440}
               footer={close => (
