@@ -10912,6 +10912,9 @@ function EntitiesSettings({ onNav, appEntity = null, companyRegime = COMPANY_REG
   const [editing, setEditing] = useState(null);
   const [editValue, setEditValue] = useState('');
   const [entityOverrides, setEntityOverrides] = useState({});
+  const [showAddEntity, setShowAddEntity] = useState(false);
+  const [newEntityName, setNewEntityName] = useState('');
+  const [newEntityJC, setNewEntityJC] = useState('');
 
   const regime = { ...COMPANY_REGIME_DEFAULTS, ...companyRegime };
 
@@ -11145,7 +11148,9 @@ function EntitiesSettings({ onNav, appEntity = null, companyRegime = COMPANY_REG
         badge={appEntity ? ENTITIES.find(e => e.id === appEntity)?.name : null}
         maxWidth={880}
         padding="31px 28px 20px"
-      />
+      >
+        <Button variant="primary" icon="plus" onClick={() => { setNewEntityName(''); setNewEntityJC(''); setShowAddEntity(true); }}>Add entity</Button>
+      </PageHeader>
       <div style={{ flex: 1, overflow: 'auto' }}>
       <div style={{ maxWidth: 880, margin: '0 auto', padding: 'var(--space-300) var(--space-400)', display: 'flex', flexDirection: 'column', gap: 'var(--space-400)' }}>
 
@@ -11174,11 +11179,56 @@ function EntitiesSettings({ onNav, appEntity = null, companyRegime = COMPANY_REG
           })}
         </div>
 
-        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-          <Button variant="secondary" icon="plus" onClick={() => {}}>Add entity</Button>
-        </div>
       </div>
       </div>
+
+      {showAddEntity && (
+        <ModalShell
+          title="Add entity"
+          onClose={() => setShowAddEntity(false)}
+          width={440}
+          footer={close => (
+            <>
+              <Button variant="secondary" onClick={close}>Cancel</Button>
+              <Button variant="primary" onClick={() => { close(); }} disabled={!newEntityName.trim() || !newEntityJC.trim()}>Add entity</Button>
+            </>
+          )}
+        >
+          {() => (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-300)' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-100)' }}>
+                <label style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: P.ink }}>Entity name</label>
+                <input
+                  autoFocus
+                  value={newEntityName}
+                  onChange={e => setNewEntityName(e.target.value)}
+                  placeholder="e.g. Lumio Digital"
+                  style={{ fontFamily: 'var(--font-body)', fontSize: 16, color: P.ink, border: `1px solid ${P.border}`, borderRadius: 8, padding: '10px 12px', outline: 'none', width: '100%' }}
+                  onFocus={e => e.target.style.borderColor = 'var(--gray-400)'}
+                  onBlur={e => e.target.style.borderColor = P.border}
+                />
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-100)' }}>
+                <label style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: P.ink }}>Joint committee (PC)</label>
+                <input
+                  value={newEntityJC}
+                  onChange={e => setNewEntityJC(e.target.value)}
+                  placeholder="e.g. PC 200"
+                  style={{ fontFamily: 'var(--font-body)', fontSize: 16, color: P.ink, border: `1px solid ${P.border}`, borderRadius: 8, padding: '10px 12px', outline: 'none', width: '100%' }}
+                  onFocus={e => e.target.style.borderColor = 'var(--gray-400)'}
+                  onBlur={e => e.target.style.borderColor = P.border}
+                />
+              </div>
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: 'var(--space-100)', background: P.bg, border: `1px solid ${P.border}`, borderRadius: 8, padding: 'var(--space-150) var(--space-200)' }}>
+                <Icon name="info" size={14} color={P.inkSoft} strokeWidth={2} style={{ flexShrink: 0, marginTop: 2 }} />
+                <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, lineHeight: 1.5 }}>
+                  All other settings — registered address, legal representative, email domain, and more — will be inherited from the company until you set them specifically for this entity.
+                </span>
+              </div>
+            </div>
+          )}
+        </ModalShell>
+      )}
 
     </div>
   );
