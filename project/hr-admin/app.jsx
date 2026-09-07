@@ -2545,6 +2545,109 @@ function EmployeeCombobox({ value, onChange, employees, error, autoFocus }) {
   );
 }
 
+const PC_OPTS = [
+  'PC 100 — Auxiliary committee for workers',
+  'PC 102 — Hotels, restaurants, catering',
+  'PC 111 — Chemical industry',
+  'PC 118 — Food industry',
+  'PC 124 — Construction',
+  'PC 140 — Transport & logistics',
+  'PC 200 — White-collar commercial employees',
+  'PC 201 — Retail employees',
+  'PC 207 — Liberal professions',
+  'PC 218 — Food trade (white collar)',
+  'PC 220 — Graphic arts (white collar)',
+  'PC 226 — Insurance sector',
+  'PC 227 — Credit sector',
+  'PC 302 — Hotel & catering',
+  'PC 304 — Cleaning & maintenance',
+  'PC 305 — IT sector',
+  'PC 306 — Telecom',
+  'PC 308 — Social profit',
+  'PC 317 — Hairdressers',
+  'PC 320 — Architecture offices',
+  'PC 321 — Real estate agents',
+];
+
+function PCCombobox({ value, onChange }) {
+  const [query, setQuery] = useState('');
+  const [open, setOpen] = useState(false);
+  const { rendered: menuRendered, visible: menuVisible } = usePopoverTransition(open);
+  const ref = useRef(null);
+  const inputRef = useRef(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const close = (e) => { if (ref.current && !ref.current.contains(e.target)) { setOpen(false); setQuery(''); } };
+    document.addEventListener('mousedown', close);
+    return () => document.removeEventListener('mousedown', close);
+  }, [open]);
+
+  const filtered = React.useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return PC_OPTS;
+    return PC_OPTS.filter(o => o.toLowerCase().includes(q));
+  }, [query]);
+
+  const handleSelect = (opt) => { onChange(opt); setQuery(''); setOpen(false); };
+  const handleFocus = () => { setQuery(''); setOpen(true); };
+  const handleBlur = () => { setTimeout(() => { setOpen(false); setQuery(''); }, 150); };
+
+  return (
+    <div ref={ref} style={{ position: 'relative' }}>
+      <div style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 'var(--space-100)',
+        border: `1px solid ${open ? 'var(--gray-400)' : P.border}`, borderRadius: 8,
+        background: P.white, padding: '10px 12px', boxSizing: 'border-box',
+      }}>
+        <input
+          ref={inputRef}
+          value={open ? query : (value || '')}
+          onChange={e => { setQuery(e.target.value); if (!open) setOpen(true); }}
+          onFocus={handleFocus}
+          onBlur={handleBlur}
+          placeholder="Search by name or number…"
+          style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, minWidth: 0 }}
+        />
+        {value && !open ? (
+          <button type="button" onMouseDown={e => { e.preventDefault(); onChange(''); setQuery(''); inputRef.current?.focus(); }}
+            style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: 0, display: 'flex', flexShrink: 0 }}>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={P.inkFaint} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        ) : (
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={P.inkFaint} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+            style={{ flexShrink: 0, transition: `transform 150ms ${EASE_OUT}`, transform: open ? 'rotate(180deg)' : 'none', pointerEvents: 'none' }}>
+            <polyline points="6 9 12 15 18 9"/>
+          </svg>
+        )}
+      </div>
+      {menuRendered && (
+        <div style={{
+          position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0, zIndex: 400,
+          background: P.white, border: `1px solid ${P.border}`, borderRadius: 10,
+          boxShadow: '0 4px 16px rgba(15,13,40,0.10)', overflow: 'hidden', overflowY: 'auto', maxHeight: 220,
+          ...popoverStyle(menuVisible, 'top left'),
+        }}>
+          {filtered.length === 0 ? (
+            <div style={{ padding: '10px 12px', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft }}>No results</div>
+          ) : filtered.map(opt => (
+            <button key={opt} type="button" onMouseDown={() => handleSelect(opt)} style={{
+              display: 'block', width: '100%', textAlign: 'left', padding: '8px 12px',
+              border: 'none', cursor: 'pointer', background: value === opt ? P.bg : 'transparent',
+              fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink,
+            }}
+            onMouseEnter={e => e.currentTarget.style.background = P.bg}
+            onMouseLeave={e => e.currentTarget.style.background = value === opt ? P.bg : 'transparent'}
+            >{opt}</button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function DateInput({ value, onChange, min, placeholder = 'Select date', borderColor }) {
   const ref = React.useRef(null);
   const fmt = (iso) => {
@@ -10915,6 +11018,7 @@ function EntitiesSettings({ onNav, appEntity = null, companyRegime = COMPANY_REG
   const [showAddEntity, setShowAddEntity] = useState(false);
   const [newEntityName, setNewEntityName] = useState('');
   const [newEntityJC, setNewEntityJC] = useState('');
+  const [extraEntities, setExtraEntities] = useState([]);
 
   const regime = { ...COMPANY_REGIME_DEFAULTS, ...companyRegime };
 
@@ -11156,11 +11260,11 @@ function EntitiesSettings({ onNav, appEntity = null, companyRegime = COMPANY_REG
 
         {/* Entity list */}
         <div style={card}>
-          {ENTITIES.map((ent, idx) => {
+          {[...ENTITIES, ...extraEntities].map((ent, idx, all) => {
             const missingDelivery = !ent.deliveryAddress && !entityOverrides[ent.id]?.deliveryAddress;
             return (
               <div key={ent.id} onClick={() => setSelectedEntity(ent)}
-                style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-200)', padding: 'var(--space-200) var(--space-250)', borderBottom: idx < ENTITIES.length - 1 ? `1px solid ${P.border}` : 'none', cursor: 'pointer', transition: 'background 100ms' }}
+                style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-200)', padding: 'var(--space-200) var(--space-250)', borderBottom: idx < all.length - 1 ? `1px solid ${P.border}` : 'none', cursor: 'pointer', transition: 'background 100ms' }}
                 onMouseEnter={e => e.currentTarget.style.background = P.bg}
                 onMouseLeave={e => e.currentTarget.style.background = ''}>
                 <div style={{ width: 36, height: 36, borderRadius: 10, background: P.bg, border: `1px solid ${P.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -11188,41 +11292,39 @@ function EntitiesSettings({ onNav, appEntity = null, companyRegime = COMPANY_REG
           onClose={() => setShowAddEntity(false)}
           width={440}
           footer={close => (
-            <>
+            <div style={{ padding: 'var(--space-200) var(--space-300)', borderTop: `1px solid ${P.border}`, display: 'flex', gap: 'var(--space-125)', justifyContent: 'flex-end' }}>
               <Button variant="secondary" onClick={close}>Cancel</Button>
-              <Button variant="primary" onClick={() => { close(); }} disabled={!newEntityName.trim() || !newEntityJC.trim()}>Add entity</Button>
-            </>
+              <Button variant="primary" onClick={() => {
+                const jcCode = newEntityJC.split(' — ')[0].trim();
+                const id = newEntityName.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+                setExtraEntities(prev => [...prev, { id, name: newEntityName.trim(), jc: jcCode, employeeCount: 0 }]);
+                close();
+              }} disabled={!newEntityName.trim() || !newEntityJC.trim()}>Add entity</Button>
+            </div>
           )}
         >
           {() => (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-300)' }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-100)' }}>
-                <label style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: P.ink }}>Entity name</label>
+            <div style={{ padding: 'var(--space-250) var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-250)' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-075)' }}>
+                <label style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.inkSoft }}>Entity name</label>
                 <input
                   autoFocus
                   value={newEntityName}
                   onChange={e => setNewEntityName(e.target.value)}
                   placeholder="e.g. Lumio Digital"
-                  style={{ fontFamily: 'var(--font-body)', fontSize: 16, color: P.ink, border: `1px solid ${P.border}`, borderRadius: 8, padding: '10px 12px', outline: 'none', width: '100%' }}
+                  style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, border: `1px solid ${P.border}`, borderRadius: 8, padding: '10px 12px', outline: 'none', width: '100%' }}
                   onFocus={e => e.target.style.borderColor = 'var(--gray-400)'}
                   onBlur={e => e.target.style.borderColor = P.border}
                 />
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-100)' }}>
-                <label style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: P.ink }}>Joint committee (PC)</label>
-                <input
-                  value={newEntityJC}
-                  onChange={e => setNewEntityJC(e.target.value)}
-                  placeholder="e.g. PC 200"
-                  style={{ fontFamily: 'var(--font-body)', fontSize: 16, color: P.ink, border: `1px solid ${P.border}`, borderRadius: 8, padding: '10px 12px', outline: 'none', width: '100%' }}
-                  onFocus={e => e.target.style.borderColor = 'var(--gray-400)'}
-                  onBlur={e => e.target.style.borderColor = P.border}
-                />
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-075)' }}>
+                <label style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.inkSoft }}>Joint committee (PC)</label>
+                <PCCombobox value={newEntityJC} onChange={setNewEntityJC} />
               </div>
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: 'var(--space-100)', background: P.bg, border: `1px solid ${P.border}`, borderRadius: 8, padding: 'var(--space-150) var(--space-200)' }}>
                 <Icon name="info" size={14} color={P.inkSoft} strokeWidth={2} style={{ flexShrink: 0, marginTop: 2 }} />
                 <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, lineHeight: 1.5 }}>
-                  All other settings — registered address, legal representative, email domain, and more — will be inherited from the company until you set them specifically for this entity.
+                  All other settings — address, legal representative, email domain — will be inherited from <strong>{ENTITIES[0].name}</strong> until you set them specifically for this entity.
                 </span>
               </div>
             </div>
