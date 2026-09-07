@@ -10779,6 +10779,36 @@ function formatAddressBE({ street, number, postalCode, city }) {
   return [streetLine, cityLine].filter(Boolean).join(', ');
 }
 
+const addrInputStyle = { width: '100%', border: `1px solid ${P.border}`, borderRadius: 8, padding: 'var(--space-100) var(--space-150)', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, outline: 'none', boxSizing: 'border-box' };
+const addrLabelStyle = { display: 'block', fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginBottom: 'var(--space-075)' };
+
+function AddressFields({ s, setS, n, setN, pc, setPc, c, setC, autoFocus }) {
+  return (
+    <>
+      <div style={{ display: 'flex', gap: 'var(--space-150)' }}>
+        <div style={{ flex: 3 }}>
+          <label style={addrLabelStyle}>Street</label>
+          <input autoFocus={autoFocus} value={s} onChange={e => setS(e.target.value)} placeholder="Rue de la Loi" style={addrInputStyle} />
+        </div>
+        <div style={{ flex: 1 }}>
+          <label style={addrLabelStyle}>No.</label>
+          <input value={n} onChange={e => setN(e.target.value)} placeholder="42" style={addrInputStyle} />
+        </div>
+      </div>
+      <div style={{ display: 'flex', gap: 'var(--space-150)' }}>
+        <div style={{ flex: 1 }}>
+          <label style={addrLabelStyle}>Postal code</label>
+          <input value={pc} onChange={e => setPc(e.target.value)} placeholder="1040" style={addrInputStyle} />
+        </div>
+        <div style={{ flex: 2 }}>
+          <label style={addrLabelStyle}>City</label>
+          <input value={c} onChange={e => setC(e.target.value)} placeholder="Brussels" style={addrInputStyle} />
+        </div>
+      </div>
+    </>
+  );
+}
+
 function AddressEditModal({ title, currentAddress, defaultAddress, onSave, onSaveDelivery, onClose }) {
   const parsed = parseAddressBE(currentAddress || defaultAddress || '');
   const [street, setStreet] = React.useState(parsed.street);
@@ -10792,9 +10822,6 @@ function AddressEditModal({ title, currentAddress, defaultAddress, onSave, onSav
   const [dPostalCode, setDPostalCode] = React.useState('');
   const [dCity, setDCity] = React.useState('');
 
-  const inputStyle = { width: '100%', border: `1px solid ${P.border}`, borderRadius: 8, padding: 'var(--space-100) var(--space-150)', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, outline: 'none', boxSizing: 'border-box' };
-  const labelStyle = { display: 'block', fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginBottom: 'var(--space-075)' };
-
   const handleSave = (close) => {
     const addr = formatAddressBE({ street, number, postalCode, city });
     onSave(addr);
@@ -10803,31 +10830,6 @@ function AddressEditModal({ title, currentAddress, defaultAddress, onSave, onSav
     }
     close();
   };
-
-  const AddressFields = ({ s, setS, n, setN, pc, setPc, c, setC, autoFocus }) => (
-    <>
-      <div style={{ display: 'flex', gap: 'var(--space-150)' }}>
-        <div style={{ flex: 3 }}>
-          <label style={labelStyle}>Street</label>
-          <input autoFocus={autoFocus} value={s} onChange={e => setS(e.target.value)} placeholder="Rue de la Loi" style={inputStyle} />
-        </div>
-        <div style={{ flex: 1 }}>
-          <label style={labelStyle}>No.</label>
-          <input value={n} onChange={e => setN(e.target.value)} placeholder="42" style={inputStyle} />
-        </div>
-      </div>
-      <div style={{ display: 'flex', gap: 'var(--space-150)' }}>
-        <div style={{ flex: 1 }}>
-          <label style={labelStyle}>Postal code</label>
-          <input value={pc} onChange={e => setPc(e.target.value)} placeholder="1040" style={inputStyle} />
-        </div>
-        <div style={{ flex: 2 }}>
-          <label style={labelStyle}>City</label>
-          <input value={c} onChange={e => setC(e.target.value)} placeholder="Brussels" style={inputStyle} />
-        </div>
-      </div>
-    </>
-  );
 
   return (
     <ModalShell title={title} onClose={onClose} width={480}
