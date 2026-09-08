@@ -3614,35 +3614,86 @@ function generateReceiptContent(expense) {
   const f = v => `€ ${v.toFixed(2).replace('.', ',')}`;
   const amt = expense.amount;
   const cat = expense.category;
+  const desc = expense.description || '';
+
+  // Deterministic seed from expense id for stable "random" values
+  const seed = (expense.id || '').split('').reduce((a, c) => a + c.charCodeAt(0), 0);
+  const pick = arr => arr[seed % arr.length];
+  const hour = 9 + (seed % 11);
+  const min = String((seed * 7) % 60).padStart(2, '0');
+  const txTime = `${hour}:${min}`;
+  const receiptNum = `RCP-${((seed * 137 + 10000) % 90000) + 10000}`;
+  const cardLast4 = String(((seed * 31 + 1000) % 9000) + 1000);
+
   if (cat === 'Hotel') {
+    const hotels = [
+      { name: 'NH Hotels Brussels Centre', address: 'Bd du Roi Albert II 4, 1000 Brussels' },
+      { name: 'Marriott Brussels', address: 'Rue A. Orts 3-7, 1000 Brussels' },
+      { name: 'ibis Brussels Grand Place', address: 'Rue Joseph Stevens 2, 1000 Brussels' },
+      { name: 'Radisson Blu Royal Hotel', address: 'Rue du Fossé aux Loups 47, 1000 Brussels' },
+    ];
+    const m = pick(hotels);
     const vat = +(amt * 0.21 / 1.21).toFixed(2);
     const city = 4.50;
     const base = +(amt - vat - city).toFixed(2);
-    return { merchant: 'IBIS HOTELS', sub: 'Brussels Grand Place', lines: [['Room charge (1 night)', f(base)], ['City tax', f(city)], ['VAT 21%', f(vat)]] };
+    return { merchant: m.name, address: m.address, time: txTime, receiptNum, cardLast4, lines: [['Room charge (1 night)', f(base)], ['City tax', f(city)], ['VAT 21%', f(vat)]] };
   }
   if (cat === 'Taxi') {
+    const apps = [
+      { name: 'Uber', address: 'Uber B.V. — trip receipt' },
+      { name: 'Bolt', address: 'Bolt Operations OÜ — trip receipt' },
+    ];
+    const m = pick(apps);
     const booking = 2.20, base = 2.50;
-    const rest = amt - booking - base;
+    const rest = Math.max(0, amt - booking - base);
     const dist = +(rest * 0.78).toFixed(2);
-    const time = +(rest * 0.22).toFixed(2);
-    return { merchant: 'UBER', sub: 'Trip receipt', lines: [['Base fare', f(base)], ['Distance', f(dist)], ['Time', f(time)], ['Booking fee', f(booking)]] };
+    const time2 = +(rest * 0.22).toFixed(2);
+    return { merchant: m.name, address: m.address, time: txTime, receiptNum, cardLast4, lines: [['Base fare', f(base)], ['Distance', f(dist)], ['Time', f(time2)], ['Booking fee', f(booking)]] };
   }
   if (cat === 'Travel') {
-    const route = (expense.description || '').split('—')[0].trim();
-    return { merchant: 'NMBS / SNCB', sub: route || 'Train ticket', lines: [['1 × 2nd class ticket', f(amt)]] };
+    const isLondon = /london|eurostar/i.test(desc);
+    const isParis = /paris|thalys|izy/i.test(desc);
+    const merchantName = isLondon ? 'Eurostar' : isParis ? 'Thalys' : 'NMBS / SNCB';
+    const address = isLondon ? 'Eurostar International Ltd' : isParis ? 'Thalys International SCRL' : 'Société Nationale des Chemins de fer Belges';
+    const route = desc.split('—')[0].trim();
+    return { merchant: merchantName, address, time: txTime, receiptNum, cardLast4, lines: [['1 × 2nd class ticket', f(amt)], ...(isLondon ? [['Booking fee', '€ 0,00']] : [])] };
   }
   if (cat === 'Restaurant') {
+    const restaurants = [
+      { name: 'Brasserie Louise', address: 'Av. Louise 480, 1050 Brussels' },
+      { name: 'Le Fenix', address: 'Pl. Saint-Josse 1, 1000 Brussels' },
+      { name: 'The Stanley', address: 'Rue de la Presse 14, 1000 Brussels' },
+      { name: 'Noordzee / Mer du Nord', address: 'Rue Sainte-Catherine 45, 1000 Brussels' },
+      { name: 'Café Commerce', address: 'Rue du Marché aux Poulets 22, 1000 Brussels' },
+      { name: "L'Ogenblik", address: 'Galerie des Princes 1, 1000 Brussels' },
+    ];
+    const m = pick(restaurants);
     const vat = +(amt * 0.10 / 1.10).toFixed(2);
     const food = +(amt - vat).toFixed(2);
-    return { merchant: 'RESTAURANT', sub: (expense.description || '').split('—')[0].trim(), lines: [['Food & drinks', f(food)], ['VAT 10%', f(vat)]] };
+    return { merchant: m.name, address: m.address, time: txTime, receiptNum, cardLast4, lines: [['Food & drinks', f(food)], ['VAT 10%', f(vat)]] };
   }
   if (cat === 'Online courses') {
-    return { merchant: 'ONLINE LEARNING', sub: (expense.description || '').split('—')[0].trim(), lines: [['Subscription / course fee', f(amt)]] };
+    const platforms = [
+      { name: 'Coursera', address: 'Coursera Inc. — online invoice' },
+      { name: 'Udemy', address: 'Udemy Inc. — online invoice' },
+      { name: 'LinkedIn Learning', address: 'LinkedIn Ireland Unlimited Company' },
+    ];
+    const m = pick(platforms);
+    return { merchant: m.name, address: m.address, time: txTime, receiptNum, cardLast4, lines: [['Subscription / course fee', f(amt)]] };
   }
   if (cat === 'Conference fees') {
-    return { merchant: 'CONFERENCE', sub: (expense.description || '').split('—')[0].trim(), lines: [['Registration fee', f(amt)]] };
+    const confName = desc.split('—')[0].trim() || 'Conference registration';
+    return { merchant: confName, address: 'Event registration confirmation', time: txTime, receiptNum, cardLast4, lines: [['Registration fee', f(amt)]] };
   }
-  return { merchant: (cat || 'MERCHANT').toUpperCase(), sub: '', lines: [[expense.description || 'Purchase', f(amt)]] };
+  if (cat === 'Training materials') {
+    const stores = [
+      { name: 'Amazon.be', address: 'Amazon EU S.à r.l., 38 avenue John F. Kennedy, Luxembourg' },
+      { name: 'bol.com', address: 'Bol.com B.V. — online order' },
+    ];
+    const m = pick(stores);
+    return { merchant: m.name, address: m.address, time: txTime, receiptNum, cardLast4, lines: [['Purchase', f(amt)]] };
+  }
+  return { merchant: cat || 'Merchant', address: '', time: txTime, receiptNum, cardLast4, lines: [[desc || 'Purchase', f(amt)]] };
 }
 
 // ── Expense drawer ─────────────────────────────────────────────────────────
@@ -3747,9 +3798,9 @@ function ExpenseDrawer({ expense, onClose, onApprove, onReject, onEdit, categori
       <div style={{ borderRadius: 4, boxShadow: '0 2px 12px rgba(15,13,40,0.12)', fontFamily: 'ui-monospace, "SFMono-Regular", Menlo, monospace', fontSize: 12.5, lineHeight: 1.8, color: '#1a1a1a', background: '#faf9f7' }}>
         <div style={{ padding: '24px 28px 28px' }}>
           <div style={{ textAlign: 'center', marginBottom: 16 }}>
-            <div style={{ fontWeight: 700, fontSize: 14, letterSpacing: 1, textTransform: 'uppercase' }}>{rc.merchant}</div>
-            {rc.sub && <div style={{ color: '#666', fontSize: 11.5, marginTop: 2 }}>{rc.sub}</div>}
-            <div style={{ color: '#999', fontSize: 11, marginTop: 4 }}>{expense.expenseDate}</div>
+            <div style={{ fontWeight: 700, fontSize: 14, letterSpacing: 0.5 }}>{rc.merchant}</div>
+            {rc.address && <div style={{ color: '#888', fontSize: 10.5, marginTop: 3, lineHeight: 1.5 }}>{rc.address}</div>}
+            <div style={{ color: '#aaa', fontSize: 10.5, marginTop: 5 }}>{expense.expenseDate} · {rc.time}</div>
           </div>
           <div style={{ borderTop: '1px dashed #ccc', margin: '12px 0 10px' }} />
           {rc.lines.map(([label, val], i) => (
@@ -3764,9 +3815,9 @@ function ExpenseDrawer({ expense, onClose, onApprove, onReject, onEdit, categori
             <span>{totalStr}</span>
           </div>
           <div style={{ borderTop: '1px dashed #ccc', margin: '12px 0 0' }} />
-          <div style={{ color: '#aaa', fontSize: 10.5, marginTop: 10, textAlign: 'center', lineHeight: 1.6 }}>
-            Payment: Corporate card<br />
-            {expense.receipt}
+          <div style={{ color: '#aaa', fontSize: 10.5, marginTop: 10, textAlign: 'center', lineHeight: 1.9 }}>
+            Corporate card •••• {rc.cardLast4}<br />
+            {rc.receiptNum} · {expense.receipt}
           </div>
         </div>
       </div>
