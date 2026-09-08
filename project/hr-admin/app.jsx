@@ -4825,7 +4825,7 @@ function ExpenseReportsScreen({ expenses, onToast, appEntity = null }) {
           Download all
         </Button>
       </PageHeader>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-100)', padding: 'var(--space-150) var(--space-250)', borderBottom: `1px solid ${P.border}`, background: P.white }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-100)', padding: 'var(--space-300) var(--space-250) var(--space-200)' }}>
         <FilterDropdown label="Year" active={year} opts={yearOpts} onSelect={setYear} minWidth={90} />
       </div>
       <div style={{ flex: 1, overflowY: 'auto', padding: '0 var(--space-250) var(--space-250)' }}>
