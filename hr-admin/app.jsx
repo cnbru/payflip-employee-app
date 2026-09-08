@@ -1740,6 +1740,7 @@ function AppModeSidebar({ active, onNav, pendingCount, onEnterSettings, setupInP
   const [peopleOpen, setPeopleOpen] = useState(isPeopleActive);
   const [timeoffOpen, setTimeoffOpen] = useState(active === 'requests' || active === 'team-absences');
   const [payrollOpen, setPayrollOpen] = useState(active === 'payroll-overview' || active === 'payroll-reports');
+  const [expensesOpen, setExpensesOpen] = useState(active === 'expenses' || active === 'expense-reports');
 
   return (
     <React.Fragment>
@@ -1773,7 +1774,13 @@ function AppModeSidebar({ active, onNav, pendingCount, onEnterSettings, setupInP
             ]} />
           </SidebarAccordion>
 
-          <SidebarItem icon="receipt" label="Expenses" isActive={active === 'expenses'} onClick={() => onNav('expenses')} badgeDot={pendingCount?.expenses || null} />
+          <SidebarItem icon="receipt" label="Expenses" onClick={() => setExpensesOpen(o => !o)} chevron chevronOpen={expensesOpen} isActive={active === 'expenses' || active === 'expense-reports'} badgeDot={!expensesOpen && (pendingCount?.expenses || null)} />
+          <SidebarAccordion open={expensesOpen}>
+            <SidebarSub active={active} onNav={onNav} items={[
+              { id: 'expenses', label: 'Overview', badge: pendingCount?.expenses },
+              { id: 'expense-reports', label: 'Reports' },
+            ]} />
+          </SidebarAccordion>
 
           <SidebarItem icon="settings" label="Settings" onClick={onEnterSettings} />
 
@@ -1798,6 +1805,7 @@ const ROUTE_MAP = [
   { screen: 'people-onboarding',      path: '/hr-admin/people/onboarding' },
   { screen: 'people-offboarding',     path: '/hr-admin/people/offboarding' },
   { screen: 'expenses',               path: '/hr-admin/expenses' },
+  { screen: 'expense-reports',        path: '/hr-admin/expenses/reports' },
   { screen: 'choices',                path: '/hr-admin/choices' },
   { screen: 'payroll-overview',       path: '/hr-admin/payroll' },
   { screen: 'payroll-reports',        path: '/hr-admin/payroll/reports' },
@@ -4613,7 +4621,6 @@ function ExpensesScreen({ expenses, categories, onApprove, onDetail, onRejectDir
   const allMonths = [...new Set(expenses.map(e => (e.expenseDate || e.submittedAt).split(' ').pop()))].sort((a, b) => MONTH_ORDER.indexOf(b) - MONTH_ORDER.indexOf(a));
   const monthOpts = [['all', 'All months'], ...allMonths.map(m => [m, MONTH_FULL[m] || m])];
   const [tab, setTab] = useState(requireApproval ? 'pending' : 'all');
-  const [reportYear] = useState('2026');
   const [page, setPage] = useState(1);
   const [addOpen, setAddOpen] = useState(false);
   const [selected, setSelected] = useState(new Set());
@@ -4683,111 +4690,33 @@ function ExpensesScreen({ expenses, categories, onApprove, onDetail, onRejectDir
         title="Expenses"
         subtitle={requireApproval ? "Review and approve team expense claims" : "Auto-approved · receipts required"}
         badge={appEntity ? (ENTITIES.find(e => e.id === appEntity)?.name) : null}
-        tabs={
+        tabs={requireApproval && (
           <TabBar
             tabs={[
-              ...(requireApproval ? [
-                { id: 'pending', label: `Pending${pendingCount > 0 ? ` (${pendingCount})` : ''}` },
-                { id: 'approved', label: 'Approved' },
-                { id: 'declined', label: 'Declined' },
-                { id: 'all', label: 'All expenses' },
-              ] : [
-                { id: 'all', label: 'All expenses' },
-              ]),
-              { id: 'reports', label: 'Reports' },
+              { id: 'pending', label: `Pending${pendingCount > 0 ? ` (${pendingCount})` : ''}` },
+              { id: 'approved', label: 'Approved' },
+              { id: 'declined', label: 'Declined' },
+              { id: 'all', label: 'All expenses' },
             ]}
             activeTab={tab}
             onTabChange={(v) => { setTab(v); setPage(1); setSelected(new Set()); }}
             padding="0"
           />
-        }
+        )}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-100)' }}>
-          {tab === 'reports' ? (
-            <Button variant="secondary" icon="Download" style={{ background: P.white }} onClick={() => {
-              const approved = expenses.filter(e => e.status === 'approved');
-              const withReceipt = approved.filter(e => e.receipt).length;
-              onToast?.({ message: `Payflip_Receipts_${reportYear}.zip — ${withReceipt} receipts`, type: 'approve' });
-            }}>Download all</Button>
-          ) : (
-            <>
-              {onGoToSettings && <Button variant="secondary" icon="Settings" onClick={onGoToSettings} style={{ background: P.white }}>Settings</Button>}
-              <Button variant="primary" icon="Plus" onClick={() => setAddOpen(true)}>Add expense</Button>
-            </>
-          )}
+          {onGoToSettings && <Button variant="secondary" icon="Settings" onClick={onGoToSettings} style={{ background: P.white }}>Settings</Button>}
+          <Button variant="primary" icon="Plus" onClick={() => setAddOpen(true)}>Add expense</Button>
         </div>
       </PageHeader>
-      {tab !== 'reports' && (
-        <FilterToolbar
-          searchText={searchText} onSearch={v => resetFilters(() => setSearchText(v))}
-          filter={categoryFilter} onFilter={v => resetFilters(() => setCategoryFilter(v))} filterOpts={categoryOpts}
-          deptFilter={deptFilter} onDeptFilter={v => resetFilters(() => setDeptFilter(v))}
-        >
-          <FilterDropdown label="All months" active={monthFilter} opts={monthOpts} onSelect={v => resetFilters(() => setMonthFilter(v))} minWidth={130} />
-        </FilterToolbar>
-      )}
-      {tab === 'reports' && (() => {
-        const approved = expenses.filter(e => e.status === 'approved');
-        const uniqueCats = [...new Set(approved.map(e => e.category))];
-        const catRows = uniqueCats.map(name => {
-          const catExps = approved.filter(e => e.category === name);
-          return { name, count: catExps.length, total: catExps.reduce((s, e) => s + (e.amount || 0), 0), withReceipt: catExps.filter(e => e.receipt).length };
-        }).filter(r => r.count > 0).sort((a, b) => b.total - a.total);
-        const grandTotal = catRows.reduce((s, r) => s + r.total, 0);
-        const grandCount = catRows.reduce((s, r) => s + r.count, 0);
-        const grandReceipts = catRows.reduce((s, r) => s + r.withReceipt, 0);
-        const fmt = (n) => `€${n.toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.')}`;
-        const colGrid = '1fr 80px 120px 100px 88px';
-        return (
-          <div style={{ flex: 1, overflowY: 'auto', padding: '0 var(--space-250) var(--space-250)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-150)' }}>
-              <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>
-                Approved expenses · {reportYear}
-              </div>
-            </div>
-            <div style={{ background: P.white, borderRadius: 12, border: `1px solid ${P.border}`, overflow: 'clip' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: colGrid, alignItems: 'center', gap: 'var(--space-150)', padding: '0 var(--space-250)', height: 38, borderBottom: `1px solid ${P.border}`, background: P.bg }}>
-                <TH>Category</TH>
-                <TH style={{ textAlign: 'right' }}>Expenses</TH>
-                <TH style={{ textAlign: 'right' }}>Total</TH>
-                <TH style={{ textAlign: 'right' }}>Receipts</TH>
-                <div />
-              </div>
-              {catRows.length === 0 ? (
-                <div style={{ padding: '60px var(--space-300)', textAlign: 'center' }}>
-                  <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.inkFaint }}>No approved expenses yet</div>
-                </div>
-              ) : catRows.map((row, i) => (
-                <div key={row.name} style={{ display: 'grid', gridTemplateColumns: colGrid, alignItems: 'center', gap: 'var(--space-150)', padding: '0 var(--space-250)', height: 52, borderBottom: i < catRows.length - 1 ? `1px solid ${P.border}` : 'none' }}>
-                  <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink }}>{row.name}</div>
-                  <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, textAlign: 'right' }}>{row.count}</div>
-                  <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink, textAlign: 'right' }}>{fmt(row.total)}</div>
-                  <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: row.withReceipt < row.count ? P.warning : P.inkSoft, textAlign: 'right' }}>
-                    {row.withReceipt}/{row.count}
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                    <button onClick={() => onToast?.({ message: `${row.name}_${reportYear}.zip — ${row.withReceipt} receipt${row.withReceipt !== 1 ? 's' : ''}`, type: 'approve' })}
-                      style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '5px 10px', borderRadius: 7, border: `1px solid ${P.border}`, background: P.white, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.ink }}>
-                      <Icon name="Download" size={12} color={P.ink} strokeWidth={2} />
-                      ZIP
-                    </button>
-                  </div>
-                </div>
-              ))}
-              {catRows.length > 0 && (
-                <div style={{ display: 'grid', gridTemplateColumns: colGrid, alignItems: 'center', gap: 'var(--space-150)', padding: '0 var(--space-250)', height: 44, borderTop: `1px solid ${P.border}`, background: P.bg }}>
-                  <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-sm)', color: P.ink }}>Total</div>
-                  <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-sm)', color: P.ink, textAlign: 'right' }}>{grandCount}</div>
-                  <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-sm)', color: P.ink, textAlign: 'right' }}>{fmt(grandTotal)}</div>
-                  <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-sm)', color: P.ink, textAlign: 'right' }}>{grandReceipts}/{grandCount}</div>
-                  <div />
-                </div>
-              )}
-            </div>
-          </div>
-        );
-      })()}
-      <div style={{ flex: 1, overflowY: 'auto', padding: '0 var(--space-250) var(--space-250)', display: tab === 'reports' ? 'none' : undefined }}>
+      <FilterToolbar
+        searchText={searchText} onSearch={v => resetFilters(() => setSearchText(v))}
+        filter={categoryFilter} onFilter={v => resetFilters(() => setCategoryFilter(v))} filterOpts={categoryOpts}
+        deptFilter={deptFilter} onDeptFilter={v => resetFilters(() => setDeptFilter(v))}
+      >
+        <FilterDropdown label="All months" active={monthFilter} opts={monthOpts} onSelect={v => resetFilters(() => setMonthFilter(v))} minWidth={130} />
+      </FilterToolbar>
+      <div style={{ flex: 1, overflowY: 'auto', padding: '0 var(--space-250) var(--space-250)' }}>
         <div style={{ background: P.white, borderRadius: 12, border: `1px solid ${P.border}`, overflow: 'clip' }}>
           <div style={{ display: 'grid', gridTemplateColumns: gridCols, alignItems: 'center', gap: 'var(--space-150)', padding: '0 var(--space-250)', height: 38, borderBottom: `1px solid ${P.border}`, background: P.bg, position: 'sticky', top: 0, zIndex: 5 }}>
             {requireApproval && <input type="checkbox" checked={allSelected} onChange={toggleAll} style={{ cursor: 'pointer', accentColor: P.action }} />}
@@ -4831,7 +4760,7 @@ function ExpensesScreen({ expenses, categories, onApprove, onDetail, onRejectDir
         )}
       </div>
       {/* Bulk action bar */}
-      {tab !== 'reports' && (selected.size > 0 || pillLeaving) && (
+      {(selected.size > 0 || pillLeaving) && (
         <div style={{ position: 'absolute', bottom: 16, left: 0, right: 0, display: 'flex', justifyContent: 'center', pointerEvents: 'none', zIndex: 10 }}>
           <div style={{
             pointerEvents: pillLeaving ? 'none' : 'auto',
@@ -4865,6 +4794,77 @@ function ExpensesScreen({ expenses, categories, onApprove, onDetail, onRejectDir
         </div>
       )}
       {addOpen && <AddExpenseModal categories={categories} receiptRequired={receiptAlwaysRequired} onClose={() => setAddOpen(false)} onSave={(exp) => { onAdd(exp); setAddOpen(false); }} />}
+    </div>
+  );
+}
+
+// ── Expense Reports screen ─────────────────────────────────────────────────
+function ExpenseReportsScreen({ expenses, onToast, appEntity = null }) {
+  const YEAR = '2026';
+  const approved = expenses.filter(e => e.status === 'approved');
+  const uniqueCats = [...new Set(approved.map(e => e.category))];
+  const catRows = uniqueCats.map(name => {
+    const catExps = approved.filter(e => e.category === name);
+    return { name, count: catExps.length, total: catExps.reduce((s, e) => s + (e.amount || 0), 0), withReceipt: catExps.filter(e => e.receipt).length };
+  }).filter(r => r.count > 0).sort((a, b) => b.total - a.total);
+  const grandTotal = catRows.reduce((s, r) => s + r.total, 0);
+  const grandCount = catRows.reduce((s, r) => s + r.count, 0);
+  const grandReceipts = catRows.reduce((s, r) => s + r.withReceipt, 0);
+  const fmt = (n) => `€${n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`;
+  const colGrid = '1fr 80px 120px 100px 88px';
+  return (
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, animation: `screenEnter 180ms ${EASE_OUT}` }}>
+      <PageHeader
+        title="Reports"
+        subtitle={`Approved expense receipts · ${YEAR}`}
+        badge={appEntity ? (ENTITIES.find(e => e.id === appEntity)?.name) : null}
+      >
+        <Button variant="secondary" icon="Download" style={{ background: P.white }} onClick={() => onToast?.({ message: `Payflip_Receipts_${YEAR}.zip — ${grandReceipts} receipts`, type: 'approve' })}>
+          Download all
+        </Button>
+      </PageHeader>
+      <div style={{ flex: 1, overflowY: 'auto', padding: '0 var(--space-250) var(--space-250)' }}>
+        <div style={{ background: P.white, borderRadius: 12, border: `1px solid ${P.border}`, overflow: 'clip' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: colGrid, alignItems: 'center', gap: 'var(--space-150)', padding: '0 var(--space-250)', height: 38, borderBottom: `1px solid ${P.border}`, background: P.bg }}>
+            <TH>Category</TH>
+            <TH style={{ textAlign: 'right' }}>Expenses</TH>
+            <TH style={{ textAlign: 'right' }}>Total</TH>
+            <TH style={{ textAlign: 'right' }}>Receipts</TH>
+            <div />
+          </div>
+          {catRows.length === 0 ? (
+            <div style={{ padding: '60px var(--space-300)', textAlign: 'center' }}>
+              <Icon name="receipt" size={32} color={P.border} style={{ marginBottom: 'var(--space-150)' }} />
+              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.inkFaint }}>No approved expenses yet</div>
+            </div>
+          ) : catRows.map((row, i) => (
+            <div key={row.name} style={{ display: 'grid', gridTemplateColumns: colGrid, alignItems: 'center', gap: 'var(--space-150)', padding: '0 var(--space-250)', height: 52, borderBottom: i < catRows.length - 1 ? `1px solid ${P.border}` : 'none' }}>
+              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink }}>{row.name}</div>
+              <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, textAlign: 'right' }}>{row.count}</div>
+              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink, textAlign: 'right' }}>{fmt(row.total)}</div>
+              <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: row.withReceipt < row.count ? P.warning : P.inkSoft, textAlign: 'right' }}>
+                {row.withReceipt}/{row.count}
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                <button onClick={() => onToast?.({ message: `${row.name}_${YEAR}.zip — ${row.withReceipt} receipt${row.withReceipt !== 1 ? 's' : ''}`, type: 'approve' })}
+                  style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '5px 10px', borderRadius: 7, border: `1px solid ${P.border}`, background: P.white, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.ink }}>
+                  <Icon name="Download" size={12} color={P.ink} strokeWidth={2} />
+                  ZIP
+                </button>
+              </div>
+            </div>
+          ))}
+          {catRows.length > 0 && (
+            <div style={{ display: 'grid', gridTemplateColumns: colGrid, alignItems: 'center', gap: 'var(--space-150)', padding: '0 var(--space-250)', height: 44, borderTop: `1px solid ${P.border}`, background: P.bg }}>
+              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-sm)', color: P.ink }}>Total</div>
+              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-sm)', color: P.ink, textAlign: 'right' }}>{grandCount}</div>
+              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-sm)', color: P.ink, textAlign: 'right' }}>{fmt(grandTotal)}</div>
+              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-sm)', color: P.ink, textAlign: 'right' }}>{grandReceipts}/{grandCount}</div>
+              <div />
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
@@ -14270,6 +14270,7 @@ function App() {
         {screen === 'people-offboarding' && <OffboardingScreen offboardingIds={offboardingIds} onCompleteOffboarding={handleCompleteOffboarding} onNav={handleNav} appEntity={appEntity} />}
         {screen.startsWith('employee-detail:') && (() => { const [, detailEmpId, detailTab] = screen.split(':'); return <EmployeeDetailScreen employeeId={detailEmpId} requests={requests} onNav={setScreen} onSave={saveRequest} onCancel={cancelRequest} onApprove={approve} onDecline={requestDecline} onViewTeamCalendar={(dept) => { setCalendarDeptFilter(dept || null); setScreen('team-absences'); }} employeeBalance={employeeBalances[detailEmpId]} onUpdateBalance={(newBal) => updateBalances(detailEmpId, newBal)} needsSetup={needsBalanceSetup.has(detailEmpId)} confirmedDate={balanceConfirmedDates[detailEmpId]} onConfirmBalances={() => confirmBalancesFor(detailEmpId)} onToast={addToast} adminAccess={adminAccess} onAdminSave={handleAdminSave} companyRegime={companyRegime} onEmployeeUpdate={handleEmployeeUpdate} getEmpWithOverrides={getEmpWithOverrides} physicalCardsAllowed={physicalCardsAllowed} mobilityWidgetState={mobilityWidgetState} initialTab={detailTab || (freshEmployeeId === detailEmpId ? 'details' : 'choices')} unmatchedRecord={matchedEmpInssMap.get(detailEmpId)} onResolveUnmatched={resolveUnmatched} onStartOffboarding={handleStartOffboarding} isOnboarding={onboardingIds.has(detailEmpId)} leaveTypes={leaveTypes} />; })()}
         {screen === 'expenses' && <ExpensesScreen key={appEntity ?? 'all'} expenses={entityFilteredExpenses} categories={expenseCategories} onApprove={approveExpense} onDetail={(exp) => { setExpDetailRejectMode(false); setExpDetail(exp); }} onRejectDirectly={(exp) => { setExpDetailRejectMode(true); setExpDetail(exp); }} onAdd={addExpense} appEntity={appEntity} receiptAlwaysRequired={receiptAlwaysRequired} requireApproval={requireApproval} onGoToSettings={() => setScreen('settings-expenses')} onToast={addToast} />}
+        {screen === 'expense-reports' && <ExpenseReportsScreen key={appEntity ?? 'all'} expenses={entityFilteredExpenses} appEntity={appEntity} onToast={addToast} />}
         {screen === 'choices' && <ChoicesScreen key={appEntity ?? 'all'} choices={entityFilteredChoices} onApprove={approveChoice} onDecline={declineChoice} onDetail={setChoiceDetail} appEntity={appEntity} />}
         {screen === 'payroll-overview' && <StubScreen title="Payroll Overview" description="Monthly payroll run and submission" />}
         {screen === 'payroll-reports' && <StubScreen title="Payroll Reports" description="Reporting and exports" />}
