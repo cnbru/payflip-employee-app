@@ -123,6 +123,19 @@
       .section-reveal { transition: opacity 150ms ease; }
       @starting-style { .section-reveal { opacity: 0; transform: none; } }
     }
+
+    .filter-count-badge {
+      transform: scale(1);
+      opacity: 1;
+      transition: transform 150ms cubic-bezier(0.34, 1.56, 0.64, 1), opacity 100ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    @starting-style {
+      .filter-count-badge { transform: scale(0.5); opacity: 0; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .filter-count-badge { transition: opacity 100ms cubic-bezier(0.22, 1, 0.36, 1); }
+      @starting-style { .filter-count-badge { transform: none; opacity: 0; } }
+    }
   </style>
 
   <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
@@ -132,6 +145,6 @@
 </head>
 <body>
   <div id="root"></div>
-  <script type="text/babel" src="app.jsx?v=2055"></script>
+  <script type="text/babel" src="app.jsx?v=2100"></script>
 </body>
 </html>
