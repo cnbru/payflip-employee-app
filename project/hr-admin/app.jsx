@@ -4800,8 +4800,10 @@ function ExpensesScreen({ expenses, categories, onApprove, onDetail, onRejectDir
 
 // ── Expense Reports screen ─────────────────────────────────────────────────
 function ExpenseReportsScreen({ expenses, onToast, appEntity = null }) {
-  const YEAR = '2026';
-  const approved = expenses.filter(e => e.status === 'approved');
+  const CURRENT_YEAR = 2026;
+  const MIN_YEAR = CURRENT_YEAR - 10;
+  const [year, setYear] = useState(CURRENT_YEAR);
+  const approved = expenses.filter(e => e.status === 'approved' && (year === CURRENT_YEAR));
   const uniqueCats = [...new Set(approved.map(e => e.category))];
   const catRows = uniqueCats.map(name => {
     const catExps = approved.filter(e => e.category === name);
@@ -4812,16 +4814,32 @@ function ExpenseReportsScreen({ expenses, onToast, appEntity = null }) {
   const grandReceipts = catRows.reduce((s, r) => s + r.withReceipt, 0);
   const fmt = (n) => `€${n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`;
   const colGrid = '1fr 80px 120px 100px 88px';
+  const yearPicker = (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-075)' }}>
+      <button onClick={() => setYear(y => Math.max(MIN_YEAR, y - 1))} disabled={year <= MIN_YEAR}
+        style={{ width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', border: `1px solid ${P.border}`, borderRadius: 7, background: P.white, cursor: year <= MIN_YEAR ? 'default' : 'pointer', opacity: year <= MIN_YEAR ? 0.3 : 1 }}>
+        <Icon name="ChevronLeft" size={14} color={P.ink} strokeWidth={2.5} />
+      </button>
+      <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-sm)', color: P.ink, minWidth: 36, textAlign: 'center' }}>{year}</span>
+      <button onClick={() => setYear(y => Math.min(CURRENT_YEAR, y + 1))} disabled={year >= CURRENT_YEAR}
+        style={{ width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', border: `1px solid ${P.border}`, borderRadius: 7, background: P.white, cursor: year >= CURRENT_YEAR ? 'default' : 'pointer', opacity: year >= CURRENT_YEAR ? 0.3 : 1 }}>
+        <Icon name="ChevronRight" size={14} color={P.ink} strokeWidth={2.5} />
+      </button>
+    </div>
+  );
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, animation: `screenEnter 180ms ${EASE_OUT}` }}>
       <PageHeader
         title="Reports"
-        subtitle={`Approved expense receipts · ${YEAR}`}
+        subtitle="Approved expense receipts by category"
         badge={appEntity ? (ENTITIES.find(e => e.id === appEntity)?.name) : null}
       >
-        <Button variant="secondary" icon="Download" style={{ background: P.white }} onClick={() => onToast?.({ message: `Payflip_Receipts_${YEAR}.zip — ${grandReceipts} receipts`, type: 'approve' })}>
-          Download all
-        </Button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)' }}>
+          {yearPicker}
+          <Button variant="secondary" icon="Download" style={{ background: P.white }} onClick={() => onToast?.({ message: `Payflip_Receipts_${year}.zip — ${grandReceipts} receipts`, type: 'approve' })} disabled={grandReceipts === 0}>
+            Download all
+          </Button>
+        </div>
       </PageHeader>
       <div style={{ flex: 1, overflowY: 'auto', padding: '0 var(--space-250) var(--space-250)' }}>
         <div style={{ background: P.white, borderRadius: 12, border: `1px solid ${P.border}`, overflow: 'clip' }}>
@@ -4835,7 +4853,7 @@ function ExpenseReportsScreen({ expenses, onToast, appEntity = null }) {
           {catRows.length === 0 ? (
             <div style={{ padding: '60px var(--space-300)', textAlign: 'center' }}>
               <Icon name="receipt" size={32} color={P.border} style={{ marginBottom: 'var(--space-150)' }} />
-              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.inkFaint }}>No approved expenses yet</div>
+              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.inkFaint }}>No approved expenses for {year}</div>
             </div>
           ) : catRows.map((row, i) => (
             <div key={row.name} style={{ display: 'grid', gridTemplateColumns: colGrid, alignItems: 'center', gap: 'var(--space-150)', padding: '0 var(--space-250)', height: 52, borderBottom: i < catRows.length - 1 ? `1px solid ${P.border}` : 'none' }}>
@@ -4846,7 +4864,7 @@ function ExpenseReportsScreen({ expenses, onToast, appEntity = null }) {
                 {row.withReceipt}/{row.count}
               </div>
               <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                <button onClick={() => onToast?.({ message: `${row.name}_${YEAR}.zip — ${row.withReceipt} receipt${row.withReceipt !== 1 ? 's' : ''}`, type: 'approve' })}
+                <button onClick={() => onToast?.({ message: `${row.name}_${year}.zip — ${row.withReceipt} receipt${row.withReceipt !== 1 ? 's' : ''}`, type: 'approve' })}
                   style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '5px 10px', borderRadius: 7, border: `1px solid ${P.border}`, background: P.white, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.ink }}>
                   <Icon name="Download" size={12} color={P.ink} strokeWidth={2} />
                   ZIP
