@@ -548,8 +548,21 @@ function ModalShell({ onClose, title, subtitle, width, size, maxHeight, zIndex =
           </div>
         )}
         {typeof children === 'function' ? children(close) : children}
-        {footer && (typeof footer === 'function' ? footer(close) : footer)}
+        {footer && (
+          <div style={{ padding: 'var(--space-200) var(--space-300)', borderTop: `1px solid ${P.border}`, display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-125)', flexShrink: 0 }}>
+            {typeof footer === 'function' ? footer(close) : footer}
+          </div>
+        )}
       </div>
+    </div>
+  );
+}
+
+// Standard modal body wrapper — use instead of hand-rolling padding/gap inside ModalShell children.
+function ModalBody({ children, gap = 'var(--space-250)' }) {
+  return (
+    <div style={{ padding: 'var(--space-250) var(--space-300)', display: 'flex', flexDirection: 'column', gap, overflowY: 'auto', flex: 1 }}>
+      {children}
     </div>
   );
 }
@@ -905,7 +918,7 @@ function ChoicesTab({ empId }) {
         {filtered.length === 0 ? (
           <EmptyState icon="list" title="No choices recorded yet" />
         ) : (
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)' }}>
+          <div style={{ overflowX: 'auto' }}><table style={{ width: 'max-content', minWidth: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)' }}>
             <thead><tr style={{ borderBottom: `1px solid ${P.border}` }}>
               <th style={{ ...th, paddingLeft: 'var(--space-250)' }}>Name</th>
               <th style={th}>Price</th>
@@ -926,7 +939,7 @@ function ChoicesTab({ empId }) {
                 <td style={{ padding: 'var(--space-100) var(--space-200)', textAlign: 'right' }}><button style={{ border: `1px solid ${P.border}`, background: 'transparent', borderRadius: 6, padding: 'var(--space-050) var(--space-125)', fontSize: 'var(--fs-body-xs)', fontFamily: 'var(--font-display)', fontWeight: 600, color: P.inkSoft, cursor: 'pointer' }}>Details</button></td>
               </tr>
             ))}</tbody>
-          </table>
+          </table></div>
         )}
       </div>
     </div>
@@ -944,7 +957,7 @@ function BudgetsTab({ empId }) {
         </button>
       </div>
       <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 12, overflow: 'hidden' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)' }}>
+        <div style={{ overflowX: 'auto' }}><table style={{ width: 'max-content', minWidth: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)' }}>
           <thead><tr style={{ borderBottom: `1px solid ${P.border}` }}>
             <th style={{ ...th, paddingLeft: 'var(--space-250)' }}>Name budget</th>
             <th style={th}>Budget balance</th>
@@ -968,7 +981,7 @@ function BudgetsTab({ empId }) {
               </td>
             </tr>
           ))}</tbody>
-        </table>
+        </table></div>
       </div>
     </div>
   );
@@ -1060,7 +1073,7 @@ function SalaryTab({ empId, emp, companyRegime, onEmployeeUpdate }) {
       <div>
         <SalSecHead title="Salary" onAdd={() => {}} />
         <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 12, overflow: 'hidden' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)' }}>
+          <div style={{ overflowX: 'auto' }}><table style={{ width: 'max-content', minWidth: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)' }}>
             <thead><tr style={{ borderBottom: `1px solid ${P.border}` }}>
               <th style={{ ...th, paddingLeft: 'var(--space-250)' }}>Gross amount</th>
               <th style={th}>Working regime</th>
@@ -1089,7 +1102,7 @@ function SalaryTab({ empId, emp, companyRegime, onEmployeeUpdate }) {
                 <td style={{ padding: 'var(--space-100) var(--space-200)', textAlign: 'right' }}><button style={{ border: `1px solid ${P.border}`, background: 'transparent', borderRadius: 6, padding: 'var(--space-050) var(--space-125)', fontSize: 'var(--fs-body-xs)', fontFamily: 'var(--font-display)', fontWeight: 600, color: P.inkSoft, cursor: 'pointer' }}>Details</button></td>
               </tr>
             ))}</tbody>
-          </table>
+          </table></div>
         </div>
       </div>
       <div>
@@ -1098,7 +1111,7 @@ function SalaryTab({ empId, emp, companyRegime, onEmployeeUpdate }) {
           Components are benefits offered as part of the employee's remuneration where a benefit in kind is charged for. <AppLink onClick={e => e.preventDefault()}>Learn more</AppLink>
         </p>
         <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 12, overflow: 'hidden' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)' }}>
+          <div style={{ overflowX: 'auto' }}><table style={{ width: 'max-content', minWidth: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)' }}>
             <thead><tr style={{ borderBottom: `1px solid ${P.border}` }}>
               <th style={{ ...th, paddingLeft: 'var(--space-250)' }}>Type</th>
               <th style={th}>Start date</th>
@@ -1120,7 +1133,7 @@ function SalaryTab({ empId, emp, companyRegime, onEmployeeUpdate }) {
                 <td style={{ padding: 'var(--space-100) var(--space-200)', textAlign: 'right' }}><button style={{ border: `1px solid ${P.border}`, background: 'transparent', borderRadius: 6, padding: 'var(--space-050) var(--space-125)', fontSize: 'var(--fs-body-xs)', fontFamily: 'var(--font-display)', fontWeight: 600, color: P.inkSoft, cursor: 'pointer' }}>Details</button></td>
               </tr>
             ))}</tbody>
-          </table>
+          </table></div>
         </div>
       </div>
     </div>
@@ -1775,12 +1788,11 @@ function AppModeSidebar({ active, onNav, pendingCount, onEnterSettings, setupInP
             ]} />
           </SidebarAccordion>
 
-          <SidebarItem icon="receipt" label="Expenses" onClick={() => setExpensesOpen(o => !o)} chevron chevronOpen={expensesOpen} isActive={active === 'expenses' || active === 'expense-reports' || active === 'expense-history'} badgeDot={!expensesOpen && (pendingCount?.expenses || null)} />
+          <SidebarItem icon="receipt" label="Expenses" onClick={() => setExpensesOpen(o => !o)} chevron chevronOpen={expensesOpen} isActive={active === 'expenses' || active === 'expense-history'} badgeDot={!expensesOpen && (pendingCount?.expenses || null)} />
           <SidebarAccordion open={expensesOpen}>
             <SidebarSub active={active} onNav={onNav} items={[
               { id: 'expenses', label: 'Requests', badge: pendingCount?.expenses },
               { id: 'expense-history', label: 'History' },
-              { id: 'expense-reports', label: 'Reports' },
             ]} />
           </SidebarAccordion>
 
@@ -2045,15 +2057,15 @@ function ReasonModal({ title, description, confirmLabel, confirmColor = P.danger
   return (
     <ModalShell title={title} onClose={onClose}
       footer={close => (
-        <div style={{ padding: 'var(--space-200) var(--space-300)', borderTop: `1px solid ${P.border}`, display: 'flex', gap: 'var(--space-125)', justifyContent: 'flex-end' }}>
+        <>
           <Button variant="secondary" onClick={close}>Back</Button>
           <Button variant="primary" disabled={!canConfirm} onClick={() => { onConfirm(reason.trim(), notify); close(); }}
-            style={{ padding: 'var(--space-100) var(--space-250)', background: canConfirm ? confirmColor : P.border, color: canConfirm ? '#fff' : P.inkFaint }}>
+            style={{ background: canConfirm ? confirmColor : P.border, color: canConfirm ? '#fff' : P.inkFaint }}>
             {confirmLabel}
           </Button>
-        </div>
+        </>
       )}>
-      <div style={{ padding: 'var(--space-250) var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-200)' }}>
+      <ModalBody gap="var(--space-200)">
         {description && (
           <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: 1.5 }}>{description}</p>
         )}
@@ -2084,7 +2096,7 @@ function ReasonModal({ title, description, confirmLabel, confirmColor = P.danger
             </div>
           </label>
         )}
-      </div>
+      </ModalBody>
     </ModalShell>
   );
 }
@@ -4335,17 +4347,21 @@ const AppLink = ({ children, onClick, style }) => (
   <span onClick={onClick} style={{ color: P.ink, textDecoration: 'underline', cursor: 'pointer', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', ...style }}>{children}</span>
 );
 
-function RequestRow({ req, requests, onApprove, onDecline, onDetail, onDeclineDirectly, onEdit, onCancel, selected, onToggle, onViewInCalendar, showStatus, showEntity, removing }) {
+function RequestRow({ req, requests, onApprove, onDecline, onDetail, onDeclineDirectly, onEdit, onCancel, selected, onToggle, onViewInCalendar, showStatus, showEntity, showAlsoOff = true, removing }) {
   const emp = EMPLOYEES[req.employee] || { name: req.employee, initials: '?', color: P.border, entitlement: 20 };
   const [hover, setHover] = useState(false);
   const usedDays = requests
     .filter(r => r.employee === req.employee && r.id !== req.id && (r.status === 'approved' || r.status === 'pending'))
     .reduce((s, r) => s + r.days, 0);
   const remaining = Math.max(0, emp.entitlement - usedDays - req.days);
-  const overlapping = getOverlapping(req, requests);
+  const overlapping = showAlsoOff ? getOverlapping(req, requests) : [];
   const gridCols = showStatus
-    ? (showEntity ? '32px 1.2fr 0.8fr 1fr 1fr 0.7fr 0.7fr 1fr 1fr 96px' : '32px 1.2fr 1fr 1fr 0.7fr 0.7fr 1fr 1fr 96px')
-    : (showEntity ? '32px 1.2fr 0.8fr 1fr 0.7fr 0.7fr 1fr 1fr 96px' : '32px 1.2fr 1fr 0.7fr 0.7fr 1fr 1fr 96px');
+    ? (showEntity
+        ? (showAlsoOff ? '32px 1.2fr 0.8fr 1fr 1fr 0.7fr 0.7fr 1fr 1fr 96px' : '32px 1.2fr 0.8fr 1fr 1fr 0.7fr 0.7fr 1fr 96px')
+        : (showAlsoOff ? '32px 1.2fr 1fr 1fr 0.7fr 0.7fr 1fr 1fr 96px' : '32px 1.2fr 1fr 1fr 0.7fr 0.7fr 1fr 96px'))
+    : (showEntity
+        ? (showAlsoOff ? '32px 1.2fr 0.8fr 1fr 0.7fr 0.7fr 1fr 1fr 96px' : '32px 1.2fr 0.8fr 1fr 0.7fr 0.7fr 1fr 96px')
+        : (showAlsoOff ? '32px 1.2fr 1fr 0.7fr 0.7fr 1fr 1fr 96px' : '32px 1.2fr 1fr 0.7fr 0.7fr 1fr 96px'));
   return (
     <div style={{
       display: 'grid',
@@ -4371,7 +4387,7 @@ function RequestRow({ req, requests, onApprove, onDecline, onDetail, onDeclineDi
             <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', fontWeight: 500, color: P.ink, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{emp.name}</span>
           </div>
           {showEntity && <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{emp.entity || '—'}</span>}
-          {showStatus && <StatusDot status={req.status} />}
+          {showStatus && <div style={{ display: 'flex' }}><StatusPill status={req.status} /></div>}
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-100)', minWidth: 0, overflow: 'hidden' }}>
             <span style={{ width: 10, height: 10, borderRadius: '50%', background: LEAVE_COLORS[req.type] || P.inkFaint, border: `1.5px solid ${LEAVE_BORDER_COLORS[req.type] || P.border}`, flexShrink: 0 }} />
             <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{req.type}</span>
@@ -4382,9 +4398,11 @@ function RequestRow({ req, requests, onApprove, onDecline, onDetail, onDeclineDi
           <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: req.startDate === req.endDate ? P.inkFaint : P.ink }}>
             {req.startDate === req.endDate ? '—' : req.endDate}
           </span>
-          <span style={{ display: 'inline-flex', alignItems: 'center' }}>
-            <OverlapPopover req={req} overlapping={overlapping} empDept={emp.department} />
-          </span>
+          {showAlsoOff && (
+            <span style={{ display: 'inline-flex', alignItems: 'center' }}>
+              <OverlapPopover req={req} overlapping={overlapping} empDept={emp.department} />
+            </span>
+          )}
           <div onClick={e => e.stopPropagation()} style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 'var(--space-050)' }}>
             {req.status === 'pending' && (<>
               <button title="Decline" onClick={e => { e.stopPropagation(); onDeclineDirectly ? onDeclineDirectly(req) : onDetail(req); }}
@@ -4558,9 +4576,10 @@ function ExpenseRow({ exp, onApprove, onDetail, onRejectDirectly, showStatus, sh
   const emp = EMPLOYEES[exp.employee] || { name: exp.employee, initials: '?', color: P.border };
   const [hover, setHover] = useState(false);
   const cb = showApproveActions ? '32px ' : '';
+  const trailing = showApproveActions ? ' 96px' : '';
   const gridCols = showStatus
-    ? (showEntity ? `${cb}1.8fr 0.8fr 1fr 1fr 2fr 0.8fr 0.7fr 96px` : `${cb}1.8fr 1fr 1fr 2fr 0.8fr 0.7fr 96px`)
-    : (showEntity ? `${cb}1.8fr 0.8fr 1fr 2fr 0.8fr 0.7fr 96px` : `${cb}1.8fr 1fr 2fr 0.8fr 0.7fr 96px`);
+    ? (showEntity ? `${cb}1.8fr 0.8fr 1fr 1fr 2fr 0.8fr 0.7fr${trailing}` : `${cb}1.8fr 1fr 1fr 2fr 0.8fr 0.7fr${trailing}`)
+    : (showEntity ? `${cb}1.8fr 0.8fr 1fr 2fr 0.8fr 0.7fr${trailing}` : `${cb}1.8fr 1fr 2fr 0.8fr 0.7fr${trailing}`);
 
   const amountStr = `€ ${exp.amount.toFixed(2).replace('.', ',')}`;
 
@@ -4589,13 +4608,13 @@ function ExpenseRow({ exp, onApprove, onDetail, onRejectDirectly, showStatus, sh
         <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', fontWeight: 500, color: P.ink, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{emp.name}</span>
       </div>
       {showEntity && <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{emp.entity || '—'}</span>}
-      {showStatus && <StatusDot status={exp.status} />}
+      {showStatus && <div style={{ display: 'flex' }}><StatusPill status={exp.status} /></div>}
       <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink }}>{exp.category}</span>
       <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{exp.description}</span>
       <span style={{ fontFamily: 'var(--font-display)', fontSize: 'var(--fs-body-sm)', fontWeight: 600, color: P.ink }}>{amountStr}</span>
       <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkFaint }}>{exp.expenseDate}</span>
-      <div onClick={e => e.stopPropagation()} style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 'var(--space-050)' }}>
-        {showApproveActions && exp.status === 'pending' && (<>
+      {showApproveActions && <div onClick={e => e.stopPropagation()} style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 'var(--space-050)' }}>
+        {exp.status === 'pending' && (<>
           <button title="Reject" onClick={(e) => { e.stopPropagation(); onRejectDirectly(exp); }}
             onMouseEnter={e => { e.currentTarget.style.background = P.dangerBg; e.currentTarget.style.borderColor = P.dangerBorder; }}
             onMouseLeave={e => { e.currentTarget.style.background = P.dangerBg; e.currentTarget.style.borderColor = P.dangerBorder; }}
@@ -4609,7 +4628,7 @@ function ExpenseRow({ exp, onApprove, onDetail, onRejectDirectly, showStatus, sh
             <Icon name="Check" size={14} color={P.success} strokeWidth={2.5} />
           </button>
         </>)}
-      </div>
+      </div>}
     </div>
     </div>
     </div>
@@ -4785,9 +4804,24 @@ function ExpensesScreen({ expenses, categories, onApprove, onDetail, onRejectDir
 // ── Expense Reports screen ─────────────────────────────────────────────────
 function ExpenseReportsScreen({ expenses, onToast, appEntity = null }) {
   const CURRENT_YEAR = 2026;
+  const MONTHS = [
+    ['all', 'All months'],
+    ['1', 'January'], ['2', 'February'], ['3', 'March'], ['4', 'April'],
+    ['5', 'May'], ['6', 'June'], ['7', 'July'], ['8', 'August'],
+    ['9', 'September'], ['10', 'October'], ['11', 'November'], ['12', 'December'],
+  ];
   const yearOpts = Array.from({ length: 10 }, (_, i) => { const y = String(CURRENT_YEAR - i); return [y, y]; });
   const [year, setYear] = useState(String(CURRENT_YEAR));
-  const approved = expenses.filter(e => e.status === 'approved' && (year === String(CURRENT_YEAR)));
+  const [month, setMonth] = useState('all');
+  const approved = expenses.filter(e => {
+    if (e.status !== 'approved') return false;
+    if (year !== String(CURRENT_YEAR)) return false;
+    if (month !== 'all' && e.date) {
+      const m = new Date(e.date).getMonth() + 1;
+      if (String(m) !== month) return false;
+    }
+    return true;
+  });
   const uniqueCats = [...new Set(approved.map(e => e.category))];
   const catRows = uniqueCats.map(name => {
     const catExps = approved.filter(e => e.category === name);
@@ -4797,20 +4831,31 @@ function ExpenseReportsScreen({ expenses, onToast, appEntity = null }) {
   const grandCount = catRows.reduce((s, r) => s + r.count, 0);
   const grandReceipts = catRows.reduce((s, r) => s + r.withReceipt, 0);
   const fmt = (n) => `€${n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`;
-  const colGrid = '1fr 80px 120px 100px 88px';
+  const colGrid = '1fr 80px 120px 100px 100px';
+  const periodLabel = month !== 'all'
+    ? `${MONTHS.find(([v]) => v === month)?.[1]} ${year}`
+    : year;
+  const zipName = (cat) => {
+    const safe = cat.replace(/\s+/g, '_');
+    return month !== 'all' ? `${safe}_${MONTHS.find(([v]) => v === month)?.[1]}_${year}.zip` : `${safe}_${year}.zip`;
+  };
+  const allZipName = month !== 'all'
+    ? `Payflip_Receipts_${MONTHS.find(([v]) => v === month)?.[1]}_${year}.zip`
+    : `Payflip_Receipts_${year}.zip`;
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, animation: `screenEnter 180ms ${EASE_OUT}` }}>
       <PageHeader
-        title="Reports"
-        subtitle="Approved expense receipts by category"
+        title="Receipts"
+        subtitle="Download approved receipts by category"
         badge={appEntity ? (ENTITIES.find(e => e.id === appEntity)?.name) : null}
       >
-        <Button variant="secondary" icon="Download" style={{ background: P.white }} onClick={() => onToast?.({ message: `Payflip_Receipts_${year}.zip — ${grandReceipts} receipts`, type: 'approve' })} disabled={grandReceipts === 0}>
+        <Button variant="secondary" icon="Download" style={{ background: P.white }} onClick={() => onToast?.({ message: `${allZipName} — ${grandReceipts} receipt${grandReceipts !== 1 ? 's' : ''}`, type: 'approve' })} disabled={grandReceipts === 0}>
           Download all
         </Button>
       </PageHeader>
       <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-100)', padding: 'var(--space-300) var(--space-250) var(--space-200)' }}>
-        <FilterDropdown label="Year" active={year} opts={yearOpts} onSelect={setYear} minWidth={90} />
+        <FilterDropdown label="Year" active={year} opts={yearOpts} onSelect={v => { setYear(v); }} minWidth={90} />
+        <FilterDropdown label="Month" active={month} opts={MONTHS} onSelect={setMonth} minWidth={130} />
       </div>
       <div style={{ flex: 1, overflowY: 'auto', padding: '0 var(--space-250) var(--space-250)' }}>
         <div style={{ background: P.white, borderRadius: 12, border: `1px solid ${P.border}`, overflow: 'clip' }}>
@@ -4823,8 +4868,8 @@ function ExpenseReportsScreen({ expenses, onToast, appEntity = null }) {
           </div>
           {catRows.length === 0 ? (
             <div style={{ padding: '60px var(--space-300)', textAlign: 'center' }}>
-              <Icon name="receipt" size={32} color={P.border} style={{ marginBottom: 'var(--space-150)' }} />
-              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.inkFaint }}>No approved expenses for {year}</div>
+              <Icon name="Receipt" size={32} color={P.border} style={{ marginBottom: 'var(--space-150)' }} />
+              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.inkSoft }}>No approved expenses for {periodLabel}</div>
             </div>
           ) : catRows.map((row, i) => (
             <div key={row.name} style={{ display: 'grid', gridTemplateColumns: colGrid, alignItems: 'center', gap: 'var(--space-150)', padding: '0 var(--space-250)', height: 52, borderBottom: i < catRows.length - 1 ? `1px solid ${P.border}` : 'none' }}>
@@ -4835,11 +4880,9 @@ function ExpenseReportsScreen({ expenses, onToast, appEntity = null }) {
                 {row.withReceipt}/{row.count}
               </div>
               <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                <button onClick={() => onToast?.({ message: `${row.name}_${year}.zip — ${row.withReceipt} receipt${row.withReceipt !== 1 ? 's' : ''}`, type: 'approve' })}
-                  style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '5px 10px', borderRadius: 7, border: `1px solid ${P.border}`, background: P.white, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.ink }}>
-                  <Icon name="Download" size={12} color={P.ink} strokeWidth={2} />
+                <Button variant="secondary" icon="Download" iconSize={12} style={{ padding: '5px 10px', fontSize: 11 }} onClick={() => onToast?.({ message: `${zipName(row.name)} — ${row.withReceipt} receipt${row.withReceipt !== 1 ? 's' : ''}`, type: 'approve' })} disabled={row.withReceipt === 0}>
                   ZIP
-                </button>
+                </Button>
               </div>
             </div>
           ))}
@@ -4859,7 +4902,7 @@ function ExpenseReportsScreen({ expenses, onToast, appEntity = null }) {
 }
 
 // ── Time off history screen ────────────────────────────────────────────────
-function TimeOffHistoryScreen({ requests, appEntity = null }) {
+function TimeOffHistoryScreen({ requests, appEntity = null, onToast }) {
   const CURRENT_YEAR = 2026;
   const H_PAGE_SIZE = 20;
   const yearOpts = Array.from({ length: 10 }, (_, i) => { const y = String(CURRENT_YEAR - i); return [y, y]; });
@@ -4872,6 +4915,7 @@ function TimeOffHistoryScreen({ requests, appEntity = null }) {
   const [page, setPage] = useState(1);
   const [detail, setDetail] = useState(null);
   const [detailDeclineMode, setDetailDeclineMode] = useState(false);
+  const [showExport, setShowExport] = useState(false);
   const resetFilters = (fn) => { fn(); setPage(1); };
   const historical = requests.filter(r => r.status !== 'pending');
   const yearFiltered = year === String(CURRENT_YEAR) ? historical : [];
@@ -4887,18 +4931,41 @@ function TimeOffHistoryScreen({ requests, appEntity = null }) {
   const safePage = Math.min(page, pageCount);
   const paginated = filtered.slice((safePage - 1) * H_PAGE_SIZE, safePage * H_PAGE_SIZE);
   const statusOpts = [['all', 'All statuses'], ['approved', 'Approved'], ['rejected', 'Declined']];
-  const gridCols = showEntity ? '1.2fr 0.8fr 0.7fr 1fr 0.7fr 0.7fr 1fr 1fr' : '1.2fr 0.7fr 1fr 0.7fr 0.7fr 1fr 1fr';
+  const gridCols = showEntity ? '32px minmax(130px,1.2fr) minmax(90px,0.8fr) minmax(90px,1fr) minmax(100px,1fr) minmax(75px,0.7fr) minmax(90px,0.7fr) minmax(90px,1fr) 96px' : '32px minmax(130px,1.2fr) minmax(90px,1fr) minmax(100px,1fr) minmax(75px,0.7fr) minmax(90px,0.7fr) minmax(90px,1fr) 96px';
+  const entityName = appEntity ? ENTITIES.find(e => e.id === appEntity)?.name : null;
+  const periodLabel = [year, entityName].filter(Boolean).join(' · ');
+  const scopeLabel = [
+    year,
+    leaveFilter !== 'all' ? leaveFilter : null,
+    deptFilter !== 'all' ? deptFilter : null,
+    statusFilter === 'approved' ? 'Approved only' : statusFilter === 'rejected' ? 'Declined only' : null,
+    entityName,
+  ].filter(Boolean).join(' · ');
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, animation: `screenEnter 180ms ${EASE_OUT}` }}>
-      <PageHeader title="History" subtitle="All approved and declined time off requests" badge={appEntity ? (ENTITIES.find(e => e.id === appEntity)?.name) : null} />
-      <FilterToolbar searchText={searchText} onSearch={v => resetFilters(() => setSearchText(v))} filter={leaveFilter} onFilter={v => resetFilters(() => setLeaveFilter(v))} deptFilter={deptFilter} onDeptFilter={v => resetFilters(() => setDeptFilter(v))}>
+      <PageHeader title="History" subtitle="All approved and declined time off requests" badge={entityName} />
+      {showExport && <TimeOffExportModal filtered={filtered} onClose={() => setShowExport(false)} onToast={onToast} periodLabel={periodLabel} scopeLabel={scopeLabel} />}
+      <FilterToolbar
+        searchText={searchText} onSearch={v => resetFilters(() => setSearchText(v))}
+        filter={leaveFilter} onFilter={v => resetFilters(() => setLeaveFilter(v))}
+        deptFilter={deptFilter} onDeptFilter={v => resetFilters(() => setDeptFilter(v))}
+        filterCount={[leaveFilter !== 'all', deptFilter !== 'all', year !== String(CURRENT_YEAR), statusFilter !== 'all', searchText !== ''].filter(Boolean).length}
+        resultCount={filtered.length}
+        onClearAll={() => { setLeaveFilter('all'); setDeptFilter('all'); setYear(String(CURRENT_YEAR)); setStatusFilter('all'); setSearchText(''); setPage(1); }}
+        actions={
+          <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 'var(--space-200)', flexShrink: 0 }}>
+            <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, whiteSpace: 'nowrap' }}>{filtered.length} {filtered.length === 1 ? 'record' : 'records'}</span>
+            <Button variant="secondary" icon="Download" style={{ background: P.white }} onClick={() => setShowExport(true)} disabled={filtered.length === 0}>Export</Button>
+          </div>
+        }
+      >
         <FilterDropdown label="Year" active={year} opts={yearOpts} onSelect={v => resetFilters(() => setYear(v))} minWidth={90} />
         <FilterDropdown label="All statuses" active={statusFilter} opts={statusOpts} onSelect={v => resetFilters(() => setStatusFilter(v))} minWidth={130} />
       </FilterToolbar>
-      <div style={{ flex: 1, overflowY: 'auto', padding: '0 var(--space-250) var(--space-250)' }}>
-        <div style={{ background: P.white, borderRadius: 12, border: `1px solid ${P.border}`, overflow: 'clip' }}>
+      <div style={{ flex: 1, overflowY: 'auto', overflowX: 'auto', padding: '0 var(--space-250) var(--space-250)' }}>
+        <div style={{ background: P.white, borderRadius: 12, border: `1px solid ${P.border}`, overflow: 'clip', minWidth: 900 }}>
           <div style={{ display: 'grid', gridTemplateColumns: gridCols, alignItems: 'center', gap: 'var(--space-150)', padding: '0 var(--space-250)', height: 38, borderBottom: `1px solid ${P.border}`, background: P.bg, position: 'sticky', top: 0, zIndex: 5 }}>
-            <TH>Requested by</TH>{showEntity && <TH>Entity</TH>}<TH>Status</TH><TH>Leave type</TH><TH>Duration</TH><TH>Date from</TH><TH>Date to</TH><TH>Also off</TH>
+            <div /><TH>Requested by</TH>{showEntity && <TH>Entity</TH>}<TH>Status</TH><TH>Leave type</TH><TH>Duration</TH><TH>Date from</TH><TH>Date to</TH><div />
           </div>
           {paginated.length === 0 ? (
             <div style={{ padding: '60px var(--space-300)', textAlign: 'center' }}>
@@ -4910,7 +4977,7 @@ function TimeOffHistoryScreen({ requests, appEntity = null }) {
             <RequestRow key={req.id} req={req} requests={requests}
               onApprove={() => {}} onDecline={() => {}} onDeclineDirectly={() => {}} onEdit={() => {}} onCancel={() => {}}
               onDetail={r => { setDetailDeclineMode(false); setDetail(r); }} onViewInCalendar={() => {}}
-              showStatus={true} showEntity={showEntity} selected={false} onToggle={() => {}} removing={false} />
+              showStatus={true} showEntity={showEntity} showAlsoOff={false} selected={false} onToggle={() => {}} removing={false} />
           ))}
           {filtered.length > 0 && (
             <div style={{ padding: 'var(--space-100) var(--space-200)', borderTop: `1px solid ${P.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -4941,25 +5008,116 @@ function TimeOffHistoryScreen({ requests, appEntity = null }) {
   );
 }
 
+// ── Time off export modal ──────────────────────────────────────────────────
+function TimeOffExportModal({ filtered, onClose, onToast, periodLabel, scopeLabel }) {
+  const [formats, setFormats] = useState({ csv: true, pdf: false });
+  const totalCount = filtered.length;
+  const noneSelected = !formats.csv && !formats.pdf;
+  const safePeriod = periodLabel.replace(/\s+/g, '_');
+
+  return (
+    <ModalShell title="Export time off history" onClose={onClose} width={440}
+      footer={close => (
+        <>
+          <Button variant="secondary" onClick={close}>Cancel</Button>
+          <Button variant="primary" icon="Download" disabled={totalCount === 0 || noneSelected} onClick={() => {
+            const parts = [];
+            if (formats.csv) parts.push(`Payflip_TimeOff_${safePeriod}.csv — ${totalCount} record${totalCount !== 1 ? 's' : ''}`);
+            if (formats.pdf) parts.push(`Payflip_TimeOff_${safePeriod}.pdf — absence summary`);
+            onToast?.({ message: parts.join(' · '), type: 'approve' });
+            close();
+          }}>Download</Button>
+        </>
+      )}>
+      {() => (
+        <ModalBody>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-100)' }}>
+            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink }}>Format</div>
+            {[
+              { value: 'csv', label: 'CSV — absence data', description: 'Spreadsheet with employee, leave type, duration, and dates' },
+              { value: 'pdf', label: 'PDF — summary report', description: 'Totals by leave type and employee' },
+            ].map(opt => (
+              <ChoiceCard key={opt.value} type="checkbox" label={opt.label} description={opt.description}
+                selected={formats[opt.value]} onClick={() => setFormats(f => ({ ...f, [opt.value]: !f[opt.value] }))} />
+            ))}
+          </div>
+        </ModalBody>
+      )}
+    </ModalShell>
+  );
+}
+
 // ── Expense history screen ─────────────────────────────────────────────────
-function ExpenseHistoryScreen({ expenses, categories, appEntity = null, onDetail }) {
+function ExpenseExportModal({ filtered, onClose, onToast, periodLabel }) {
+  const [formats, setFormats] = useState({ zip: true, csv: true });
+  const approvedCount = filtered.filter(e => e.status === 'approved').length;
+  const noneSelected = !formats.zip && !formats.csv;
+  const safePeriod = periodLabel.replace(/\s+/g, '_');
+
+  return (
+    <ModalShell title="Export expenses" onClose={onClose} width={440}
+      footer={close => (
+        <>
+          <Button variant="secondary" onClick={close}>Cancel</Button>
+          <Button variant="primary" icon="Download" disabled={approvedCount === 0 || noneSelected} onClick={() => {
+            const parts = [];
+            if (formats.zip) parts.push(`Payflip_Receipts_${safePeriod}.zip`);
+            if (formats.csv) parts.push(`Payflip_Expenses_${safePeriod}.csv`);
+            onToast?.({ message: parts.join(' · '), type: 'approve' });
+            close();
+          }}>Download</Button>
+        </>
+      )}>
+      {() => (
+        <ModalBody>
+          <div style={{ fontSize: 'var(--fs-body-sm)', color: P.inkSoft }}>
+            {approvedCount} approved expense{approvedCount !== 1 ? 's' : ''} · {periodLabel}
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-100)' }}>
+            <div style={SL}>Include</div>
+            {[
+              { value: 'csv', label: 'Expense data', description: 'Spreadsheet with amounts, dates, categories and employees (CSV)' },
+              { value: 'zip', label: 'Receipt files', description: 'Original attachments organized by category (ZIP)' },
+            ].map(opt => (
+              <ChoiceCard key={opt.value} type="checkbox" label={opt.label} description={opt.description}
+                selected={formats[opt.value]} onClick={() => setFormats(f => ({ ...f, [opt.value]: !f[opt.value] }))} />
+            ))}
+          </div>
+        </ModalBody>
+      )}
+    </ModalShell>
+  );
+}
+
+function ExpenseHistoryScreen({ expenses, categories, appEntity = null, onDetail, onToast }) {
   const CURRENT_YEAR = 2026;
   const H_PAGE_SIZE = 20;
-  const yearOpts = Array.from({ length: 10 }, (_, i) => { const y = String(CURRENT_YEAR - i); return [y, y]; });
+  const MONTHS = [
+    ['all', 'All months'],
+    ['1','January'],['2','February'],['3','March'],['4','April'],
+    ['5','May'],['6','June'],['7','July'],['8','August'],
+    ['9','September'],['10','October'],['11','November'],['12','December'],
+  ];
   const showEntity = !appEntity;
   const categoryOpts = [['all', 'All categories'], ...categories.map(c => { const n = c?.name ?? c; return [n, n]; })];
+  const yearOpts = [['all', 'All years'], ...Array.from({ length: 10 }, (_, i) => { const y = String(CURRENT_YEAR - i); return [y, y]; })];
+  const monthOpts = [['all','All months'],['1','January'],['2','February'],['3','March'],['4','April'],['5','May'],['6','June'],['7','July'],['8','August'],['9','September'],['10','October'],['11','November'],['12','December']];
   const [year, setYear] = useState(String(CURRENT_YEAR));
+  const [month, setMonth] = useState('all');
   const [searchText, setSearchText] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [deptFilter, setDeptFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
   const [page, setPage] = useState(1);
+  const [showExport, setShowExport] = useState(false);
   const resetFilters = (fn) => { fn(); setPage(1); };
   const statusOpts = [['all', 'All statuses'], ['approved', 'Approved'], ['rejected', 'Declined']];
   const historical = expenses.filter(e => e.status !== 'pending');
-  const yearFiltered = year === String(CURRENT_YEAR) ? historical : [];
-  const filtered = yearFiltered.filter(e => {
+  const filtered = historical.filter(e => {
     const emp = EMPLOYEES[e.employee];
+    const d = e.expenseDate ? new Date(e.expenseDate + ' 2026') : null;
+    if (year !== 'all' && year !== String(CURRENT_YEAR)) return false;
+    if (month !== 'all' && d && String(d.getMonth() + 1) !== month) return false;
     if (searchText.trim() && !(emp?.name || e.employee).toLowerCase().includes(searchText.trim().toLowerCase())) return false;
     if (categoryFilter !== 'all' && e.category !== categoryFilter) return false;
     if (deptFilter !== 'all' && emp?.department !== deptFilter) return false;
@@ -4969,27 +5127,46 @@ function ExpenseHistoryScreen({ expenses, categories, appEntity = null, onDetail
   const totalPages = Math.max(1, Math.ceil(filtered.length / H_PAGE_SIZE));
   const safePage = Math.min(page, totalPages);
   const paginated = filtered.slice((safePage - 1) * H_PAGE_SIZE, safePage * H_PAGE_SIZE);
-  const cb = '';
   const gridCols = showEntity
-    ? `${cb}1.8fr 0.8fr 0.7fr 1fr 2fr 0.8fr 0.7fr`
-    : `${cb}1.8fr 0.7fr 1fr 2fr 0.8fr 0.7fr`;
+    ? `minmax(140px,1.8fr) minmax(90px,0.8fr) minmax(90px,1fr) minmax(90px,1fr) minmax(150px,2fr) minmax(80px,0.8fr) minmax(85px,0.7fr)`
+    : `minmax(140px,1.8fr) minmax(90px,1fr) minmax(90px,1fr) minmax(150px,2fr) minmax(80px,0.8fr) minmax(85px,0.7fr)`;
+  const periodLabel = [
+    month !== 'all' ? monthOpts.find(([v]) => v === month)?.[1] : null,
+    year !== 'all' ? year : null,
+    appEntity ? ENTITIES.find(e => e.id === appEntity)?.name : null,
+  ].filter(Boolean).join(' · ') || 'all time';
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, animation: `screenEnter 180ms ${EASE_OUT}` }}>
+      {showExport && <ExpenseExportModal filtered={filtered} onClose={() => setShowExport(false)} onToast={onToast} periodLabel={periodLabel} />}
       <PageHeader title="History" subtitle="All approved and declined expense claims" badge={appEntity ? (ENTITIES.find(e => e.id === appEntity)?.name) : null} />
-      <FilterToolbar searchText={searchText} onSearch={v => resetFilters(() => setSearchText(v))} filter={categoryFilter} onFilter={v => resetFilters(() => setCategoryFilter(v))} filterOpts={categoryOpts} deptFilter={deptFilter} onDeptFilter={v => resetFilters(() => setDeptFilter(v))}>
-        <FilterDropdown label="Year" active={year} opts={yearOpts} onSelect={v => resetFilters(() => setYear(v))} minWidth={90} />
+      <FilterToolbar
+        searchText={searchText} onSearch={v => resetFilters(() => setSearchText(v))}
+        filter={categoryFilter} onFilter={v => resetFilters(() => setCategoryFilter(v))} filterOpts={categoryOpts}
+        deptFilter={deptFilter} onDeptFilter={v => resetFilters(() => setDeptFilter(v))}
+        filterCount={[categoryFilter !== 'all', deptFilter !== 'all', year !== String(CURRENT_YEAR), month !== 'all', statusFilter !== 'all', searchText !== ''].filter(Boolean).length}
+        resultCount={filtered.length}
+        onClearAll={() => { setCategoryFilter('all'); setDeptFilter('all'); setYear(String(CURRENT_YEAR)); setMonth('all'); setStatusFilter('all'); setSearchText(''); setPage(1); }}
+        actions={
+          <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 'var(--space-200)', flexShrink: 0 }}>
+            <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, whiteSpace: 'nowrap' }}>{filtered.length} {filtered.length === 1 ? 'record' : 'records'}</span>
+            <Button variant="primary" icon="Download" onClick={() => setShowExport(true)} disabled={filtered.filter(e => e.status === 'approved').length === 0}>Export</Button>
+          </div>
+        }
+      >
+        <FilterDropdown label="All years" active={year} opts={yearOpts} onSelect={v => resetFilters(() => setYear(v))} minWidth={100} />
+        <FilterDropdown label="All months" active={month} opts={monthOpts} onSelect={v => resetFilters(() => setMonth(v))} minWidth={120} />
         <FilterDropdown label="All statuses" active={statusFilter} opts={statusOpts} onSelect={v => resetFilters(() => setStatusFilter(v))} minWidth={130} />
       </FilterToolbar>
-      <div style={{ flex: 1, overflowY: 'auto', padding: '0 var(--space-250) var(--space-250)' }}>
-        <div style={{ background: P.white, borderRadius: 12, border: `1px solid ${P.border}`, overflow: 'clip' }}>
+      <div style={{ flex: 1, overflowY: 'auto', overflowX: 'auto', padding: '0 var(--space-250) var(--space-250)' }}>
+        <div style={{ background: P.white, borderRadius: 12, border: `1px solid ${P.border}`, overflow: 'clip', minWidth: 780 }}>
           <div style={{ display: 'grid', gridTemplateColumns: gridCols, alignItems: 'center', gap: 'var(--space-150)', padding: '0 var(--space-250)', height: 38, borderBottom: `1px solid ${P.border}`, background: P.bg, position: 'sticky', top: 0, zIndex: 5 }}>
             <TH>Employee</TH>{showEntity && <TH>Entity</TH>}<TH>Status</TH><TH>Category</TH><TH>Description</TH><TH>Amount</TH><TH>Date</TH>
           </div>
           {paginated.length === 0 ? (
             <div style={{ padding: '60px var(--space-300)', textAlign: 'center' }}>
               <Icon name="History" size={32} color={P.border} style={{ marginBottom: 'var(--space-150)' }} />
-              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.inkFaint }}>No history for {year}</div>
-              <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkFaint, marginTop: 'var(--space-050)' }}>Approved and declined expenses will appear here.</div>
+              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.inkSoft }}>No expenses for {periodLabel}</div>
+              <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginTop: 'var(--space-050)' }}>Approved and declined expenses will appear here.</div>
             </div>
           ) : paginated.map(exp => (
             <ExpenseRow key={exp.id} exp={exp} onApprove={() => {}} onDetail={onDetail} onRejectDirectly={() => {}} showStatus={true} showEntity={showEntity} selected={false} onToggle={() => {}} showApproveActions={false} removing={false} />
@@ -5247,6 +5424,111 @@ function MonthPicker({ currentDate, onSelect, onClose }) {
   );
 }
 
+// ── Period picker (year + month combined) ─────────────────────────────────
+const MON_ABBR = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+function PeriodPicker({ year, month, onSelect, minYear = 2017, maxYear = 2026 }) {
+  const [open, setOpen] = useState(false);
+  const [navYear, setNavYear] = useState(parseInt(year, 10) || maxYear);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const close = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    document.addEventListener('mousedown', close);
+    return () => document.removeEventListener('mousedown', close);
+  }, [open]);
+
+  const label = month !== 'all' ? `${MON_ABBR[parseInt(month, 10) - 1]} ${year}` : year;
+
+  return (
+    <div ref={ref} style={{ position: 'relative' }}>
+      <button onClick={() => setOpen(o => !o)} style={{
+        display: 'flex', alignItems: 'center', gap: 'var(--space-075)',
+        padding: 'var(--space-100) 11px', borderRadius: 7,
+        border: `1px solid ${P.border}`, background: P.white, color: P.ink,
+        cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-xs)',
+      }}>
+        {label}
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
+      </button>
+      {open && (
+        <div style={{
+          position: 'absolute', top: 'calc(100% + 4px)', right: 0, zIndex: 60,
+          background: P.white, border: '1px solid rgba(0,0,0,0.08)', borderRadius: 12,
+          boxShadow: '0 1px 2px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.08), 0 12px 32px rgba(0,0,0,0.06)',
+          padding: '12px', width: 216,
+        }}>
+          {/* Year navigation */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+            <button onClick={() => navYear > minYear && setNavYear(y => y - 1)}
+              style={{
+                border: 'none', background: 'transparent', borderRadius: 6,
+                cursor: navYear <= minYear ? 'default' : 'pointer',
+                padding: '5px 6px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                opacity: navYear <= minYear ? 0.25 : 1, flexShrink: 0, color: P.inkSoft,
+              }}
+              onMouseEnter={e => { if (navYear > minYear) e.currentTarget.style.background = 'rgba(0,0,0,0.05)'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6" /></svg>
+            </button>
+            <button onClick={() => { onSelect(String(navYear), 'all'); setOpen(false); }}
+              style={{
+                border: 'none', cursor: 'pointer', borderRadius: 6, padding: '4px 12px', flex: 1,
+                fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-sm)',
+                background: String(navYear) === year && month === 'all' ? '#f3f0ff' : 'transparent',
+                color: String(navYear) === year && month === 'all' ? P.action : P.ink,
+              }}
+              onMouseEnter={e => {
+                if (!(String(navYear) === year && month === 'all')) e.currentTarget.style.background = 'rgba(0,0,0,0.04)';
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.background = String(navYear) === year && month === 'all' ? '#f3f0ff' : 'transparent';
+              }}>
+              {navYear}
+            </button>
+            <button onClick={() => navYear < maxYear && setNavYear(y => y + 1)}
+              style={{
+                border: 'none', background: 'transparent', borderRadius: 6,
+                cursor: navYear >= maxYear ? 'default' : 'pointer',
+                padding: '5px 6px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                opacity: navYear >= maxYear ? 0.25 : 1, flexShrink: 0, color: P.inkSoft,
+              }}
+              onMouseEnter={e => { if (navYear < maxYear) e.currentTarget.style.background = 'rgba(0,0,0,0.05)'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
+            </button>
+          </div>
+          {/* Month grid */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 3 }}>
+            {MON_ABBR.map((name, i) => {
+              const monthStr = String(i + 1);
+              const isSel = String(navYear) === year && month === monthStr;
+              return (
+                <button key={i} onClick={() => { onSelect(String(navYear), monthStr); setOpen(false); }}
+                  style={{
+                    padding: '7px 0', borderRadius: 6, border: 'none', cursor: 'pointer',
+                    background: isSel ? '#f3f0ff' : 'transparent',
+                    color: isSel ? P.action : P.inkFaint,
+                    fontWeight: isSel ? 600 : 400,
+                    fontFamily: 'var(--font-display)', fontSize: 'var(--fs-body-xs)',
+                    transition: 'background 100ms, color 100ms',
+                  }}
+                  onMouseEnter={e => { if (!isSel) { e.currentTarget.style.background = 'rgba(0,0,0,0.04)'; e.currentTarget.style.color = P.ink; } }}
+                  onMouseLeave={e => { if (!isSel) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = P.inkFaint; } }}>
+                  {name}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── View mode switcher ─────────────────────────────────────────────────────
 function ViewSwitcher({ mode, onChange }) {
   const [open, setOpen] = useState(false);
@@ -5295,7 +5577,7 @@ function ViewSwitcher({ mode, onChange }) {
 // ── Filter toolbar ─────────────────────────────────────────────────────────
 const LEAVE_FILTER_OPTS = [['all', 'All time-off types'], ['Statutory annual leave', 'Statutory annual leave'], ['ADV / RTT', 'ADV / RTT'], ['Extra-legal leave', 'Extra-legal leave'], ['Sick leave', 'Sick leave'], ['Special leave', 'Special leave']];
 
-function FilterDropdown({ label, active, opts, onSelect, minWidth }) {
+function FilterDropdown({ label, active, opts, onSelect, minWidth, block }) {
   const [open, setOpen] = useState(false);
   const { rendered: menuRendered, visible: menuVisible } = usePopoverTransition(open);
   const ref = useRef(null);
@@ -5307,12 +5589,12 @@ function FilterDropdown({ label, active, opts, onSelect, minWidth }) {
   }, [open]);
   const isFiltered = active !== opts[0][0];
   return (
-    <div ref={ref} style={{ position: 'relative' }}>
+    <div ref={ref} style={{ position: 'relative', ...(block ? { width: '100%' } : {}) }}>
       <button onClick={() => setOpen(o => !o)} style={{
         display: 'flex', alignItems: 'center', gap: 'var(--space-075)',
         padding: 'var(--space-100) 11px', borderRadius: 7,
         border: `1px solid ${isFiltered ? P.ink : P.border}`,
-        background: P.white, color: P.ink,
+        background: P.white, color: P.ink, width: block ? '100%' : undefined,
         cursor: 'pointer', fontFamily: 'var(--font-display)',
         fontWeight: isFiltered ? 700 : 500, fontSize: 'var(--fs-body-xs)',
       }}>
@@ -5390,11 +5672,84 @@ function PageHeader({ title, subtitle, badge, children, tabs, maxWidth: mw, noBo
   );
 }
 
-function FilterToolbar({ searchText, onSearch, filter, onFilter, filterOpts, deptFilter, onDeptFilter, children }) {
+function FilterToolbar({ searchText, onSearch, filter, onFilter, filterOpts, deptFilter, onDeptFilter, filterCount = 0, resultCount, onClearAll, actions, children }) {
+  const containerRef = useRef(null);
+  const [containerWidth, setContainerWidth] = useState(9999);
+  const [filtersOpen, setFiltersOpen] = useState(false);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(entries => setContainerWidth(entries[0].contentRect.width));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  const collapsed = containerWidth < 1050;
   const deptOpts = [['all', 'All departments'], ...DEPARTMENTS.map(d => [d, d])];
   const resolvedOpts = filterOpts || LEAVE_FILTER_OPTS;
+
+  const inlineFilters = (
+    <>
+      <FilterDropdown label={resolvedOpts[0][1]} active={filter} opts={resolvedOpts} onSelect={onFilter} minWidth={170} />
+      <FilterDropdown label="All departments" active={deptFilter} opts={deptOpts} onSelect={onDeptFilter} minWidth={160} />
+      {children}
+    </>
+  );
+
+  const collapsedPanel = (
+    <>
+      <button onClick={() => setFiltersOpen(true)} style={{
+        display: 'flex', alignItems: 'center', gap: 6, padding: 'var(--space-100) 11px',
+        borderRadius: 7, border: `1px solid ${filterCount > 0 ? P.action : P.border}`,
+        background: filterCount > 0 ? '#f0f5ff' : P.white,
+        color: filterCount > 0 ? P.action : P.ink,
+        cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-xs)',
+      }}>
+        <Icon name="SlidersHorizontal" size={13} color={filterCount > 0 ? P.action : P.inkSoft} />
+        Filters
+        {filterCount > 0 && (
+          <span className="filter-count-badge" style={{ background: P.action, color: P.white, borderRadius: 10, padding: '1px 6px', fontSize: 11, fontWeight: 600, lineHeight: 1.4 }}>{filterCount}</span>
+        )}
+      </button>
+      {filtersOpen && (
+        <DrawerShell title="Filters" onClose={() => setFiltersOpen(false)}>
+          {close => (
+            <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
+              <div style={{ padding: 'var(--space-250) var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-200)' }}>
+                {[
+                  { lbl: resolvedOpts[0][1].replace(/^All\s+/, '').replace(/^./, c => c.toUpperCase()) || 'Type', value: filter, opts: resolvedOpts, onSelect: onFilter },
+                  { lbl: 'Department', value: deptFilter, opts: deptOpts, onSelect: onDeptFilter },
+                  ...React.Children.toArray(children).filter(Boolean).map(child => ({
+                    lbl: (child.props?.label || 'Filter').replace(/^All\s+/, '').replace(/^./, c => c.toUpperCase()),
+                    value: child.props?.active,
+                    opts: child.props?.opts || [],
+                    onSelect: child.props?.onSelect,
+                  })),
+                ].map(({ lbl, value, opts, onSelect }, i) => (
+                  <div key={i}>
+                    <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.inkSoft, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 'var(--space-075)' }}>{lbl}</div>
+                    <SelectField value={value} onChange={e => onSelect(e.target.value)} style={{ width: '100%', padding: 'var(--space-100) var(--space-150)', borderRadius: 7, border: `1px solid ${P.border}`, background: P.white, fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-xs)', color: P.ink, cursor: 'pointer', boxSizing: 'border-box' }}>
+                      {opts.map(([val, lbl]) => <option key={val} value={val}>{lbl}</option>)}
+                    </SelectField>
+                  </div>
+                ))}
+              </div>
+              <div style={{ marginTop: 'auto', padding: 'var(--space-200) var(--space-300)', borderTop: `1px solid ${P.border}`, display: 'flex', alignItems: 'center', gap: 'var(--space-100)' }}>
+                {filterCount > 0 && onClearAll && <Button variant="text" onClick={() => { onClearAll(); close(); }}>Clear all</Button>}
+                <Button variant="primary" style={{ marginLeft: 'auto' }} onClick={close}>
+                  {resultCount != null ? `Show ${resultCount} ${resultCount === 1 ? 'record' : 'records'}` : 'Done'}
+                </Button>
+              </div>
+            </div>
+          )}
+        </DrawerShell>
+      )}
+    </>
+  );
+
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-100)', padding: 'var(--space-300) var(--space-250) var(--space-200)' }}>
+    <div ref={containerRef} style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-100)', padding: 'var(--space-300) var(--space-250) var(--space-200)' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-100)', border: `1px solid ${P.border}`, borderRadius: 7, padding: 'var(--space-100) var(--space-150)', width: 240, background: P.white }}>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={P.inkFaint} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
           <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
@@ -5403,9 +5758,8 @@ function FilterToolbar({ searchText, onSearch, filter, onFilter, filterOpts, dep
           border: 'none', outline: 'none', background: 'transparent', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.ink, width: '100%',
         }} />
       </div>
-      <FilterDropdown label={resolvedOpts[0][1]} active={filter} opts={resolvedOpts} onSelect={onFilter} minWidth={170} />
-      <FilterDropdown label="All departments" active={deptFilter} opts={deptOpts} onSelect={onDeptFilter} minWidth={160} />
-      {children}
+      {collapsed ? collapsedPanel : inlineFilters}
+      {actions}
     </div>
   );
 }
@@ -6122,7 +6476,7 @@ function EmployeesScreen({ requests, onNav, initialRoleFilter = 'All', adminAcce
           </select>
         </div>
         <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 12, overflow: 'hidden' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)' }}>
+          <div style={{ overflowX: 'auto' }}><table style={{ width: 'max-content', minWidth: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)' }}>
             <thead>
               <tr style={{ borderBottom: `1px solid ${P.border}` }}>
                 <th style={{ textAlign: 'left', padding: 'var(--space-125) var(--space-200)', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em' }}>User name</th>
@@ -6137,7 +6491,7 @@ function EmployeesScreen({ requests, onNav, initialRoleFilter = 'All', adminAcce
                 <EmployeeRow key={emp.id} emp={emp} onNav={onNav} hasInssReview={matchedEmpInssMap.has(emp.id)} />
               ))}
             </tbody>
-          </table>
+          </table></div>
         </div>
       </div>
     </div>
@@ -6203,7 +6557,7 @@ function EditBalancesModal({ emp, balances, onSave, onClose, isNewEmployee, onCo
       onClose={onClose}
       width={460}
       footer={close => (
-        <div style={{ padding: 'var(--space-200) var(--space-300)', borderTop: `1px solid ${P.border}`, display: 'flex', gap: 'var(--space-125)', alignItems: 'center' }}>
+        <>
           {isCustomFocus && onRemove && (
             <button onClick={() => { onRemove(focusType); close(); }} style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.danger, background: 'none', border: 'none', cursor: 'pointer', padding: '0 var(--space-075)', marginRight: 'auto' }}
               onMouseEnter={e => e.currentTarget.style.textDecoration = 'underline'}
@@ -6211,24 +6565,22 @@ function EditBalancesModal({ emp, balances, onSave, onClose, isNewEmployee, onCo
               Remove entitlement
             </button>
           )}
-          <div style={{ marginLeft: isCustomFocus && onRemove ? 0 : 'auto', display: 'flex', gap: 'var(--space-125)' }}>
-            <Button variant="secondary" onClick={close}>Cancel</Button>
-            <Button variant="primary" onClick={() => {
-              const next = { ...balances };
-              for (const type of allEditableTypes) {
-                const v = parseInt(values[type], 10);
-                next[type] = isNaN(v) ? 0 : Math.max(0, v);
-              }
-              if (isCustomFocus) {
-                const v = parseInt(values[focusType], 10);
-                next[focusType] = isNaN(v) ? 0 : Math.max(0, v);
-              }
-              onSave(next);
-              if (isNewEmployee && onConfirm) onConfirm();
-              close();
-            }}>{isNewEmployee ? 'Confirm balances' : 'Save'}</Button>
-          </div>
-        </div>
+          <Button variant="secondary" onClick={close}>Cancel</Button>
+          <Button variant="primary" onClick={() => {
+            const next = { ...balances };
+            for (const type of allEditableTypes) {
+              const v = parseInt(values[type], 10);
+              next[type] = isNaN(v) ? 0 : Math.max(0, v);
+            }
+            if (isCustomFocus) {
+              const v = parseInt(values[focusType], 10);
+              next[focusType] = isNaN(v) ? 0 : Math.max(0, v);
+            }
+            onSave(next);
+            if (isNewEmployee && onConfirm) onConfirm();
+            close();
+          }}>{isNewEmployee ? 'Confirm balances' : 'Save'}</Button>
+        </>
       )}
     >
       {() => (
@@ -6260,12 +6612,12 @@ function GrantLeaveModal({ leaveTypes, emp, employeeBalance, onSave, onClose }) 
   return (
     <ModalShell title="Assign leave entitlement" onClose={onClose} width={420}
       footer={close => (
-        <div style={{ padding: 'var(--space-200) var(--space-300)', borderTop: `1px solid ${P.border}`, display: 'flex', gap: 'var(--space-125)', justifyContent: 'flex-end' }}>
+        <>
           <Button variant="secondary" onClick={close}>Cancel</Button>
           <Button variant="primary" disabled={!canSave} onClick={() => { onSave(selectedType, parseFloat(days)); close(); }}>Grant entitlement</Button>
-        </div>
+        </>
       )}>
-      <div style={{ padding: 'var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-200)' }}>
+      <ModalBody gap="var(--space-200)">
         {customTypes.length === 0 ? (
           <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: 1.5 }}>
             No custom leave types found. Create one in <strong>Settings → Time off</strong> first, then assign it here.
@@ -6289,7 +6641,7 @@ function GrantLeaveModal({ leaveTypes, emp, employeeBalance, onSave, onClose }) 
             </div>
           </>
         )}
-      </div>
+      </ModalBody>
     </ModalShell>
   );
 }
@@ -6481,7 +6833,7 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, o
                   <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginBottom: 'var(--space-200)' }}>Confirmed on {confirmedDate}</div>
                 )}
                 <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 12, overflow: 'hidden' }}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)' }}>
+                  <div style={{ overflowX: 'auto' }}><table style={{ width: 'max-content', minWidth: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)' }}>
                     <thead>
                       <tr style={{ borderBottom: `1px solid ${P.border}` }}>
                         <th style={{ ...leaveThStyle, paddingLeft: 'var(--space-250)' }}>Leave type</th>
@@ -6528,7 +6880,7 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, o
                         );
                       })}
                     </tbody>
-                  </table>
+                  </table></div>
                 </div>
               </div>
 
@@ -6542,7 +6894,7 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, o
                   {filteredReqs.length === 0 ? (
                     <EmptyState icon="calendar-off" title="No time off recorded yet" />
                   ) : (
-                    <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)' }}>
+                    <div style={{ overflowX: 'auto' }}><table style={{ width: 'max-content', minWidth: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)' }}>
                       <thead>
                         <tr style={{ borderBottom: `1px solid ${P.border}` }}>
                           <th style={{ ...leaveThStyle, width: '20%', paddingLeft: 'var(--space-250)' }}>Date from</th>
@@ -6603,7 +6955,7 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, o
                           </tr>
                         ))}
                       </tbody>
-                    </table>
+                    </table></div>
                   )}
                 </div>
               </div>
@@ -6863,7 +7215,7 @@ function CardTab({ empId, emp, mobilityLive, onToast, onNav }) {
     <div style={{ maxWidth: 620 }}>
       <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-lg)', color: P.ink, marginBottom: 'var(--space-150)' }}>Recent activity</div>
       <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 12, overflow: 'hidden' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)' }}>
+        <div style={{ overflowX: 'auto' }}><table style={{ width: 'max-content', minWidth: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)' }}>
           <thead>
             <tr style={{ borderBottom: `1px solid ${P.border}` }}>
               <th style={{ ...txTh, paddingLeft: 'var(--space-200)' }}>Merchant</th>
@@ -6885,7 +7237,7 @@ function CardTab({ empId, emp, mobilityLive, onToast, onNav }) {
               </tr>
             ))}
           </tbody>
-        </table>
+        </table></div>
       </div>
     </div>
   );
@@ -6950,16 +7302,16 @@ function CardTab({ empId, emp, mobilityLive, onToast, onNav }) {
       {freezeConfirmOpen && (
         <ModalShell title={isFrozen ? 'Unfreeze card' : 'Freeze card'} onClose={() => setFreezeConfirmOpen(false)} width={420}
           footer={close => (
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-100)', padding: 'var(--space-200) var(--space-300)', borderTop: `1px solid ${P.border}` }}>
+            <>
               <Button variant="secondary" onClick={close}>Keep card</Button>
               <Button variant="primary" onClick={() => {
                 setStatus(isFrozen ? 'active' : 'frozen'); close();
                 onToast && onToast({ message: isFrozen ? `${first}'s card unfrozen` : `${first}'s card frozen`, type: isFrozen ? 'approve' : 'decline' });
               }}>{isFrozen ? 'Yes, unfreeze' : 'Yes, freeze'}</Button>
-            </div>
+            </>
           )}
         >
-          <div style={{ padding: 'var(--space-250) var(--space-300)' }}>
+          <ModalBody>
             <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', marginBottom: 'var(--space-200)' }}>
               <img src={PAYFLIP_CARD_IMG} alt="" style={{ width: 52, height: 33, borderRadius: 5, display: 'block', flexShrink: 0 }} />
               <div>
@@ -6972,7 +7324,7 @@ function CardTab({ empId, emp, mobilityLive, onToast, onNav }) {
                 ? `Payments will resume immediately. ${first} won't be notified.`
                 : `All payments will be blocked immediately — the card will show as frozen in the app. ${first} won't be notified. You can unfreeze at any time.`}
             </p>
-          </div>
+          </ModalBody>
         </ModalShell>
       )}
 
@@ -6980,7 +7332,7 @@ function CardTab({ empId, emp, mobilityLive, onToast, onNav }) {
       {lostConfirmOpen && (
         <ModalShell title="Report lost or stolen" onClose={() => setLostConfirmOpen(false)} width={420}
           footer={close => (
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-100)', padding: 'var(--space-200) var(--space-300)', borderTop: `1px solid ${P.border}` }}>
+            <>
               <Button variant="secondary" onClick={close}>Keep card</Button>
               <Button variant="primary" style={{ background: P.danger }} onClick={() => {
                 const newPan = String(Math.floor(1000 + Math.random() * 9000));
@@ -6991,11 +7343,11 @@ function CardTab({ empId, emp, mobilityLive, onToast, onNav }) {
                 close();
                 onToast && onToast({ message: `${first}'s card cancelled — replacement issued`, type: 'approve' });
               }}>Report and replace</Button>
-            </div>
+            </>
           )}
         >
-          <div style={{ padding: 'var(--space-250) var(--space-300)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', marginBottom: 'var(--space-200)' }}>
+          <ModalBody>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)' }}>
               <img src={PAYFLIP_CARD_IMG} alt="" style={{ width: 52, height: 33, borderRadius: 5, display: 'block', flexShrink: 0 }} />
               <div>
                 <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-md)', color: P.ink, marginBottom: 'var(--space-025)' }}>{emp.name}</div>
@@ -7005,7 +7357,7 @@ function CardTab({ empId, emp, mobilityLive, onToast, onNav }) {
             <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: 1.55 }}>
               The current card will be cancelled immediately and a new virtual card number issued — {first} can use it right away. This cannot be undone.
             </p>
-          </div>
+          </ModalBody>
         </ModalShell>
       )}
 
@@ -7013,18 +7365,18 @@ function CardTab({ empId, emp, mobilityLive, onToast, onNav }) {
       {replaceConfirmOpen && (
         <ModalShell title="Replace card" onClose={() => setReplaceConfirmOpen(false)} width={420}
           footer={close => (
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-100)', padding: 'var(--space-200) var(--space-300)', borderTop: `1px solid ${P.border}` }}>
+            <>
               <Button variant="secondary" onClick={close}>Keep card</Button>
               <Button variant="primary" onClick={() => {
                 const newPan = String(Math.floor(1000 + Math.random() * 9000));
                 setIsReissuing(true); setStatus('active'); close();
                 setTimeout(() => { setIsReissuing(false); setReissued(true); setDisplayPan(newPan); onToast && onToast({ message: `Card reissued for ${first}`, type: 'approve' }); }, 900);
               }}>Reissue card</Button>
-            </div>
+            </>
           )}
         >
-          <div style={{ padding: 'var(--space-250) var(--space-300)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', marginBottom: 'var(--space-200)' }}>
+          <ModalBody>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)' }}>
               <img src={PAYFLIP_CARD_IMG} alt="" style={{ width: 52, height: 33, borderRadius: 5, display: 'block', flexShrink: 0 }} />
               <div>
                 <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-md)', color: P.ink, marginBottom: 'var(--space-025)' }}>{emp.name}</div>
@@ -7034,7 +7386,7 @@ function CardTab({ empId, emp, mobilityLive, onToast, onNav }) {
             <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: 1.55 }}>
               A new card number, security code, and expiry date will be issued. {first} will be notified and will need to update any saved payment methods that use the old card.
             </p>
-          </div>
+          </ModalBody>
         </ModalShell>
       )}
 
@@ -7042,14 +7394,14 @@ function CardTab({ empId, emp, mobilityLive, onToast, onNav }) {
       {blockConfirmOpen && (
         <ModalShell title="Block card" onClose={() => setBlockConfirmOpen(false)} width={420}
           footer={close => (
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-100)', padding: 'var(--space-200) var(--space-300)', borderTop: `1px solid ${P.border}` }}>
+            <>
               <Button variant="secondary" onClick={close}>Keep card</Button>
               <Button variant="primary" style={{ background: P.danger }} onClick={() => { close(); setStatus('blocked'); onToast && onToast({ message: `${first}'s card blocked`, type: 'decline' }); }}>Block card</Button>
-            </div>
+            </>
           )}
         >
-          <div style={{ padding: 'var(--space-250) var(--space-300)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', marginBottom: 'var(--space-200)' }}>
+          <ModalBody>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)' }}>
               <img src={PAYFLIP_CARD_IMG} alt="" style={{ width: 52, height: 33, borderRadius: 5, display: 'block', flexShrink: 0 }} />
               <div>
                 <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-md)', color: P.ink, marginBottom: 'var(--space-025)' }}>{emp.name}</div>
@@ -7059,10 +7411,10 @@ function CardTab({ empId, emp, mobilityLive, onToast, onNav }) {
             <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: 1.55 }}>
               {first}'s card will be permanently blocked. This cannot be undone — {first} will need to request a new card from the Payflip app.
             </p>
-            <p style={{ margin: 'var(--space-125) 0 0', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: 1.55 }}>
+            <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: 1.55 }}>
               {first} won't be notified — their card will simply stop working.
             </p>
-          </div>
+          </ModalBody>
         </ModalShell>
       )}
     </div>
@@ -12009,7 +12361,7 @@ function DocumentsSettings({ appEntity = null, documents = [], onDocumentsChange
   const iconBtn = { border: 'none', background: 'transparent', cursor: 'pointer', padding: 'var(--space-050)', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 4 };
 
   const DocTable = ({ rows, onEdit, showScope }) => (
-    <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)' }}>
+    <div style={{ overflowX: 'auto' }}><table style={{ width: 'max-content', minWidth: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)' }}>
       <thead>
         <tr style={{ borderBottom: `1px solid ${P.border}` }}>
           <th style={th}>Name</th>
@@ -12055,7 +12407,7 @@ function DocumentsSettings({ appEntity = null, documents = [], onDocumentsChange
           );
         })}
       </tbody>
-    </table>
+    </table></div>
   );
 
   const DocEmptyState = ({ tabId }) => (
@@ -13246,7 +13598,7 @@ function OnboardingScreen({ onboardingIds, drafts = new Map(), onSendInvite, onA
           </div>
         ) : (
           <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 12, overflow: 'hidden' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)' }}>
+            <div style={{ overflowX: 'auto' }}><table style={{ width: 'max-content', minWidth: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)' }}>
               <thead>
                 <tr style={{ borderBottom: `1px solid ${P.border}`, background: P.bg }}>
                   {['NAME', 'START DATE', 'STATUS', ''].map((h, i) => (
@@ -13296,7 +13648,7 @@ function OnboardingScreen({ onboardingIds, drafts = new Map(), onSendInvite, onA
                   );
                 })}
               </tbody>
-            </table>
+            </table></div>
           </div>
         )}
       </div>
@@ -13387,7 +13739,7 @@ function OffboardingScreen({ offboardingIds = new Set(), onCompleteOffboarding, 
           </div>
         ) : (
           <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 12, overflow: 'hidden' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)' }}>
+            <div style={{ overflowX: 'auto' }}><table style={{ width: 'max-content', minWidth: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)' }}>
               <thead>
                 <tr style={{ borderBottom: `1px solid ${P.border}`, background: P.bg }}>
                   {['NAME', 'ENTITY', 'DEPARTMENT', ''].map((h, i) => (
@@ -13420,7 +13772,7 @@ function OffboardingScreen({ offboardingIds = new Set(), onCompleteOffboarding, 
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </table></div>
           </div>
         )}
       </div>
@@ -14398,9 +14750,9 @@ function App() {
         {screen === 'people-offboarding' && <OffboardingScreen offboardingIds={offboardingIds} onCompleteOffboarding={handleCompleteOffboarding} onNav={handleNav} appEntity={appEntity} />}
         {screen.startsWith('employee-detail:') && (() => { const [, detailEmpId, detailTab] = screen.split(':'); return <EmployeeDetailScreen employeeId={detailEmpId} requests={requests} onNav={setScreen} onSave={saveRequest} onCancel={cancelRequest} onApprove={approve} onDecline={requestDecline} onViewTeamCalendar={(dept) => { setCalendarDeptFilter(dept || null); setScreen('team-absences'); }} employeeBalance={employeeBalances[detailEmpId]} onUpdateBalance={(newBal) => updateBalances(detailEmpId, newBal)} needsSetup={needsBalanceSetup.has(detailEmpId)} confirmedDate={balanceConfirmedDates[detailEmpId]} onConfirmBalances={() => confirmBalancesFor(detailEmpId)} onToast={addToast} adminAccess={adminAccess} onAdminSave={handleAdminSave} companyRegime={companyRegime} onEmployeeUpdate={handleEmployeeUpdate} getEmpWithOverrides={getEmpWithOverrides} physicalCardsAllowed={physicalCardsAllowed} mobilityWidgetState={mobilityWidgetState} initialTab={detailTab || (freshEmployeeId === detailEmpId ? 'details' : 'choices')} unmatchedRecord={matchedEmpInssMap.get(detailEmpId)} onResolveUnmatched={resolveUnmatched} onStartOffboarding={handleStartOffboarding} isOnboarding={onboardingIds.has(detailEmpId)} leaveTypes={leaveTypes} />; })()}
         {screen === 'expenses' && <ExpensesScreen key={appEntity ?? 'all'} expenses={entityFilteredExpenses} categories={expenseCategories} onApprove={approveExpense} onDetail={(exp) => { setExpDetailRejectMode(false); setExpDetail(exp); }} onRejectDirectly={(exp) => { setExpDetailRejectMode(true); setExpDetail(exp); }} onAdd={addExpense} appEntity={appEntity} receiptAlwaysRequired={receiptAlwaysRequired} requireApproval={requireApproval} onGoToSettings={() => setScreen('settings-expenses')} onToast={addToast} />}
-        {screen === 'expense-history' && <ExpenseHistoryScreen key={appEntity ?? 'all'} expenses={entityFilteredExpenses} categories={expenseCategories} appEntity={appEntity} onDetail={(exp) => { setExpDetailRejectMode(false); setExpDetail(exp); }} />}
+        {screen === 'expense-history' && <ExpenseHistoryScreen key={appEntity ?? 'all'} expenses={entityFilteredExpenses} categories={expenseCategories} appEntity={appEntity} onDetail={(exp) => { setExpDetailRejectMode(false); setExpDetail(exp); }} onToast={addToast} />}
         {screen === 'expense-reports' && <ExpenseReportsScreen key={appEntity ?? 'all'} expenses={entityFilteredExpenses} appEntity={appEntity} onToast={addToast} />}
-        {screen === 'time-off-history' && <TimeOffHistoryScreen key={appEntity ?? 'all'} requests={entityFilteredRequests} appEntity={appEntity} />}
+        {screen === 'time-off-history' && <TimeOffHistoryScreen key={appEntity ?? 'all'} requests={entityFilteredRequests} appEntity={appEntity} onToast={addToast} />}
         {screen === 'choices' && <ChoicesScreen key={appEntity ?? 'all'} choices={entityFilteredChoices} onApprove={approveChoice} onDecline={declineChoice} onDetail={setChoiceDetail} appEntity={appEntity} />}
         {screen === 'payroll-overview' && <StubScreen title="Payroll Overview" description="Monthly payroll run and submission" />}
         {screen === 'payroll-reports' && <StubScreen title="Payroll Reports" description="Reporting and exports" />}
