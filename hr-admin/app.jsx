@@ -1758,11 +1758,12 @@ function AppModeSidebar({ active, onNav, pendingCount, onEnterSettings, setupInP
           </SidebarAccordion>
           <SidebarItem icon="list-checks" label="Choices" isActive={active === 'choices'} onClick={() => onNav('choices')} badgeDot={pendingCount?.choices || null} />
 
-          <SidebarItem icon="calendar-days" label="Time off" onClick={() => setTimeoffOpen(o => !o)} chevron chevronOpen={timeoffOpen} isActive={active === 'requests' || active === 'team-absences'} badgeDot={!timeoffOpen && (pendingCount?.requests ?? pendingCount) > 0 ? (pendingCount?.requests ?? pendingCount) : null} />
+          <SidebarItem icon="calendar-days" label="Time off" onClick={() => setTimeoffOpen(o => !o)} chevron chevronOpen={timeoffOpen} isActive={active === 'requests' || active === 'team-absences' || active === 'time-off-history'} badgeDot={!timeoffOpen && (pendingCount?.requests ?? pendingCount) > 0 ? (pendingCount?.requests ?? pendingCount) : null} />
           <SidebarAccordion open={timeoffOpen}>
             <SidebarSub active={active} onNav={onNav} items={[
               { id: 'requests', label: 'Requests', badge: pendingCount?.requests ?? pendingCount },
               { id: 'team-absences', label: 'Team calendar' },
+              { id: 'time-off-history', label: 'History' },
             ]} />
           </SidebarAccordion>
 
@@ -1774,10 +1775,11 @@ function AppModeSidebar({ active, onNav, pendingCount, onEnterSettings, setupInP
             ]} />
           </SidebarAccordion>
 
-          <SidebarItem icon="receipt" label="Expenses" onClick={() => setExpensesOpen(o => !o)} chevron chevronOpen={expensesOpen} isActive={active === 'expenses' || active === 'expense-reports'} badgeDot={!expensesOpen && (pendingCount?.expenses || null)} />
+          <SidebarItem icon="receipt" label="Expenses" onClick={() => setExpensesOpen(o => !o)} chevron chevronOpen={expensesOpen} isActive={active === 'expenses' || active === 'expense-reports' || active === 'expense-history'} badgeDot={!expensesOpen && (pendingCount?.expenses || null)} />
           <SidebarAccordion open={expensesOpen}>
             <SidebarSub active={active} onNav={onNav} items={[
               { id: 'expenses', label: 'Requests', badge: pendingCount?.expenses },
+              { id: 'expense-history', label: 'History' },
               { id: 'expense-reports', label: 'Reports' },
             ]} />
           </SidebarAccordion>
@@ -1801,10 +1803,12 @@ const ROUTE_MAP = [
   { screen: 'dashboard',              path: '/hr-admin' },
   { screen: 'requests',               path: '/hr-admin/time-off' },
   { screen: 'team-absences',          path: '/hr-admin/time-off/calendar' },
+  { screen: 'time-off-history',       path: '/hr-admin/time-off/history' },
   { screen: 'employees',              path: '/hr-admin/people' },
   { screen: 'people-onboarding',      path: '/hr-admin/people/onboarding' },
   { screen: 'people-offboarding',     path: '/hr-admin/people/offboarding' },
   { screen: 'expenses',               path: '/hr-admin/expenses' },
+  { screen: 'expense-history',        path: '/hr-admin/expenses/history' },
   { screen: 'expense-reports',        path: '/hr-admin/expenses/reports' },
   { screen: 'choices',                path: '/hr-admin/choices' },
   { screen: 'payroll-overview',       path: '/hr-admin/payroll' },
@@ -4620,7 +4624,6 @@ function ExpensesScreen({ expenses, categories, onApprove, onDetail, onRejectDir
   const MONTH_FULL = { Jan:'January',Feb:'February',Mar:'March',Apr:'April',May:'May',Jun:'June',Jul:'July',Aug:'August',Sep:'September',Oct:'October',Nov:'November',Dec:'December' };
   const allMonths = [...new Set(expenses.map(e => (e.expenseDate || e.submittedAt).split(' ').pop()))].sort((a, b) => MONTH_ORDER.indexOf(b) - MONTH_ORDER.indexOf(a));
   const monthOpts = [['all', 'All months'], ...allMonths.map(m => [m, MONTH_FULL[m] || m])];
-  const [tab, setTab] = useState(requireApproval ? 'pending' : 'all');
   const [page, setPage] = useState(1);
   const [addOpen, setAddOpen] = useState(false);
   const [selected, setSelected] = useState(new Set());
@@ -4654,10 +4657,7 @@ function ExpensesScreen({ expenses, categories, onApprove, onDetail, onRejectDir
     return () => clearTimeout(t);
   }, [selected.size]);
   const pendingCount = expenses.filter(e => e.status === 'pending').length;
-  const filtered = (tab === 'pending' ? expenses.filter(e => e.status === 'pending')
-    : tab === 'approved' ? expenses.filter(e => e.status === 'approved')
-    : tab === 'declined' ? expenses.filter(e => e.status === 'rejected')
-    : expenses)
+  const filtered = expenses.filter(e => e.status === 'pending')
     .filter(e => {
       const emp = EMPLOYEES[e.employee];
       if (searchText.trim() && !(emp?.name || e.employee).toLowerCase().includes(searchText.trim().toLowerCase())) return false;
@@ -4669,7 +4669,7 @@ function ExpensesScreen({ expenses, categories, onApprove, onDetail, onRejectDir
   const totalPages = Math.max(1, Math.ceil(filtered.length / EXP_PAGE_SIZE));
   const safePage = Math.min(page, totalPages);
   const paginated = filtered.slice((safePage - 1) * EXP_PAGE_SIZE, safePage * EXP_PAGE_SIZE);
-  const showStatus = requireApproval && tab === 'all';
+  const showStatus = false;
   const showEntity = !appEntity;
   const cb = requireApproval ? '32px ' : '';
   const gridCols = showStatus
@@ -4690,19 +4690,6 @@ function ExpensesScreen({ expenses, categories, onApprove, onDetail, onRejectDir
         title="Expenses"
         subtitle={requireApproval ? "Review and approve team expense claims" : "Auto-approved · receipts required"}
         badge={appEntity ? (ENTITIES.find(e => e.id === appEntity)?.name) : null}
-        tabs={requireApproval && (
-          <TabBar
-            tabs={[
-              { id: 'pending', label: `Pending${pendingCount > 0 ? ` (${pendingCount})` : ''}` },
-              { id: 'approved', label: 'Approved' },
-              { id: 'declined', label: 'Declined' },
-              { id: 'all', label: 'All expenses' },
-            ]}
-            activeTab={tab}
-            onTabChange={(v) => { setTab(v); setPage(1); setSelected(new Set()); }}
-            padding="0"
-          />
-        )}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-100)' }}>
           {onGoToSettings && <Button variant="secondary" icon="Settings" onClick={onGoToSettings} style={{ background: P.white }}>Settings</Button>}
@@ -4732,12 +4719,9 @@ function ExpensesScreen({ expenses, categories, onApprove, onDetail, onRejectDir
           {filtered.length === 0 ? (
             <div style={{ padding: '60px var(--space-300)', textAlign: 'center' }}>
               <Icon name="receipt" size={32} color={P.border} style={{ marginBottom: 'var(--space-150)' }} />
-              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.inkFaint }}>No {tab === 'pending' ? 'pending ' : tab === 'approved' ? 'approved ' : tab === 'declined' ? 'declined ' : ''}expenses</div>
+              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.inkFaint }}>No pending expenses</div>
             </div>
-          ) : (tab === 'pending'
-            ? [...paginated, ...[...removingIds].filter(id => !paginated.some(e => e.id === id)).map(id => expenses.find(e => e.id === id)).filter(Boolean)]
-            : paginated
-          ).map(exp => (
+          ) : [...paginated, ...[...removingIds].filter(id => !paginated.some(e => e.id === id)).map(id => expenses.find(e => e.id === id)).filter(Boolean)].map(exp => (
             <ExpenseRow key={exp.id} exp={exp} onApprove={onApprove} onDetail={onDetail} onRejectDirectly={onRejectDirectly} showStatus={showStatus} showEntity={showEntity} selected={selected.has(exp.id)} onToggle={toggleSelect} showApproveActions={requireApproval} removing={removingIds.has(exp.id)} />
           ))}
         </div>
@@ -4874,6 +4858,164 @@ function ExpenseReportsScreen({ expenses, onToast, appEntity = null }) {
   );
 }
 
+// ── Time off history screen ────────────────────────────────────────────────
+function TimeOffHistoryScreen({ requests, appEntity = null }) {
+  const CURRENT_YEAR = 2026;
+  const H_PAGE_SIZE = 20;
+  const yearOpts = Array.from({ length: 10 }, (_, i) => { const y = String(CURRENT_YEAR - i); return [y, y]; });
+  const showEntity = !appEntity;
+  const [year, setYear] = useState(String(CURRENT_YEAR));
+  const [searchText, setSearchText] = useState('');
+  const [leaveFilter, setLeaveFilter] = useState('all');
+  const [deptFilter, setDeptFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [page, setPage] = useState(1);
+  const [detail, setDetail] = useState(null);
+  const [detailDeclineMode, setDetailDeclineMode] = useState(false);
+  const resetFilters = (fn) => { fn(); setPage(1); };
+  const historical = requests.filter(r => r.status !== 'pending');
+  const yearFiltered = year === String(CURRENT_YEAR) ? historical : [];
+  const filtered = yearFiltered.filter(r => {
+    const emp = EMPLOYEES[r.employee];
+    if (searchText.trim() && !(emp?.name || r.employee).toLowerCase().includes(searchText.trim().toLowerCase())) return false;
+    if (leaveFilter !== 'all' && r.type !== leaveFilter) return false;
+    if (deptFilter !== 'all' && emp?.department !== deptFilter) return false;
+    if (statusFilter !== 'all' && r.status !== statusFilter) return false;
+    return true;
+  });
+  const pageCount = Math.max(1, Math.ceil(filtered.length / H_PAGE_SIZE));
+  const safePage = Math.min(page, pageCount);
+  const paginated = filtered.slice((safePage - 1) * H_PAGE_SIZE, safePage * H_PAGE_SIZE);
+  const statusOpts = [['all', 'All statuses'], ['approved', 'Approved'], ['rejected', 'Declined']];
+  const gridCols = showEntity ? '1.2fr 0.8fr 0.7fr 1fr 0.7fr 0.7fr 1fr 1fr' : '1.2fr 0.7fr 1fr 0.7fr 0.7fr 1fr 1fr';
+  return (
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, animation: `screenEnter 180ms ${EASE_OUT}` }}>
+      <PageHeader title="History" subtitle="All approved and declined time off requests" badge={appEntity ? (ENTITIES.find(e => e.id === appEntity)?.name) : null} />
+      <FilterToolbar searchText={searchText} onSearch={v => resetFilters(() => setSearchText(v))} filter={leaveFilter} onFilter={v => resetFilters(() => setLeaveFilter(v))} deptFilter={deptFilter} onDeptFilter={v => resetFilters(() => setDeptFilter(v))}>
+        <FilterDropdown label="Year" active={year} opts={yearOpts} onSelect={v => resetFilters(() => setYear(v))} minWidth={90} />
+        <FilterDropdown label="All statuses" active={statusFilter} opts={statusOpts} onSelect={v => resetFilters(() => setStatusFilter(v))} minWidth={130} />
+      </FilterToolbar>
+      <div style={{ flex: 1, overflowY: 'auto', padding: '0 var(--space-250) var(--space-250)' }}>
+        <div style={{ background: P.white, borderRadius: 12, border: `1px solid ${P.border}`, overflow: 'clip' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: gridCols, alignItems: 'center', gap: 'var(--space-150)', padding: '0 var(--space-250)', height: 38, borderBottom: `1px solid ${P.border}`, background: P.bg, position: 'sticky', top: 0, zIndex: 5 }}>
+            <TH>Requested by</TH>{showEntity && <TH>Entity</TH>}<TH>Status</TH><TH>Leave type</TH><TH>Duration</TH><TH>Date from</TH><TH>Date to</TH><TH>Also off</TH>
+          </div>
+          {paginated.length === 0 ? (
+            <div style={{ padding: '60px var(--space-300)', textAlign: 'center' }}>
+              <Icon name="History" size={32} color={P.border} style={{ marginBottom: 'var(--space-150)' }} />
+              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.inkFaint }}>No history for {year}</div>
+              <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkFaint, marginTop: 'var(--space-050)' }}>Approved and declined requests will appear here.</div>
+            </div>
+          ) : paginated.map(req => (
+            <RequestRow key={req.id} req={req} requests={requests}
+              onApprove={() => {}} onDecline={() => {}} onDeclineDirectly={() => {}} onEdit={() => {}} onCancel={() => {}}
+              onDetail={r => { setDetailDeclineMode(false); setDetail(r); }} onViewInCalendar={() => {}}
+              showStatus={true} showEntity={showEntity} selected={false} onToggle={() => {}} removing={false} />
+          ))}
+          {filtered.length > 0 && (
+            <div style={{ padding: 'var(--space-100) var(--space-200)', borderTop: `1px solid ${P.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkFaint }}>{(safePage - 1) * H_PAGE_SIZE + 1}–{Math.min(safePage * H_PAGE_SIZE, filtered.length)} of {filtered.length} {filtered.length === 1 ? 'record' : 'records'}</span>
+              {pageCount > 1 && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-050)' }}>
+                  <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={safePage === 1} style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-050)', padding: 'var(--space-050) var(--space-125)', borderRadius: 6, border: `1px solid ${P.border}`, background: P.white, cursor: safePage === 1 ? 'default' : 'pointer', fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-xs)', color: safePage === 1 ? P.inkFaint : P.ink, opacity: safePage === 1 ? 0.5 : 1 }}>
+                    <Icon name="ChevronLeft" size={13} color={safePage === 1 ? P.inkFaint : P.ink} strokeWidth={2} /> Prev
+                  </button>
+                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-xs)', color: P.inkSoft, padding: '0 var(--space-075)' }}>{safePage} / {pageCount}</span>
+                  <button onClick={() => setPage(p => Math.min(pageCount, p + 1))} disabled={safePage === pageCount} style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-050)', padding: 'var(--space-050) var(--space-125)', borderRadius: 6, border: `1px solid ${P.border}`, background: P.white, cursor: safePage === pageCount ? 'default' : 'pointer', fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-xs)', color: safePage === pageCount ? P.inkFaint : P.ink, opacity: safePage === pageCount ? 0.5 : 1 }}>
+                    Next <Icon name="ChevronRight" size={13} color={safePage === pageCount ? P.inkFaint : P.ink} strokeWidth={2} />
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+      {detail && (
+        <CalendarDrawer key={detail.id} req={detail} requests={requests}
+          onClose={() => { setDetail(null); setDetailDeclineMode(false); }}
+          onApprove={() => {}} onDecline={() => {}} onCancel={() => {}} onSave={() => {}}
+          initialDeclineMode={detailDeclineMode}
+        />
+      )}
+    </div>
+  );
+}
+
+// ── Expense history screen ─────────────────────────────────────────────────
+function ExpenseHistoryScreen({ expenses, categories, appEntity = null, onDetail }) {
+  const CURRENT_YEAR = 2026;
+  const H_PAGE_SIZE = 20;
+  const yearOpts = Array.from({ length: 10 }, (_, i) => { const y = String(CURRENT_YEAR - i); return [y, y]; });
+  const showEntity = !appEntity;
+  const categoryOpts = [['all', 'All categories'], ...categories.map(c => { const n = c?.name ?? c; return [n, n]; })];
+  const [year, setYear] = useState(String(CURRENT_YEAR));
+  const [searchText, setSearchText] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('all');
+  const [deptFilter, setDeptFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [page, setPage] = useState(1);
+  const resetFilters = (fn) => { fn(); setPage(1); };
+  const statusOpts = [['all', 'All statuses'], ['approved', 'Approved'], ['rejected', 'Declined']];
+  const historical = expenses.filter(e => e.status !== 'pending');
+  const yearFiltered = year === String(CURRENT_YEAR) ? historical : [];
+  const filtered = yearFiltered.filter(e => {
+    const emp = EMPLOYEES[e.employee];
+    if (searchText.trim() && !(emp?.name || e.employee).toLowerCase().includes(searchText.trim().toLowerCase())) return false;
+    if (categoryFilter !== 'all' && e.category !== categoryFilter) return false;
+    if (deptFilter !== 'all' && emp?.department !== deptFilter) return false;
+    if (statusFilter !== 'all' && e.status !== statusFilter) return false;
+    return true;
+  });
+  const totalPages = Math.max(1, Math.ceil(filtered.length / H_PAGE_SIZE));
+  const safePage = Math.min(page, totalPages);
+  const paginated = filtered.slice((safePage - 1) * H_PAGE_SIZE, safePage * H_PAGE_SIZE);
+  const cb = '';
+  const gridCols = showEntity
+    ? `${cb}1.8fr 0.8fr 0.7fr 1fr 2fr 0.8fr 0.7fr`
+    : `${cb}1.8fr 0.7fr 1fr 2fr 0.8fr 0.7fr`;
+  return (
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, animation: `screenEnter 180ms ${EASE_OUT}` }}>
+      <PageHeader title="History" subtitle="All approved and declined expense claims" badge={appEntity ? (ENTITIES.find(e => e.id === appEntity)?.name) : null} />
+      <FilterToolbar searchText={searchText} onSearch={v => resetFilters(() => setSearchText(v))} filter={categoryFilter} onFilter={v => resetFilters(() => setCategoryFilter(v))} filterOpts={categoryOpts} deptFilter={deptFilter} onDeptFilter={v => resetFilters(() => setDeptFilter(v))}>
+        <FilterDropdown label="Year" active={year} opts={yearOpts} onSelect={v => resetFilters(() => setYear(v))} minWidth={90} />
+        <FilterDropdown label="All statuses" active={statusFilter} opts={statusOpts} onSelect={v => resetFilters(() => setStatusFilter(v))} minWidth={130} />
+      </FilterToolbar>
+      <div style={{ flex: 1, overflowY: 'auto', padding: '0 var(--space-250) var(--space-250)' }}>
+        <div style={{ background: P.white, borderRadius: 12, border: `1px solid ${P.border}`, overflow: 'clip' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: gridCols, alignItems: 'center', gap: 'var(--space-150)', padding: '0 var(--space-250)', height: 38, borderBottom: `1px solid ${P.border}`, background: P.bg, position: 'sticky', top: 0, zIndex: 5 }}>
+            <TH>Employee</TH>{showEntity && <TH>Entity</TH>}<TH>Status</TH><TH>Category</TH><TH>Description</TH><TH>Amount</TH><TH>Date</TH>
+          </div>
+          {paginated.length === 0 ? (
+            <div style={{ padding: '60px var(--space-300)', textAlign: 'center' }}>
+              <Icon name="History" size={32} color={P.border} style={{ marginBottom: 'var(--space-150)' }} />
+              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.inkFaint }}>No history for {year}</div>
+              <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkFaint, marginTop: 'var(--space-050)' }}>Approved and declined expenses will appear here.</div>
+            </div>
+          ) : paginated.map(exp => (
+            <ExpenseRow key={exp.id} exp={exp} onApprove={() => {}} onDetail={onDetail} onRejectDirectly={() => {}} showStatus={true} showEntity={showEntity} selected={false} onToggle={() => {}} showApproveActions={false} removing={false} />
+          ))}
+          {filtered.length > 0 && (
+            <div style={{ padding: 'var(--space-100) var(--space-200)', borderTop: `1px solid ${P.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkFaint }}>{(safePage - 1) * H_PAGE_SIZE + 1}–{Math.min(safePage * H_PAGE_SIZE, filtered.length)} of {filtered.length} {filtered.length === 1 ? 'record' : 'records'}</span>
+              {totalPages > 1 && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-050)' }}>
+                  <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={safePage === 1} style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-050)', padding: 'var(--space-050) var(--space-125)', borderRadius: 6, border: `1px solid ${P.border}`, background: P.white, cursor: safePage === 1 ? 'default' : 'pointer', fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-xs)', color: safePage === 1 ? P.inkFaint : P.ink, opacity: safePage === 1 ? 0.5 : 1 }}>
+                    <Icon name="ChevronLeft" size={13} color={safePage === 1 ? P.inkFaint : P.ink} strokeWidth={2} /> Prev
+                  </button>
+                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-xs)', color: P.inkSoft, padding: '0 var(--space-075)' }}>{safePage} / {totalPages}</span>
+                  <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={safePage === totalPages} style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-050)', padding: 'var(--space-050) var(--space-125)', borderRadius: 6, border: `1px solid ${P.border}`, background: P.white, cursor: safePage === totalPages ? 'default' : 'pointer', fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-xs)', color: safePage === totalPages ? P.inkFaint : P.ink, opacity: safePage === totalPages ? 0.5 : 1 }}>
+                    Next <Icon name="ChevronRight" size={13} color={safePage === totalPages ? P.inkFaint : P.ink} strokeWidth={2} />
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Requests screen ────────────────────────────────────────────────────────
 const PAGE_SIZE = 10;
 
@@ -4881,7 +5023,6 @@ function RequestsScreen({ requests, onApprove, onDecline, onSave, onCancel, onVi
   const MONTH_ORDER = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const MONTH_FULL = { Jan:'January',Feb:'February',Mar:'March',Apr:'April',May:'May',Jun:'June',Jul:'July',Aug:'August',Sep:'September',Oct:'October',Nov:'November',Dec:'December' };
   const showEntity = !appEntity;
-  const [tab, setTab] = useState('pending');
   const [page, setPage] = useState(1);
   const [detail, setDetail] = useState(null);
   const [detailDeclineMode, setDetailDeclineMode] = useState(false);
@@ -4916,10 +5057,7 @@ function RequestsScreen({ requests, onApprove, onDecline, onSave, onCancel, onVi
   const allMonths = [...new Set(requests.map(r => r.startDate.split(' ').pop()))].sort((a, b) => MONTH_ORDER.indexOf(b) - MONTH_ORDER.indexOf(a));
   const monthOpts = [['all', 'All months'], ...allMonths.map(m => [m, MONTH_FULL[m] || m])];
   const resetFilters = (fn) => { fn(); setPage(1); setSelected(new Set()); };
-  const filtered = (tab === 'pending' ? requests.filter(r => r.status === 'pending')
-    : tab === 'approved' ? requests.filter(r => r.status === 'approved')
-    : tab === 'declined' ? requests.filter(r => r.status === 'rejected')
-    : requests)
+  const filtered = requests.filter(r => r.status === 'pending')
     .filter(r => {
       const emp = EMPLOYEES[r.employee];
       if (searchText.trim() && !(emp?.name || r.employee).toLowerCase().includes(searchText.trim().toLowerCase())) return false;
@@ -4939,28 +5077,13 @@ function RequestsScreen({ requests, onApprove, onDecline, onSave, onCancel, onVi
     else setSelected(prev => new Set([...prev, ...paginated.map(r => r.id)]));
   };
   const selectedPending = [...selected].filter(id => requests.find(r => r.id === id)?.status === 'pending');
-  const displayRows = tab === 'pending'
-    ? [...paginated, ...[...removingIds].filter(id => !paginated.some(r => r.id === id)).map(id => requests.find(r => r.id === id)).filter(Boolean)]
-    : paginated;
+  const displayRows = [...paginated, ...[...removingIds].filter(id => !paginated.some(r => r.id === id)).map(id => requests.find(r => r.id === id)).filter(Boolean)];
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, position: 'relative', animation: `screenEnter 180ms ${EASE_OUT}` }}>
       <PageHeader
         title="Time off requests"
         subtitle="Manage your team's time off"
         badge={appEntity ? (ENTITIES.find(e => e.id === appEntity)?.name) : null}
-        tabs={
-          <TabBar
-            tabs={[
-              { id: 'pending', label: `Pending${pendingCount > 0 ? ` (${pendingCount})` : ''}` },
-              { id: 'approved', label: 'Approved' },
-              { id: 'declined', label: 'Declined' },
-              { id: 'all', label: 'All requests' },
-            ]}
-            activeTab={tab}
-            onTabChange={(v) => { setTab(v); setSelected(new Set()); setPage(1); }}
-            padding="0"
-          />
-        }
       >
         <Button variant="primary" icon="Plus" onClick={() => setAddOpen(true)}>Add time off</Button>
       </PageHeader>
@@ -4983,9 +5106,9 @@ function RequestsScreen({ requests, onApprove, onDecline, onSave, onCancel, onVi
       </FilterToolbar>
       <div style={{ flex: 1, overflowY: 'auto', padding: '0 var(--space-250) var(--space-250)' }}>
       <div style={{ background: P.white, borderRadius: 12, border: `1px solid ${P.border}`, overflow: 'clip' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: (() => { const s = tab === 'all' || tab === 'declined'; if (s && showEntity) return '32px 1.2fr 0.8fr 1fr 1fr 0.7fr 0.7fr 1fr 1fr 96px'; if (s) return '32px 1.2fr 1fr 1fr 0.7fr 0.7fr 1fr 1fr 96px'; if (showEntity) return '32px 1.2fr 0.8fr 1fr 0.7fr 0.7fr 1fr 1fr 96px'; return '32px 1.2fr 1fr 0.7fr 0.7fr 1fr 1fr 96px'; })(), alignItems: 'center', gap: 'var(--space-150)', padding: '0 var(--space-250)', height: 38, borderBottom: `1px solid ${P.border}`, background: P.bg, position: 'sticky', top: 0, zIndex: 5 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: showEntity ? '32px 1.2fr 0.8fr 1fr 0.7fr 0.7fr 1fr 1fr 96px' : '32px 1.2fr 1fr 0.7fr 0.7fr 1fr 1fr 96px', alignItems: 'center', gap: 'var(--space-150)', padding: '0 var(--space-250)', height: 38, borderBottom: `1px solid ${P.border}`, background: P.bg, position: 'sticky', top: 0, zIndex: 5 }}>
           <input type="checkbox" checked={allSelected} onChange={toggleAll} style={{ cursor: 'pointer', accentColor: P.action }} />
-          <TH>Requested by</TH>{showEntity && <TH>Entity</TH>}{(tab === 'all' || tab === 'declined') && <TH>Status</TH>}<TH>Leave type</TH><TH>Duration</TH><TH>Date from</TH><TH>Date to</TH><TH>Also off</TH><div />
+          <TH>Requested by</TH>{showEntity && <TH>Entity</TH>}<TH>Leave type</TH><TH>Duration</TH><TH>Date from</TH><TH>Date to</TH><TH>Also off</TH><div />
         </div>
         {displayRows.length === 0 ? (
           <div style={{ padding: '60px var(--space-300)', textAlign: 'center' }}>
@@ -4994,7 +5117,7 @@ function RequestsScreen({ requests, onApprove, onDecline, onSave, onCancel, onVi
             <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkFaint, marginTop: 'var(--space-050)' }}>{tab === 'pending' ? 'New requests from your team will appear here.' : ''}</div>
           </div>
         ) : displayRows.map(req => (
-          <RequestRow key={req.id} req={req} requests={requests} onApprove={onApprove} onDecline={onDecline} onDetail={r => { setDetailDeclineMode(false); setDetail(r); }} onDeclineDirectly={r => { setDetailDeclineMode(true); setDetail(r); }} onEdit={setEditReq} onCancel={onCancel} selected={selected.has(req.id)} onToggle={toggleSelect} onViewInCalendar={onViewInCalendar} showStatus={tab === 'all' || tab === 'declined'} showEntity={showEntity} removing={removingIds.has(req.id)} />
+          <RequestRow key={req.id} req={req} requests={requests} onApprove={onApprove} onDecline={onDecline} onDetail={r => { setDetailDeclineMode(false); setDetail(r); }} onDeclineDirectly={r => { setDetailDeclineMode(true); setDetail(r); }} onEdit={setEditReq} onCancel={onCancel} selected={selected.has(req.id)} onToggle={toggleSelect} onViewInCalendar={onViewInCalendar} showStatus={false} showEntity={showEntity} removing={removingIds.has(req.id)} />
         ))}
         {filtered.length > 0 && (
           <div style={{ padding: 'var(--space-100) var(--space-200)', borderTop: `1px solid ${P.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -14275,7 +14398,9 @@ function App() {
         {screen === 'people-offboarding' && <OffboardingScreen offboardingIds={offboardingIds} onCompleteOffboarding={handleCompleteOffboarding} onNav={handleNav} appEntity={appEntity} />}
         {screen.startsWith('employee-detail:') && (() => { const [, detailEmpId, detailTab] = screen.split(':'); return <EmployeeDetailScreen employeeId={detailEmpId} requests={requests} onNav={setScreen} onSave={saveRequest} onCancel={cancelRequest} onApprove={approve} onDecline={requestDecline} onViewTeamCalendar={(dept) => { setCalendarDeptFilter(dept || null); setScreen('team-absences'); }} employeeBalance={employeeBalances[detailEmpId]} onUpdateBalance={(newBal) => updateBalances(detailEmpId, newBal)} needsSetup={needsBalanceSetup.has(detailEmpId)} confirmedDate={balanceConfirmedDates[detailEmpId]} onConfirmBalances={() => confirmBalancesFor(detailEmpId)} onToast={addToast} adminAccess={adminAccess} onAdminSave={handleAdminSave} companyRegime={companyRegime} onEmployeeUpdate={handleEmployeeUpdate} getEmpWithOverrides={getEmpWithOverrides} physicalCardsAllowed={physicalCardsAllowed} mobilityWidgetState={mobilityWidgetState} initialTab={detailTab || (freshEmployeeId === detailEmpId ? 'details' : 'choices')} unmatchedRecord={matchedEmpInssMap.get(detailEmpId)} onResolveUnmatched={resolveUnmatched} onStartOffboarding={handleStartOffboarding} isOnboarding={onboardingIds.has(detailEmpId)} leaveTypes={leaveTypes} />; })()}
         {screen === 'expenses' && <ExpensesScreen key={appEntity ?? 'all'} expenses={entityFilteredExpenses} categories={expenseCategories} onApprove={approveExpense} onDetail={(exp) => { setExpDetailRejectMode(false); setExpDetail(exp); }} onRejectDirectly={(exp) => { setExpDetailRejectMode(true); setExpDetail(exp); }} onAdd={addExpense} appEntity={appEntity} receiptAlwaysRequired={receiptAlwaysRequired} requireApproval={requireApproval} onGoToSettings={() => setScreen('settings-expenses')} onToast={addToast} />}
+        {screen === 'expense-history' && <ExpenseHistoryScreen key={appEntity ?? 'all'} expenses={entityFilteredExpenses} categories={expenseCategories} appEntity={appEntity} onDetail={(exp) => { setExpDetailRejectMode(false); setExpDetail(exp); }} />}
         {screen === 'expense-reports' && <ExpenseReportsScreen key={appEntity ?? 'all'} expenses={entityFilteredExpenses} appEntity={appEntity} onToast={addToast} />}
+        {screen === 'time-off-history' && <TimeOffHistoryScreen key={appEntity ?? 'all'} requests={entityFilteredRequests} appEntity={appEntity} />}
         {screen === 'choices' && <ChoicesScreen key={appEntity ?? 'all'} choices={entityFilteredChoices} onApprove={approveChoice} onDecline={declineChoice} onDetail={setChoiceDetail} appEntity={appEntity} />}
         {screen === 'payroll-overview' && <StubScreen title="Payroll Overview" description="Monthly payroll run and submission" />}
         {screen === 'payroll-reports' && <StubScreen title="Payroll Reports" description="Reporting and exports" />}
