@@ -1777,7 +1777,7 @@ function AppModeSidebar({ active, onNav, pendingCount, onEnterSettings, setupInP
           <SidebarItem icon="receipt" label="Expenses" onClick={() => setExpensesOpen(o => !o)} chevron chevronOpen={expensesOpen} isActive={active === 'expenses' || active === 'expense-reports'} badgeDot={!expensesOpen && (pendingCount?.expenses || null)} />
           <SidebarAccordion open={expensesOpen}>
             <SidebarSub active={active} onNav={onNav} items={[
-              { id: 'expenses', label: 'Overview', badge: pendingCount?.expenses },
+              { id: 'expenses', label: 'Requests', badge: pendingCount?.expenses },
               { id: 'expense-reports', label: 'Reports' },
             ]} />
           </SidebarAccordion>
@@ -4801,9 +4801,9 @@ function ExpensesScreen({ expenses, categories, onApprove, onDetail, onRejectDir
 // ── Expense Reports screen ─────────────────────────────────────────────────
 function ExpenseReportsScreen({ expenses, onToast, appEntity = null }) {
   const CURRENT_YEAR = 2026;
-  const MIN_YEAR = CURRENT_YEAR - 10;
-  const [year, setYear] = useState(CURRENT_YEAR);
-  const approved = expenses.filter(e => e.status === 'approved' && (year === CURRENT_YEAR));
+  const yearOpts = Array.from({ length: 10 }, (_, i) => { const y = String(CURRENT_YEAR - i); return [y, y]; });
+  const [year, setYear] = useState(String(CURRENT_YEAR));
+  const approved = expenses.filter(e => e.status === 'approved' && (year === String(CURRENT_YEAR)));
   const uniqueCats = [...new Set(approved.map(e => e.category))];
   const catRows = uniqueCats.map(name => {
     const catExps = approved.filter(e => e.category === name);
@@ -4814,19 +4814,6 @@ function ExpenseReportsScreen({ expenses, onToast, appEntity = null }) {
   const grandReceipts = catRows.reduce((s, r) => s + r.withReceipt, 0);
   const fmt = (n) => `€${n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`;
   const colGrid = '1fr 80px 120px 100px 88px';
-  const yearPicker = (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-075)' }}>
-      <button onClick={() => setYear(y => Math.max(MIN_YEAR, y - 1))} disabled={year <= MIN_YEAR}
-        style={{ width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', border: `1px solid ${P.border}`, borderRadius: 7, background: P.white, cursor: year <= MIN_YEAR ? 'default' : 'pointer', opacity: year <= MIN_YEAR ? 0.3 : 1 }}>
-        <Icon name="ChevronLeft" size={14} color={P.ink} strokeWidth={2.5} />
-      </button>
-      <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-sm)', color: P.ink, minWidth: 36, textAlign: 'center' }}>{year}</span>
-      <button onClick={() => setYear(y => Math.min(CURRENT_YEAR, y + 1))} disabled={year >= CURRENT_YEAR}
-        style={{ width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', border: `1px solid ${P.border}`, borderRadius: 7, background: P.white, cursor: year >= CURRENT_YEAR ? 'default' : 'pointer', opacity: year >= CURRENT_YEAR ? 0.3 : 1 }}>
-        <Icon name="ChevronRight" size={14} color={P.ink} strokeWidth={2.5} />
-      </button>
-    </div>
-  );
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, animation: `screenEnter 180ms ${EASE_OUT}` }}>
       <PageHeader
@@ -4834,13 +4821,13 @@ function ExpenseReportsScreen({ expenses, onToast, appEntity = null }) {
         subtitle="Approved expense receipts by category"
         badge={appEntity ? (ENTITIES.find(e => e.id === appEntity)?.name) : null}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)' }}>
-          {yearPicker}
-          <Button variant="secondary" icon="Download" style={{ background: P.white }} onClick={() => onToast?.({ message: `Payflip_Receipts_${year}.zip — ${grandReceipts} receipts`, type: 'approve' })} disabled={grandReceipts === 0}>
-            Download all
-          </Button>
-        </div>
+        <Button variant="secondary" icon="Download" style={{ background: P.white }} onClick={() => onToast?.({ message: `Payflip_Receipts_${year}.zip — ${grandReceipts} receipts`, type: 'approve' })} disabled={grandReceipts === 0}>
+          Download all
+        </Button>
       </PageHeader>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-100)', padding: 'var(--space-150) var(--space-250)', borderBottom: `1px solid ${P.border}`, background: P.white }}>
+        <FilterDropdown label="Year" active={year} opts={yearOpts} onSelect={setYear} minWidth={90} />
+      </div>
       <div style={{ flex: 1, overflowY: 'auto', padding: '0 var(--space-250) var(--space-250)' }}>
         <div style={{ background: P.white, borderRadius: 12, border: `1px solid ${P.border}`, overflow: 'clip' }}>
           <div style={{ display: 'grid', gridTemplateColumns: colGrid, alignItems: 'center', gap: 'var(--space-150)', padding: '0 var(--space-250)', height: 38, borderBottom: `1px solid ${P.border}`, background: P.bg }}>
