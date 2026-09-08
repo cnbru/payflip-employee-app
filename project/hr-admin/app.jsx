@@ -364,6 +364,74 @@ function sheetPanelStyle(visible, closing) {
 // ── Icon button — the circular icon-only button used for modal/drawer close,
 // back navigation, and similar chrome actions. One size/opacity spec so
 // close buttons stop drifting between 28px and 30px screen to screen.
+function NumberField({ value, onChange, min = 0, max, step = 1, suffix, size = 'md' }) {
+  const lg = size === 'lg';
+  const btnW = lg ? 44 : 30;
+  const btnH = lg ? 44 : 30;
+  const inputW = lg ? 72 : 52;
+  const inputH = lg ? 44 : 30;
+  const iconSize = lg ? 15 : 12;
+  const fontSize = lg ? 'var(--fs-body-lg)' : 'var(--fs-body-sm)';
+  const suffixSize = lg ? 'var(--fs-body-md)' : 'var(--fs-body-sm)';
+  const radius = lg ? 11 : 9;
+
+  const num = parseFloat(value) || 0;
+  const dec = v => {
+    const next = Math.max(min, +(v - step).toFixed(2));
+    onChange(String(next));
+  };
+  const inc = v => {
+    const next = max != null ? Math.min(max, +(v + step).toFixed(2)) : +(v + step).toFixed(2);
+    onChange(String(next));
+  };
+  const btnBase = {
+    width: btnW, height: btnH, display: 'flex', alignItems: 'center', justifyContent: 'center',
+    border: 'none', background: 'transparent', cursor: 'pointer', color: P.inkSoft, flexShrink: 0,
+    transition: 'color 120ms, background 120ms',
+  };
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', border: `1px solid ${P.border}`, borderRadius: radius, overflow: 'hidden', background: P.white }}>
+        <button
+          style={btnBase}
+          onMouseEnter={e => { e.currentTarget.style.background = P.bg; e.currentTarget.style.color = P.ink; }}
+          onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = P.inkSoft; }}
+          onClick={() => dec(num)}
+          disabled={num <= min}
+          aria-label="Decrease"
+        >
+          <Icon name="Minus" size={iconSize} strokeWidth={2.5} />
+        </button>
+        <div style={{ width: 1, height: lg ? 22 : 16, background: P.border, flexShrink: 0 }} />
+        <input
+          type="number"
+          value={value}
+          onChange={e => onChange(e.target.value)}
+          min={min}
+          {...(max != null ? { max } : {})}
+          style={{
+            width: inputW, padding: '0 var(--space-100)', border: 'none', outline: 'none',
+            fontFamily: 'var(--font-display)', fontSize, fontWeight: 600,
+            color: P.ink, textAlign: 'center', background: 'transparent', height: inputH,
+            MozAppearance: 'textfield',
+          }}
+        />
+        <div style={{ width: 1, height: lg ? 22 : 16, background: P.border, flexShrink: 0 }} />
+        <button
+          style={btnBase}
+          onMouseEnter={e => { e.currentTarget.style.background = P.bg; e.currentTarget.style.color = P.ink; }}
+          onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = P.inkSoft; }}
+          onClick={() => inc(num)}
+          aria-label="Increase"
+        >
+          <Icon name="Plus" size={iconSize} strokeWidth={2.5} />
+        </button>
+      </div>
+      {suffix && <span style={{ fontFamily: 'var(--font-body)', fontSize: suffixSize, color: P.inkSoft }}>{suffix}</span>}
+    </div>
+  );
+}
+
 function IconButton({ icon, onClick, size = 30, iconSize = 14, color = P.ink, blur, danger, style }) {
   const [hovered, setHovered] = useState(false);
   const isDangerHover = danger && hovered;
@@ -4573,11 +4641,12 @@ function ExpensesScreen({ expenses, categories, onApprove, onDetail, onRejectDir
             ]}
             activeTab={tab}
             onTabChange={(v) => { setTab(v); setPage(1); setSelected(new Set()); }}
+            padding="0"
           />
         )}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-100)' }}>
-          {onGoToSettings && <Button variant="secondary" icon="Settings" onClick={onGoToSettings} />}
+          {onGoToSettings && <Button variant="secondary" icon="Settings" onClick={onGoToSettings} style={{ background: P.white }}>Settings</Button>}
           <Button variant="primary" icon="Plus" onClick={() => setAddOpen(true)}>Add expense</Button>
         </div>
       </PageHeader>
@@ -5839,119 +5908,93 @@ const BALANCE_SECTIONS = [
   },
 ];
 
-function EditBalancesModal({ emp, balances, onSave, onClose, isNewEmployee, onConfirm }) {
-  const [values, setValues] = useState(() =>
-    ['Statutory annual leave', 'Extra-legal leave'].reduce((acc, type) => {
+function EditBalancesModal({ emp, balances, onSave, onClose, isNewEmployee, onConfirm, focusType, onRemove }) {
+  const allEditableTypes = ['Statutory annual leave', 'Extra-legal leave'];
+  const isCustomFocus = focusType && !allEditableTypes.includes(focusType);
+  const [values, setValues] = useState(() => {
+    const init = allEditableTypes.reduce((acc, type) => {
       acc[type] = balances[type] != null ? String(balances[type]) : '';
       return acc;
-    }, {})
-  );
+    }, {});
+    if (isCustomFocus) init[focusType] = balances[focusType] != null ? String(balances[focusType]) : '';
+    return init;
+  });
 
   const hrType = emp.gender === 'f' ? 'Maternity leave' : 'Paternity leave';
   const hrDefault = emp.gender === 'f' ? 105 : 10;
-  const sections = [
-    ...BALANCE_SECTIONS,
-    { label: 'HR-initiated only', types: [hrType], editable: false, defaults: { [hrType]: hrDefault } },
-  ];
-
-  const { visible, close } = useModalTransition(onClose);
-
-  const handleSave = () => {
-    const next = { ...balances };
-    for (const type of ['Statutory annual leave', 'Extra-legal leave']) {
-      const v = parseInt(values[type], 10);
-      next[type] = isNaN(v) ? 0 : Math.max(0, v);
-    }
-    onSave(next);
-    if (isNewEmployee && onConfirm) onConfirm();
-    close();
-  };
-
   const year = new Date().getFullYear();
 
+  const editableRows = (focusType
+    ? (isCustomFocus ? [focusType] : allEditableTypes.filter(t => t === focusType))
+    : allEditableTypes
+  ).map(type => ({ type }));
+
+  const readOnlyRows = [
+    { type: 'ADV / RTT', value: balances['ADV / RTT'] != null ? `${balances['ADV / RTT']} days` : 'Auto', note: 'auto-calculated' },
+    { type: 'Sick leave', value: '30 days', note: 'by law' },
+    { type: 'Special leave', value: '—', note: 'by law' },
+    { type: hrType, value: `${hrDefault} days`, note: 'HR-initiated' },
+  ];
+
+  const noteStyle = { fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkFaint, background: P.bg, padding: '2px 6px', borderRadius: 4, whiteSpace: 'nowrap' };
+
   return (
-    <div onClick={close} style={{ position: 'fixed', inset: 0, zIndex: 200, background: 'rgba(15,13,40,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', ...modalBackdropStyle(visible) }}>
-      <div onClick={e => e.stopPropagation()} style={{ background: P.white, borderRadius: 14, width: 480, boxShadow: '0 8px 40px rgba(15,13,40,0.18)', display: 'flex', flexDirection: 'column', maxHeight: '90vh', overflow: 'hidden', ...modalPanelStyle(visible) }}>
-
-        {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: 'var(--space-250) var(--space-300)', borderBottom: `1px solid ${P.border}` }}>
-          <div>
-            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-md)', color: P.ink }}>{isNewEmployee ? 'Review & confirm balances' : 'Edit balances'}</div>
-            <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, marginTop: 'var(--space-025)' }}>{emp.name} · {year}</div>
+    <ModalShell
+      title={isNewEmployee ? 'Review & confirm balances' : (focusType ? `Edit ${focusType.toLowerCase()}` : 'Edit balances')}
+      subtitle={`${emp.name} · ${year}`}
+      onClose={onClose}
+      width={460}
+      footer={close => (
+        <div style={{ padding: 'var(--space-200) var(--space-300)', borderTop: `1px solid ${P.border}`, display: 'flex', gap: 'var(--space-125)', alignItems: 'center' }}>
+          {isCustomFocus && onRemove && (
+            <button onClick={() => { onRemove(focusType); close(); }} style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.danger, background: 'none', border: 'none', cursor: 'pointer', padding: '0 var(--space-075)', marginRight: 'auto' }}
+              onMouseEnter={e => e.currentTarget.style.textDecoration = 'underline'}
+              onMouseLeave={e => e.currentTarget.style.textDecoration = 'none'}>
+              Remove entitlement
+            </button>
+          )}
+          <div style={{ marginLeft: isCustomFocus && onRemove ? 0 : 'auto', display: 'flex', gap: 'var(--space-125)' }}>
+            <Button variant="secondary" onClick={close}>Cancel</Button>
+            <Button variant="primary" onClick={() => {
+              const next = { ...balances };
+              for (const type of allEditableTypes) {
+                const v = parseInt(values[type], 10);
+                next[type] = isNaN(v) ? 0 : Math.max(0, v);
+              }
+              if (isCustomFocus) {
+                const v = parseInt(values[focusType], 10);
+                next[focusType] = isNaN(v) ? 0 : Math.max(0, v);
+              }
+              onSave(next);
+              if (isNewEmployee && onConfirm) onConfirm();
+              close();
+            }}>{isNewEmployee ? 'Confirm balances' : 'Save'}</Button>
           </div>
-          <button onClick={close} style={{
-            border: 'none', cursor: 'pointer',
-            width: 30, height: 30, borderRadius: '50%', flexShrink: 0,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            background: 'rgba(60,60,67,0.1)',
-            backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)',
-          }}>
-            <Icon name="X" size={14} color={P.ink} strokeWidth={2.5} />
-          </button>
         </div>
-
-        {/* Body */}
-        <div style={{ overflowY: 'auto' }}>
-          {sections.map((section, si) => (
-            <div key={section.label} style={{ borderBottom: si < sections.length - 1 ? `1px solid ${P.border}` : 'none' }}>
-              <div style={{ padding: 'var(--space-125) var(--space-300) var(--space-075)', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                {section.label}
-              </div>
-              {section.types.map((type, ti) => {
-                const dot = LEAVE_COLORS[type] || '#2563eb';
-                const isLast = ti === section.types.length - 1;
-                if (section.editable) {
-                  return (
-                    <div key={type} style={{ display: 'flex', alignItems: 'center', padding: 'var(--space-125) var(--space-300)', borderTop: ti > 0 ? `1px solid ${P.border}` : 'none' }}>
-                      <span style={{ width: 9, height: 9, borderRadius: '50%', background: dot, flexShrink: 0, marginRight: 'var(--space-125)' }} />
-                      <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, flex: 1 }}>{type}</span>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-075)', border: `1px solid ${P.border}`, borderRadius: 7, padding: 'var(--space-075) var(--space-100)', background: P.bg }}>
-                        <input
-                          type="number" min="0"
-                          value={values[type]}
-                          onChange={e => setValues(v => ({ ...v, [type]: e.target.value }))}
-                          placeholder="0"
-                          style={{ width: 46, border: 'none', outline: 'none', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', fontWeight: 600, color: P.ink, textAlign: 'center', background: 'transparent' }}
-                        />
-                        <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft }}>days</span>
-                      </div>
-                    </div>
-                  );
-                } else {
-                  const defaultVal = section.defaults?.[type];
-                  const displayVal = balances[type] != null ? balances[type] : defaultVal;
-                  return (
-                    <div key={type} style={{ display: 'flex', alignItems: 'center', padding: 'var(--space-125) var(--space-300)', borderTop: ti > 0 ? `1px solid ${P.border}` : 'none', opacity: section.calculated ? 1 : 0.7 }}>
-                      <span style={{ width: 9, height: 9, borderRadius: '50%', background: dot, flexShrink: 0, marginRight: 'var(--space-125)' }} />
-                      <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, flex: 1 }}>{type}</span>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-100)' }}>
-                        {section.calculated && <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.success, background: P.successBg, padding: 'var(--space-025) var(--space-075)', borderRadius: 4 }}>Auto</span>}
-                        <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', fontWeight: 600, color: section.calculated ? P.ink : P.inkSoft }}>{displayVal ?? '—'}</span>
-                        <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft }}>days</span>
-                      </div>
-                    </div>
-                  );
-                }
-              })}
-              <div style={{ height: 4 }} />
+      )}
+    >
+      {() => (
+        <div>
+          {editableRows.map((row) => (
+            <div key={row.type} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: 'var(--space-400) var(--space-300)', gap: 'var(--space-200)', borderTop: `1px solid ${P.border}` }}>
+              <NumberField
+                value={values[row.type]}
+                onChange={val => setValues(v => ({ ...v, [row.type]: val }))}
+                min={0}
+                suffix="days"
+                size="lg"
+              />
             </div>
           ))}
         </div>
-
-        {/* Footer */}
-        <div style={{ padding: 'var(--space-200) var(--space-300)', borderTop: `1px solid ${P.border}`, display: 'flex', alignItems: 'center', gap: 'var(--space-125)' }}>
-          <span style={{ flex: 1 }} />
-          <button onClick={close} style={{ padding: 'var(--space-100) var(--space-250)', borderRadius: 8, border: `1px solid ${P.border}`, background: 'transparent', color: P.ink, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)' }}>Cancel</button>
-          <button onClick={handleSave} style={{ padding: 'var(--space-100) var(--space-250)', borderRadius: 8, border: 'none', background: P.action, color: '#fff', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)' }}>{isNewEmployee ? 'Confirm balances' : 'Save balances'}</button>
-        </div>
-      </div>
-    </div>
+      )}
+    </ModalShell>
   );
 }
 
 // ── Grant leave entitlement modal ─────────────────────────────────────────
 function GrantLeaveModal({ leaveTypes, emp, employeeBalance, onSave, onClose }) {
-  const customTypes = leaveTypes.filter(lt => !ALL_LEAVE_TYPES.includes(lt.name) && lt.active);
+  const customTypes = leaveTypes.filter(lt => !ALL_LEAVE_TYPES.includes(lt.name) && lt.section !== 'special-leave' && lt.active);
   const [selectedType, setSelectedType] = useState(customTypes[0]?.name || '');
   const [days, setDays] = useState('');
   const inputStyle = { width: '100%', padding: 'var(--space-100) var(--space-125)', borderRadius: 7, border: `1px solid ${P.border}`, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, outline: 'none', background: P.white };
@@ -6005,10 +6048,10 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, o
   }, [activeTab]);
   const [addModal, setAddModal] = useState(null); // null | 'add' | request object (edit)
   const [cancelAction, setCancelAction] = useState(null);
-  const [editBalancesOpen, setEditBalancesOpen] = useState(false);
+  const [editBalancesOpen, setEditBalancesOpen] = useState(null); // null | leave type string
   const [grantLeaveOpen, setGrantLeaveOpen] = useState(false);
   const [detailReq, setDetailReq] = useState(null);
-  const [leaveSubTab, setLeaveSubTab] = useState('balances');
+
   const [empMenuOpen, setEmpMenuOpen] = useState(false);
   const [deactivateConfirm, setDeactivateConfirm] = useState(false);
   const empMenuRef = useRef(null);
@@ -6032,23 +6075,35 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, o
   }, [requests, employeeId]);
 
   const balances = useMemo(() => {
+    const hrType = emp.gender === 'f' ? 'Maternity leave' : 'Paternity leave';
+    const hrDefault = emp.gender === 'f' ? 105 : 10;
     const standard = ALL_LEAVE_TYPES.map(type => {
+      // Skip the gender-irrelevant parental leave type
+      if ((type === 'Paternity leave' && emp.gender === 'f') || (type === 'Maternity leave' && emp.gender !== 'f')) return null;
       const active = empReqs.filter(r => r.type === type && r.status !== 'rejected');
       const used = active.reduce((s, r) => s + (r.days || 1), 0);
-      const defaultEntitled = type === 'Statutory annual leave' ? emp.entitlement : type === 'ADV / RTT' ? calcAdvDays(companyRegime || COMPANY_REGIME_DEFAULTS, emp) : type === 'Extra-legal leave' ? 4 : null;
+      const defaultEntitled =
+        type === 'Statutory annual leave' ? emp.entitlement :
+        type === 'ADV / RTT' ? calcAdvDays(companyRegime || COMPANY_REGIME_DEFAULTS, emp) :
+        type === 'Extra-legal leave' ? 4 :
+        type === hrType ? hrDefault :
+        null;
       const entitled = (employeeBalance && employeeBalance[type] !== undefined) ? employeeBalance[type] : defaultEntitled;
-      return { type, entitled, used, remaining: entitled != null ? Math.max(0, entitled - used) : null };
-    });
+      const tag = type === 'Sick leave' || type === 'Special leave' ? 'By law' : type === hrType ? 'HR-initiated' : null;
+      return { type, entitled, used, remaining: entitled != null ? Math.max(0, entitled - used) : null, tag };
+    }).filter(Boolean);
     const custom = leaveTypes
-      .filter(lt => !ALL_LEAVE_TYPES.includes(lt.name) && lt.active && employeeBalance && employeeBalance[lt.name] !== undefined)
+      .filter(lt => !ALL_LEAVE_TYPES.includes(lt.name) && lt.section !== 'special-leave' && lt.active && employeeBalance && employeeBalance[lt.name] !== undefined)
       .map(lt => {
         const type = lt.name;
         const active = empReqs.filter(r => r.type === type && r.status !== 'rejected');
         const used = active.reduce((s, r) => s + (r.days || 1), 0);
         const entitled = employeeBalance[type];
-        return { type, entitled, used, remaining: entitled != null ? Math.max(0, entitled - used) : null, color: lt.color };
+        return { type, entitled, used, remaining: entitled != null ? Math.max(0, entitled - used) : null, color: lt.color, isCustom: true };
       });
-    return [...standard, ...custom];
+    const editableStandard = standard.filter(b => ['Statutory annual leave', 'Extra-legal leave'].includes(b.type));
+    const nonEditableStandard = standard.filter(b => !['Statutory annual leave', 'Extra-legal leave'].includes(b.type));
+    return [...editableStandard, ...custom, ...nonEditableStandard];
   }, [empReqs, emp, employeeBalance, leaveTypes]);
 
   const balancesForModal = useMemo(() =>
@@ -6057,9 +6112,12 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, o
 
   const pendingCount = empReqs.filter(r => r.status === 'pending').length;
   const filteredReqs = useMemo(() => [...empReqs].sort((a, b) => {
-    if (a.status === 'pending' && b.status !== 'pending') return -1;
-    if (a.status !== 'pending' && b.status === 'pending') return 1;
-    return 0;
+    const aPending = a.status === 'pending';
+    const bPending = b.status === 'pending';
+    if (aPending && !bPending) return -1;
+    if (!aPending && bPending) return 1;
+    // Within the same tier, sort newest first
+    return new Date(b.startDate) - new Date(a.startDate);
   }), [empReqs]);
   const leaveThStyle = { textAlign: 'left', padding: 'var(--space-100) var(--space-200)', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.inkSoft, textTransform: 'uppercase', letterSpacing: '0.04em' };
 
@@ -6137,164 +6195,160 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, o
       {/* Tab content */}
       <div style={{ flex: 1, overflow: 'auto', padding: 'var(--space-500) var(--space-400) var(--space-400)' }}>
         {activeTab === 'timeoff' ? (
-            <div>
-              {/* Sub-tab bar */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: `1px solid ${P.border}`, marginBottom: 'var(--space-400)' }}>
-                <div style={{ display: 'flex', gap: 'var(--space-400)' }}>
-                  {[{ id: 'balances', label: 'Balances' }, { id: 'requests', label: 'Requests', count: pendingCount }].map(t => (
-                    <button key={t.id} onClick={() => setLeaveSubTab(t.id)} style={{
-                      display: 'flex', alignItems: 'center', gap: 'var(--space-075)',
-                      padding: 'var(--space-100) 0',
-                      border: 'none', background: 'transparent', cursor: 'pointer',
-                      fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)',
-                      color: leaveSubTab === t.id ? P.ink : P.inkSoft,
-                      borderBottom: leaveSubTab === t.id ? `2px solid ${P.ink}` : '2px solid transparent',
-                      marginBottom: -1, transition: 'color 120ms ease',
-                    }}>
-                      {t.label}
-                      {t.count > 0 && (
-                        <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minWidth: 18, height: 18, borderRadius: 999, background: P.warningBg, border: `1px solid var(--warning-200)`, color: P.warningDark, fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 11, padding: '0 5px' }}>{t.count}</span>
-                      )}
-                    </button>
-                  ))}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-400)' }}>
+
+              {/* Balances section */}
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-300)' }}>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 'var(--space-100)' }}>
+                    <h3 style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-lg)', color: P.ink, margin: 0 }}>Entitlements</h3>
+                    <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft }}>2026</span>
+                  </div>
+                  {!needsSetup && (
+                    <Button variant="secondary" icon="Plus" onClick={() => setGrantLeaveOpen(true)}>Assign</Button>
+                  )}
                 </div>
-                <div style={{ display: 'flex', gap: 'var(--space-100)', paddingBottom: 'var(--space-100)' }}>
-                  {leaveSubTab === 'balances' && !needsSetup && (
-                    <>
-                      <Button variant="secondary" icon="Plus" onClick={() => setGrantLeaveOpen(true)}>Assign</Button>
-                      <Button variant="secondary" icon="Pencil" onClick={() => setEditBalancesOpen(true)}>Edit balances</Button>
-                    </>
-                  )}
-                  {leaveSubTab === 'requests' && (
-                    <Button variant="primary" icon="Plus" onClick={() => setAddModal('add')}>Add time off</Button>
-                  )}
+                {needsSetup && (
+                  <div style={{ background: P.warningBg, border: '1px solid var(--warning-200)', borderRadius: 10, padding: 'var(--space-200) var(--space-250)', marginBottom: 'var(--space-300)', display: 'flex', alignItems: 'center', gap: 'var(--space-200)' }}>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.warningDark }}>Confirm {emp.name.split(' ')[0]}'s leave balances</div>
+                      <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: '#78350f', marginTop: 'var(--space-025)' }}>These are company defaults — adjust any values if needed, then confirm so {emp.name.split(' ')[0]} can request time off.</div>
+                    </div>
+                    <button onClick={() => setEditBalancesOpen(true)} style={{ padding: 'var(--space-100) var(--space-200)', borderRadius: 8, border: 'none', background: P.action, color: '#fff', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', flexShrink: 0, whiteSpace: 'nowrap' }}>
+                      Review & confirm
+                    </button>
+                  </div>
+                )}
+                {confirmedDate && (
+                  <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginBottom: 'var(--space-200)' }}>Confirmed on {confirmedDate}</div>
+                )}
+                <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 12, overflow: 'hidden' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)' }}>
+                    <thead>
+                      <tr style={{ borderBottom: `1px solid ${P.border}` }}>
+                        <th style={{ ...leaveThStyle, paddingLeft: 'var(--space-250)' }}>Leave type</th>
+                        <th style={{ ...leaveThStyle, textAlign: 'right' }}>Entitled</th>
+                        <th style={{ ...leaveThStyle, textAlign: 'right' }}>Used</th>
+                        <th style={{ ...leaveThStyle, textAlign: 'right' }}>Remaining</th>
+                        <th style={{ width: 48 }}></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {balances.map((b, idx, arr) => {
+                        const isLimited = b.entitled != null;
+                        const isLow = isLimited && b.remaining === 0;
+                        const isEditable = ['Statutory annual leave', 'Extra-legal leave'].includes(b.type) || b.isCustom;
+                        return (
+                          <tr key={b.type} style={{ borderBottom: idx < arr.length - 1 ? `1px solid ${P.border}` : 'none' }}>
+                            <td style={{ padding: 'var(--space-150) var(--space-250)' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-100)' }}>
+                                <span style={{ width: 10, height: 10, borderRadius: '50%', background: b.color || LEAVE_COLORS[b.type] || P.inkFaint, border: `1.5px solid ${LEAVE_BORDER_COLORS[b.type] || P.border}`, flexShrink: 0 }} />
+                                <span style={{ color: P.ink }}>{b.type}</span>
+                              </div>
+                            </td>
+                            <td style={{ padding: 'var(--space-150) var(--space-200)', textAlign: 'right', color: isLimited ? P.ink : P.inkFaint }}>
+                              {isLimited ? `${b.entitled} days` : 'Unlimited'}
+                            </td>
+                            <td style={{ padding: 'var(--space-150) var(--space-200)', textAlign: 'right', color: P.inkSoft }}>
+                              {b.used} days
+                            </td>
+                            <td style={{ padding: 'var(--space-150) var(--space-200)', textAlign: 'right' }}>
+                              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, color: isLow ? P.danger : P.ink }}>
+                                {isLimited ? `${b.remaining ?? 0} days` : '—'}
+                              </span>
+                            </td>
+                            <td style={{ padding: 'var(--space-100) var(--space-150)', textAlign: 'right' }}>
+                              {isEditable && (
+                                <button onClick={() => setEditBalancesOpen(b.type)} title="Edit entitlement" style={{ width: 28, height: 28, borderRadius: 6, border: `1px solid ${P.border}`, background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: P.inkSoft }}
+                                  onMouseEnter={e => { e.currentTarget.style.background = P.bg; e.currentTarget.style.color = P.ink; }}
+                                  onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = P.inkSoft; }}>
+                                  <Icon name="Pencil" size={13} strokeWidth={2} />
+                                </button>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
                 </div>
               </div>
 
-              {/* Balances sub-tab */}
-              {leaveSubTab === 'balances' && (
-                <div>
-                  {needsSetup && (
-                    <div style={{ background: P.warningBg, border: '1px solid var(--warning-200)', borderRadius: 10, padding: 'var(--space-200) var(--space-250)', marginBottom: 'var(--space-300)', display: 'flex', alignItems: 'center', gap: 'var(--space-200)' }}>
-                      <div style={{ flex: 1 }}>
-                        <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.warningDark }}>Confirm {emp.name.split(' ')[0]}'s leave balances</div>
-                        <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: '#78350f', marginTop: 'var(--space-025)' }}>These are company defaults — adjust any values if needed, then confirm so {emp.name.split(' ')[0]} can request time off.</div>
-                      </div>
-                      <button onClick={() => setEditBalancesOpen(true)} style={{ padding: 'var(--space-100) var(--space-200)', borderRadius: 8, border: 'none', background: P.action, color: '#fff', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', flexShrink: 0, whiteSpace: 'nowrap' }}>
-                        Review & confirm
-                      </button>
-                    </div>
-                  )}
-                  {confirmedDate && (
-                    <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkFaint, marginBottom: 'var(--space-200)' }}>Confirmed on {confirmedDate}</div>
-                  )}
-                  <div style={{ display: 'flex', gap: 'var(--space-150)', flexWrap: 'wrap' }}>
-                    {balances.filter(b => b.entitled != null || b.type === 'ADV / RTT' || b.type === 'Extra-legal leave').map(b => {
-                      const isLimited = b.entitled != null;
-                      const isLow = isLimited && b.remaining === 0;
-                      return (
-                        <div key={b.type} style={{ flex: '1 1 160px', minWidth: 160, maxWidth: 240, background: P.white, border: `1px solid ${P.border}`, borderRadius: 10, padding: 'var(--space-250) var(--space-300)' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-075)', marginBottom: 'var(--space-125)' }}>
-                            <span style={{ width: 10, height: 10, borderRadius: '50%', background: b.color || LEAVE_COLORS[b.type] || P.inkFaint, border: `1.5px solid ${LEAVE_BORDER_COLORS[b.type] || P.border}`, flexShrink: 0 }} />
-                            <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>{b.type}</span>
-                          </div>
-                          {isLimited ? (
-                            <>
-                              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 28, color: isLow ? P.danger : P.ink, lineHeight: 1 }}>
-                                {b.remaining ?? 0}
-                                <span style={{ fontSize: 'var(--fs-body-sm)', fontWeight: 500, color: P.inkSoft }}> / {b.entitled} days</span>
-                              </div>
-                              <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginTop: 'var(--space-075)' }}>{b.used} used</div>
-                            </>
-                          ) : (
-                            <>
-                              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 28, color: P.ink, lineHeight: 1 }}>
-                                {b.used}
-                                <span style={{ fontSize: 'var(--fs-body-sm)', fontWeight: 500, color: P.inkSoft }}> days</span>
-                              </div>
-                              <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginTop: 'var(--space-075)' }}>taken · no limit</div>
-                            </>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
+              {/* Leave requests section */}
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-300)' }}>
+                  <h3 style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-lg)', color: P.ink, margin: 0 }}>Leave requests</h3>
+                  <Button variant="secondary" icon="Plus" onClick={() => setAddModal('add')}>Add time off</Button>
                 </div>
-              )}
-
-              {/* Requests sub-tab */}
-              {leaveSubTab === 'requests' && (
-                <div>
-                  <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 12, overflow: 'visible' }}>
-                    {filteredReqs.length === 0 ? (
-                      <EmptyState icon="calendar-off" title="No time off recorded yet" />
-                    ) : (
-                      <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)' }}>
-                        <thead>
-                          <tr style={{ borderBottom: `1px solid ${P.border}` }}>
-                            <th style={{ ...leaveThStyle, width: '20%', paddingLeft: 'var(--space-250)' }}>Date from</th>
-                            <th style={{ ...leaveThStyle, width: '20%' }}>Date to</th>
-                            <th style={{ ...leaveThStyle, width: '25%' }}>Type</th>
-                            <th style={{ ...leaveThStyle, width: '10%', textAlign: 'center' }}>Days</th>
-                            <th style={{ ...leaveThStyle, width: '15%' }}>Status</th>
-                            <th style={{ width: 120 }}></th>
+                <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 12, overflow: 'visible' }}>
+                  {filteredReqs.length === 0 ? (
+                    <EmptyState icon="calendar-off" title="No time off recorded yet" />
+                  ) : (
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)' }}>
+                      <thead>
+                        <tr style={{ borderBottom: `1px solid ${P.border}` }}>
+                          <th style={{ ...leaveThStyle, width: '20%', paddingLeft: 'var(--space-250)' }}>Date from</th>
+                          <th style={{ ...leaveThStyle, width: '20%' }}>Date to</th>
+                          <th style={{ ...leaveThStyle, width: '25%' }}>Type</th>
+                          <th style={{ ...leaveThStyle, width: '10%', textAlign: 'center' }}>Days</th>
+                          <th style={{ ...leaveThStyle, width: '15%' }}>Status</th>
+                          <th style={{ width: 120 }}></th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {filteredReqs.map((req, idx, arr) => (
+                          <tr key={req.id} onClick={() => setDetailReq(req)} style={{ borderBottom: idx < arr.length - 1 ? `1px solid ${P.border}` : 'none', cursor: 'pointer' }}
+                            onMouseEnter={e => e.currentTarget.style.background = P.bg}
+                            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                            <td style={{ padding: 'var(--space-150) var(--space-250)', fontSize: 'var(--fs-body-sm)', color: P.ink }}>{req.startDate}</td>
+                            <td style={{ padding: 'var(--space-150) var(--space-200)', fontSize: 'var(--fs-body-sm)', color: req.endDate && req.endDate !== req.startDate ? P.ink : P.inkSoft }}>
+                              {req.endDate && req.endDate !== req.startDate ? req.endDate : '—'}
+                            </td>
+                            <td style={{ padding: 'var(--space-150) var(--space-200)' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-100)' }}>
+                                <span style={{ width: 10, height: 10, borderRadius: '50%', background: LEAVE_COLORS[req.type] || P.inkFaint, border: `1.5px solid ${LEAVE_BORDER_COLORS[req.type] || P.border}`, flexShrink: 0 }} />
+                                <span style={{ fontSize: 'var(--fs-body-sm)', color: P.ink }}>{req.type}</span>
+                              </div>
+                            </td>
+                            <td style={{ padding: 'var(--space-150) var(--space-200)', fontSize: 'var(--fs-body-sm)', textAlign: 'center', color: P.ink }}>
+                              {req.days === 0.5 ? (
+                                <span>½<span style={{ fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginLeft: 'var(--space-050)' }}>{req.halfDay || ''}</span></span>
+                              ) : req.days || 1}
+                            </td>
+                            <td style={{ padding: 'var(--space-150) var(--space-200)' }}><StatusPill status={req.status} /></td>
+                            <td style={{ padding: 'var(--space-125) var(--space-200)' }} onClick={e => e.stopPropagation()}>
+                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 'var(--space-050)' }}>
+                                {req.status === 'pending' && (
+                                  <>
+                                    <button title="Decline" onClick={() => setDetailReq({ ...req, _declineMode: true })}
+                                      onMouseEnter={e => { e.currentTarget.style.background = P.dangerBg; e.currentTarget.style.borderColor = P.dangerBorder; }}
+                                      onMouseLeave={e => { e.currentTarget.style.background = P.dangerBg; e.currentTarget.style.borderColor = P.dangerBorder; }}
+                                      style={{ width: 28, height: 28, borderRadius: 6, border: '1px solid var(--alert-200)', background: P.dangerBg, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                      <Icon name="X" size={14} color={P.danger} strokeWidth={2.5} />
+                                    </button>
+                                    <button title="Approve" onClick={() => onApprove(req.id)}
+                                      onMouseEnter={e => { e.currentTarget.style.background = P.successBg; e.currentTarget.style.borderColor = P.successBorder; }}
+                                      onMouseLeave={e => { e.currentTarget.style.background = P.successBg; e.currentTarget.style.borderColor = P.successBorder; }}
+                                      style={{ width: 28, height: 28, borderRadius: 6, border: '1px solid var(--success-200)', background: P.successBg, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                      <Icon name="Check" size={14} color={P.success} strokeWidth={2.5} />
+                                    </button>
+                                  </>
+                                )}
+                                <ActionMenu req={req}
+                                  onApprove={req.status === 'pending' ? () => onApprove(req.id) : undefined}
+                                  onDecline={req.status === 'pending' ? () => onDecline(req.id) : undefined}
+                                  onEdit={() => setAddModal(req)}
+                                  onCancel={() => setCancelAction(req)}
+                                />
+                              </div>
+                            </td>
                           </tr>
-                        </thead>
-                        <tbody>
-                          {filteredReqs.map((req, idx, arr) => (
-                            <tr key={req.id} onClick={() => setDetailReq(req)} style={{ borderBottom: idx < arr.length - 1 ? `1px solid ${P.border}` : 'none', cursor: 'pointer' }}
-                              onMouseEnter={e => e.currentTarget.style.background = P.bg}
-                              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                              <td style={{ padding: 'var(--space-150) var(--space-250)', fontSize: 'var(--fs-body-sm)', color: P.ink }}>{req.startDate}</td>
-                              <td style={{ padding: 'var(--space-150) var(--space-200)', fontSize: 'var(--fs-body-sm)', color: req.endDate && req.endDate !== req.startDate ? P.ink : P.inkSoft }}>
-                                {req.endDate && req.endDate !== req.startDate ? req.endDate : '—'}
-                              </td>
-                              <td style={{ padding: 'var(--space-150) var(--space-200)' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-100)' }}>
-                                  <span style={{ width: 10, height: 10, borderRadius: '50%', background: LEAVE_COLORS[req.type] || P.inkFaint, border: `1.5px solid ${LEAVE_BORDER_COLORS[req.type] || P.border}`, flexShrink: 0 }} />
-                                  <span style={{ fontSize: 'var(--fs-body-sm)', color: P.ink }}>{req.type}</span>
-                                </div>
-                              </td>
-                              <td style={{ padding: 'var(--space-150) var(--space-200)', fontSize: 'var(--fs-body-sm)', textAlign: 'center', color: P.ink }}>
-                                {req.days === 0.5 ? (
-                                  <span>½<span style={{ fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginLeft: 'var(--space-050)' }}>{req.halfDay || ''}</span></span>
-                                ) : req.days || 1}
-                              </td>
-                              <td style={{ padding: 'var(--space-150) var(--space-200)' }}><StatusPill status={req.status} /></td>
-                              <td style={{ padding: 'var(--space-125) var(--space-200)' }} onClick={e => e.stopPropagation()}>
-                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 'var(--space-050)' }}>
-                                  {req.status === 'pending' && (
-                                    <>
-                                      <button title="Decline" onClick={() => setDetailReq({ ...req, _declineMode: true })}
-                                        onMouseEnter={e => { e.currentTarget.style.background = P.dangerBg; e.currentTarget.style.borderColor = P.dangerBorder; }}
-                                        onMouseLeave={e => { e.currentTarget.style.background = P.dangerBg; e.currentTarget.style.borderColor = P.dangerBorder; }}
-                                        style={{ width: 28, height: 28, borderRadius: 6, border: '1px solid var(--alert-200)', background: P.dangerBg, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                                        <Icon name="X" size={14} color={P.danger} strokeWidth={2.5} />
-                                      </button>
-                                      <button title="Approve" onClick={() => onApprove(req.id)}
-                                        onMouseEnter={e => { e.currentTarget.style.background = P.successBg; e.currentTarget.style.borderColor = P.successBorder; }}
-                                        onMouseLeave={e => { e.currentTarget.style.background = P.successBg; e.currentTarget.style.borderColor = P.successBorder; }}
-                                        style={{ width: 28, height: 28, borderRadius: 6, border: '1px solid var(--success-200)', background: P.successBg, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                                        <Icon name="Check" size={14} color={P.success} strokeWidth={2.5} />
-                                      </button>
-                                    </>
-                                  )}
-                                  <ActionMenu req={req}
-                                    onApprove={req.status === 'pending' ? () => onApprove(req.id) : undefined}
-                                    onDecline={req.status === 'pending' ? () => onDecline(req.id) : undefined}
-                                    onEdit={() => setAddModal(req)}
-                                    onCancel={() => setCancelAction(req)}
-                                  />
-                                </div>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    )}
-                  </div>
+                        ))}
+                      </tbody>
+                    </table>
+                  )}
                 </div>
-              )}
+              </div>
             </div>
         ) : activeTab === 'choices' ? (
           <div><ChoicesTab empId={employeeId} /></div>
@@ -6338,9 +6392,16 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, o
           emp={emp}
           balances={balancesForModal}
           onSave={onUpdateBalance}
-          onClose={() => setEditBalancesOpen(false)}
+          onClose={() => setEditBalancesOpen(null)}
           isNewEmployee={needsSetup}
           onConfirm={onConfirmBalances}
+          focusType={editBalancesOpen}
+          onRemove={type => {
+            const next = { ...(employeeBalance || {}) };
+            delete next[type];
+            onUpdateBalance(next);
+            setEditBalancesOpen(null);
+          }}
         />
       )}
 
@@ -7186,7 +7247,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
                   <div style={{ position: 'relative', display: 'grid', gridTemplateColumns: '1fr 1fr' }}>
                     <div style={{ position: 'absolute', left: '50%', top: 'var(--space-150)', bottom: 'var(--space-150)', width: 1, background: P.borderLight || P.border }} />
                     <div style={{ padding: 'var(--space-150) var(--space-200)', display: 'flex', flexDirection: 'column', gap: 'var(--space-125)' }}>
-                      <div style={{ width: 26, height: 26, borderRadius: 6, background: P.white, border: `1px solid ${P.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: P.inkSoft }}>
+                      <div style={{ width: 26, height: 26, borderRadius: 6, background: P.bg, border: `1px solid ${P.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: P.inkSoft }}>
                         <Icon name="users" size={13} color={P.inkSoft} strokeWidth={1.75} />
                       </div>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-050)' }}>
@@ -7197,7 +7258,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
                       </div>
                     </div>
                     <div style={{ padding: 'var(--space-150) var(--space-200)', display: 'flex', flexDirection: 'column', gap: 'var(--space-125)' }}>
-                      <div style={{ width: 26, height: 26, borderRadius: 6, background: P.white, border: `1px solid ${P.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: P.inkSoft }}>
+                      <div style={{ width: 26, height: 26, borderRadius: 6, background: P.bg, border: `1px solid ${P.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: P.inkSoft }}>
                         <Icon name="refresh-cw" size={13} color={P.inkSoft} strokeWidth={1.75} />
                       </div>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-050)' }}>
@@ -13786,7 +13847,7 @@ function App() {
   const [cardDelivery, setCardDelivery] = useState('home');
   const [mobilityWidgetState, setMobilityWidgetState] = useState({
     widgetMode: 'mobility',
-    hidden: location.hash.includes('setup=collapsed') || new URLSearchParams(location.search).get('setup') === 'collapsed',
+    hidden: true,
     step: 1,
     mandateDenied: false,
     mandateValidated: false,
