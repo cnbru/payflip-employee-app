@@ -32,7 +32,7 @@
     {
       "name": "proto-deposit",
       "runtimeExecutable": "npx",
-      "runtimeArgs": ["-y", "http-server", "/private/tmp/claude-501/-Users-brunocoen-Documents-payflip-mobile-app-v1/e66d3a86-84df-4b95-9cf1-1691dfff34ff/scratchpad/proto-deposit", "-c-1", "--cors"],
+      "runtimeArgs": ["-y", "http-server", "/Users/brunocoen/Documents/payflip-mobile-app-v1/project/hr-admin", "-c-1", "--cors"],
       "port": 9031,
       "autoPort": true
     }

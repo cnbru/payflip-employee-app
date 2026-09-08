@@ -1390,22 +1390,22 @@ const ALLOWANCE_TYPES = [
 
 const EXPENSES_SEED = [
   // August 2026
-  { id: 'exp-31', employee: 'emma-martens',      category: 'Restaurant',      amount:  28.50, currency: 'EUR', expenseDate: '10 Aug', submittedAt: '12 Aug', description: 'Working lunch — project kick-off',                   receipt: 'lunch_aug.pdf',   status: 'pending' },
+  { id: 'exp-31', employee: 'emma-martens',      category: 'Restaurant',      amount:  28.50, currency: 'EUR', expenseDate:  '3 Sep', submittedAt:  '4 Sep', description: 'Working lunch — project kick-off',                   receipt: 'lunch_sep.pdf',   status: 'pending' },
   { id: 'exp-32', employee: 'thomas-janssens',   category: 'Hotel',           amount: 165.00, currency: 'EUR', expenseDate:  '5 Aug', submittedAt:  '8 Aug', description: 'Hotel Brussels — partner offsite',                    receipt: 'hotel_aug.pdf',   status: 'approved' },
   { id: 'exp-33', employee: 'bram-goossens',     category: 'Travel',          amount:  52.00, currency: 'EUR', expenseDate:  '1 Aug', submittedAt:  '5 Aug', description: 'Eurostar Brussels–London return',                     receipt: 'eurostar_aug.pdf',status: 'approved' },
   { id: 'exp-34', employee: 'stijn-laurent',     category: 'Taxi',            amount:  19.00, currency: 'EUR', expenseDate: '31 Jul', submittedAt:  '1 Aug', description: 'Taxi home — late client dinner',                      receipt: 'taxi_aug.pdf',    status: 'approved' },
-  // July 2026
-  { id: 'exp-1',  employee: 'thomas-janssens',   category: 'Travel',          amount: 124.50, currency: 'EUR', expenseDate: '11 Jul', submittedAt: '14 Jul', description: 'Train Brussels–Ghent client visit',                   receipt: 'sncb_ticket.pdf', status: 'pending' },
-  { id: 'exp-2',  employee: 'sarah-de-smedt',    category: 'Restaurant',      amount:  87.00, currency: 'EUR', expenseDate:  '9 Jul', submittedAt: '10 Jul', description: 'Team lunch — 4 people',                               receipt: 'lunch_jul.pdf',   status: 'pending' },
-  { id: 'exp-3',  employee: 'bram-goossens',     category: 'Taxi',            amount:  34.00, currency: 'EUR', expenseDate:  '7 Jul', submittedAt:  '7 Jul', description: 'Taxi to Brussels airport — client meeting',            receipt: 'taxi_receipt.pdf',status: 'pending' },
+  // September 2026
+  { id: 'exp-1',  employee: 'thomas-janssens',   category: 'Travel',          amount: 124.50, currency: 'EUR', expenseDate:  '2 Sep', submittedAt:  '3 Sep', description: 'Train Brussels–Ghent client visit',                   receipt: 'sncb_ticket.pdf', status: 'pending' },
+  { id: 'exp-2',  employee: 'sarah-de-smedt',    category: 'Restaurant',      amount:  87.00, currency: 'EUR', expenseDate:  '4 Sep', submittedAt:  '5 Sep', description: 'Team lunch — 4 people',                               receipt: 'lunch_sep.pdf',   status: 'pending' },
+  { id: 'exp-3',  employee: 'bram-goossens',     category: 'Taxi',            amount:  34.00, currency: 'EUR', expenseDate:  '5 Sep', submittedAt:  '5 Sep', description: 'Taxi to Brussels airport — client meeting',            receipt: 'taxi_receipt.pdf',status: 'pending' },
   { id: 'exp-4',  employee: 'emma-martens',      category: 'Restaurant',      amount:  15.00, currency: 'EUR', expenseDate: '29 Jun', submittedAt:  '1 Jul', description: 'Working lunch with design team',                       receipt: 'lunch_jun.pdf',   status: 'approved' },
   // June 2026
   { id: 'exp-5',  employee: 'david',             category: 'Travel',          amount: 212.00, currency: 'EUR', expenseDate: '17 Jun', submittedAt: '25 Jun', description: 'Brussels–London for product workshop',                 receipt: 'eurostar.pdf',    status: 'approved' },
   { id: 'exp-6',  employee: 'pieter-mertens',    category: 'Restaurant',      amount:  43.50, currency: 'EUR', expenseDate: '21 Jun', submittedAt: '22 Jun', description: 'Client dinner',                                        receipt: 'dinner_jun.pdf',  status: 'rejected', rejectReason: 'No client approval on record for this dinner.' },
   { id: 'exp-7',  employee: 'jana-goossens',     category: 'Taxi',            amount:  19.00, currency: 'EUR', expenseDate: '18 Jun', submittedAt: '18 Jun', description: 'Taxi home after late client event',                    receipt: 'taxi_receipt.pdf',status: 'approved' },
-  { id: 'exp-8',  employee: 'stijn-laurent',     category: 'Travel',          amount:  31.00, currency: 'EUR', expenseDate:  '1 Jun', submittedAt: '15 Jun', description: 'Monthly transit pass — June',                          receipt: 'transit_jun.pdf', status: 'pending' },
+  { id: 'exp-8',  employee: 'stijn-laurent',     category: 'Travel',          amount:  31.00, currency: 'EUR', expenseDate:  '1 Sep', submittedAt:  '2 Sep', description: 'Monthly transit pass — September',                     receipt: 'transit_sep.pdf', status: 'pending' },
   { id: 'exp-9',  employee: 'laura-mertens',     category: 'Restaurant',      amount:  27.50, currency: 'EUR', expenseDate:  '8 Jun', submittedAt: '10 Jun', description: 'Lunch with new hire onboarding',                       receipt: 'lunch_jun2.pdf',  status: 'approved' },
-  { id: 'exp-10', employee: 'mathias-de-smedt',  category: 'Taxi',            amount:  22.00, currency: 'EUR', expenseDate:  '2 Jun', submittedAt:  '3 Jun', description: 'Taxi to Ghent office — missed last train',             receipt: 'taxi_jun.pdf',    status: 'pending' },
+  { id: 'exp-10', employee: 'mathias-de-smedt',  category: 'Taxi',            amount:  22.00, currency: 'EUR', expenseDate:  '3 Sep', submittedAt:  '4 Sep', description: 'Taxi to Ghent office — missed last train',             receipt: 'taxi_sep.pdf',    status: 'pending' },
   // May 2026
   { id: 'exp-11', employee: 'thomas-janssens',   category: 'Hotel',           amount: 189.00, currency: 'EUR', expenseDate: '21 May', submittedAt: '28 May', description: 'Hotel Antwerp — overnight client visit',               receipt: 'hotel_may.pdf',   status: 'approved' },
   { id: 'exp-12', employee: 'sarah-de-smedt',    category: 'Travel',          amount:  44.00, currency: 'EUR', expenseDate: '19 May', submittedAt: '21 May', description: 'Train Brussels–Liège–Brussels',                        receipt: 'sncb_may.pdf',    status: 'approved' },
@@ -6205,7 +6205,7 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, o
                     <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft }}>2026</span>
                   </div>
                   {!needsSetup && (
-                    <Button variant="secondary" icon="Plus" onClick={() => setGrantLeaveOpen(true)}>Assign</Button>
+                    <Button variant="secondary" icon="Plus" onClick={() => setGrantLeaveOpen(true)} style={{ background: P.white }}>Assign</Button>
                   )}
                 </div>
                 {needsSetup && (
@@ -6278,7 +6278,7 @@ function EmployeeDetailScreen({ employeeId, requests, onNav, onSave, onCancel, o
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-300)' }}>
                   <h3 style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-lg)', color: P.ink, margin: 0 }}>Leave requests</h3>
-                  <Button variant="secondary" icon="Plus" onClick={() => setAddModal('add')}>Add time off</Button>
+                  <Button variant="secondary" icon="Plus" onClick={() => setAddModal('add')} style={{ background: P.white }}>Add time off</Button>
                 </div>
                 <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 12, overflow: 'visible' }}>
                   {filteredReqs.length === 0 ? (
@@ -8553,7 +8553,7 @@ function DashboardScreen({ requests, onNav, onToast, appEntity = null, physicalC
   ].filter(Boolean);
   const approvalItems = [
     pendingRequests > 0 && { icon: 'calendar-days', label: 'Time-off requests', count: pendingRequests, screen: 'requests', iconBg: '#EEF4FF', iconColor: '#2563EB' },
-    pendingExpenses > 0 && { icon: 'receipt', label: 'Expense requests', count: pendingExpenses, screen: 'expenses', iconBg: '#EEF4FF', iconColor: '#2563EB', subtitle: 'Due before Sep 1 payroll close', subtitleColor: '#b45309' },
+    pendingExpenses > 0 && { icon: 'receipt', label: 'Expense requests', count: pendingExpenses, screen: 'expenses', iconBg: '#EEF4FF', iconColor: '#2563EB', subtitle: (() => { const now = new Date(); const next = new Date(now.getFullYear(), now.getMonth() + 1, 1); return `Due before ${next.toLocaleString('en-US', { month: 'short' })} ${next.getDate()} payroll close`; })(), subtitleColor: '#b45309' },
     pendingChoices > 0 && { icon: 'list-checks', label: 'Choices to approve', count: pendingChoices, screen: 'choices', iconBg: '#EEF4FF', iconColor: '#2563EB' },
   ].filter(Boolean);
 
@@ -10797,33 +10797,15 @@ function LeaveTypeSettingsPage({ config, allLeaveTypes = [], onSave, onDelete, o
                     {settingsRow('Require approval to edit', 'Changes to approved leave are sent back for HR review', editRequiresApproval, () => setEditRequiresApproval(v => !v), false)}
                   </div>
                   {settingsRow('Require approval to cancel', 'HR must approve before days are returned to balance', cancelRequiresApproval, () => setCancelRequiresApproval(v => !v), false)}
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 'var(--space-200)', padding: 'var(--space-200) var(--space-250)', borderBottom: 'none' }}>
-                    <div>
-                      <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: P.ink }}>Approved by</div>
-                      <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, marginTop: 'var(--space-050)' }}>Who reviews and approves the request</div>
-                    </div>
-                    <button onClick={() => setPickModal('approverRole')} style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-075)', padding: '6px 12px', borderRadius: 7, border: `1px solid ${P.border}`, background: P.bg, color: P.ink, cursor: 'pointer', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', flexShrink: 0 }}>
-                      {{ hr: 'HR only', manager: 'Manager', 'manager-then-hr': 'Manager, then HR' }[approverRole]}
-                      <Icon name="chevron-right" size={13} color={P.inkSoft} />
-                    </button>
-                  </div>
+                  <SettingsRow onClick={() => setPickModal('approverRole')} label="Approved by" subtitle="Who reviews and approves the request" value={{ hr: 'HR only', manager: 'Manager', 'manager-then-hr': 'Manager, then HR' }[approverRole]} last />
                 </div>
               </div>
             </div>
           )}
 
-          <div style={card}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 'var(--space-200)', padding: 'var(--space-200) var(--space-250)' }}>
-              <div>
-                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: P.ink }}>Notify on submission</div>
-                <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, marginTop: 'var(--space-050)' }}>Who receives a notification when an employee submits a request</div>
-              </div>
-              <button onClick={() => setPickModal('notifyOnSubmit')} style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-075)', padding: '6px 12px', borderRadius: 7, border: `1px solid ${P.border}`, background: P.bg, color: P.ink, cursor: 'pointer', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', flexShrink: 0 }}>
-                {{ hr: 'HR only', manager: 'Manager', 'hr-and-manager': 'HR and manager' }[notifyOnSubmit]}
-                <Icon name="chevron-right" size={13} color={P.inkSoft} />
-              </button>
-            </div>
-          </div>
+          <SettingsCard>
+            <SettingsRow onClick={() => setPickModal('notifyOnSubmit')} label="Notify on submission" subtitle="Who receives a notification when an employee submits a request" value={{ hr: 'HR only', manager: 'Manager', 'hr-and-manager': 'HR and manager' }[notifyOnSubmit]} last />
+          </SettingsCard>
 
           {pickModal === 'approverRole' && (
             <PickModal
