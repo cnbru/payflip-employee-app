@@ -8181,24 +8181,10 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
     return (
       <div style={{ display: 'flex', flexDirection: 'column', opacity: liveVisible ? 1 : 0, transition: `opacity 250ms ${EASE_OUT}` }}>
 
-        {/* Funding-issue state — single horizontal row */}
+        {/* Funding-issue state — shared banner */}
         {fundingIssue ? (
-          <div style={{ padding: 'var(--space-250) var(--space-300)', display: 'flex', alignItems: 'center', gap: 'var(--space-300)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-100)', flex: 1, minWidth: 0 }}>
-              <Icon name="alert-circle" size={15} color={P.danger} strokeWidth={2} style={{ flexShrink: 0 }} />
-              <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: '18px' }}>
-                The scheduled top-up couldn't be collected. Open Twikey to resolve it.
-              </span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-300)', flexShrink: 0 }}>
-              <div style={{ textAlign: 'right' }}>
-                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 18, color: P.danger, letterSpacing: '-0.02em', lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>€{liveBalance.toLocaleString('de-DE')}</div>
-                <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginTop: 2 }}>of €{deposit.toLocaleString('de-DE')} funded</div>
-              </div>
-              <Button variant="primary" onClick={() => { window.open('https://app.twikey.com', '_blank'); }} style={{ fontSize: 'var(--fs-body-sm)', padding: 'var(--space-100) var(--space-200)', whiteSpace: 'nowrap' }}>
-                Resolve in Twikey →
-              </Button>
-            </div>
+          <div style={{ padding: 'var(--space-200) var(--space-250)' }}>
+            <PaymentIssueBanner />
           </div>
         ) : (
         <div style={{ padding: 'var(--space-250) var(--space-300)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 'var(--space-200)' }}>
@@ -9501,6 +9487,26 @@ function EntityDeliveryModal({ entityId, entityName, legalAddress, currentDelive
 }
 
 // ── Payflip Card settings ───────────────────────────────────────────────────
+function PaymentIssueBanner({ onResolve }) {
+  return (
+    <div style={{ display: 'flex', gap: 'var(--space-150)', padding: 'var(--space-200) var(--space-250)', borderRadius: 10, border: `1px solid ${P.dangerBorder}`, background: P.dangerBg, alignItems: 'flex-start' }}>
+      <Icon name="alert-circle" size={16} color={P.danger} strokeWidth={2} style={{ flexShrink: 0, marginTop: 2 }} />
+      <div style={{ flex: 1 }}>
+        <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.dangerDark, marginBottom: 'var(--space-050)' }}>Top-up payment failed</div>
+        <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.dangerDark, lineHeight: '18px', marginBottom: 'var(--space-150)' }}>
+          The collection couldn't be processed. Open Twikey to resolve it — you may need to correct bank details or re-sign the mandate.
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-200)' }}>
+          <Button variant="primary" onClick={() => { onResolve && onResolve(); window.open('https://app.twikey.com', '_blank'); }} style={{ fontSize: 'var(--fs-body-sm)', padding: 'var(--space-075) var(--space-150)' }}>
+            Resolve in Twikey →
+          </Button>
+          <a href="mailto:support@payflip.be?subject=Mobility%20card%20top-up%20failed" style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, textDecoration: 'underline' }}>Contact support</a>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function TopUpCollectionModal({ initialValue, defaultValue, empCount, chip1, chip3, chip6, onSave, onClose }) {
   const [draft, setDraft] = useState(initialValue);
   const [inputVal, setInputVal] = useState(String(initialValue));
@@ -9691,21 +9697,7 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, cardDe
 
         {/* Funding issue alert — page-level, above the account card */}
         {isLive && fundingIssue2 && !appEntity && (
-          <div style={{ display: 'flex', gap: 'var(--space-150)', padding: 'var(--space-200) var(--space-250)', borderRadius: 10, border: '1px solid var(--alert-200)', background: P.dangerBg, alignItems: 'flex-start' }}>
-            <Icon name="alert-circle" size={16} color={P.danger} strokeWidth={2} style={{ flexShrink: 0, marginTop: 'var(--space-025)' }} />
-            <div style={{ flex: 1 }}>
-              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: '#991b1b', marginBottom: 'var(--space-050)' }}>Top-up payment failed</div>
-              <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.dangerDark, lineHeight: '18px', marginBottom: 'var(--space-150)' }}>
-                The scheduled collection couldn't be processed. Check Twikey for the reason — it may require correcting bank details or re-signing the mandate.
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-200)' }}>
-                <Button variant="primary" onClick={() => window.open('https://app.twikey.com', '_blank')} style={{ fontSize: 'var(--fs-body-sm)', padding: 'var(--space-075) var(--space-150)' }}>
-                  Resolve in Twikey →
-                </Button>
-                <a href="mailto:support@payflip.be?subject=Mobility%20card%20top-up%20failed" style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, textDecoration: 'underline' }}>Contact support</a>
-              </div>
-            </div>
-          </div>
+          <PaymentIssueBanner />
         )}
 
         {/* Account overview — only when live and not entity-scoped */}
