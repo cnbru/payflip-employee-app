@@ -14,15 +14,24 @@ Before writing a new button, icon button, badge, settings row, card, drawer, or 
 <IconButton icon="X" onClick={close} blur />
 ```
 
-**`ModalShell`** — the centered-modal wrapper (backdrop, panel, optional title/close header). Owns its own `useModalTransition` internally and exposes `close` to `children`/`footer` via a render-prop function, since save/cancel handlers usually need to call it after doing their own work:
+**`ModalShell`** — the centered-modal wrapper (backdrop, panel, optional title/close header). Owns its own `useModalTransition` internally and exposes `close` to `children`/`footer` via a render-prop function, since save/cancel handlers usually need to call it after doing their own work. The `footer` prop is automatically wrapped in a standard container (`padding: var(--space-200) var(--space-300)`, border-top, flex row, justify-end, gap 125) — just pass buttons directly. For a footer with a left-side destructive text button, use `marginRight: 'auto'` on that element:
 
 ```jsx
 <ModalShell title="Add category" onClose={onClose} width={420}
   footer={close => (<><Button variant="secondary" onClick={close}>Cancel</Button><Button variant="primary" onClick={() => { save(); close(); }}>Save</Button></>)}>
-  {close => (<div>...body, can call close() too...</div>)}
+  {close => (<ModalBody>...body content...</ModalBody>)}
 </ModalShell>
 ```
 `children`/`footer` can be a plain node if they don't need `close`. Extra props: `maxHeight`, `zIndex` (default 300 — bump for a modal that can stack on top of another, e.g. a delete-confirm over a settings page).
+
+**`ModalBody`** — the standard modal body wrapper. Handles padding (`var(--space-250) var(--space-300)`), flex column layout, gap (default `var(--space-250)`), and `overflow-y: auto`. Always use inside `ModalShell` children instead of hand-rolling a div with padding:
+
+```jsx
+<ModalBody gap="var(--space-200)">
+  <p>Some description</p>
+  <SelectField ... />
+</ModalBody>
+```
 
 **`DrawerShell`** — the right-side-drawer wrapper (backdrop, panel, pinned header with title + close, optional `onBack` for two-step flows like decline/edit sub-panels). Same render-prop pattern as `ModalShell`, but only `children` (no separate `footer` slot — put the footer inside `children`, since most drawers have more complex body layouts than a simple modal):
 
