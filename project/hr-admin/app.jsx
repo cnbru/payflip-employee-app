@@ -8183,8 +8183,8 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
 
         {/* Funding-issue state — shared banner */}
         {fundingIssue ? (
-          <div style={{ padding: 'var(--space-200) var(--space-250)' }}>
-            <PaymentIssueBanner />
+          <div style={{ padding: 'var(--space-250) var(--space-300)' }}>
+            <PaymentIssueBanner boxed={false} />
           </div>
         ) : (
         <div style={{ padding: 'var(--space-250) var(--space-300)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 'var(--space-200)' }}>
@@ -9487,13 +9487,13 @@ function EntityDeliveryModal({ entityId, entityName, legalAddress, currentDelive
 }
 
 // ── Payflip Card settings ───────────────────────────────────────────────────
-function PaymentIssueBanner({ onResolve }) {
-  return (
-    <div style={{ display: 'flex', gap: 'var(--space-150)', padding: 'var(--space-200) var(--space-250)', borderRadius: 10, border: `1px solid ${P.dangerBorder}`, background: P.dangerBg, alignItems: 'flex-start' }}>
+function PaymentIssueBanner({ onResolve, boxed = true }) {
+  const inner = (
+    <div style={{ display: 'flex', gap: 'var(--space-150)', alignItems: 'flex-start' }}>
       <Icon name="alert-circle" size={16} color={P.danger} strokeWidth={2} style={{ flexShrink: 0, marginTop: 2 }} />
       <div style={{ flex: 1 }}>
         <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.dangerDark, marginBottom: 'var(--space-050)' }}>Top-up payment failed</div>
-        <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.dangerDark, lineHeight: '18px', marginBottom: 'var(--space-150)' }}>
+        <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: boxed ? P.dangerDark : P.inkSoft, lineHeight: '18px', marginBottom: 'var(--space-150)' }}>
           The collection couldn't be processed. Open Twikey to resolve it — you may need to correct bank details or re-sign the mandate.
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-200)' }}>
@@ -9503,6 +9503,12 @@ function PaymentIssueBanner({ onResolve }) {
           <a href="mailto:support@payflip.be?subject=Mobility%20card%20top-up%20failed" style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, textDecoration: 'underline' }}>Contact support</a>
         </div>
       </div>
+    </div>
+  );
+  if (!boxed) return inner;
+  return (
+    <div style={{ padding: 'var(--space-200) var(--space-250)', borderRadius: 10, border: `1px solid ${P.dangerBorder}`, background: P.dangerBg }}>
+      {inner}
     </div>
   );
 }
