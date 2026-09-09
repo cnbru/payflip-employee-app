@@ -4572,7 +4572,7 @@ function AddExpenseModal({ categories, onClose, onSave, receiptRequired = false 
 }
 
 // ── Expense row ────────────────────────────────────────────────────────────
-function ExpenseRow({ exp, onApprove, onDetail, onRejectDirectly, showStatus, showEntity, selected, onToggle, showApproveActions = true, removing }) {
+function ExpenseRow({ exp, onApprove, onDetail, onRejectDirectly, showStatus, showEntity, selected, onToggle, showApproveActions = true, removing, gridTemplateColumns }) {
   const emp = EMPLOYEES[exp.employee] || { name: exp.employee, initials: '?', color: P.border };
   const [hover, setHover] = useState(false);
   const cb = showApproveActions ? '32px ' : '';
@@ -4593,7 +4593,7 @@ function ExpenseRow({ exp, onApprove, onDetail, onRejectDirectly, showStatus, sh
     <div style={{ minHeight: 0 }}>
     <div onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)} onClick={() => { if (!removing) onDetail(exp); }}
       style={{
-        display: 'grid', gridTemplateColumns: gridCols,
+        display: 'grid', gridTemplateColumns: gridTemplateColumns || gridCols,
         alignItems: 'center', gap: 'var(--space-150)', padding: '0 var(--space-250)', minHeight: 52,
         borderBottom: `1px solid ${P.border}`,
         background: selected ? '#f5f3ff' : hover ? P.bg : P.white,
@@ -4632,6 +4632,39 @@ function ExpenseRow({ exp, onApprove, onDetail, onRejectDirectly, showStatus, sh
     </div>
     </div>
     </div>
+  );
+}
+
+function ExpenseHistoryCompactRow({ exp, onDetail, showEntity }) {
+  const emp = EMPLOYEES[exp.employee] || { name: exp.employee, initials: '?', color: P.border };
+  const amountStr = `€ ${exp.amount.toFixed(2).replace('.', ',')}`;
+  return (
+    <button type="button" onClick={() => onDetail(exp)} style={{
+      width: '100%', border: 'none', borderBottom: `1px solid ${P.border}`,
+      background: P.white, padding: 'var(--space-200)',
+      display: 'flex', flexDirection: 'column', gap: 'var(--space-125)',
+      cursor: 'pointer', textAlign: 'left', color: P.ink,
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 'var(--space-150)', width: '100%' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-100)', minWidth: 0 }}>
+          <Avatar employeeId={exp.employee} size={28} style={{ border: '2px solid #fff', boxSizing: 'content-box' }} />
+          <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{emp.name}</span>
+        </div>
+        <StatusPill status={exp.status} />
+      </div>
+      <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: 1.4 }}>
+        {exp.description}
+      </div>
+      <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 'var(--space-150)', width: '100%' }}>
+        <div style={{ minWidth: 0, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, lineHeight: 1.4 }}>
+          {[exp.category, showEntity ? emp.entity : null].filter(Boolean).join(' · ')}
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 'var(--space-025)', flexShrink: 0 }}>
+          <span style={{ fontFamily: 'var(--font-display)', fontSize: 'var(--fs-body-sm)', fontWeight: 700, color: P.ink }}>{amountStr}</span>
+          <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkFaint }}>{exp.expenseDate}</span>
+        </div>
+      </div>
+    </button>
   );
 }
 
@@ -5048,7 +5081,7 @@ function TimeOffExportModal({ filtered, onClose, onToast, periodLabel, scopeLabe
 }
 
 // ── Expense history screen ─────────────────────────────────────────────────
-function ExpenseExportModal({ filtered, onClose, onToast, periodLabel }) {
+function ExpenseExportModal({ filtered, onClose, onToast, periodLabel, scope }) {
   const [formats, setFormats] = useState({ zip: true, csv: true });
   const approvedCount = filtered.filter(e => e.status === 'approved').length;
   const noneSelected = !formats.zip && !formats.csv;
@@ -5070,8 +5103,21 @@ function ExpenseExportModal({ filtered, onClose, onToast, periodLabel }) {
       )}>
       {() => (
         <ModalBody>
-          <div style={{ fontSize: 'var(--fs-body-sm)', color: P.inkSoft }}>
-            {approvedCount} approved expense{approvedCount !== 1 ? 's' : ''} · {periodLabel}
+          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.ink }}>
+            {approvedCount} approved expense{approvedCount !== 1 ? 's' : ''} will be exported
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            {scope.map((item, index) => (
+              <div key={item.label} style={{
+                display: 'grid', gridTemplateColumns: '90px 1fr', gap: 'var(--space-150)',
+                padding: 'var(--space-125) var(--space-050)',
+                borderBottom: index < scope.length - 1 ? `1px solid ${P.border}` : 'none',
+                fontSize: 'var(--fs-body-sm)',
+              }}>
+                <span style={{ color: P.inkSoft }}>{item.label}</span>
+                <span style={{ display: 'flex', alignItems: 'center' }}>{item.node ?? <span style={{ color: P.ink, fontWeight: 500 }}>{item.value}</span>}</span>
+              </div>
+            ))}
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-100)' }}>
             <div style={SL}>Include</div>
@@ -5092,6 +5138,16 @@ function ExpenseExportModal({ filtered, onClose, onToast, periodLabel }) {
 function ExpenseHistoryScreen({ expenses, categories, appEntity = null, onDetail, onToast }) {
   const CURRENT_YEAR = 2026;
   const H_PAGE_SIZE = 20;
+  const screenRef = useRef(null);
+  const [screenWidth, setScreenWidth] = useState(9999);
+  useEffect(() => {
+    const el = screenRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(entries => setScreenWidth(entries[0].contentRect.width));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+  const compactRows = screenWidth < 900;
   const MONTHS = [
     ['all', 'All months'],
     ['1','January'],['2','February'],['3','March'],['4','April'],
@@ -5135,15 +5191,33 @@ function ExpenseHistoryScreen({ expenses, categories, appEntity = null, onDetail
     year !== 'all' ? year : null,
     appEntity ? ENTITIES.find(e => e.id === appEntity)?.name : null,
   ].filter(Boolean).join(' · ') || 'all time';
+  const exportScope = [
+    {
+      label: 'Period',
+      value: [
+        month !== 'all' ? monthOpts.find(([v]) => v === month)?.[1] : null,
+        year !== 'all' ? year : null,
+      ].filter(Boolean).join(' ') || 'All time',
+    },
+    {
+      label: 'Entity',
+      value: appEntity ? ENTITIES.find(e => e.id === appEntity)?.name : 'All entities',
+    },
+    ...(categoryFilter !== 'all' ? [{ label: 'Category', value: categoryFilter }] : []),
+    ...(deptFilter !== 'all' ? [{ label: 'Department', value: deptFilter }] : []),
+    ...(searchText.trim() ? [{ label: 'Employee', value: `Matching “${searchText.trim()}”` }] : []),
+    { label: 'Status', node: React.createElement(StatusPill, { status: 'approved' }) },
+  ];
   return (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, animation: `screenEnter 180ms ${EASE_OUT}` }}>
-      {showExport && <ExpenseExportModal filtered={filtered} onClose={() => setShowExport(false)} onToast={onToast} periodLabel={periodLabel} />}
+    <div ref={screenRef} style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, minWidth: 0, animation: `screenEnter 180ms ${EASE_OUT}` }}>
+      {showExport && <ExpenseExportModal filtered={filtered} onClose={() => setShowExport(false)} onToast={onToast} periodLabel={periodLabel} scope={exportScope} />}
       <PageHeader title="History" subtitle="All approved and declined expense claims" badge={appEntity ? (ENTITIES.find(e => e.id === appEntity)?.name) : null} />
       <FilterToolbar
         searchText={searchText} onSearch={v => resetFilters(() => setSearchText(v))}
         filter={categoryFilter} onFilter={v => resetFilters(() => setCategoryFilter(v))} filterOpts={categoryOpts}
         deptFilter={deptFilter} onDeptFilter={v => resetFilters(() => setDeptFilter(v))}
-        filterCount={[categoryFilter !== 'all', deptFilter !== 'all', year !== String(CURRENT_YEAR), month !== 'all', statusFilter !== 'all', searchText !== ''].filter(Boolean).length}
+        responsiveStack
+        filterCount={[categoryFilter !== 'all', deptFilter !== 'all', year !== String(CURRENT_YEAR), month !== 'all', statusFilter !== 'all'].filter(Boolean).length}
         resultCount={filtered.length}
         onClearAll={() => { setCategoryFilter('all'); setDeptFilter('all'); setYear(String(CURRENT_YEAR)); setMonth('all'); setStatusFilter('all'); setSearchText(''); setPage(1); }}
         actions={
@@ -5157,37 +5231,56 @@ function ExpenseHistoryScreen({ expenses, categories, appEntity = null, onDetail
         <FilterDropdown label="All months" active={month} opts={monthOpts} onSelect={v => resetFilters(() => setMonth(v))} minWidth={120} />
         <FilterDropdown label="All statuses" active={statusFilter} opts={statusOpts} onSelect={v => resetFilters(() => setStatusFilter(v))} minWidth={130} />
       </FilterToolbar>
-      <div style={{ flex: 1, overflowY: 'auto', overflowX: 'auto', padding: '0 var(--space-250) var(--space-250)' }}>
-        <div style={{ background: P.white, borderRadius: 12, border: `1px solid ${P.border}`, overflow: 'clip', minWidth: 780 }}>
-          <div style={{ display: 'grid', gridTemplateColumns: gridCols, alignItems: 'center', gap: 'var(--space-150)', padding: '0 var(--space-250)', height: 38, borderBottom: `1px solid ${P.border}`, background: P.bg, position: 'sticky', top: 0, zIndex: 5 }}>
-            <TH>Employee</TH>{showEntity && <TH>Entity</TH>}<TH>Status</TH><TH>Category</TH><TH>Description</TH><TH>Amount</TH><TH>Date</TH>
-          </div>
-          {paginated.length === 0 ? (
-            <div style={{ padding: '60px var(--space-300)', textAlign: 'center' }}>
-              <Icon name="History" size={32} color={P.border} style={{ marginBottom: 'var(--space-150)' }} />
-              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.inkSoft }}>No expenses for {periodLabel}</div>
-              <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginTop: 'var(--space-050)' }}>Approved and declined expenses will appear here.</div>
-            </div>
-          ) : paginated.map(exp => (
-            <ExpenseRow key={exp.id} exp={exp} onApprove={() => {}} onDetail={onDetail} onRejectDirectly={() => {}} showStatus={true} showEntity={showEntity} selected={false} onToggle={() => {}} showApproveActions={false} removing={false} />
-          ))}
-          {filtered.length > 0 && (
-            <div style={{ padding: 'var(--space-100) var(--space-200)', borderTop: `1px solid ${P.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkFaint }}>{(safePage - 1) * H_PAGE_SIZE + 1}–{Math.min(safePage * H_PAGE_SIZE, filtered.length)} of {filtered.length} {filtered.length === 1 ? 'record' : 'records'}</span>
-              {totalPages > 1 && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-050)' }}>
-                  <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={safePage === 1} style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-050)', padding: 'var(--space-050) var(--space-125)', borderRadius: 6, border: `1px solid ${P.border}`, background: P.white, cursor: safePage === 1 ? 'default' : 'pointer', fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-xs)', color: safePage === 1 ? P.inkFaint : P.ink, opacity: safePage === 1 ? 0.5 : 1 }}>
-                    <Icon name="ChevronLeft" size={13} color={safePage === 1 ? P.inkFaint : P.ink} strokeWidth={2} /> Prev
-                  </button>
-                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-xs)', color: P.inkSoft, padding: '0 var(--space-075)' }}>{safePage} / {totalPages}</span>
-                  <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={safePage === totalPages} style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-050)', padding: 'var(--space-050) var(--space-125)', borderRadius: 6, border: `1px solid ${P.border}`, background: P.white, cursor: safePage === totalPages ? 'default' : 'pointer', fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-xs)', color: safePage === totalPages ? P.inkFaint : P.ink, opacity: safePage === totalPages ? 0.5 : 1 }}>
-                    Next <Icon name="ChevronRight" size={13} color={safePage === totalPages ? P.inkFaint : P.ink} strokeWidth={2} />
-                  </button>
-                </div>
-              )}
+      <div style={{ flex: 1, overflowY: 'auto', minWidth: 0, padding: '0 var(--space-250) var(--space-250)' }}>
+        <div style={{ background: P.white, borderRadius: 12, border: `1px solid ${P.border}`, overflow: 'hidden' }}>
+          {!compactRows && (
+            <div style={{ display: 'grid', gridTemplateColumns: gridCols, alignItems: 'center', gap: 'var(--space-150)', padding: '0 var(--space-250)', height: 38, borderBottom: `1px solid ${P.border}`, background: P.bg, position: 'sticky', top: 0, zIndex: 5 }}>
+              <TH>Employee</TH>{showEntity && <TH>Entity</TH>}<TH>Status</TH><TH>Category</TH><TH>Description</TH><TH>Amount</TH><TH>Date</TH>
             </div>
           )}
+          {paginated.length === 0 ? (
+            <EmptyState
+              icon="History"
+              title={`No expenses for ${periodLabel}`}
+              description="Approved and declined expenses will appear here."
+              action={
+                <Button variant="secondary" onClick={() => {
+                  setCategoryFilter('all');
+                  setDeptFilter('all');
+                  setYear(String(CURRENT_YEAR));
+                  setMonth('all');
+                  setStatusFilter('all');
+                  setSearchText('');
+                  setPage(1);
+                }}>
+                  Reset filters
+                </Button>
+              }
+            />
+          ) : compactRows ? paginated.map(exp => (
+            <ExpenseHistoryCompactRow key={exp.id} exp={exp} onDetail={onDetail} showEntity={showEntity} />
+          )) : paginated.map(exp => (
+            <ExpenseRow key={exp.id} exp={exp} onApprove={() => {}} onDetail={onDetail} onRejectDirectly={() => {}} showStatus={true} showEntity={showEntity} selected={false} onToggle={() => {}} showApproveActions={false} removing={false} gridTemplateColumns={gridCols} />
+          ))}
         </div>
+        {filtered.length > 0 && (
+          <div style={{ padding: 'var(--space-150) 0 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 'var(--space-150)', flexWrap: 'wrap' }}>
+            <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>
+              {(safePage - 1) * H_PAGE_SIZE + 1}–{Math.min(safePage * H_PAGE_SIZE, filtered.length)} of {filtered.length} {filtered.length === 1 ? 'record' : 'records'}
+            </span>
+            {totalPages > 1 && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-050)', marginLeft: 'auto' }}>
+                <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={safePage === 1} style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-050)', minHeight: compactRows ? 40 : undefined, padding: 'var(--space-050) var(--space-125)', borderRadius: 6, border: `1px solid ${P.border}`, background: P.white, cursor: safePage === 1 ? 'default' : 'pointer', fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-xs)', color: safePage === 1 ? P.inkFaint : P.ink, opacity: safePage === 1 ? 0.5 : 1 }}>
+                  <Icon name="ChevronLeft" size={13} color={safePage === 1 ? P.inkFaint : P.ink} strokeWidth={2} /> Prev
+                </button>
+                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-xs)', color: P.inkSoft, padding: '0 var(--space-075)' }}>{safePage} / {totalPages}</span>
+                <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={safePage === totalPages} style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-050)', minHeight: compactRows ? 40 : undefined, padding: 'var(--space-050) var(--space-125)', borderRadius: 6, border: `1px solid ${P.border}`, background: P.white, cursor: safePage === totalPages ? 'default' : 'pointer', fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-xs)', color: safePage === totalPages ? P.inkFaint : P.ink, opacity: safePage === totalPages ? 0.5 : 1 }}>
+                  Next <Icon name="ChevronRight" size={13} color={safePage === totalPages ? P.inkFaint : P.ink} strokeWidth={2} />
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -5591,7 +5684,7 @@ function FilterDropdown({ label, active, opts, onSelect, minWidth, block }) {
   return (
     <div ref={ref} style={{ position: 'relative', ...(block ? { width: '100%' } : {}) }}>
       <button onClick={() => setOpen(o => !o)} style={{
-        display: 'flex', alignItems: 'center', gap: 'var(--space-075)',
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 'var(--space-075)',
         padding: 'var(--space-100) 11px', borderRadius: 7,
         border: `1px solid ${isFiltered ? P.ink : P.border}`,
         background: P.white, color: P.ink, width: block ? '100%' : undefined,
@@ -5672,7 +5765,7 @@ function PageHeader({ title, subtitle, badge, children, tabs, maxWidth: mw, noBo
   );
 }
 
-function FilterToolbar({ searchText, onSearch, filter, onFilter, filterOpts, deptFilter, onDeptFilter, filterCount = 0, resultCount, onClearAll, actions, children }) {
+function FilterToolbar({ searchText, onSearch, filter, onFilter, filterOpts, deptFilter, onDeptFilter, filterCount = 0, resultCount, onClearAll, actions, children, responsiveStack = false }) {
   const containerRef = useRef(null);
   const [containerWidth, setContainerWidth] = useState(9999);
   const [filtersOpen, setFiltersOpen] = useState(false);
@@ -5686,6 +5779,8 @@ function FilterToolbar({ searchText, onSearch, filter, onFilter, filterOpts, dep
   }, []);
 
   const collapsed = containerWidth < 1050;
+  const stacked = responsiveStack && collapsed;
+  const veryCompact = responsiveStack && containerWidth < 600;
   const deptOpts = [['all', 'All departments'], ...DEPARTMENTS.map(d => [d, d])];
   const resolvedOpts = filterOpts || LEAVE_FILTER_OPTS;
 
@@ -5694,6 +5789,18 @@ function FilterToolbar({ searchText, onSearch, filter, onFilter, filterOpts, dep
       <FilterDropdown label={resolvedOpts[0][1]} active={filter} opts={resolvedOpts} onSelect={onFilter} minWidth={170} />
       <FilterDropdown label="All departments" active={deptFilter} opts={deptOpts} onSelect={onDeptFilter} minWidth={160} />
       {children}
+      {filterCount > 0 && onClearAll && (
+        <button onClick={onClearAll} style={{
+          display: 'flex', alignItems: 'center', gap: 4,
+          padding: '0 var(--space-050)', background: 'none', border: 'none',
+          cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 500,
+          fontSize: 'var(--fs-body-xs)', color: P.inkSoft,
+          whiteSpace: 'nowrap',
+        }}>
+          <Icon name="X" size={12} color={P.inkSoft} strokeWidth={2.5} />
+          Reset
+        </button>
+      )}
     </>
   );
 
@@ -5701,12 +5808,13 @@ function FilterToolbar({ searchText, onSearch, filter, onFilter, filterOpts, dep
     <>
       <button onClick={() => setFiltersOpen(true)} style={{
         display: 'flex', alignItems: 'center', gap: 6, padding: 'var(--space-100) 11px',
+        minHeight: veryCompact ? 44 : undefined,
         borderRadius: 7, border: `1px solid ${filterCount > 0 ? P.action : P.border}`,
         background: filterCount > 0 ? '#f0f5ff' : P.white,
         color: filterCount > 0 ? P.action : P.ink,
         cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-xs)',
       }}>
-        <Icon name="SlidersHorizontal" size={13} color={filterCount > 0 ? P.action : P.inkSoft} />
+        <Icon name="sliders-horizontal" size={13} color={filterCount > 0 ? P.action : P.inkSoft} />
         Filters
         {filterCount > 0 && (
           <span className="filter-count-badge" style={{ background: P.action, color: P.white, borderRadius: 10, padding: '1px 6px', fontSize: 11, fontWeight: 600, lineHeight: 1.4 }}>{filterCount}</span>
@@ -5729,7 +5837,7 @@ function FilterToolbar({ searchText, onSearch, filter, onFilter, filterOpts, dep
                 ].map(({ lbl, value, opts, onSelect }, i) => (
                   <div key={i}>
                     <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.inkSoft, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 'var(--space-075)' }}>{lbl}</div>
-                    <SelectField value={value} onChange={e => onSelect(e.target.value)} style={{ width: '100%', padding: 'var(--space-100) var(--space-150)', borderRadius: 7, border: `1px solid ${P.border}`, background: P.white, fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-xs)', color: P.ink, cursor: 'pointer', boxSizing: 'border-box' }}>
+                    <SelectField value={value} onChange={e => onSelect(e.target.value)} style={{ width: '100%', minHeight: veryCompact ? 44 : undefined, padding: 'var(--space-100) var(--space-150)', borderRadius: 7, border: `1px solid ${P.border}`, background: P.white, fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: veryCompact ? 16 : 'var(--fs-body-xs)', color: P.ink, cursor: 'pointer', boxSizing: 'border-box' }}>
                       {opts.map(([val, lbl]) => <option key={val} value={val}>{lbl}</option>)}
                     </SelectField>
                   </div>
@@ -5748,16 +5856,41 @@ function FilterToolbar({ searchText, onSearch, filter, onFilter, filterOpts, dep
     </>
   );
 
+  const searchField = (
+    <div style={{
+      display: 'flex', alignItems: 'center', gap: 'var(--space-100)',
+      border: `1px solid ${P.border}`, borderRadius: 7,
+      padding: 'var(--space-100) var(--space-150)',
+      width: stacked ? undefined : 240, flex: stacked ? '1 1 80px' : undefined, minWidth: 0,
+      minHeight: veryCompact ? 44 : undefined,
+      background: P.white, boxSizing: 'border-box',
+    }}>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={P.inkFaint} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <input value={searchText} onChange={e => onSearch(e.target.value)} placeholder="Search employee" style={{
+        border: 'none', outline: 'none', background: 'transparent', fontFamily: 'var(--font-body)',
+        fontSize: veryCompact ? 16 : 'var(--fs-body-xs)', color: P.ink, width: '100%', minWidth: 0,
+      }} />
+      {responsiveStack && searchText && (
+        <button aria-label="Clear search" onClick={() => onSearch('')} style={{
+          width: veryCompact ? 32 : 24, height: veryCompact ? 32 : 24, flexShrink: 0,
+          border: 'none', borderRadius: '50%', background: 'transparent', cursor: 'pointer',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0,
+        }}>
+          <Icon name="X" size={13} color={P.inkSoft} strokeWidth={2.5} />
+        </button>
+      )}
+    </div>
+  );
+
   return (
-    <div ref={containerRef} style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-100)', padding: 'var(--space-300) var(--space-250) var(--space-200)' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-100)', border: `1px solid ${P.border}`, borderRadius: 7, padding: 'var(--space-100) var(--space-150)', width: 240, background: P.white }}>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={P.inkFaint} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
-          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-        </svg>
-        <input value={searchText} onChange={e => onSearch(e.target.value)} placeholder="Search employee" style={{
-          border: 'none', outline: 'none', background: 'transparent', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.ink, width: '100%',
-        }} />
-      </div>
+    <div ref={containerRef} style={{
+      display: 'flex', flexDirection: 'row', alignItems: 'center',
+      gap: 'var(--space-100)',
+      padding: stacked ? 'var(--space-200) var(--space-250)' : 'var(--space-300) var(--space-250) var(--space-200)',
+    }}>
+      {searchField}
       {collapsed ? collapsedPanel : inlineFilters}
       {actions}
     </div>
@@ -7704,7 +7837,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
   const foodInssComplete = inssUploaded;
   // Deposit = €37/employee/month × 3 months, rounded to nearest €50
   const recommendedDeposit = Math.max(50, Math.round(empCount * 12.5 * 3 / 50) * 50);
-  const deposit = customDeposit ?? recommendedDeposit;
+  const deposit = ws.topUpCollectionOverride ?? customDeposit ?? recommendedDeposit;
   const topUpStart = Math.round(deposit / 15) * 5;
   const maxTopUp = deposit - topUpStart;
 
@@ -7855,28 +7988,18 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
                   {/* Stat grid */}
                   <div style={{ height: 1, background: P.borderLight || P.border, margin: '0 var(--space-200)' }} />
                   <div style={{ position: 'relative', display: 'grid', gridTemplateColumns: '1fr 1fr' }}>
-                    <div style={{ position: 'absolute', left: '50%', top: 'var(--space-150)', bottom: 'var(--space-150)', width: 1, background: P.borderLight || P.border }} />
-                    <div style={{ padding: 'var(--space-150) var(--space-200)', display: 'flex', flexDirection: 'column', gap: 'var(--space-125)' }}>
-                      <div style={{ width: 26, height: 26, borderRadius: 6, background: P.bg, border: `1px solid ${P.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: P.inkSoft }}>
-                        <Icon name="users" size={13} color={P.inkSoft} strokeWidth={1.75} />
-                      </div>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-050)' }}>
-                        <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 17, color: P.ink, letterSpacing: '-0.02em', fontVariantNumeric: 'tabular-nums', lineHeight: 1 }}>
-                          {Math.round(deposit / (empCount * 12.5)) >= 1 ? `~${Math.round(deposit / (empCount * 12.5))} months` : '< 1 month'}
-                        </span>
-                        <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, lineHeight: 1.35 }}>coverage for {empCount} employees</span>
-                      </div>
+                    <div style={{ position: 'absolute', left: '50%', top: 'var(--space-200)', bottom: 'var(--space-200)', width: 1, background: P.borderLight || P.border }} />
+                    <div style={{ padding: 'var(--space-200)', display: 'flex', flexDirection: 'column', gap: 'var(--space-050)' }}>
+                      <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 17, color: P.ink, letterSpacing: '-0.02em', fontVariantNumeric: 'tabular-nums', lineHeight: 1 }}>
+                        {Math.round(deposit / (empCount * 12.5)) >= 1 ? `~${Math.round(deposit / (empCount * 12.5))} months` : '< 1 month'}
+                      </span>
+                      <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, lineHeight: 1.35 }}>coverage for {empCount} employees</span>
                     </div>
-                    <div style={{ padding: 'var(--space-150) var(--space-200)', display: 'flex', flexDirection: 'column', gap: 'var(--space-125)' }}>
-                      <div style={{ width: 26, height: 26, borderRadius: 6, background: P.bg, border: `1px solid ${P.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: P.inkSoft }}>
-                        <Icon name="refresh-cw" size={13} color={P.inkSoft} strokeWidth={1.75} />
-                      </div>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-050)' }}>
-                        <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 17, color: P.ink, letterSpacing: '-0.02em', fontVariantNumeric: 'tabular-nums', lineHeight: 1 }}>
-                          €{Math.round(deposit / 15) * 5 >= 50 ? (Math.round(deposit / 15) * 5).toLocaleString('de-DE') : 50}
-                        </span>
-                        <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, lineHeight: 1.35 }}>auto top-up trigger</span>
-                      </div>
+                    <div style={{ padding: 'var(--space-200)', display: 'flex', flexDirection: 'column', gap: 'var(--space-050)' }}>
+                      <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 17, color: P.ink, letterSpacing: '-0.02em', fontVariantNumeric: 'tabular-nums', lineHeight: 1 }}>
+                        €{Math.round(deposit / 15) * 5 >= 50 ? (Math.round(deposit / 15) * 5).toLocaleString('de-DE') : 50}
+                      </span>
+                      <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, lineHeight: 1.35 }}>auto top-up trigger</span>
                     </div>
                   </div>
                 </div>
@@ -8058,35 +8181,41 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
     return (
       <div style={{ display: 'flex', flexDirection: 'column', opacity: liveVisible ? 1 : 0, transition: `opacity 250ms ${EASE_OUT}` }}>
 
-        {/* Funding-issue state */}
-        {fundingIssue && (
-          <div style={{ padding: 'var(--space-200) var(--space-300) var(--space-200)', borderBottom: `1px solid ${P.border}` }}>
-            <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: '18px', marginBottom: 'var(--space-150)' }}>
-              The scheduled top-up couldn't be collected. Open Twikey to resolve it.
+        {/* Funding-issue state — single horizontal row */}
+        {fundingIssue ? (
+          <div style={{ padding: 'var(--space-250) var(--space-300)', display: 'flex', alignItems: 'center', gap: 'var(--space-300)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-100)', flex: 1, minWidth: 0 }}>
+              <Icon name="alert-circle" size={15} color={P.danger} strokeWidth={2} style={{ flexShrink: 0 }} />
+              <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: '18px' }}>
+                The scheduled top-up couldn't be collected. Open Twikey to resolve it.
+              </span>
             </div>
-            <Button variant="primary" onClick={() => { window.open('https://app.twikey.com', '_blank'); }} style={{ width: '100%', justifyContent: 'center', fontSize: 'var(--fs-body-sm)', padding: 'var(--space-100) var(--space-200)' }}>
-              Resolve in Twikey →
-            </Button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-300)', flexShrink: 0 }}>
+              <div style={{ textAlign: 'right' }}>
+                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 18, color: P.danger, letterSpacing: '-0.02em', lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>€{liveBalance.toLocaleString('de-DE')}</div>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginTop: 2 }}>of €{deposit.toLocaleString('de-DE')} funded</div>
+              </div>
+              <Button variant="primary" onClick={() => { window.open('https://app.twikey.com', '_blank'); }} style={{ fontSize: 'var(--fs-body-sm)', padding: 'var(--space-100) var(--space-200)', whiteSpace: 'nowrap' }}>
+                Resolve in Twikey →
+              </Button>
+            </div>
           </div>
-        )}
-
-        {/* Compact balance row */}
+        ) : (
         <div style={{ padding: 'var(--space-250) var(--space-300)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 'var(--space-200)' }}>
           <div>
             <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginBottom: 'var(--space-050)' }}>Account balance</div>
-            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 22, color: fundingIssue ? P.danger : P.ink, letterSpacing: '-0.02em', lineHeight: 1, marginBottom: 'var(--space-050)' }}>
+            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 22, color: P.ink, letterSpacing: '-0.02em', lineHeight: 1, marginBottom: 'var(--space-050)' }}>
               €{liveBalance.toLocaleString('de-DE')}
             </div>
             <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>
-              {justLaunched
-                ? `Invites sent to ${invitedKeys.length} ${invitedKeys.length === 1 ? 'employee' : 'employees'}`
-                : toppingUp
+              {toppingUp
                 ? `+ €${deposit.toLocaleString('de-DE')} top-up incoming`
                 : `of €${deposit.toLocaleString('de-DE')} funded`}
             </div>
           </div>
           <a href="#" onClick={e => { e.preventDefault(); onNav && onNav('settings-cardrules'); }} style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink, textDecoration: 'underline', whiteSpace: 'nowrap' }}>Manage →</a>
         </div>
+        )}
 
       </div>
     );
@@ -8144,29 +8273,9 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
             ? { label: 'Just launched', bg: P.bg, color: P.inkSoft }
             : { label: 'Active', bg: '#F0FDF4', color: P.success };
           return (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-125)' }}>
-              <DotPill bg={livePill.bg} color={livePill.color} dot size={11}>
-                {livePill.label}
-              </DotPill>
-              <div style={{ position: 'relative' }} data-live-menu>
-                <IconButton icon="more-horizontal" size={28} onClick={() => setLiveMenuOpen(o => !o)} />
-                {liveMenuRendered && (
-                  <div style={{ position: 'absolute', top: 34, right: 0, minWidth: 190, background: P.white, border: `1px solid ${P.border}`, borderRadius: 10, boxShadow: '0 4px 16px rgba(15,13,40,0.10)', zIndex: 50, overflow: 'hidden', ...popoverStyle(liveMenuVisible, 'top right') }}>
-                    {[
-                      { label: 'View transactions', action: () => { onNav && onNav('choices'); setLiveMenuOpen(false); } },
-                      ...(!ws.justLaunched && !nooneToInvite ? [{ label: 'Invite more employees', action: () => { setShowInviteMoreModal(true); setLiveMenuOpen(false); } }] : []),
-                      { label: 'Card settings', action: () => { onNav && onNav('settings-cardrules'); setLiveMenuOpen(false); } },
-                    ].map(({ label, action }) => (
-                      <button key={label} onClick={action} style={{ display: 'flex', alignItems: 'center', width: '100%', padding: 'var(--space-100) var(--space-200)', border: 'none', background: 'transparent', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.ink, cursor: 'pointer', textAlign: 'left' }}
-                        onMouseEnter={e => e.currentTarget.style.background = P.bg}
-                        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                        {label}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
+            <DotPill bg={livePill.bg} color={livePill.color} dot size={11}>
+              {livePill.label}
+            </DotPill>
           );
         })()}
       </div>
@@ -8474,7 +8583,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
           footer={close => (
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-150)', padding: 'var(--space-200) var(--space-300)', borderTop: `1px solid ${P.border}` }}>
               <Button variant="secondary" onClick={close}>Cancel</Button>
-              <Button variant="primary" disabled={!isValid} onClick={() => { setCustomDeposit(Math.round(parsed)); close(); }}>Save</Button>
+              <Button variant="primary" disabled={!isValid} onClick={() => { const v = Math.round(parsed); setCustomDeposit(v); setWs({ topUpCollectionOverride: v }); close(); }}>Save</Button>
             </div>
           )}>
           <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -8496,7 +8605,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
                 onChange={e => setAmountInput(e.target.value)}
                 onKeyDown={e => {
                   if (e.key === 'Escape') setShowAmountModal(false);
-                  if (e.key === 'Enter' && isValid) { setCustomDeposit(Math.round(parsed)); setShowAmountModal(false); }
+                  if (e.key === 'Enter' && isValid) { const v = Math.round(parsed); setCustomDeposit(v); setWs({ topUpCollectionOverride: v }); setShowAmountModal(false); }
                 }}
                 placeholder="0"
                 className="amount-display-input"
@@ -9207,13 +9316,15 @@ function DashboardScreen({ requests, onNav, onToast, appEntity = null, physicalC
           ))}
         </div>
 
+        {/* Funding issue alert — full width, above the two columns */}
+        {mobilityWidgetState.live && mobilityWidgetState.widgetMode !== 'food' && mobilityWidgetState.fundingIssue && (
+          <div style={{ opacity: setupInProgress ? 0.35 : 1, transition: `opacity 250ms ${EASE_OUT}`, pointerEvents: setupInProgress ? 'none' : 'auto' }}>
+            <MobilityLaunchWidget onToast={onToast} onNav={onNav} physicalCardsAllowed={physicalCardsAllowed} onPhysicalCardsChange={onPhysicalCardsChange} cardDelivery={cardDelivery} onCardDeliveryChange={onCardDeliveryChange} mobilityWidgetState={mobilityWidgetState} onMobilityWidgetStateChange={onMobilityWidgetStateChange} foodUnmatched={foodUnmatched} unmatchedQueue={unmatchedQueue} />
+          </div>
+        )}
+
         {/* Widget row — grid layout once setup is live or hidden */}
         <div style={{ display: 'flex', gap: 'var(--space-250)', alignItems: 'flex-start', opacity: setupInProgress ? 0.35 : 1, transition: `opacity 250ms ${EASE_OUT}`, pointerEvents: setupInProgress ? 'none' : 'auto' }}>
-          {mobilityWidgetState.live && mobilityWidgetState.widgetMode !== 'food' && mobilityWidgetState.fundingIssue && (
-            <div style={{ width: 420, flexShrink: 0 }}>
-              <MobilityLaunchWidget onToast={onToast} onNav={onNav} physicalCardsAllowed={physicalCardsAllowed} onPhysicalCardsChange={onPhysicalCardsChange} cardDelivery={cardDelivery} onCardDeliveryChange={onCardDeliveryChange} mobilityWidgetState={mobilityWidgetState} onMobilityWidgetStateChange={onMobilityWidgetStateChange} foodUnmatched={foodUnmatched} unmatchedQueue={unmatchedQueue} />
-            </div>
-          )}
 
           {/* Two stacked cards: system alerts + pending approvals */}
           <div style={{ flex: 1, display: 'flex', flexDirection: 'row', alignItems: 'flex-start', gap: 'var(--space-250)', minWidth: 0 }}>
@@ -9392,19 +9503,34 @@ function EntityDeliveryModal({ entityId, entityName, legalAddress, currentDelive
 // ── Payflip Card settings ───────────────────────────────────────────────────
 function TopUpCollectionModal({ initialValue, defaultValue, empCount, chip1, chip3, chip6, onSave, onClose }) {
   const [draft, setDraft] = useState(initialValue);
-  const monthsRaw = draft / (empCount * 12.5);
+  const [inputVal, setInputVal] = useState(String(initialValue));
+  const safeDraft = Math.max(50, draft || 50);
+  const threshold = Math.round(safeDraft * 0.2 / 5) * 5;
+  const monthsRaw = safeDraft / (empCount * 12.5);
   const months = Math.round(monthsRaw);
-  const monthsLabel = monthsRaw < 1 ? '< 1 month' : `~${months} ${months === 1 ? 'month' : 'months'}`;
   return (
     <ModalShell title="We collect" onClose={onClose}
-      footer={close => (<div style={{ padding: 'var(--space-200) var(--space-300)', borderTop: `1px solid ${P.border}`, display: 'flex', gap: 'var(--space-125)', justifyContent: 'flex-end' }}><Button variant="secondary" onClick={close}>Cancel</Button><Button variant="primary" onClick={() => { onSave(draft); close(); }}>Save</Button></div>)}>
+      footer={close => (<><Button variant="secondary" onClick={close}>Cancel</Button><Button variant="primary" onClick={() => { onSave(safeDraft); close(); }}>Save</Button></>)}>
       {() => (
-        <div style={{ padding: 'var(--space-250) var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-250)' }}>
+        <div style={{ padding: 'var(--space-250) var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-200)' }}>
+          {/* Large amount input */}
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 'var(--space-050)' }}>
+            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 400, fontSize: 52, color: P.inkFaint, lineHeight: 1 }}>€</span>
+            <input
+              autoFocus
+              type="number" min="50" step="50"
+              value={inputVal}
+              onChange={e => { setInputVal(e.target.value); const v = parseFloat(e.target.value); if (!isNaN(v)) setDraft(v); }}
+              className="amount-display-input"
+              style={{ border: 'none', outline: 'none', background: 'transparent', fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 52, color: P.ink, fontVariantNumeric: 'tabular-nums', lineHeight: 1, width: `${Math.max(1, inputVal.length || 1)}ch`, minWidth: '1ch', maxWidth: 280, transition: 'width 80ms ease-out' }}
+            />
+          </div>
+          {/* Chips */}
           <div style={{ display: 'flex', gap: 'var(--space-100)' }}>
             {[{ amount: chip1, label: '1 month' }, { amount: chip3, label: '3 months', recommended: true }, { amount: chip6, label: '6 months' }].map(({ amount, label, recommended }) => {
-              const active = Math.round(draft) === amount;
+              const active = Math.round(safeDraft) === amount;
               return (
-                <button key={amount} onClick={() => setDraft(amount)}
+                <button key={amount} onClick={() => { setDraft(amount); setInputVal(String(amount)); }}
                   style={{ flex: 1, position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 'var(--space-100)', padding: 'var(--space-150)', borderRadius: 10, border: `1px solid ${active ? P.ink : P.border}`, background: active ? P.bg : P.white, cursor: 'pointer', transition: `border-color 120ms ${EASE_OUT}, background 120ms ${EASE_OUT}`, textAlign: 'left' }}>
                   {recommended && <span style={{ position: 'absolute', top: -8, right: 8, fontFamily: 'var(--font-body)', fontSize: 10, fontWeight: 600, color: P.successDark, background: P.successBg, border: `1px solid ${P.successBorder}`, borderRadius: 4, padding: '1px 5px', lineHeight: '14px', whiteSpace: 'nowrap' }}>Recommended</span>}
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -9418,20 +9544,17 @@ function TopUpCollectionModal({ initialValue, defaultValue, empCount, chip1, chi
               );
             })}
           </div>
-          <div>
-            <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.inkSoft, marginBottom: 'var(--space-075)' }}>Custom amount</label>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-100)', border: `1px solid ${P.border}`, borderRadius: 7, padding: 'var(--space-100) var(--space-125)' }}>
-              <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft }}>€</span>
-              <input autoFocus type="number" min="50" step="50" value={draft}
-                onChange={e => setDraft(parseFloat(e.target.value) || 0)}
-                style={{ flex: 1, border: 'none', outline: 'none', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, background: 'transparent' }} />
-              <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, whiteSpace: 'nowrap' }}>{monthsLabel}</span>
-            </div>
-            {defaultValue != null && Math.round(draft) !== Math.round(defaultValue) && (
-              <button onClick={() => setDraft(defaultValue)} style={{ marginTop: 'var(--space-100)', background: 'none', border: 'none', padding: 0, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, textDecoration: 'underline', cursor: 'pointer' }}>
-                Reset to calculated (€{defaultValue.toLocaleString('de-DE')})
-              </button>
-            )}
+          {/* Preview rows */}
+          <div style={{ borderTop: `1px solid ${P.border}`, paddingTop: 'var(--space-200)', display: 'flex', flexDirection: 'column', gap: 0 }}>
+            {[
+              { label: 'When balance drops below', value: `€${threshold.toLocaleString('de-DE')}` },
+              { label: 'Covering', value: monthsRaw < 1 ? '< 1 month' : `~${months} ${months === 1 ? 'month' : 'months'}` },
+            ].map(({ label, value }) => (
+              <div key={label} style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', padding: 'var(--space-075) 0', fontVariantNumeric: 'tabular-nums' }}>
+                <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft }}>{label}</span>
+                <strong style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink }}>{value}</strong>
+              </div>
+            ))}
           </div>
         </div>
       )}
@@ -9450,6 +9573,13 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, cardDe
   const [resignSigning, setResignSigning] = useState(false);
   const [savedPhysicalCards, setSavedPhysicalCards] = useState(physicalCardsAllowed);
   const [savedCardDelivery, setSavedCardDelivery] = useState(cardDelivery);
+  const [showTopUpEditModal, setShowTopUpEditModal] = useState(false);
+  const [showTopUpHistory, setShowTopUpHistory] = useState(false);
+  const [historyYear, setHistoryYear] = useState('all');
+  const [historyStatus, setHistoryStatus] = useState('all');
+  const [topUpDuration, setTopUpDuration] = useState(3); // months
+  const [topUpDraftDuration, setTopUpDraftDuration] = useState(3);
+  const [topUpDraftOverride, setTopUpDraftOverride] = useState(false);
   // Effective delivery for current scope: entity override if set, else global draft
   const effectiveDelivery = appEntity && entityDeliveryOverrides[appEntity] != null
     ? entityDeliveryOverrides[appEntity]
@@ -9478,6 +9608,8 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, cardDe
   const ws2 = mobilityWidgetState || {};
   const isLive = !!ws2.live;
   const setWs2 = (patch) => onMobilityWidgetStateChange && onMobilityWidgetStateChange({ ...ws2, ...patch });
+  const topUpCollectionOverride = ws2.topUpCollectionOverride ?? null;
+  const topUpManualOverride = topUpCollectionOverride != null;
   const allEligible2 = Object.entries(EMPLOYEES).filter(([, e]) => e.budget > 0).map(([id, e]) => ({ ...e, id }));
   const empCount2 = allEligible2.length;
   const deposit2 = Math.max(50, Math.round(empCount2 * 12.5 * 3 / 50) * 50);
@@ -9488,39 +9620,43 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, cardDe
   const liveBalance2 = fundingIssue2 ? Math.round(deposit2 * 0.12) : toppingUp2 ? Math.round(deposit2 * 0.15) : justLaunched2 ? deposit2 : Math.round(deposit2 * 0.725);
   const liveSpent2 = deposit2 - liveBalance2;
   const liveActiveCards2 = (justLaunched2 && !fundingIssue2) ? 0 : Math.max(1, Math.floor(empCount2 * 0.6));
-  const threshold2 = Math.round(deposit2 * 0.2);
-  // Y axis: 0 = full deposit (top), 100 = empty (bottom). Threshold sits at ~80% down.
-  const thresholdY2 = +((1 - threshold2 / deposit2) * 100).toFixed(1);
-  const yOf2 = (b) => +((1 - Math.max(0, b) / deposit2) * 100).toFixed(1);
-  // Per-state spend cadence — shape tells the story, scaling aligns to the actual balance
-  // Normal: 5 even steps, regular healthy spend
-  // Topping-up: 3 large accelerating steps, rapid depletion that triggered auto top-up
-  // Funding issue: 4 front-heavy steps, big initial burst that drained the account
-  const rawSpend2 = fundingIssue2
-    ? [[3, 38], [11, 28], [20, 22], [28, 12]]
-    : toppingUp2
-    ? [[5, 20], [14, 32], [24, 48]]
-    : [[5, 18], [11, 22], [17, 20], [23, 22], [29, 18]];
-  const rawTotal2 = rawSpend2.reduce((s, [, a]) => s + a, 0);
-  const spendScale2 = (deposit2 - liveBalance2) / rawTotal2;
-  const spendEvents2 = rawSpend2.map(([day, amt]) => [day, amt * spendScale2]);
-  let _bal2 = deposit2;
-  const _pts2 = [`M 0,${yOf2(_bal2)}`];
-  for (const [day, amt] of spendEvents2) {
-    _pts2.push(`L ${day * 10},${yOf2(_bal2)}`);
-    _bal2 -= amt;
-    _pts2.push(`L ${day * 10},${yOf2(_bal2)}`);
-  }
-  _pts2.push(`L 300,${yOf2(_bal2)}`);
-  const linePath2 = _pts2.join(' ');
-  const areaPath2 = linePath2 + ' L 300,100 L 0,100 Z';
+  const perEmpPerMonth2 = 12.5;
+  const recommendedMonths2 = 3;
+  const recommendedCollection2 = Math.round(empCount2 * perEmpPerMonth2 * recommendedMonths2 / 50) * 50;
+  const activeCollection2 = topUpCollectionOverride ?? recommendedCollection2;
+  const activeThreshold2 = Math.round(activeCollection2 * 0.2 / 5) * 5;
+  const topUpDraftCollection2 = Math.round(empCount2 * perEmpPerMonth2 * topUpDraftDuration / 50) * 50;
+  const topUpDraftThreshold2 = Math.round(topUpDraftCollection2 * 0.2 / 5) * 5;
+  const topUpDraftBelow2 = topUpDraftCollection2 < recommendedCollection2 * 0.25;
+  const topUpDurations2 = [1, 2, 3, 6];
+  const topUpHistory2 = [
+    { id: 1, date: '4 Sep 2026', year: '2026', amount: 750, status: 'paid', note: 'Auto top-up' },
+    { id: 2, date: '8 Aug 2026', year: '2026', amount: 750, status: 'paid', note: 'Auto top-up' },
+    { id: 3, date: '10 Jul 2026', year: '2026', amount: 750, status: 'paid', note: 'Initial collection' },
+    { id: 4, date: '5 Dec 2025', year: '2025', amount: 650, status: 'paid', note: 'Auto top-up' },
+    { id: 5, date: '9 Sep 2025', year: '2025', amount: 650, status: 'paid', note: 'Auto top-up' },
+    { id: 6, date: '12 Jun 2025', year: '2025', amount: 600, status: 'failed', note: 'Auto top-up' },
+    { id: 7, date: '14 Mar 2025', year: '2025', amount: 600, status: 'paid', note: 'Auto top-up' },
+    { id: 8, date: '16 Dec 2024', year: '2024', amount: 550, status: 'paid', note: 'Auto top-up' },
+  ];
+  const pendingTopUp2 = (toppingUp2 || fundingIssue2)
+    ? [{ id: 'pending', date: '9 Sep 2026', year: '2026', amount: activeCollection2, status: fundingIssue2 ? 'failed' : 'pending', note: 'Auto top-up' }]
+    : [];
+  const allTopUpHistory2 = [...pendingTopUp2, ...topUpHistory2];
+  const filteredTopUpHistory2 = allTopUpHistory2.filter(item =>
+    (historyYear === 'all' || item.year === historyYear)
+    && (historyStatus === 'all' || item.status === historyStatus || (historyStatus === 'paid' && item.status === 'pending'))
+  );
+  const openTopUpEditor = () => {
+    setShowTopUpEditModal(true);
+  };
 
   if (!isLive || mobilityWidgetState.widgetMode === 'food') {
     return (
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, overflow: 'hidden', animation: `screenEnter 180ms ${EASE_OUT}` }}>
         <PageHeader
-          title="Payflip Card"
-          subtitle="Manage card accounts and settings for your employees"
+          title="Payflip Card settings"
+          subtitle="Manage account funding, automatic top-ups, and physical card requests"
           badge={appEntity ? ENTITIES.find(e => e.id === appEntity)?.name : null}
           maxWidth={880}
           padding="31px 28px 20px"
@@ -9549,8 +9685,8 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, cardDe
 
         <div>
           {appEntity && <span style={{ display: 'inline-flex', alignItems: 'center', padding: 'var(--space-025) var(--space-100)', borderRadius: 6, background: P.white, border: `1px solid ${P.border}`, fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginBottom: 'var(--space-150)' }}>{ENTITIES.find(e => e.id === appEntity)?.name}</span>}
-          <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 28, color: P.ink, margin: 0, letterSpacing: '-0.02em' }}>Payflip Card</h1>
-          <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, margin: 'var(--space-050) 0 0' }}>Manage card accounts and settings for your employees</p>
+          <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 28, color: P.ink, margin: 0, letterSpacing: '-0.02em' }}>Payflip Card settings</h1>
+          <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, margin: 'var(--space-050) 0 0' }}>Manage account funding, automatic top-ups, and physical card requests</p>
         </div>
 
         {/* Funding issue alert — page-level, above the account card */}
@@ -9576,70 +9712,42 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, cardDe
         {isLive && !appEntity && (
           <div>
             <div style={SL}>Account</div>
-            <div style={{ border: `1px solid ${P.border}`, borderRadius: 12, overflow: 'hidden', background: P.white }}>
-
-              <div style={{ padding: 'var(--space-250) var(--space-300) var(--space-200)' }}>
-                <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, marginBottom: 'var(--space-075)' }}>Account balance</div>
-                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 28, color: fundingIssue2 ? P.danger : P.ink, letterSpacing: '-0.5px', lineHeight: 1, marginBottom: toppingUp2 ? 6 : 10 }}>
-                  €{liveBalance2.toLocaleString('de-DE')}
-                </div>
-                {toppingUp2 && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-075)', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: '#1d4ed8', fontWeight: 500, marginBottom: 'var(--space-100)' }}>
-                    <Icon name="arrow-down-circle" size={13} color="#1d4ed8" strokeWidth={2} />
-                    <span>+ €{deposit2.toLocaleString('de-DE')} incoming</span>
+            <div style={{ borderRadius: 14, background: P.border, overflow: 'hidden' }}>
+              <div style={{ padding: 'var(--space-300)', display: 'flex', flexWrap: 'wrap', alignItems: 'flex-start', justifyContent: 'space-between', columnGap: 'var(--space-300)', rowGap: 'var(--space-150)' }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontFamily: 'var(--font-display)', fontWeight: 650, fontSize: 36, color: fundingIssue2 ? P.danger : P.ink, letterSpacing: '-0.04em', lineHeight: 1, marginBottom: toppingUp2 ? 8 : 12, fontVariantNumeric: 'tabular-nums' }}>
+                    €{liveBalance2.toLocaleString('de-DE')}
                   </div>
-                )}
-                <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>
-                  {justLaunched2
-                    ? `Invites sent to ${invitedKeys2.length} ${invitedKeys2.length === 1 ? 'employee' : 'employees'}`
-                    : toppingUp2
-                    ? `Auto top-up threshold: €${threshold2.toLocaleString('de-DE')}`
-                    : `of €${deposit2.toLocaleString('de-DE')} funded`}
+                  <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>
+                    {toppingUp2
+                      ? `of €${deposit2.toLocaleString('de-DE')} funded · +€${deposit2.toLocaleString('de-DE')} incoming`
+                      : `of €${deposit2.toLocaleString('de-DE')} funded`}
+                  </div>
+                </div>
+                <Button variant="secondary" icon="history" onClick={() => setShowTopUpHistory(true)} style={{ background: 'rgba(255,255,255,0.72)', fontSize: 'var(--fs-body-sm)', padding: 'var(--space-075) var(--space-150)', whiteSpace: 'nowrap' }}>Top-up history</Button>
+                <div style={{ flex: '1 0 100%', width: '100%', height: 6, borderRadius: 999, background: 'rgba(34, 10, 53, 0.10)', overflow: 'hidden' }}>
+                  <div style={{ width: `${Math.max(0, Math.min(100, (liveBalance2 / deposit2) * 100))}%`, height: '100%', borderRadius: 999, background: fundingIssue2 ? P.danger : P.action, transition: `width 300ms ${EASE_OUT}` }} />
                 </div>
               </div>
-
-              {!justLaunched2 && (
-                <svg viewBox="0 0 300 100" preserveAspectRatio="none" style={{ width: '100%', height: 110, display: 'block' }}>
-                  <defs>
-                    <linearGradient id="balGrad2" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor={fundingIssue2 ? P.danger : toppingUp2 ? '#1d4ed8' : P.success} stopOpacity="0.1" />
-                      <stop offset="100%" stopColor={fundingIssue2 ? P.danger : toppingUp2 ? '#1d4ed8' : P.success} stopOpacity="0.01" />
-                    </linearGradient>
-                  </defs>
-                  {/* Threshold reference line */}
-                  <line x1="0" y1={thresholdY2} x2="300" y2={thresholdY2} stroke="#e5e5e7" strokeWidth="1" strokeDasharray="3 3" vectorEffect="non-scaling-stroke" />
-                  <path d={areaPath2} fill="url(#balGrad2)" />
-                  <path d={linePath2} fill="none" stroke={fundingIssue2 ? P.danger : toppingUp2 ? '#1d4ed8' : P.success} strokeWidth="1.5" vectorEffect="non-scaling-stroke" />
-                </svg>
-              )}
-
-              {!justLaunched2 && (
-                <div style={{ display: 'flex', borderTop: `1px solid ${P.border}` }}>
-                  {[
-                    { label: 'Active cards', value: `${liveActiveCards2} of ${invitedKeys2.length}` },
-                    { label: 'Spent this month', value: `€${liveSpent2.toLocaleString('de-DE')}` },
-                  ].map(({ label, value }, i) => (
-                    <div key={label} style={{ flex: 1, padding: 'var(--space-150) var(--space-250)', borderLeft: i === 1 ? `1px solid ${P.border}` : 'none' }}>
-                      <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginBottom: 'var(--space-050)' }}>{label}</div>
-                      <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink }}>{value}</div>
-                    </div>
-                  ))}
-                </div>
-              )}
-
             </div>
           </div>
         )}
 
-        {/* Mandate — company-wide, hidden at entity scope */}
+        {/* Funding settings — company-wide, hidden at entity scope */}
         {!appEntity && <div>
-          <div style={SL}>Mandate</div>
-          <SettingsCard info="Collections are processed by Twikey. Re-sign if your company's bank account changes.">
+          <div style={SL}>Funding</div>
+          <SettingsCard info="Collections are processed securely by Twikey. Automatic amounts update with your mobility employee count unless you choose a manual override.">
             <SettingsRow
               icon="landmark"
-              label={<span style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-100)' }}>Direct debit mandate<DotPill bg="#e6f4ee" color="#008556" dot size={11}>Active</DotPill></span>}
+              label={<span style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-100)' }}>Direct debit mandate<DotPill bg={P.successBg} color={P.success} dot size={11}>Active</DotPill></span>}
               subtitle="IBAN ending in 4821 · Signed 8 Aug 2026"
               trailing={<Button variant="secondary" onClick={() => setShowResignModal(true)} style={{ fontSize: 'var(--fs-body-sm)', padding: 'var(--space-075) var(--space-150)', whiteSpace: 'nowrap' }}>Re-sign</Button>}
+            />
+            <SettingsRow
+              icon="refresh-cw"
+              label="Auto top-up"
+              subtitle={`€${activeCollection2.toLocaleString('de-DE')} when balance drops below €${activeThreshold2.toLocaleString('de-DE')}`}
+              trailing={<Button variant="secondary" onClick={openTopUpEditor} style={{ fontSize: 'var(--fs-body-sm)', padding: 'var(--space-075) var(--space-150)', whiteSpace: 'nowrap' }}>Edit</Button>}
               last
             />
           </SettingsCard>
@@ -9667,7 +9775,13 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, cardDe
             <SettingsRow
               icon="credit-card"
               label="Allow physical card requests"
-              trailing={<Switch size="sm" checked={draftPhysicalCards} onChange={() => setDraftPhysicalCards(v => !v)} />}
+              trailing={<Switch size="sm" checked={draftPhysicalCards} onChange={() => {
+                const next = !draftPhysicalCards;
+                setDraftPhysicalCards(next);
+                setSavedPhysicalCards(next);
+                onPhysicalCardsChange(next);
+                onToast && onToast({ message: `Physical card requests ${next ? 'enabled' : 'disabled'}`, type: 'approve' });
+              }} />}
               last={!draftPhysicalCards}
             />
             {draftPhysicalCards && (
@@ -9707,25 +9821,32 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, cardDe
           );
         })()}
 
-        {/* Auto top-up — company-wide, hidden at entity scope */}
-        {!appEntity && (() => {
-          const threshold = Math.round(deposit2 / 15) * 5;
-          const collection = deposit2 - threshold;
-          const collectionMonthsRaw = collection / (empCount2 * 12.5);
-          const collectionMonths = Math.round(collectionMonthsRaw);
-          const collectionMonthsLabel = collectionMonthsRaw < 1 ? '< 1 month' : `~${collectionMonths} ${collectionMonths === 1 ? 'month' : 'months'}`;
-          const dailySpend = (empCount2 * 12.5) / 30;
-          const thresholdRunwayDays = Math.round((deposit2 - threshold) / dailySpend);
-          const thresholdRunwayLabel = thresholdRunwayDays < 14
+        {/* Legacy standalone auto top-up layout retained for prototype comparison. */}
+        {false && !appEntity && (() => {
+          const perEmpPerMonth = 12.5;
+          const recommendedMonths = 3;
+          const recommendedCollection = Math.round(empCount2 * perEmpPerMonth * recommendedMonths / 50) * 50;
+          const activeCollection = topUpManualOverride
+            ? Math.round(empCount2 * perEmpPerMonth * topUpDuration / 50) * 50
+            : Math.round(empCount2 * perEmpPerMonth * recommendedMonths / 50) * 50;
+          const activeThreshold = Math.round(activeCollection * 0.2 / 5) * 5;
+          const dailySpend = (empCount2 * perEmpPerMonth) / 30;
+          const thresholdRunwayDays = Math.round(activeCollection / dailySpend);
+          const runwayLabel = thresholdRunwayDays < 14
             ? `~${thresholdRunwayDays}d buffer`
             : `~${Math.round(thresholdRunwayDays / 7)}w buffer`;
+          const belowRecommended = activeCollection < recommendedCollection * 0.25;
+          const DURATIONS = [1, 2, 3, 6];
           return (
             <div>
-              <div style={SL}>Auto top-up</div>
-              <SettingsCard info={`Payflip sets these thresholds automatically based on your funded deposit.`}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-100)' }}>
+                <span style={SL}>Auto top-up</span>
+                <button onClick={() => setShowTopUpEditModal(true)} style={{ border: 'none', background: 'none', padding: 0, cursor: 'pointer', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.action, fontWeight: 500 }}>Edit</button>
+              </div>
+              <SettingsCard info={topUpManualOverride ? `Manual override active — amounts won't auto-adjust when employee count changes.` : `Amounts auto-adjust based on your ${empCount2} mobility employees.`}>
                 {[
-                  { label: 'Balance drops below', value: `€${threshold.toLocaleString('de-DE')}`, meta: thresholdRunwayLabel },
-                  { label: 'We collect', value: `€${collection.toLocaleString('de-DE')}`, meta: collectionMonthsLabel },
+                  { label: 'Balance drops below', value: `€${activeThreshold.toLocaleString('de-DE')}`, meta: runwayLabel },
+                  { label: 'We collect', value: `€${activeCollection.toLocaleString('de-DE')}`, meta: `~${topUpManualOverride ? topUpDuration : recommendedMonths} months of spend` },
                 ].map(({ label, value, meta }, i, arr) => (
                   <div key={i} style={{
                     display: 'flex', alignItems: 'baseline', justifyContent: 'space-between',
@@ -9739,6 +9860,80 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, cardDe
                   </div>
                 ))}
               </SettingsCard>
+              {showTopUpEditModal && (() => {
+                const [draftDuration, setDraftDuration] = React.useState(topUpDuration);
+                const [draftOverride, setDraftOverride] = React.useState(topUpManualOverride);
+                const draftCollection = Math.round(empCount2 * perEmpPerMonth * draftDuration / 50) * 50;
+                const draftThreshold = Math.round(draftCollection * 0.2 / 5) * 5;
+                const draftBelow = draftCollection < recommendedCollection * 0.25;
+                return (
+                  <ModalShell title="Edit auto top-up" onClose={() => setShowTopUpEditModal(false)} width={440}
+                    footer={close => (
+                      <div style={{ padding: 'var(--space-200) var(--space-300)', borderTop: `1px solid ${P.border}`, display: 'flex', gap: 'var(--space-125)', justifyContent: 'flex-end' }}>
+                        <Button variant="secondary" onClick={close}>Cancel</Button>
+                        <Button variant="primary" onClick={() => { setTopUpDuration(draftDuration); setTopUpManualOverride(draftOverride); close(); onToast && onToast({ message: 'Auto top-up settings saved', type: 'approve' }); }}>Save</Button>
+                      </div>
+                    )}
+                  >
+                    <div style={{ padding: 'var(--space-250) var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-300)' }}>
+                      {/* Duration picker */}
+                      <div>
+                        <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink, marginBottom: 'var(--space-075)' }}>Collection duration</div>
+                        <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginBottom: 'var(--space-150)', lineHeight: '18px' }}>
+                          How many months of employee spend to collect each time. Based on {empCount2} mobility employees at €{perEmpPerMonth}/month.
+                        </div>
+                        <div style={{ display: 'flex', gap: 'var(--space-100)' }}>
+                          {DURATIONS.map(m => {
+                            const amt = Math.round(empCount2 * perEmpPerMonth * m / 50) * 50;
+                            const selected = draftDuration === m;
+                            return (
+                              <button key={m} onClick={() => { setDraftDuration(m); setDraftOverride(true); }} style={{
+                                flex: 1, border: `1.5px solid ${selected ? P.action : P.border}`,
+                                borderRadius: 8, background: selected ? '#f0f5ff' : P.white,
+                                padding: 'var(--space-125) var(--space-100)', cursor: 'pointer',
+                                display: 'flex', flexDirection: 'column', gap: 'var(--space-025)', alignItems: 'center',
+                              }}>
+                                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-sm)', color: selected ? P.action : P.ink }}>{m}mo</span>
+                                <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: selected ? P.action : P.inkSoft }}>€{amt.toLocaleString('de-DE')}</span>
+                                {m === recommendedMonths && <span style={{ fontFamily: 'var(--font-body)', fontSize: 10, color: '#16a34a', fontWeight: 500 }}>rec.</span>}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                      {/* Summary */}
+                      <div style={{ background: P.bg, borderRadius: 8, padding: 'var(--space-175) var(--space-200)', display: 'flex', flexDirection: 'column', gap: 'var(--space-100)' }}>
+                        {[
+                          { label: 'Collection amount', value: `€${draftCollection.toLocaleString('de-DE')}` },
+                          { label: 'Top-up threshold', value: `€${draftThreshold.toLocaleString('de-DE')}` },
+                          { label: 'Max per transaction', value: '€500' },
+                        ].map(({ label, value }) => (
+                          <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>{label}</span>
+                            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.ink }}>{value}</span>
+                          </div>
+                        ))}
+                      </div>
+                      {/* Warning */}
+                      {draftBelow && (
+                        <div style={{ display: 'flex', gap: 'var(--space-100)', padding: 'var(--space-150) var(--space-175)', borderRadius: 8, border: '1px solid var(--alert-200)', background: P.dangerBg }}>
+                          <Icon name="alert-triangle" size={14} color={P.danger} strokeWidth={2} style={{ flexShrink: 0, marginTop: 1 }} />
+                          <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.dangerDark, lineHeight: '18px' }}>
+                            This is below 25% of the recommended amount. Your account may run dry before the next top-up triggers.
+                          </span>
+                        </div>
+                      )}
+                      {/* Override note */}
+                      {draftOverride && draftDuration !== recommendedMonths && (
+                        <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, lineHeight: '18px' }}>
+                          <Icon name="info" size={12} color={P.inkFaint} strokeWidth={2} style={{ display: 'inline', marginRight: 4, verticalAlign: 'middle' }} />
+                          Manual override active — amounts won't auto-adjust when your employee count changes.
+                        </div>
+                      )}
+                    </div>
+                  </ModalShell>
+                );
+              })()}
             </div>
           );
         })()}
@@ -9752,7 +9947,12 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, cardDe
               { value: 'office', label: <span style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-100)' }}>Entity delivery address<DotPill dot={false} size={11} bg="var(--blue-100)" color="var(--blue-500)" border padding="1px 6px">€9 / card</DotPill></span>, hint: 'Ships to each entity\'s configured delivery address.' },
             ]}
             value={draftCardDelivery}
-            onSave={v => { setDraftCardDelivery(v); }}
+            onSave={v => {
+              setDraftCardDelivery(v);
+              setSavedCardDelivery(v);
+              onCardDeliveryChange && onCardDeliveryChange(v);
+              onToast && onToast({ message: 'Card delivery preference saved', type: 'approve' });
+            }}
             onClose={() => setShowDeliveryModal(false)}
           />
           );
@@ -9769,16 +9969,12 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, cardDe
               onSave={(mode) => {
                 setEntityDeliveryOverrides(prev => ({ ...prev, [showEntityDeliveryModal]: mode }));
                 setShowEntityDeliveryModal(null);
+                onToast && onToast({ message: 'Entity delivery preference saved', type: 'approve' });
               }}
               onClose={() => setShowEntityDeliveryModal(null)}
             />
           );
         })()}
-
-        {/* Footer */}
-        <div style={{ paddingTop: 'var(--space-100)', display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-125)' }}>
-          <Button variant="primary" onClick={handleSave} disabled={!isDirty}>Save changes</Button>
-        </div>
 
         {/* Prototype-only simulation controls — not part of product UI */}
         {isLive && (
@@ -9807,20 +10003,164 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, cardDe
 
       </div>
 
+      {showTopUpEditModal && (
+        <TopUpCollectionModal
+          initialValue={activeCollection2}
+          defaultValue={recommendedCollection2}
+          empCount={empCount2}
+          chip1={Math.max(50, Math.round(empCount2 * perEmpPerMonth2 / 50) * 50)}
+          chip3={recommendedCollection2}
+          chip6={Math.max(50, Math.round(empCount2 * perEmpPerMonth2 * 6 / 50) * 50)}
+          onSave={amount => {
+            const normalizedAmount = Math.max(50, Math.round(amount));
+            const isRecommended = normalizedAmount === recommendedCollection2;
+            setWs2({ topUpCollectionOverride: isRecommended ? null : normalizedAmount });
+            onToast && onToast({ message: 'Auto top-up settings saved', type: 'approve' });
+          }}
+          onClose={() => setShowTopUpEditModal(false)}
+        />
+      )}
+
+      {false && showTopUpEditModal && (
+        <ModalShell
+          title="Edit auto top-up"
+          subtitle={`Based on ${empCount2} mobility employees`}
+          onClose={() => setShowTopUpEditModal(false)}
+          width={460}
+          footer={close => (
+            <>
+              <Button variant="secondary" onClick={close}>Cancel</Button>
+              <Button variant="primary" onClick={() => {
+                setTopUpDuration(topUpDraftDuration);
+                setTopUpManualOverride(topUpDraftOverride);
+                close();
+                onToast && onToast({ message: 'Auto top-up settings saved', type: 'approve' });
+              }}>Save changes</Button>
+            </>
+          )}
+        >
+          <ModalBody>
+            <div>
+              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink, marginBottom: 'var(--space-075)' }}>Coverage period</div>
+              <p style={{ margin: '0 0 var(--space-150)', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, lineHeight: '18px' }}>
+                Choose how many months of expected mobility spend each top-up should cover.
+              </p>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 'var(--space-100)' }}>
+                {topUpDurations2.map(months => {
+                  const amount = Math.round(empCount2 * perEmpPerMonth2 * months / 50) * 50;
+                  const selected = topUpDraftDuration === months;
+                  return (
+                    <button
+                      key={months}
+                      type="button"
+                      aria-label={`${months} months, €${amount.toLocaleString('de-DE')}${months === recommendedMonths2 ? ', recommended' : ''}`}
+                      aria-pressed={selected}
+                      onClick={() => {
+                        setTopUpDraftDuration(months);
+                        setTopUpDraftOverride(months !== recommendedMonths2);
+                      }}
+                      style={{
+                        minWidth: 0, border: `1.5px solid ${selected ? P.action : P.border}`,
+                        borderRadius: 8, background: selected ? '#f0f5ff' : P.white,
+                        padding: 'var(--space-125) var(--space-075)', cursor: 'pointer',
+                        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 'var(--space-025)',
+                      }}
+                    >
+                      <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-sm)', color: selected ? P.action : P.ink }}>{months} mo</span>
+                      <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: selected ? P.action : P.inkSoft }}>€{amount.toLocaleString('de-DE')}</span>
+                      <span aria-hidden="true" style={{ minHeight: 13, fontFamily: 'var(--font-body)', fontSize: 10, color: '#008556', fontWeight: 600 }}>{months === recommendedMonths2 ? 'Recommended' : '\u00A0'}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div style={{ background: P.bg, borderRadius: 8, padding: 'var(--space-175) var(--space-200)', display: 'flex', flexDirection: 'column', gap: 'var(--space-100)' }}>
+              {[
+                { label: 'Collection amount', value: `€${topUpDraftCollection2.toLocaleString('de-DE')}` },
+                { label: 'Balance threshold', value: `€${topUpDraftThreshold2.toLocaleString('de-DE')}` },
+                { label: 'Maximum per debit', value: '€500' },
+              ].map(({ label, value }) => (
+                <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 'var(--space-200)' }}>
+                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>{label}</span>
+                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.ink }}>{value}</span>
+                </div>
+              ))}
+            </div>
+
+            {topUpDraftCollection2 > 500 && (
+              <div style={{ display: 'flex', gap: 'var(--space-100)', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, lineHeight: '18px' }}>
+                <Icon name="info" size={14} color={P.inkFaint} strokeWidth={2} style={{ flexShrink: 0, marginTop: 1 }} />
+                <span>The €{topUpDraftCollection2.toLocaleString('de-DE')} top-up is collected in debits of no more than €500.</span>
+              </div>
+            )}
+
+            {topUpDraftBelow2 && (
+              <div style={{ display: 'flex', gap: 'var(--space-100)', padding: 'var(--space-150) var(--space-175)', borderRadius: 8, border: '1px solid var(--alert-200)', background: P.dangerBg }}>
+                <Icon name="alert-triangle" size={14} color={P.danger} strokeWidth={2} style={{ flexShrink: 0, marginTop: 1 }} />
+                <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.dangerDark, lineHeight: '18px' }}>This is below 25% of the recommended amount and could leave the account underfunded.</span>
+              </div>
+            )}
+
+            <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, lineHeight: '18px' }}>
+              {topUpDraftOverride
+                ? "Manual override: the coverage period stays fixed when your mobility employee count changes."
+                : "Recommended: Payflip recalculates the amount when your mobility employee count changes."}
+            </div>
+          </ModalBody>
+        </ModalShell>
+      )}
+
+      {showTopUpHistory && (
+        <DrawerShell title="Top-up history" onClose={() => setShowTopUpHistory(false)} width={520}>
+          <div style={{ flexShrink: 0, padding: 'var(--space-200) var(--space-250)', borderBottom: `1px solid ${P.border}`, display: 'flex', gap: 'var(--space-100)' }}>
+            <div style={{ flex: 1 }}>
+              <FilterDropdown label="All years" active={historyYear} opts={[['all','All years'],['2026','2026'],['2025','2025'],['2024','2024']]} onSelect={setHistoryYear} block />
+            </div>
+            <div style={{ flex: 1 }}>
+              <FilterDropdown label="All statuses" active={historyStatus} opts={[['all','All statuses'],['paid','Paid'],['failed','Failed']]} onSelect={setHistoryStatus} block />
+            </div>
+          </div>
+          <div style={{ flexShrink: 0, display: 'grid', gridTemplateColumns: '96px minmax(0, 1fr) 80px auto', columnGap: 'var(--space-200)', padding: 'var(--space-100) var(--space-250)', borderBottom: `1px solid ${P.border}`, background: P.bgSubtle }}>
+            {['Date', 'Type', 'Status', 'Amount'].map((label, index) => (
+              <span key={label} style={{ fontFamily: 'var(--font-body)', fontSize: 10, fontWeight: 600, color: P.inkSoft, letterSpacing: '0.05em', textTransform: 'uppercase', textAlign: index === 3 ? 'right' : 'left' }}>{label}</span>
+            ))}
+          </div>
+          <div style={{ flex: 1, minHeight: 0, overflowY: 'auto' }}>
+            {filteredTopUpHistory2.length > 0 ? filteredTopUpHistory2.map(({ id, date, amount, status, note }) => (
+              <div key={id} style={{ display: 'grid', gridTemplateColumns: '96px minmax(0, 1fr) 80px auto', alignItems: 'center', padding: 'var(--space-150) var(--space-250)', borderBottom: `1px solid ${P.border}`, columnGap: 'var(--space-200)' }}>
+                <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>{date}</span>
+                <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', fontWeight: 500, color: P.ink, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{note}</span>
+                <div>
+                  {status === 'paid'
+                    ? <DotPill bg={P.successBg} color={P.success} dot={false} size={11}>Paid</DotPill>
+                    : status === 'pending'
+                    ? <DotPill bg="#eff6ff" color="#2563eb" dot={false} size={11}>Incoming</DotPill>
+                    : <DotPill bg={P.dangerBg} color={P.danger} dot={false} size={11}>Failed</DotPill>}
+                </div>
+                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink, fontVariantNumeric: 'tabular-nums', textAlign: 'right' }}>+€{amount.toLocaleString('de-DE')}</span>
+              </div>
+            )) : (
+              <div style={{ padding: 'var(--space-600) var(--space-300)', textAlign: 'center', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft }}>No top-ups match these filters.</div>
+            )}
+          </div>
+          <div style={{ flexShrink: 0, padding: 'var(--space-150) var(--space-250)', borderTop: `1px solid ${P.border}`, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>
+            Showing {filteredTopUpHistory2.length} of {allTopUpHistory2.length} top-ups
+          </div>
+        </DrawerShell>
+      )}
 
       {showResignModal && (
         <ModalShell
           title="Re-sign mandate"
           onClose={() => { setShowResignModal(false); setResignSigning(false); }}
           width={460}
-          footer={close => (
-            <div style={{ padding: 'var(--space-200) var(--space-300)', borderTop: `1px solid ${P.border}`, display: 'flex', gap: 'var(--space-125)', justifyContent: 'flex-end' }}>
-              <Button variant="secondary" onClick={close} disabled={resignSigning}>Cancel</Button>
-              <Button variant="primary" onClick={() => handleResign(close)} disabled={resignSigning}>
-                {resignSigning ? 'Signing…' : 'Sign new mandate →'}
-              </Button>
-            </div>
-          )}
+          footer={close => (<>
+            <Button variant="secondary" onClick={close} disabled={resignSigning}>Cancel</Button>
+            <Button variant="primary" onClick={() => handleResign(close)} disabled={resignSigning}>
+              {resignSigning ? 'Signing…' : 'Sign new mandate →'}
+            </Button>
+          </>)}
         >
           <div style={{ padding: 'var(--space-250) var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-200)' }}>
             <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, margin: 0, lineHeight: '20px' }}>
