@@ -7350,37 +7350,6 @@ function CardTab({ empId, emp, mobilityLive, onToast, onNav }) {
     </div>
   );
 
-  const txTh = { textAlign: 'left', padding: 'var(--space-100) var(--space-200)', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.inkSoft, textTransform: 'uppercase', letterSpacing: '0.04em', whiteSpace: 'nowrap' };
-  const recentActivityPanel = hasActiveCard && seed?.txs?.length > 0 && (
-    <div style={{ maxWidth: 620 }}>
-      <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-lg)', color: P.ink, marginBottom: 'var(--space-150)' }}>Recent activity</div>
-      <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 12, overflow: 'hidden' }}>
-        <div style={{ overflowX: 'auto' }}><table style={{ width: 'max-content', minWidth: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)' }}>
-          <thead>
-            <tr style={{ borderBottom: `1px solid ${P.border}` }}>
-              <th style={{ ...txTh, paddingLeft: 'var(--space-200)' }}>Merchant</th>
-              <th style={txTh}>Date</th>
-              <th style={{ ...txTh, textAlign: 'right', paddingRight: 'var(--space-200)' }}>Amount</th>
-            </tr>
-          </thead>
-          <tbody>
-            {seed.txs.map((tx, i) => (
-              <tr key={i} style={{ borderBottom: i < seed.txs.length - 1 ? `1px solid ${P.border}` : 'none' }}>
-                <td style={{ padding: '11px var(--space-200)', display: 'flex', alignItems: 'center', gap: 'var(--space-125)' }}>
-                  <div style={{ width: 32, height: 32, borderRadius: 8, background: P.bg, border: `1px solid ${P.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    <Icon name={tx.icon || 'credit-card'} size={14} color={P.inkSoft} strokeWidth={1.75} />
-                  </div>
-                  <span style={{ fontWeight: 500, color: P.ink }}>{tx.merchant}</span>
-                </td>
-                <td style={{ padding: '11px var(--space-200)', color: P.inkSoft, whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>{tx.date}</td>
-                <td style={{ padding: '11px var(--space-200)', textAlign: 'right', fontFamily: 'var(--font-display)', fontWeight: 600, color: P.ink, whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>€{tx.amount.toFixed(2)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table></div>
-      </div>
-    </div>
-  );
 
   return (
     <div>
@@ -7434,9 +7403,6 @@ function CardTab({ empId, emp, mobilityLive, onToast, onNav }) {
           </div>
         ) : quickActionCircles}
       </div>
-
-      {/* Recent activity — below, not beside */}
-      {recentActivityPanel}
 
       {/* Freeze confirm */}
       {freezeConfirmOpen && (
