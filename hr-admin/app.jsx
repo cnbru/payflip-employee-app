@@ -9719,7 +9719,7 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, cardDe
                   <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>
                     {toppingUp2
                       ? `of €${deposit2.toLocaleString('de-DE')} funded · +€${deposit2.toLocaleString('de-DE')} incoming`
-                      : `of €${deposit2.toLocaleString('de-DE')} funded · Auto top-up below €${topUpDraftThreshold2.toLocaleString('de-DE')}`}
+                      : `of €${deposit2.toLocaleString('de-DE')} funded · Auto top-up below €${activeThreshold2.toLocaleString('de-DE')}`}
                   </div>
                 </div>
                 <Button variant="secondary" icon="history" onClick={() => setShowTopUpHistory(true)} style={{ background: 'rgba(255,255,255,0.72)', fontSize: 'var(--fs-body-sm)', padding: 'var(--space-075) var(--space-150)', whiteSpace: 'nowrap' }}>Top-up history</Button>
