@@ -9699,7 +9699,7 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, cardDe
         {/* Funding settings — company-wide, hidden at entity scope */}
         {!appEntity && <div>
           <div style={SL}>Funding</div>
-          <div style={SLD}>Collections are processed securely by Twikey. Amounts auto-update with your mobility employee count unless you choose a manual override.</div>
+          <div style={SLD}>Direct debit and automatic top-up settings.</div>
           {isLive && fundingIssue2 && <div style={{ marginBottom: 'var(--space-200)' }}><PaymentIssueBanner /></div>}
           <SettingsCard
             header={isLive ? (
