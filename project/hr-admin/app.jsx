@@ -36,7 +36,9 @@ const P = {
 
 // Uppercase section-label style shared by every settings screen (was
 // redefined locally 9 times with a silent 8px/10px marginBottom split).
-const SL = { fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-xs)', color: P.inkSoft, letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 'var(--space-100)' };
+const SL  = { fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-heading-xs)', color: P.ink, marginBottom: 'var(--space-100)' };
+const SLL = { fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-xs)', color: P.inkSoft, letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 'var(--space-100)' };
+const SLD = { fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, marginBottom: 'var(--space-150)', marginTop: -2 };
 
 const StatusMeta = {
   pending:  { dot: P.warning,  label: 'Pending',  icon: 'Clock', color: P.warningDark,  bg: P.warningBorder },
@@ -229,7 +231,7 @@ function CardFooter({ children, divider }) {
   );
 }
 
-function SettingsCard({ children, info, infoVariant, infoAction }) {
+function SettingsCard({ children, header, info, infoVariant, infoAction }) {
   const infoBg    = infoVariant === 'blue' ? 'var(--blue-100)'  : infoVariant === 'warning' ? P.warningBg     : 'transparent';
   const infoBorder= infoVariant === 'blue' ? 'var(--blue-200)'  : infoVariant === 'warning' ? P.warningBorder : P.border;
   const infoColor = infoVariant === 'blue' ? 'var(--blue-700)'  : infoVariant === 'warning' ? P.warningDark   : P.inkSoft;
@@ -237,6 +239,11 @@ function SettingsCard({ children, info, infoVariant, infoAction }) {
   const infoIconName = infoVariant === 'warning' ? 'alert-triangle' : 'info';
   return (
     <div style={{ border: `1px solid ${infoVariant === 'warning' ? P.warningBorder : P.border}`, borderRadius: 16, overflow: 'clip', background: P.white }}>
+      {header && (
+        <div style={{ padding: 'var(--space-300) var(--space-300)', borderBottom: `1px solid ${P.border}`, background: P.bgSubtle }}>
+          {header}
+        </div>
+      )}
       {children}
       {info && (
         <div style={{ borderTop: `1px solid ${infoBorder}`, background: infoBg, padding: 'var(--space-150) var(--space-200)', display: 'flex', alignItems: 'flex-start', gap: 'var(--space-100)' }}>
@@ -5120,7 +5127,7 @@ function ExpenseExportModal({ filtered, onClose, onToast, periodLabel, scope }) 
             ))}
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-100)' }}>
-            <div style={SL}>Include</div>
+            <div style={SLL}>Include</div>
             {[
               { value: 'csv', label: 'Expense data', description: 'Spreadsheet with amounts, dates, categories and employees (CSV)' },
               { value: 'zip', label: 'Receipt files', description: 'Original attachments organized by category (ZIP)' },
@@ -8567,10 +8574,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
       return (
         <ModalShell onClose={() => { setShowAmountModal(false); setAmountFocused(false); }} width={480}
           footer={close => (
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-150)', padding: 'var(--space-200) var(--space-300)', borderTop: `1px solid ${P.border}` }}>
-              <Button variant="secondary" onClick={close}>Cancel</Button>
-              <Button variant="primary" disabled={!isValid} onClick={() => { const v = Math.round(parsed); setCustomDeposit(v); setWs({ topUpCollectionOverride: v }); close(); }}>Save</Button>
-            </div>
+            <><Button variant="secondary" onClick={close}>Cancel</Button><Button variant="primary" disabled={!isValid} onClick={() => { const v = Math.round(parsed); setCustomDeposit(v); setWs({ topUpCollectionOverride: v }); close(); }}>Save</Button></>
           )}>
           <div style={{ display: 'flex', flexDirection: 'column' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 'var(--space-150)', padding: 'var(--space-200) var(--space-300)', borderBottom: `1px solid ${P.border}` }}>
@@ -8668,10 +8672,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
     {showConfirmModal && (
       <ModalShell title="Send invites" onClose={() => setShowConfirmModal(false)} width={440}
         footer={close => (
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-125)', padding: 'var(--space-200) var(--space-300)', borderTop: `1px solid ${P.border}` }}>
-            <Button variant="secondary" onClick={close}>Not yet</Button>
-            <Button variant="primary" onClick={sendInvites}>Yes, send invites</Button>
-          </div>
+          <><Button variant="secondary" onClick={close}>Not yet</Button><Button variant="primary" onClick={sendInvites}>Yes, send invites</Button></>
         )}>
         <div style={{ padding: 'var(--space-250) var(--space-300)' }}>
           <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, lineHeight: '20px', margin: 0 }}>
@@ -9472,10 +9473,7 @@ function EntityDeliveryModal({ entityId, entityName, legalAddress, currentDelive
   return (
     <ModalShell title={`Delivery — ${entityName}`} onClose={onClose} width={460}
       footer={close => (
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-150)', padding: 'var(--space-200) var(--space-300)', borderTop: `1px solid ${P.border}` }}>
-          <Button variant="secondary" onClick={close}>Cancel</Button>
-          <Button variant="primary" onClick={() => { onSave(mode); close(); }}>Save</Button>
-        </div>
+        <><Button variant="secondary" onClick={close}>Cancel</Button><Button variant="primary" onClick={() => { onSave(mode); close(); }}>Save</Button></>
       )}
     >
       <div style={{ padding: 'var(--space-200)', display: 'flex', flexDirection: 'column', gap: 'var(--space-100)' }}>
@@ -9706,40 +9704,35 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, cardDe
           <PaymentIssueBanner />
         )}
 
-        {/* Account overview — only when live and not entity-scoped */}
-        {isLive && !appEntity && (
-          <div>
-            <div style={SL}>Account</div>
-            <div style={{ borderRadius: 14, background: P.border, overflow: 'hidden' }}>
-              <div style={{ padding: 'var(--space-300)', display: 'flex', flexWrap: 'wrap', alignItems: 'flex-start', justifyContent: 'space-between', columnGap: 'var(--space-300)', rowGap: 'var(--space-150)' }}>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontFamily: 'var(--font-display)', fontWeight: 650, fontSize: 36, color: fundingIssue2 ? P.danger : P.ink, letterSpacing: '-0.04em', lineHeight: 1, marginBottom: toppingUp2 ? 8 : 12, fontVariantNumeric: 'tabular-nums' }}>
-                    €{liveBalance2.toLocaleString('de-DE')}
-                  </div>
-                  <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>
-                    {toppingUp2
-                      ? `of €${deposit2.toLocaleString('de-DE')} funded · +€${deposit2.toLocaleString('de-DE')} incoming`
-                      : `of €${deposit2.toLocaleString('de-DE')} funded · Auto top-up below €${activeThreshold2.toLocaleString('de-DE')}`}
-                  </div>
-                </div>
-                <Button variant="secondary" icon="history" onClick={() => setShowTopUpHistory(true)} style={{ background: 'rgba(255,255,255,0.72)', fontSize: 'var(--fs-body-sm)', padding: 'var(--space-075) var(--space-150)', whiteSpace: 'nowrap' }}>Top-up history</Button>
-                <div style={{ flex: '1 0 100%', width: '100%', height: 6, borderRadius: 999, background: 'rgba(34, 10, 53, 0.10)', overflow: 'hidden' }}>
-                  <div style={{ width: `${Math.max(0, Math.min(100, (liveBalance2 / deposit2) * 100))}%`, height: '100%', borderRadius: 999, background: fundingIssue2 ? P.danger : P.action, transition: `width 300ms ${EASE_OUT}` }} />
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
         {/* Funding settings — company-wide, hidden at entity scope */}
         {!appEntity && <div>
           <div style={SL}>Funding</div>
-          <SettingsCard info="Collections are processed securely by Twikey. Automatic amounts update with your mobility employee count unless you choose a manual override.">
+          <div style={SLD}>Collections are processed securely by Twikey. Amounts auto-update with your mobility employee count unless you choose a manual override.</div>
+          <SettingsCard
+            header={isLive ? (
+              <div style={{ padding: 'var(--space-050) 0' }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 'var(--space-200)', marginBottom: 'var(--space-200)' }}>
+                  <div style={{ fontFamily: 'var(--font-display)', fontWeight: 650, fontSize: 32, color: fundingIssue2 ? P.danger : P.ink, letterSpacing: '-0.04em', lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>
+                    €{liveBalance2.toLocaleString('de-DE')}
+                  </div>
+                  <AppLink onClick={() => setShowTopUpHistory(true)} style={{ fontSize: 'var(--fs-body-xs)', flexShrink: 0, paddingBottom: 2 }}>Top-up history</AppLink>
+                </div>
+                <div style={{ width: '100%', height: 5, borderRadius: 999, background: 'rgba(34,10,53,0.08)', overflow: 'hidden', marginBottom: 6 }}>
+                  <div style={{ width: `${Math.max(0, Math.min(100, (liveBalance2 / deposit2) * 100))}%`, height: '100%', borderRadius: 999, background: fundingIssue2 ? P.danger : P.action, transition: `width 300ms ${EASE_OUT}` }} />
+                </div>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>
+                  {toppingUp2
+                    ? `of €${deposit2.toLocaleString('de-DE')} funded · +€${deposit2.toLocaleString('de-DE')} incoming`
+                    : `of €${deposit2.toLocaleString('de-DE')} funded`}
+                </div>
+              </div>
+            ) : undefined}
+          >
             <SettingsRow
               icon="landmark"
-              label={<span style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-100)' }}>Direct debit mandate<DotPill bg={P.successBg} color={P.success} dot size={11}>Active</DotPill></span>}
-              subtitle="IBAN ending in 4821 · Signed 8 Aug 2026"
-              trailing={<Button variant="secondary" onClick={() => setShowResignModal(true)} style={{ fontSize: 'var(--fs-body-sm)', padding: 'var(--space-075) var(--space-150)', whiteSpace: 'nowrap' }}>Re-sign</Button>}
+              label="Direct debit mandate"
+              subtitle={<span style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-075)', flexWrap: 'wrap' }}><DotPill bg={P.successBg} color={P.success} dot size={11}>Active</DotPill><span>· IBAN ending in 4821 · Signed 8 Aug 2026</span></span>}
+              trailing={<Button variant="secondary" onClick={() => setShowResignModal(true)} style={{ fontSize: 'var(--fs-body-sm)', padding: 'var(--space-075) var(--space-150)', whiteSpace: 'nowrap' }}>Change mandate</Button>}
             />
             <SettingsRow
               icon="refresh-cw"
@@ -9759,20 +9752,16 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, cardDe
           return (
         <div>
           <div style={SL}>Physical cards</div>
+          <div style={SLD}>Enable to let employees request a card from the Payflip app.</div>
           <SettingsCard
-            info={
-              !draftPhysicalCards
-                ? 'Physical cards are optional. Enable them to let employees request a card from the Payflip app. Ships in 5–7 days · €9 per card.'
-                : deliveryGap
-                ? `${entitiesMissing.length} of ${ENTITIES.length} ${entitiesMissing.length === 1 ? 'entity has' : 'entities have'} no delivery address — ${missingNames} will fall back to the registered address.`
-                : undefined
-            }
+            info={deliveryGap ? `${entitiesMissing.length} of ${ENTITIES.length} ${entitiesMissing.length === 1 ? 'entity has' : 'entities have'} no delivery address — ${missingNames} will fall back to the registered address.` : undefined}
             infoVariant={deliveryGap ? 'warning' : undefined}
             infoAction={deliveryGap ? { label: 'Configure in Entities', onClick: () => onNav && onNav('settings-entities') } : undefined}
           >
             <SettingsRow
               icon="credit-card"
               label="Allow physical card requests"
+              subtitle="Optional · €9 per card · ships in 5–7 days"
               trailing={<Switch size="sm" checked={draftPhysicalCards} onChange={() => {
                 const next = !draftPhysicalCards;
                 setDraftPhysicalCards(next);
@@ -9845,7 +9834,7 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, cardDe
           return (
             <div>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-100)' }}>
-                <span style={SL}>Auto top-up</span>
+                <span style={SLL}>Auto top-up</span>
                 <button onClick={() => setShowTopUpEditModal(true)} style={{ border: 'none', background: 'none', padding: 0, cursor: 'pointer', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.action, fontWeight: 500 }}>Edit</button>
               </div>
               <SettingsCard info={topUpManualOverride ? `Manual override active — amounts won't auto-adjust when employee count changes.` : `Amounts auto-adjust based on your ${empCount2} mobility employees.`}>
@@ -9874,10 +9863,7 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, cardDe
                 return (
                   <ModalShell title="Edit auto top-up" onClose={() => setShowTopUpEditModal(false)} width={440}
                     footer={close => (
-                      <div style={{ padding: 'var(--space-200) var(--space-300)', borderTop: `1px solid ${P.border}`, display: 'flex', gap: 'var(--space-125)', justifyContent: 'flex-end' }}>
-                        <Button variant="secondary" onClick={close}>Cancel</Button>
-                        <Button variant="primary" onClick={() => { setTopUpDuration(draftDuration); setTopUpManualOverride(draftOverride); close(); onToast && onToast({ message: 'Auto top-up settings saved', type: 'approve' }); }}>Save</Button>
-                      </div>
+                      <><Button variant="secondary" onClick={close}>Cancel</Button><Button variant="primary" onClick={() => { setTopUpDuration(draftDuration); setTopUpManualOverride(draftOverride); close(); onToast && onToast({ message: 'Auto top-up settings saved', type: 'approve' }); }}>Save</Button></>
                     )}
                   >
                     <div style={{ padding: 'var(--space-250) var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-300)' }}>
@@ -10614,9 +10600,9 @@ function PersonPickerModal({ title, value, candidates, sections, singleSelect, o
                     {allChecked && <Icon name="check" size={11} color="#fff" strokeWidth={3} />}
                     {someChecked && <Icon name="minus" size={11} color={P.action} strokeWidth={3} />}
                   </div>
-                  <div style={{ flex: 1 }}><span style={SL}>Employee</span></div>
-                  {showEntity && <div style={{ width: 100, flexShrink: 0 }}><span style={SL}>Entity</span></div>}
-                  {hasHints && <div style={{ width: 64, flexShrink: 0, textAlign: 'right' }}><span style={SL}>Available</span></div>}
+                  <div style={{ flex: 1 }}><span style={SLL}>Employee</span></div>
+                  {showEntity && <div style={{ width: 100, flexShrink: 0 }}><span style={SLL}>Entity</span></div>}
+                  {hasHints && <div style={{ width: 64, flexShrink: 0, textAlign: 'right' }}><span style={SLL}>Available</span></div>}
                 </div>
               )}
               <div key={`${activeTab}-${safePage}`} style={{ animation: PREFERS_REDUCED_MOTION ? 'tableEnterReduced 150ms ' + EASE_OUT : 'tableEnter 150ms ' + EASE_OUT }}>
@@ -10726,16 +10712,7 @@ function AdminAccessModal({ admin, access, onSave, onClose }) {
         </div>
       }
       footer={close => (
-        <div style={{ padding: 'var(--space-150) var(--space-300) var(--space-200)', borderTop: `1px solid ${P.border}`, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 'var(--space-100)' }}>
-          <Button variant="secondary" onClick={close}>Cancel</Button>
-          {step === 2 && (
-            <Button variant="primary" disabled={selectedAreas.length === 0}
-              onClick={() => { if (selectedAreas.length > 0) { onSave(selectedAreas); close(); } }}
-              style={{ background: selectedAreas.length > 0 ? P.action : P.border, color: selectedAreas.length > 0 ? '#fff' : P.inkSoft }}>
-              Save
-            </Button>
-          )}
-        </div>
+        <><Button variant="secondary" onClick={close}>Cancel</Button>{step === 2 && (<Button variant="primary" disabled={selectedAreas.length === 0} onClick={() => { if (selectedAreas.length > 0) { onSave(selectedAreas); close(); } }} style={{ background: selectedAreas.length > 0 ? P.action : P.border, color: selectedAreas.length > 0 ? '#fff' : P.inkSoft }}>Save</Button>)}</>
       )}>
       {close => (
         <>
@@ -11147,7 +11124,7 @@ function AllowanceSettingsPage({ config, typeInfo, onSave, onBack, backLabel = '
 
           {/* Rate */}
           <div style={{ animation: PREFERS_REDUCED_MOTION ? 'none' : `screenEnter 150ms ${EASE_OUT}` }}>
-            <div style={SL}>{typeInfo.rateLabel}</div>
+            <div style={SLL}>{typeInfo.rateLabel}</div>
             <div style={card}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 'var(--space-200)', padding: 'var(--space-200) var(--space-250)' }}>
                 <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: P.ink }}>Amount per {typeInfo.unit}</span>
@@ -11436,10 +11413,7 @@ function ConfirmDeleteModal({ name, onConfirm, onClose }) {
   return (
     <ModalShell onClose={onClose} width={380} zIndex={400}
       footer={close => (
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-100)', padding: '0 var(--space-200) var(--space-200)' }}>
-          <Button variant="secondary" onClick={close} style={{ padding: 'var(--space-100) var(--space-200)', background: P.white }}>Cancel</Button>
-          <Button variant="primary" onClick={onConfirm} style={{ padding: 'var(--space-100) var(--space-200)', background: P.danger }}>Delete leave type</Button>
-        </div>
+        <><Button variant="secondary" onClick={close}>Cancel</Button><Button variant="primary" onClick={onConfirm} style={{ background: P.danger }}>Delete leave type</Button></>
       )}>
       <div style={{ padding: 'var(--space-300) var(--space-300) var(--space-250)' }}>
         <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-md)', color: P.ink, marginBottom: 'var(--space-100)' }}>Delete {name}?</div>
@@ -11956,7 +11930,7 @@ function TimeOffSettings({ appEntity = null, companyRegime = COMPANY_REGIME_DEFA
             if (sectionTypes.length === 0) return null;
             return (
               <div key={section.id}>
-                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-xs)', color: P.inkSoft, letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 'var(--space-100)' }}>{section.label}</div>
+                <div style={SL}>{section.label}</div>
                 <SettingsCard>
                   {sectionTypes.map((lt, i) => {
                     const globalIdx = leaveTypes.indexOf(lt);
@@ -12177,10 +12151,7 @@ function AddressEditModal({ title, currentAddress, defaultAddress, onSave, onClo
   return (
     <ModalShell title={title} onClose={onClose} width={480}
       footer={close => (
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-150)', padding: 'var(--space-200) var(--space-300)', borderTop: `1px solid ${P.border}` }}>
-          <Button variant="secondary" onClick={close}>Cancel</Button>
-          <Button variant="primary" onClick={() => { onSave(formatAddressBE({ street, number, postalCode, city })); close(); }}>Save</Button>
-        </div>
+        <><Button variant="secondary" onClick={close}>Cancel</Button><Button variant="primary" onClick={() => { onSave(formatAddressBE({ street, number, postalCode, city })); close(); }}>Save</Button></>
       )}>
       {() => (
         <div style={{ padding: 'var(--space-200) var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-150)' }}>
@@ -12218,14 +12189,7 @@ function DeliveryAddressEditModal({ title, currentAddress, registeredAddress, on
   return (
     <ModalShell title={title} onClose={onClose} width={480}
       footer={close => (
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-150)', padding: 'var(--space-200) var(--space-300)', borderTop: `1px solid ${P.border}` }}>
-          <Button variant="secondary" onClick={close}>Cancel</Button>
-          <Button variant="primary" onClick={() => {
-            const addr = useRegistered ? registeredAddress : formatAddressBE({ street, number, postalCode, city });
-            onSave(addr || null);
-            close();
-          }}>Save</Button>
-        </div>
+        <><Button variant="secondary" onClick={close}>Cancel</Button><Button variant="primary" onClick={() => { const addr = useRegistered ? registeredAddress : formatAddressBE({ street, number, postalCode, city }); onSave(addr || null); close(); }}>Save</Button></>
       )}>
       {() => (
         <div style={{ padding: 'var(--space-200) var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-150)' }}>
@@ -12443,10 +12407,7 @@ function EntitiesSettings({ onNav, appEntity = null, companyRegime = COMPANY_REG
           return (
             <ModalShell title={`${editing.label} — ${editing.entName}`} onClose={() => setEditing(null)} width={440}
               footer={close => (
-                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-150)', padding: 'var(--space-200) var(--space-300)', borderTop: `1px solid ${P.border}` }}>
-                  <Button variant="secondary" onClick={close}>Cancel</Button>
-                  <Button variant="primary" onClick={() => save(close)}>Save</Button>
-                </div>
+                <><Button variant="secondary" onClick={close}>Cancel</Button><Button variant="primary" onClick={() => save(close)}>Save</Button></>
               )}>
               <div style={{ padding: 'var(--space-200) var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-150)' }}>
                 {editing.inheritable && (
@@ -12526,15 +12487,7 @@ function EntitiesSettings({ onNav, appEntity = null, companyRegime = COMPANY_REG
           onClose={() => setShowAddEntity(false)}
           width={440}
           footer={close => (
-            <div style={{ padding: 'var(--space-200) var(--space-300)', borderTop: `1px solid ${P.border}`, display: 'flex', gap: 'var(--space-125)', justifyContent: 'flex-end' }}>
-              <Button variant="secondary" onClick={close}>Cancel</Button>
-              <Button variant="primary" onClick={() => {
-                const jcCode = newEntityJC.split(' — ')[0].trim();
-                const id = newEntityName.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
-                setExtraEntities(prev => [...prev, { id, name: newEntityName.trim(), jc: jcCode, employeeCount: 0 }]);
-                close();
-              }} disabled={!newEntityName.trim() || !newEntityJC.trim()}>Add entity</Button>
-            </div>
+            <><Button variant="secondary" onClick={close}>Cancel</Button><Button variant="primary" onClick={() => { const jcCode = newEntityJC.split(' — ')[0].trim(); const id = newEntityName.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''); setExtraEntities(prev => [...prev, { id, name: newEntityName.trim(), jc: jcCode, employeeCount: 0 }]); close(); }} disabled={!newEntityName.trim() || !newEntityJC.trim()}>Add entity</Button></>
           )}
         >
           {() => (
@@ -13622,10 +13575,7 @@ function ComponentLibraryScreen() {
       {exampleModalOpen && (
         <ModalShell title="Example modal" onClose={() => setExampleModalOpen(false)}
           footer={close => (
-            <div style={{ padding: 'var(--space-200) var(--space-300)', borderTop: `1px solid ${P.border}`, display: 'flex', gap: 'var(--space-125)', justifyContent: 'flex-end' }}>
-              <Button variant="secondary" onClick={close}>Cancel</Button>
-              <Button variant="primary" onClick={close}>Save</Button>
-            </div>
+            <><Button variant="secondary" onClick={close}>Cancel</Button><Button variant="primary" onClick={close}>Save</Button></>
           )}>
           <div style={{ padding: 'var(--space-250) var(--space-300)', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: 1.5 }}>
             This is a live ModalShell instance — the same backdrop, panel, and header chrome used by every centered dialog in the app.
@@ -14010,10 +13960,7 @@ function OnboardingScreen({ onboardingIds, drafts = new Map(), onSendInvite, onA
           onClose={() => setInviteModal(null)}
           width={480}
           footer={close => (
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-150)', padding: 'var(--space-200) var(--space-300)', borderTop: `1px solid ${P.border}` }}>
-              <Button variant="secondary" onClick={close}>Cancel</Button>
-              <Button variant="primary" onClick={() => { onSendInvite(inviteModal.empId); close(); }}>Send invite</Button>
-            </div>
+            <><Button variant="secondary" onClick={close}>Cancel</Button><Button variant="primary" onClick={() => { onSendInvite(inviteModal.empId); close(); }}>Send invite</Button></>
           )}
         >
           <div style={{ padding: 'var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-250)' }}>
