@@ -236,7 +236,7 @@ function SettingsCard({ children, info, infoVariant, infoAction }) {
   const infoIcon  = infoVariant === 'blue' ? 'var(--blue-500)'  : infoVariant === 'warning' ? 'var(--warning-500)' : P.inkSoft;
   const infoIconName = infoVariant === 'warning' ? 'alert-triangle' : 'info';
   return (
-    <div style={{ border: `1px solid ${P.border}`, borderRadius: 16, overflow: 'clip', background: P.white }}>
+    <div style={{ border: `1px solid ${infoVariant === 'warning' ? P.warningBorder : P.border}`, borderRadius: 16, overflow: 'clip', background: P.white }}>
       {children}
       {info && (
         <div style={{ borderTop: `1px solid ${infoBorder}`, background: infoBg, padding: 'var(--space-150) var(--space-200)', display: 'flex', alignItems: 'flex-start', gap: 'var(--space-100)' }}>
