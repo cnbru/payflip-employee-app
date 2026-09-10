@@ -13631,7 +13631,7 @@ function ComponentLibraryScreen() {
   );
 }
 
-function SettingsLandingScreen({ onNav }) {
+function SettingsLandingScreen({ onNav, mobilityLive = false }) {
   const PERSONAL_CARDS = [
     { id: 'settings-notifications', icon: 'bell',      label: 'Notifications',   desc: 'Email and in-app alert preferences' },
     { id: 'settings-account',       icon: 'user',      label: 'Account settings', desc: 'Password, language and profile info' },
@@ -13646,7 +13646,7 @@ function SettingsLandingScreen({ onNav }) {
     { id: 'settings-payroll',      icon: 'landmark',        label: 'Payroll',         desc: 'Payroll cycle and payment configuration' },
     { id: 'settings-allowances',   icon: 'coins',           label: 'Allowances',      desc: 'Recurring allowance categories' },
     { id: 'settings-expenses',     icon: 'receipt',         label: 'Expenses',        desc: 'Expense categories and approval rules' },
-    { id: 'settings-cardrules',    icon: 'credit-card',     label: 'Payflip Card',    desc: 'Card limits and physical card delivery' },
+    mobilityLive && { id: 'settings-cardrules', icon: 'credit-card', label: 'Payflip Card', desc: 'Card limits and physical card delivery' },
     { id: 'settings-integrations', icon: 'plug',            label: 'Integrations',    desc: 'Connected apps and API access' },
     { id: 'settings-team',         icon: 'shield-check',    label: 'Team & access',   desc: 'Admin roles and permissions' },
     { id: 'settings-billing',      icon: 'receipt-text',    label: 'Billing',         desc: 'Plan, invoices and payment methods' },
@@ -13699,7 +13699,7 @@ function SettingsLandingScreen({ onNav }) {
         <div>
           <div style={SL}>Company</div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 'var(--space-150)' }}>
-            {COMPANY_CARDS.map(item => <SettingCard key={item.id} item={item} />)}
+            {COMPANY_CARDS.filter(Boolean).map(item => <SettingCard key={item.id} item={item} />)}
           </div>
         </div>
       </div>
@@ -15094,7 +15094,7 @@ function App() {
         {screen === 'choices' && <ChoicesScreen key={appEntity ?? 'all'} choices={entityFilteredChoices} onApprove={approveChoice} onDecline={declineChoice} onDetail={setChoiceDetail} appEntity={appEntity} />}
         {screen === 'payroll-overview' && <StubScreen title="Payroll Overview" description="Monthly payroll run and submission" />}
         {screen === 'payroll-reports' && <StubScreen title="Payroll Reports" description="Reporting and exports" />}
-        {screen === 'settings-landing' && <SettingsLandingScreen onNav={handleNav} />}
+        {screen === 'settings-landing' && <SettingsLandingScreen onNav={handleNav} mobilityLive={!!mobilityWidgetState.live} />}
         {screen === 'settings-allowances' && <AllowancesListPage key={appEntity ?? 'all'} allowances={allowances} onSaveAllowance={updated => setAllowances(prev => prev.map(a => a.id === updated.id ? updated : a))} appEntity={appEntity} />}
         {screen === 'settings-expenses' && <ExpenseCategorySettings key={appEntity ?? 'all'} categories={expenseCategories} onSave={setExpenseCategories} appEntity={appEntity} receiptAlwaysRequired={receiptAlwaysRequired} onReceiptPolicyChange={setReceiptAlwaysRequired} requireApproval={requireApproval} onRequireApprovalChange={setRequireApproval} />}
         {screen === 'settings-team' && <TeamAccessSettings key={appEntity ?? 'all'} onNav={setScreen} adminAccess={adminAccess} onAdminSave={handleAdminSave} appEntity={appEntity} />}
