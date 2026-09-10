@@ -9745,7 +9745,7 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, cardDe
           return (
         <div>
           <div style={SL}>Physical cards</div>
-          <div style={SLD}>Enable to let employees request a card from the Payflip app.</div>
+
           <SettingsCard
             info={deliveryGap ? `${entitiesMissing.length} of ${ENTITIES.length} ${entitiesMissing.length === 1 ? 'entity has' : 'entities have'} no delivery address — ${missingNames} will fall back to the registered address.` : undefined}
             infoVariant={deliveryGap ? 'warning' : undefined}
