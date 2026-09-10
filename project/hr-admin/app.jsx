@@ -7322,7 +7322,7 @@ function CardTab({ empId, emp, mobilityLive, onToast, onNav }) {
           <button onClick={disabled ? undefined : onClick} disabled={disabled} style={{
             width: 48, height: 48, borderRadius: '50%', border: `1px solid ${P.border}`,
             background: P.white, cursor: disabled ? 'default' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            transition: 'background 120ms',
+            transition: 'background 120ms, transform 150ms cubic-bezier(0.22, 1, 0.36, 1)',
           }}
             onMouseEnter={e => { if (!disabled) e.currentTarget.style.background = P.bg; }}
             onMouseLeave={e => { e.currentTarget.style.background = P.white; }}
@@ -7337,7 +7337,7 @@ function CardTab({ empId, emp, mobilityLive, onToast, onNav }) {
           <button onClick={() => { onToast && onToast({ message: `Invite resent to ${first}`, type: 'approve' }); }} style={{
             width: 48, height: 48, borderRadius: '50%', border: `1px solid ${P.border}`,
             background: P.white, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            transition: 'background 120ms',
+            transition: 'background 120ms, transform 150ms cubic-bezier(0.22, 1, 0.36, 1)',
           }}
             onMouseEnter={e => { e.currentTarget.style.background = P.bg; }}
             onMouseLeave={e => { e.currentTarget.style.background = P.white; }}
@@ -7350,7 +7350,7 @@ function CardTab({ empId, emp, mobilityLive, onToast, onNav }) {
     </div>
   );
 
-  const txTh = { textAlign: 'left', padding: 'var(--space-100) var(--space-200)', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em', whiteSpace: 'nowrap' };
+  const txTh = { textAlign: 'left', padding: 'var(--space-100) var(--space-200)', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.inkSoft, textTransform: 'uppercase', letterSpacing: '0.04em', whiteSpace: 'nowrap' };
   const recentActivityPanel = hasActiveCard && seed?.txs?.length > 0 && (
     <div style={{ maxWidth: 620 }}>
       <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-lg)', color: P.ink, marginBottom: 'var(--space-150)' }}>Recent activity</div>
@@ -7372,8 +7372,8 @@ function CardTab({ empId, emp, mobilityLive, onToast, onNav }) {
                   </div>
                   <span style={{ fontWeight: 500, color: P.ink }}>{tx.merchant}</span>
                 </td>
-                <td style={{ padding: '11px var(--space-200)', color: P.inkSoft, whiteSpace: 'nowrap' }}>{tx.date}</td>
-                <td style={{ padding: '11px var(--space-200)', textAlign: 'right', fontFamily: 'var(--font-display)', fontWeight: 600, color: P.ink, whiteSpace: 'nowrap' }}>€{tx.amount.toFixed(2)}</td>
+                <td style={{ padding: '11px var(--space-200)', color: P.inkSoft, whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>{tx.date}</td>
+                <td style={{ padding: '11px var(--space-200)', textAlign: 'right', fontFamily: 'var(--font-display)', fontWeight: 600, color: P.ink, whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>€{tx.amount.toFixed(2)}</td>
               </tr>
             ))}
           </tbody>
