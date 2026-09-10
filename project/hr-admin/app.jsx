@@ -9484,7 +9484,7 @@ function EntityDeliveryModal({ entityId, entityName, legalAddress, currentDelive
   );
 }
 
-// ── Payflip Card settings ───────────────────────────────────────────────────
+// ── Payflip card settings ───────────────────────────────────────────────────
 function PaymentIssueBanner({ onResolve, boxed = true }) {
   const inner = (
     <div style={{ display: 'flex', gap: 'var(--space-150)', alignItems: 'flex-start' }}>
@@ -9599,7 +9599,7 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, cardDe
     onCardDeliveryChange && onCardDeliveryChange(draftCardDelivery);
     setSavedPhysicalCards(draftPhysicalCards);
     setSavedCardDelivery(draftCardDelivery);
-    onToast && onToast({ message: 'Payflip Card settings saved', type: 'approve' });
+    onToast && onToast({ message: 'Payflip card settings saved', type: 'approve' });
   };
 
   const handleResign = (close) => {
@@ -9662,7 +9662,7 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, cardDe
     return (
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, overflow: 'hidden', animation: `screenEnter 180ms ${EASE_OUT}` }}>
         <PageHeader
-          title="Payflip Card settings"
+          title="Payflip card settings"
           subtitle="Manage account funding, automatic top-ups, and physical card requests"
           badge={appEntity ? ENTITIES.find(e => e.id === appEntity)?.name : null}
           maxWidth={880}
@@ -9692,7 +9692,7 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, cardDe
 
         <div>
           {appEntity && <span style={{ display: 'inline-flex', alignItems: 'center', padding: 'var(--space-025) var(--space-100)', borderRadius: 6, background: P.white, border: `1px solid ${P.border}`, fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginBottom: 'var(--space-150)' }}>{ENTITIES.find(e => e.id === appEntity)?.name}</span>}
-          <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 28, color: P.ink, margin: 0, letterSpacing: '-0.02em' }}>Payflip Card settings</h1>
+          <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 28, color: P.ink, margin: 0, letterSpacing: '-0.02em' }}>Payflip card settings</h1>
           <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, margin: 'var(--space-050) 0 0' }}>Manage account funding, automatic top-ups, and physical card requests</p>
         </div>
 
@@ -13133,7 +13133,7 @@ const CHANGELOG_ENTRIES = [
       { commit: '22bb6d4', summary: 'Unmatched employees drawer: Match to employee / Add to People / Ignore per NISS number; row disappears when count reaches zero' },
       { commit: '22bb6d4', summary: 'Mobility panel: purple gradient + scattered transport icons (car, train, bike, bus — no planes)' },
       { commit: '22bb6d4', summary: 'Food panel: coral/blush gradient + scattered food icons (utensils, coffee, apple, sandwich, wheat, egg); amber and green both rejected' },
-      { commit: '22bb6d4', summary: 'Payflip Card settings: empty state before mobility is live, with "Set up Mobility →" CTA; full page only renders post-launch' },
+      { commit: '22bb6d4', summary: 'Payflip card settings: empty state before mobility is live, with "Set up Mobility →" CTA; full page only renders post-launch' },
       { commit: '22bb6d4', summary: 'Food step 3: food-specific mandate copy, "Confirm mandate" button, info row naming the social secretariat, white+border bank icon' },
     ],
   },
@@ -13196,13 +13196,13 @@ const CHANGELOG_ENTRIES = [
   },
   {
     date: '12 Aug 2026',
-    title: 'Payflip Card settings page restructure',
+    title: 'Payflip card settings page restructure',
     items: [
       { summary: '"Card rules" renamed to "Payflip Card" everywhere', detail: 'Sidebar label, screen title, page h1, and toast copy all updated.', why: '"Card rules" described a configuration surface. The screen now covers the full account — balance, mandate, issuance — so the name needed to match the scope.' },
-      { summary: 'Account monitoring moved from dashboard widget to settings page', detail: 'Live widget now shows a compact summary: balance hero + "Manage →" link. The full chart, stats, and account detail live on the Payflip Card settings page instead.', why: 'The dashboard widget should orient and redirect. Full monitoring belongs in settings, alongside the mandate and issuance controls — the context an admin needs to understand what they\'re seeing.' },
-      { summary: 'Funding issue: three-level notification path', detail: '(1) Dashboard widget: compact inline warning with "Resolve in Twikey →". (2) Needs attention section: "Mobility top-up failed" row with a red ! badge. (3) Payflip Card settings: standalone red callout with full diagnosis and both recovery actions.', why: 'A failed collection requires immediate action — the account will soon be unable to fund transactions. Three levels match admin context: glance → attention → full detail.' },
+      { summary: 'Account monitoring moved from dashboard widget to settings page', detail: 'Live widget now shows a compact summary: balance hero + "Manage →" link. The full chart, stats, and account detail live on the Payflip card settings page instead.', why: 'The dashboard widget should orient and redirect. Full monitoring belongs in settings, alongside the mandate and issuance controls — the context an admin needs to understand what they\'re seeing.' },
+      { summary: 'Funding issue: three-level notification path', detail: '(1) Dashboard widget: compact inline warning with "Resolve in Twikey →". (2) Needs attention section: "Mobility top-up failed" row with a red ! badge. (3) Payflip card settings: standalone red callout with full diagnosis and both recovery actions.', why: 'A failed collection requires immediate action — the account will soon be unable to fund transactions. Three levels match admin context: glance → attention → full detail.' },
       { summary: 'Balance chart: Y-axis redesigned, per-state spend cadences', detail: 'Y-axis now spans deposit→empty with a threshold dashed reference line. Each state has a distinct step pattern: Normal = 5 even steps; Topping-up = 3 large accelerating steps (visibly crosses threshold); Funding issue = 4 front-heavy steps (stays below threshold).', why: 'The old axis clipped the chart in funding-issue state (balance below threshold = y > 100). The shared step template made all three states look identical at a glance — the shape should tell the story, not just the final value.' },
-      { summary: 'Setup step 3: reassurance line added below Continue', detail: '"You can change this any time in Payflip Card settings." in P.inkSoft below the Continue button.', why: 'The physical card toggle looked like a permanent commitment. Naming the destination removes anxiety without adding visual weight to the step.' },
+      { summary: 'Setup step 3: reassurance line added below Continue', detail: '"You can change this any time in Payflip card settings." in P.inkSoft below the Continue button.', why: 'The physical card toggle looked like a permanent commitment. Naming the destination removes anxiety without adding visual weight to the step.' },
       { summary: 'Overflow menu label: "Payflip Card" → "Card settings"', why: 'Action labels should describe what the action does, not name the destination. "Card settings" is unambiguous as a navigation action.' },
     ],
   },
