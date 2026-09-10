@@ -9686,13 +9686,15 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, cardDe
   }
 
   return (
-    <div style={{ flex: 1, overflow: 'auto', animation: `screenEnter 180ms ${EASE_OUT}` }}>
-      <div style={{ maxWidth: 880, margin: '0 auto', padding: 'var(--space-500) var(--space-400)', display: 'flex', flexDirection: 'column', gap: 'var(--space-400)' }}>
-
-        <div>
-          {appEntity && <span style={{ display: 'inline-flex', alignItems: 'center', padding: 'var(--space-025) var(--space-100)', borderRadius: 6, background: P.white, border: `1px solid ${P.border}`, fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginBottom: 'var(--space-150)' }}>{ENTITIES.find(e => e.id === appEntity)?.name}</span>}
-          <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 28, color: P.ink, margin: 0, letterSpacing: '-0.02em' }}>Payflip card settings</h1>
-        </div>
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, overflow: 'hidden', animation: `screenEnter 180ms ${EASE_OUT}` }}>
+      <PageHeader
+        title="Payflip card settings"
+        badge={appEntity ? ENTITIES.find(e => e.id === appEntity)?.name : null}
+        maxWidth={880}
+        padding="31px 28px 20px"
+      />
+      <div style={{ flex: 1, overflow: 'auto' }}>
+      <div style={{ maxWidth: 880, margin: '0 auto', padding: 'var(--space-300) var(--space-400)', display: 'flex', flexDirection: 'column', gap: 'var(--space-400)' }}>
 
         {/* Funding settings — company-wide, hidden at entity scope */}
         {!appEntity && <div>
@@ -10167,6 +10169,7 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, cardDe
           </div>
         </ModalShell>
       )}
+      </div>
     </div>
   );
 }
