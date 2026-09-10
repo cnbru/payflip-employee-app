@@ -9492,14 +9492,11 @@ function PaymentIssueBanner({ onResolve, boxed = true }) {
       <div style={{ flex: 1 }}>
         <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.dangerDark, marginBottom: 'var(--space-050)' }}>Top-up payment failed</div>
         <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: boxed ? P.dangerDark : P.inkSoft, lineHeight: '18px', marginBottom: 'var(--space-150)' }}>
-          The collection couldn't be processed. Open Twikey to resolve it — you may need to correct bank details or re-sign the mandate.
+          The collection couldn't be processed. Check Twikey for the specific reason — employee cards may be declined until this is resolved.
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-200)' }}>
-          <Button variant="primary" onClick={() => { onResolve && onResolve(); window.open('https://app.twikey.com', '_blank'); }} style={{ fontSize: 'var(--fs-body-sm)', padding: 'var(--space-075) var(--space-150)' }}>
-            Resolve in Twikey →
-          </Button>
-          <a href="mailto:support@payflip.be?subject=Mobility%20card%20top-up%20failed" style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, textDecoration: 'underline' }}>Contact support</a>
-        </div>
+        <Button variant="primary" onClick={() => { onResolve && onResolve(); window.open('https://app.twikey.com', '_blank'); }} style={{ fontSize: 'var(--fs-body-sm)', padding: 'var(--space-075) var(--space-150)' }}>
+          Resolve in Twikey →
+        </Button>
       </div>
     </div>
   );
@@ -9699,15 +9696,11 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, cardDe
           <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, margin: 'var(--space-050) 0 0' }}>Manage account funding, automatic top-ups, and physical card requests</p>
         </div>
 
-        {/* Funding issue alert — page-level, above the account card */}
-        {isLive && fundingIssue2 && !appEntity && (
-          <PaymentIssueBanner />
-        )}
-
         {/* Funding settings — company-wide, hidden at entity scope */}
         {!appEntity && <div>
           <div style={SL}>Funding</div>
           <div style={SLD}>Collections are processed securely by Twikey. Amounts auto-update with your mobility employee count unless you choose a manual override.</div>
+          {isLive && fundingIssue2 && <div style={{ marginBottom: 'var(--space-200)' }}><PaymentIssueBanner /></div>}
           <SettingsCard
             header={isLive ? (
               <div style={{ padding: 'var(--space-050) 0' }}>
@@ -9718,7 +9711,7 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, cardDe
                   <AppLink onClick={() => setShowTopUpHistory(true)} style={{ fontSize: 'var(--fs-body-xs)', flexShrink: 0, paddingBottom: 2 }}>Top-up history</AppLink>
                 </div>
                 <div style={{ width: '100%', height: 5, borderRadius: 999, background: 'rgba(34,10,53,0.08)', overflow: 'hidden', marginBottom: 6 }}>
-                  <div style={{ width: `${Math.max(0, Math.min(100, (liveBalance2 / deposit2) * 100))}%`, height: '100%', borderRadius: 999, background: fundingIssue2 ? P.danger : P.action, transition: `width 300ms ${EASE_OUT}` }} />
+                  <div style={{ width: `${Math.max(3, Math.min(100, (liveBalance2 / deposit2) * 100))}%`, height: '100%', borderRadius: 999, background: fundingIssue2 ? P.danger : P.action, transition: `width 300ms ${EASE_OUT}` }} />
                 </div>
                 <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>
                   {toppingUp2
@@ -9793,7 +9786,7 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, cardDe
                     const effectiveModes = ENTITIES.map(e => entityDeliveryOverrides[e.id] ?? draftCardDelivery);
                     const allSame = effectiveModes.every(m => m === effectiveModes[0]);
                     const summaryValue = allSame
-                        ? (effectiveModes[0] === 'office' ? 'Entity delivery address' : "Employee's home address")
+                        ? (effectiveModes[0] === 'office' ? 'Office address' : "Employee's home address")
                         : 'Varies by entity';
                     const summaryColor = !allSame ? P.inkSoft : undefined;
                     return (
@@ -9935,7 +9928,7 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, cardDe
             title="Card delivery"
             options={[
               { value: 'home', label: <span style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-100)' }}>Employee's home address<DotPill dot={false} size={11} bg="var(--blue-100)" color="var(--blue-500)" border padding="1px 6px">€9 / card</DotPill></span>, hint: 'Each employee enters their address when ordering.' },
-              { value: 'office', label: <span style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-100)' }}>Entity delivery address<DotPill dot={false} size={11} bg="var(--blue-100)" color="var(--blue-500)" border padding="1px 6px">€9 / card</DotPill></span>, hint: 'Ships to each entity\'s configured delivery address.' },
+              { value: 'office', label: <span style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-100)' }}>Office address<DotPill dot={false} size={11} bg="var(--blue-100)" color="var(--blue-500)" border padding="1px 6px">€9 / card</DotPill></span>, hint: 'Ships to each entity\'s configured delivery address.' },
             ]}
             value={draftCardDelivery}
             onSave={v => {
