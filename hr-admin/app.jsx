@@ -9663,7 +9663,6 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, cardDe
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, overflow: 'hidden', animation: `screenEnter 180ms ${EASE_OUT}` }}>
         <PageHeader
           title="Payflip card settings"
-          subtitle="Manage account funding, automatic top-ups, and physical card requests"
           badge={appEntity ? ENTITIES.find(e => e.id === appEntity)?.name : null}
           maxWidth={880}
           padding="31px 28px 20px"
@@ -9693,7 +9692,6 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, cardDe
         <div>
           {appEntity && <span style={{ display: 'inline-flex', alignItems: 'center', padding: 'var(--space-025) var(--space-100)', borderRadius: 6, background: P.white, border: `1px solid ${P.border}`, fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: 'var(--fs-body-xs)', color: P.inkSoft, marginBottom: 'var(--space-150)' }}>{ENTITIES.find(e => e.id === appEntity)?.name}</span>}
           <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 28, color: P.ink, margin: 0, letterSpacing: '-0.02em' }}>Payflip card settings</h1>
-          <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, margin: 'var(--space-050) 0 0' }}>Manage account funding, automatic top-ups, and physical card requests</p>
         </div>
 
         {/* Funding settings — company-wide, hidden at entity scope */}
