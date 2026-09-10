@@ -236,7 +236,7 @@ function SettingsCard({ children, info, infoVariant, infoAction }) {
   const infoIcon  = infoVariant === 'blue' ? 'var(--blue-500)'  : infoVariant === 'warning' ? 'var(--warning-500)' : P.inkSoft;
   const infoIconName = infoVariant === 'warning' ? 'alert-triangle' : 'info';
   return (
-    <div style={{ border: `1px solid ${P.border}`, borderRadius: 16, overflow: 'clip', background: P.white }}>
+    <div style={{ border: `1px solid ${infoVariant === 'warning' ? P.warningBorder : P.border}`, borderRadius: 16, overflow: 'clip', background: P.white }}>
       {children}
       {info && (
         <div style={{ borderTop: `1px solid ${infoBorder}`, background: infoBg, padding: 'var(--space-150) var(--space-200)', display: 'flex', alignItems: 'flex-start', gap: 'var(--space-100)' }}>
@@ -9803,12 +9803,10 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, cardDe
                   (() => {
                     const effectiveModes = ENTITIES.map(e => entityDeliveryOverrides[e.id] ?? draftCardDelivery);
                     const allSame = effectiveModes.every(m => m === effectiveModes[0]);
-                    const summaryValue = deliveryGap
-                      ? `${entitiesMissing.length} of ${ENTITIES.length} entities missing address`
-                      : allSame
+                    const summaryValue = allSame
                         ? (effectiveModes[0] === 'office' ? 'Entity delivery address' : "Employee's home address")
                         : 'Varies by entity';
-                    const summaryColor = deliveryGap ? P.warningDark : !allSame ? P.inkSoft : undefined;
+                    const summaryColor = !allSame ? P.inkSoft : undefined;
                     return (
                       <SettingsRow
                         icon="truck"
@@ -9946,9 +9944,14 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, cardDe
         })()}
 
         {showDeliveryModal && (() => {
+          const modalEntitiesMissing = ENTITIES.filter(e => !e.deliveryAddress);
+          const deliveryModalWarning = draftCardDelivery === 'office' && modalEntitiesMissing.length > 0
+            ? `${modalEntitiesMissing.length} of ${ENTITIES.length} ${modalEntitiesMissing.length === 1 ? 'entity has' : 'entities have'} no delivery address — ${modalEntitiesMissing.map(e => e.name).join(', ')} will fall back to the registered address.`
+            : undefined;
           return (
           <PickModal
             title="Card delivery"
+            warning={deliveryModalWarning}
             options={[
               { value: 'home', label: <span style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-100)' }}>Employee's home address<DotPill dot={false} size={11} bg="var(--blue-100)" color="var(--blue-500)" border padding="1px 6px">€9 / card</DotPill></span>, hint: 'Each employee enters their address when ordering.' },
               { value: 'office', label: <span style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-100)' }}>Entity delivery address<DotPill dot={false} size={11} bg="var(--blue-100)" color="var(--blue-500)" border padding="1px 6px">€9 / card</DotPill></span>, hint: 'Ships to each entity\'s configured delivery address.' },
@@ -10247,7 +10250,7 @@ function CategoryModal({ title, initialVal, initialLimit, onSave, onDelete, onCl
   );
 }
 
-function PickModal({ title, options, value, onSave, onClose, extraField }) {
+function PickModal({ title, options, value, onSave, onClose, extraField, warning }) {
   const [selected, setSelected] = useState(value);
   const [extraVal, setExtraVal] = useState(extraField ? String(extraField.defaultValue) : '');
   return (
@@ -10256,6 +10259,12 @@ function PickModal({ title, options, value, onSave, onClose, extraField }) {
         const save = () => { const n = parseFloat(extraVal); onSave(selected, extraField && selected === extraField.forValue ? (isNaN(n) ? extraField.defaultValue : n) : undefined); close(); };
         return (
           <>
+            {warning && (
+              <div style={{ margin: 'var(--space-100) var(--space-200) 0', borderRadius: 8, border: '1px solid var(--warning-200)', background: 'var(--warning-100)', padding: 'var(--space-150)', display: 'flex', gap: 'var(--space-100)', alignItems: 'flex-start' }}>
+                <Icon name="alert-triangle" size={13} color="var(--warning-500)" style={{ flexShrink: 0, marginTop: 2 }} />
+                <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: 'var(--warning-700)' }}>{warning}</span>
+              </div>
+            )}
             <div style={{ padding: 'var(--space-200)', display: 'flex', flexDirection: 'column', gap: 'var(--space-100)' }}>
               {options.map(opt => (
                 <React.Fragment key={opt.value}>
