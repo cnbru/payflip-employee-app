@@ -9944,14 +9944,9 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, cardDe
         })()}
 
         {showDeliveryModal && (() => {
-          const modalEntitiesMissing = ENTITIES.filter(e => !e.deliveryAddress);
-          const deliveryModalWarning = draftCardDelivery === 'office' && modalEntitiesMissing.length > 0
-            ? `${modalEntitiesMissing.length} of ${ENTITIES.length} ${modalEntitiesMissing.length === 1 ? 'entity has' : 'entities have'} no delivery address — ${modalEntitiesMissing.map(e => e.name).join(', ')} will fall back to the registered address.`
-            : undefined;
           return (
           <PickModal
             title="Card delivery"
-            warning={deliveryModalWarning}
             options={[
               { value: 'home', label: <span style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-100)' }}>Employee's home address<DotPill dot={false} size={11} bg="var(--blue-100)" color="var(--blue-500)" border padding="1px 6px">€9 / card</DotPill></span>, hint: 'Each employee enters their address when ordering.' },
               { value: 'office', label: <span style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-100)' }}>Entity delivery address<DotPill dot={false} size={11} bg="var(--blue-100)" color="var(--blue-500)" border padding="1px 6px">€9 / card</DotPill></span>, hint: 'Ships to each entity\'s configured delivery address.' },
