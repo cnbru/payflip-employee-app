@@ -9797,15 +9797,18 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, cardDe
                   (() => {
                     const effectiveModes = ENTITIES.map(e => entityDeliveryOverrides[e.id] ?? draftCardDelivery);
                     const allSame = effectiveModes.every(m => m === effectiveModes[0]);
-                    const summaryValue = allSame
-                      ? (effectiveModes[0] === 'office' ? 'Entity delivery address' : "Employee's home address")
-                      : 'Varies by entity';
+                    const summaryValue = deliveryGap
+                      ? `${entitiesMissing.length} of ${ENTITIES.length} entities missing address`
+                      : allSame
+                        ? (effectiveModes[0] === 'office' ? 'Entity delivery address' : "Employee's home address")
+                        : 'Varies by entity';
+                    const summaryColor = deliveryGap ? P.warningDark : !allSame ? P.inkSoft : undefined;
                     return (
                       <SettingsRow
                         icon="truck"
                         label="Card delivery"
                         value={summaryValue}
-                        valueColor={!allSame ? P.inkSoft : undefined}
+                        valueColor={summaryColor}
                         onClick={() => setShowDeliveryModal(true)}
                         last
                       />
