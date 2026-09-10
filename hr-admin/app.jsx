@@ -9754,7 +9754,7 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, cardDe
         {/* Physical cards — issuance toggle + delivery sub-group in one card */}
         {(() => {
           const entitiesMissing = ENTITIES.filter(e => !e.deliveryAddress);
-          const deliveryGap = draftPhysicalCards && draftCardDelivery === 'office' && entitiesMissing.length > 0;
+          const deliveryGap = !appEntity && draftPhysicalCards && draftCardDelivery === 'office' && entitiesMissing.length > 0;
           const missingNames = entitiesMissing.map(e => e.name).join(', ');
           return (
         <div>
@@ -9784,16 +9784,22 @@ function CardRulesSettings({ physicalCardsAllowed, onPhysicalCardsChange, cardDe
             />
             {draftPhysicalCards && (
               <div className="section-reveal">
-                {appEntity ? (
-                  <SettingsRow
-                    icon="truck"
-                    label="Card delivery"
-                    value={effectiveDelivery === 'office' ? 'Entity delivery address' : "Employee's home address"}
-                    subtitle={entityDeliveryOverrides[appEntity] != null ? 'Custom for this entity' : undefined}
-                    onClick={() => setShowEntityDeliveryModal(appEntity)}
-                    last
-                  />
-                ) : (
+                {appEntity ? (() => {
+                  const entityData = ENTITIES.find(e => e.id === appEntity);
+                  const addr = entityData?.deliveryAddress;
+                  const officeMode = effectiveDelivery === 'office';
+                  return (
+                    <SettingsRow
+                      icon="truck"
+                      label="Card delivery"
+                      value={officeMode ? (addr || 'No address configured') : "Employee's home address"}
+                      valueColor={officeMode && !addr ? P.warningDark : undefined}
+                      subtitle={entityDeliveryOverrides[appEntity] != null ? 'Custom for this entity' : undefined}
+                      onClick={() => setShowEntityDeliveryModal(appEntity)}
+                      last
+                    />
+                  );
+                })() : (
                   (() => {
                     const effectiveModes = ENTITIES.map(e => entityDeliveryOverrides[e.id] ?? draftCardDelivery);
                     const allSame = effectiveModes.every(m => m === effectiveModes[0]);
