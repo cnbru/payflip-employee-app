@@ -261,7 +261,7 @@ function AppShell() {
         background: isFullscreen ? '#fff' : '#F2F2F2',
         position: 'relative',
       }}>
-      <div style={{
+      <div className="hide-scrollbar" style={{
         flex: 1, minHeight: 0, overflowY: 'auto', overflowX: 'hidden',
         paddingTop: 54, // clear status bar / dynamic island
       }}>

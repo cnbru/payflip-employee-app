@@ -195,7 +195,7 @@ function NavBar({ title, trailing, onBack, hideBack }) {
     <div style={{
       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       paddingLeft: 16, paddingRight: 16,
-      paddingTop: 4, paddingBottom: title ? 4 : 24,
+      paddingTop: 12, paddingBottom: title ? 4 : 8,
       gap: 8,
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, minWidth: 0 }}>

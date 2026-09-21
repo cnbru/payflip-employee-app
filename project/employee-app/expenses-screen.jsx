@@ -659,7 +659,7 @@ function ExpenseDetailScreen({ expense }) {
 
       {/* Actions — sticky bottom */}
       {canEdit && (
-        <div style={{ padding: '12px 16px 24px', borderTop: '1px solid #EAEAEB', display: 'flex', flexDirection: 'column', gap: 10, background: '#fff' }}>
+        <div style={{ padding: '28px 16px 24px', display: 'flex', flexDirection: 'column', gap: 10, background: 'linear-gradient(to bottom, transparent, white 20px)', position: 'sticky', bottom: 0 }}>
           <Button
             variant={expense.status === 'rejected' ? 'primary' : 'outline'}
             size="large"

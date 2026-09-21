@@ -124,16 +124,19 @@ function SuccessCheck({ iconName, iconColor, iconBg }) {
   el.id = 't-tooltip-styles';
   el.textContent = `
     @keyframes t-tooltip-pop-in {
-      0%   { transform: scale(0.6) translateY(6px); opacity: 0; filter: blur(2px); }
-      100% { transform: scale(1)   translateY(0);   opacity: 1; filter: blur(0);  }
+      0%   { transform: scale(0.9) translateY(4px); opacity: 0; }
+      100% { transform: scale(1)   translateY(0);   opacity: 1; }
     }
     .t-tooltip-pop {
-      animation: t-tooltip-pop-in 500ms cubic-bezier(0.34, 1.36, 0.64, 1) both;
+      animation: t-tooltip-pop-in 350ms cubic-bezier(0.34, 1.36, 0.64, 1) both;
       transform-origin: bottom right;
-      will-change: transform, opacity, filter;
+      will-change: transform, opacity;
     }
     @media (prefers-reduced-motion: reduce) {
-      .t-tooltip-pop { animation: none !important; }
+      .t-tooltip-pop {
+        animation: none !important;
+        transition: opacity 150ms ease-out;
+      }
     }
   `;
   document.head.appendChild(el);
@@ -542,39 +545,46 @@ function PersonalScreen() {
 
       {/* Prototype persona switcher */}
       {(() => {
-        const current = new URLSearchParams(window.location.search).get('state');
-        const isFresh = current === 'fresh';
-        const switchTo = (state) => {
+        const params = new URLSearchParams(window.location.search);
+        const isFresh = params.get('state') === 'fresh';
+        const isNewFlow = params.get('flow') === 'new';
+        // Sync global flag so RequestTimeOffScreen can read it without prop drilling
+        window.__newRequestFlow = isNewFlow;
+        const switchState = (state) => {
           const url = new URL(window.location);
           if (state) { url.searchParams.set('state', state); } else { url.searchParams.delete('state'); }
           window.location.href = url.toString();
         };
+        const switchFlow = (flow) => {
+          const url = new URL(window.location);
+          if (flow) { url.searchParams.set('flow', flow); } else { url.searchParams.delete('flow'); }
+          window.location.href = url.toString();
+        };
+        const segBtn = (label, active, onClick) => (
+          <button onClick={onClick} style={{
+            flex: 1, appearance: 'none', border: 'none', cursor: 'pointer',
+            borderRadius: 8, padding: '8px 0',
+            background: active ? 'white' : 'transparent',
+            boxShadow: active ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+            fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13,
+            color: active ? P.ink : P.inkSoft,
+          }}>{label}</button>
+        );
         return (
-          <div style={{ padding: '0 24px 24px' }}>
-            <div style={{
-              fontFamily: 'var(--font-body)', fontSize: 11, fontWeight: 500,
-              color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.05em',
-              marginBottom: 8, textAlign: 'center',
-            }}>Prototype persona</div>
-            <div style={{
-              display: 'flex', background: P.surface, borderRadius: 10, padding: 4,
-            }}>
-              <button onClick={() => switchTo(null)} style={{
-                flex: 1, appearance: 'none', border: 'none', cursor: 'pointer',
-                borderRadius: 8, padding: '8px 0',
-                background: !isFresh ? 'white' : 'transparent',
-                boxShadow: !isFresh ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
-                fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13,
-                color: !isFresh ? P.ink : P.inkSoft,
-              }}>Returning user</button>
-              <button onClick={() => switchTo('fresh')} style={{
-                flex: 1, appearance: 'none', border: 'none', cursor: 'pointer',
-                borderRadius: 8, padding: '8px 0',
-                background: isFresh ? 'white' : 'transparent',
-                boxShadow: isFresh ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
-                fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13,
-                color: isFresh ? P.ink : P.inkSoft,
-              }}>New user</button>
+          <div style={{ padding: '0 24px 24px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div>
+              <div style={{ fontFamily: 'var(--font-body)', fontSize: 11, fontWeight: 500, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6, textAlign: 'center' }}>Persona</div>
+              <div style={{ display: 'flex', background: P.surface, borderRadius: 10, padding: 4 }}>
+                {segBtn('Returning user', !isFresh, () => switchState(null))}
+                {segBtn('New user', isFresh, () => switchState('fresh'))}
+              </div>
+            </div>
+            <div>
+              <div style={{ fontFamily: 'var(--font-body)', fontSize: 11, fontWeight: 500, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6, textAlign: 'center' }}>Request flow</div>
+              <div style={{ display: 'flex', background: P.surface, borderRadius: 10, padding: 4 }}>
+                {segBtn('Current', !isNewFlow, () => switchFlow(null))}
+                {segBtn('New flow', isNewFlow, () => switchFlow('new'))}
+              </div>
             </div>
           </div>
         );
@@ -607,8 +617,8 @@ const _itemSupportsDocs = (item) =>
   item._leaveReason?.startsWith('special-') || (!item._leaveReason && _SPECIAL_LABELS.includes(item.label));
 const _itemFullLabel = (item) => {
   const base = _displayLabel(item.label);
-  if (item._leaveReason?.startsWith('special-funeral-')) return `Funeral leave · ${base}`;
-  if (item._leaveReason?.startsWith('special-wedding-')) return `Wedding · ${base}`;
+  if (item._leaveReason?.startsWith('special-funeral-')) return 'Funeral leave';
+  if (item._leaveReason?.startsWith('special-wedding-')) return 'Wedding';
   return base;
 };
 const _itemIcon = (item) => {
@@ -664,6 +674,7 @@ function DesktopTimeOffHub() {
   const [hubDocProgress, setHubDocProgress] = React.useState(0);
   const [hubDocFinalizing, setHubDocFinalizing] = React.useState(false);
   const [breakdownOpen, setBreakdownOpen] = React.useState(false);
+  const [expandedBalanceRows, setExpandedBalanceRows] = React.useState({});
   const today = new Date(); today.setHours(0,0,0,0);
   const [calMonth, setCalMonth] = React.useState(today.getMonth());
   const [calYear, setCalYear] = React.useState(today.getFullYear());
@@ -907,7 +918,7 @@ function DesktopTimeOffHub() {
               border: `1px solid ${P.border}`, background: 'white', cursor: 'pointer',
               fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.ink,
             }}>Leave history</button>
-            <button onClick={() => nav && nav.push('request-time-off')} style={{
+            <button onClick={() => nav && nav.push('request-time-off', window.__newRequestFlow ? { directToCalendar: true } : undefined)} style={{
               display: 'inline-flex', alignItems: 'center', gap: 8,
               padding: '10px 20px', borderRadius: 10,
               border: 'none', background: P.ink, cursor: 'pointer',
@@ -984,13 +995,11 @@ function DesktopTimeOffHub() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                   {toGroups(upcoming).map(({ month, items: groupItems }) => (
                     <div key={month}>
-                      {upcoming.length > 2 && (
-                        <div style={{
-                          padding: '4px 0 8px',
-                          fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11,
-                          color: P.inkSoft, textTransform: 'uppercase', letterSpacing: '0.06em',
-                        }}>{month}</div>
-                      )}
+                      <div style={{
+                        padding: '4px 0 8px',
+                        fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11,
+                        color: P.inkSoft, textTransform: 'uppercase', letterSpacing: '0.06em',
+                      }}>{month}</div>
                       <div style={{ background: 'white', border: '1px solid #EAEAEB', borderRadius: 16, overflow: 'hidden' }}>
                         {groupItems.map((item, i) => (
                           <div key={item.id} style={{ padding: '0 16px', borderBottom: i < groupItems.length - 1 ? '1px solid #EAEAEB' : 'none' }}>
@@ -1198,7 +1207,7 @@ function DesktopTimeOffHub() {
                         setTimeout(() => { setHubDocSubmitting(false); setHubDocProgress(0); }, 2600);
                       }} style={{ width: '100%', padding: '16px 14px', border: `1.5px dashed ${P.border}`, borderRadius: 12, background: '#fafafa', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, marginBottom: 8 }}>
                         <LucideIcon name="Upload" size={28} color={P.ink} strokeWidth={1.75} />
-                        <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.ink }}>Drag & Drop or Choose file to upload</span>
+                        <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.ink }}>Choose file to upload</span>
                         <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>Max 6 files · Up to 5MB</span>
                       </button>
                     )}
@@ -1265,7 +1274,7 @@ function DesktopTimeOffHub() {
                         <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                           {hasDoc
                             ? <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 15, color: P.ink }}>{item._attachments.length === 1 ? item._attachments[0].name : `${item._attachments.length} files`}</span>
-                            : <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.ink, textDecoration: 'underline', textUnderlineOffset: 3 }}>Not uploaded</span>
+                            : <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, color: '#b45309', background: '#fff7ed', borderRadius: 20, padding: '3px 10px', whiteSpace: 'nowrap' }}>Upload document</span>
                           }
                           {canAct && <LucideIcon name="ChevronRight" size={14} color={P.inkSoft} strokeWidth={2} />}
                         </div>
@@ -1333,7 +1342,7 @@ function DesktopTimeOffHub() {
                   flex: 1, padding: '12px 0', borderRadius: 10,
                   border: 'none', background: '#dc2626', cursor: 'pointer',
                   fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: 'white',
-                }}>Cancel request</button>
+                }}>Yes, cancel it</button>
               </div>
             </div>
           </div>
@@ -1342,33 +1351,30 @@ function DesktopTimeOffHub() {
 
       {/* Balance breakdown modal */}
       {breakdownOpen && (() => {
-        const PLANNABLE_TYPES = [
-          { name: 'Statutory annual leave', remaining: 2, total: 20, expires: 'Unused days carry over until Apr 30, 2027' },
-          { name: 'ADV / RTT', remaining: 5, total: 12, expires: null },
-          { name: 'Extra-legal leave', remaining: 3, total: 4, expires: null },
+        const LEAVE_TYPES = [
+          {
+            name: 'Statutory annual leave',
+            total: 20, used: 18, pending: 0,
+            policy: 'Carry-over until Apr 30, 2027 if blocked by certified illness.',
+          },
+          {
+            name: 'ADV / RTT',
+            total: 12, used: 7, pending: 0,
+            policy: 'Expires Dec 31, 2026. No carry-over.',
+          },
+          {
+            name: 'Extra-legal leave',
+            total: 4, used: 1, pending: 0,
+            policy: 'Up to 2 days carry over until Mar 31, 2027.',
+          },
+          {
+            name: 'Illness carry-over (2024)',
+            total: 4, used: 0, pending: 0,
+            policy: 'Legal carry-over — not counted in plannable balance.',
+            urgent: true, expiry: 'Dec 31, 2026',
+          },
         ];
-        const OTHER_TYPES = [
-          { name: 'Illness carry-over (2024)', remaining: 4, total: 4, expires: 'Must use before Dec 31, 2026', urgent: true },
-        ];
-        const allTypes = [...PLANNABLE_TYPES, ...OTHER_TYPES];
-        const renderRow = (lt, i) => {
-          const pct = lt.total > 0 ? lt.remaining / lt.total : 0;
-          const countColor = pct <= 0.2 ? '#dc2626' : pct <= 0.35 ? '#b45309' : P.ink;
-          return (
-            <div key={lt.name} style={{ padding: '11px 0', borderBottom: i < allTypes.length - 1 ? `1px solid ${P.border}` : 'none' }}>
-              <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8 }}>
-                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 15, color: P.ink }}>{lt.name}</div>
-                <div style={{ fontFamily: 'var(--font-display)', fontSize: 14, flexShrink: 0 }}>
-                  <span style={{ fontWeight: 600, color: countColor }}>{lt.remaining}</span>
-                  <span style={{ color: P.inkSoft, fontWeight: 400 }}> of {lt.total}</span>
-                </div>
-              </div>
-              {lt.expires && (
-                <div style={{ marginTop: 2, fontFamily: 'var(--font-body)', fontSize: 12, color: lt.urgent ? '#b45309' : P.inkSoft }}>{lt.expires}</div>
-              )}
-            </div>
-          );
-        };
+        const hairline = `${window.devicePixelRatio >= 2 ? '0.5px' : '1px'} solid ${P.border}`;
         return (
           <div style={{
             position: 'fixed', inset: 0, zIndex: 9998,
@@ -1376,9 +1382,12 @@ function DesktopTimeOffHub() {
           }} onClick={() => setBreakdownOpen(false)}>
             <div onClick={(e) => e.stopPropagation()} style={{
               background: 'white', borderRadius: 16, padding: 0, maxWidth: 480, width: '90%',
-              boxShadow: '0 20px 60px rgba(0,0,0,0.2)', overflow: 'hidden',
+              maxHeight: '80vh', display: 'flex', flexDirection: 'column',
+              boxShadow: '0 0 0 1px rgba(0,0,0,0.05), 0 4px 12px rgba(0,0,0,0.08), 0 20px 60px rgba(0,0,0,0.18)',
+              overflow: 'hidden',
             }}>
-              <div style={{ padding: '20px 24px 0', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+              {/* Header */}
+              <div style={{ padding: '20px 24px 16px', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', borderBottom: hairline, flexShrink: 0 }}>
                 <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18, color: P.ink }}>Your leave balance 2026</div>
                 <button onClick={() => setBreakdownOpen(false)} aria-label="Close" style={{
                   width: 36, height: 36, borderRadius: 10, border: 'none', background: 'transparent',
@@ -1388,8 +1397,60 @@ function DesktopTimeOffHub() {
                   <LucideIcon name="X" size={22} color={P.ink} strokeWidth={1.75} />
                 </button>
               </div>
-              <div style={{ padding: '8px 24px 24px' }}>
-                {allTypes.map((lt, i) => renderRow(lt, i))}
+              {/* Column headers */}
+              <div style={{
+                display: 'grid', gridTemplateColumns: '1fr 52px 52px 68px',
+                padding: '10px 24px', borderBottom: hairline, flexShrink: 0,
+                background: 'rgba(15,13,40,0.025)',
+              }}>
+                {['Leave type', 'Total', 'Used', 'Available'].map((h, i) => (
+                  <div key={h} style={{
+                    fontFamily: 'var(--font-body)', fontSize: 11, fontWeight: 600,
+                    color: P.inkSoft, letterSpacing: '0.04em', textTransform: 'uppercase',
+                    textAlign: i > 0 ? 'right' : 'left',
+                  }}>{h}</div>
+                ))}
+              </div>
+              {/* Rows */}
+              <div className="hide-scrollbar" style={{ overflowY: 'auto', flex: 1 }}>
+                {LEAVE_TYPES.map((lt, i) => {
+                  const available = lt.total - lt.used - lt.pending;
+                  const pct = lt.total > 0 ? available / lt.total : 0;
+                  const availColor = lt.urgent ? '#b45309' : pct <= 0.15 ? '#dc2626' : P.ink;
+                  return (
+                    <div key={lt.name} style={{
+                      display: 'grid', gridTemplateColumns: '1fr 52px 52px 68px',
+                      padding: '13px 24px', alignItems: 'center',
+                      borderBottom: i < LEAVE_TYPES.length - 1 ? hairline : 'none',
+                    }}>
+                      {/* Name + policy */}
+                      <div style={{ minWidth: 0, paddingRight: 12 }}>
+                        <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.ink, lineHeight: '18px' }}>{lt.name}</div>
+                        {lt.urgent && (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 2 }}>
+                            <LucideIcon name="AlertTriangle" size={11} color="#b45309" strokeWidth={2.5} style={{ flexShrink: 0 }} />
+                            <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, fontWeight: 500, color: '#b45309' }}>Expires {lt.expiry}</span>
+                          </div>
+                        )}
+                        {!lt.urgent && (
+                          <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, marginTop: 2, lineHeight: '16px' }}>{lt.policy}</div>
+                        )}
+                      </div>
+                      {/* Total */}
+                      <div style={{ fontFamily: 'var(--font-display)', fontSize: 14, fontWeight: 500, color: P.inkSoft, fontVariantNumeric: 'tabular-nums', textAlign: 'right' }}>{lt.total}</div>
+                      {/* Used */}
+                      <div style={{ fontFamily: 'var(--font-display)', fontSize: 14, fontWeight: 500, color: P.inkSoft, fontVariantNumeric: 'tabular-nums', textAlign: 'right' }}>{lt.used}</div>
+                      {/* Available */}
+                      <div style={{ fontFamily: 'var(--font-display)', fontSize: 15, fontWeight: 700, color: availColor, fontVariantNumeric: 'tabular-nums', textAlign: 'right' }}>{available}</div>
+                    </div>
+                  );
+                })}
+              </div>
+              {/* Footer note */}
+              <div style={{ padding: '12px 24px', borderTop: hairline, flexShrink: 0, background: 'rgba(15,13,40,0.025)' }}>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft, lineHeight: '17px' }}>
+                  Pending requests are not yet deducted. Contact HR for questions about your entitlements.
+                </div>
               </div>
             </div>
           </div>
@@ -1464,7 +1525,7 @@ function TimeOffHubScreen() {
       <NavBar />
 
       {/* Scrollable content */}
-      <div style={{ flex: 1, padding: isDesktop ? '0 32px 32px' : '0 16px 24px', display: 'flex', flexDirection: 'column', gap: 32 }}>
+      <div style={{ flex: 1, padding: isDesktop ? '24px 32px 32px' : '24px 16px 24px', display: 'flex', flexDirection: 'column', gap: 32 }}>
 
         {/* Balance section */}
         {(() => {
@@ -1500,7 +1561,7 @@ function TimeOffHubScreen() {
                 <div style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 36, letterSpacing: '-0.04em', color: P.ink, lineHeight: '40px' }}>
                   <DigitPopIn value={availableDays} /> days
                 </div>
-                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.inkSoft, marginTop: 2 }}>
+                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.inkSoft, marginTop: 2, fontVariantNumeric: 'tabular-nums' }}>
                   available to book · {total} entitled
                 </div>
               </div>
@@ -1559,6 +1620,7 @@ function TimeOffHubScreen() {
             const sm = item.date.match(/(\d+)\s*[–-]\s*(\d+)/);
             const sdow = (d, m) => _dayNames[new Date(2026, m, d).getDay()];
             const fmt = (d, m) => `${sdow(d, m)} ${d} ${_moNames[m]}`;
+            const fmtShort = (d, m) => `${sdow(d, m)} ${d}`;
             if (cm) {
               const startMo = _moAbbr[cm[1]] ?? mo;
               const endMo   = _moAbbr[cm[3]] ?? mo;
@@ -1566,7 +1628,7 @@ function TimeOffHubScreen() {
               return <>{fmt(startDay, startMo)} {arrow} {fmt(endDay, endMo)}</>;
             } else if (sm) {
               const startDay = parseInt(sm[1]), endDay = parseInt(sm[2]);
-              return <>{fmt(startDay, mo)} {arrow} {fmt(endDay, mo)}</>;
+              return <>{fmtShort(startDay, mo)} {arrow} {fmt(endDay, mo)}</>;
             } else {
               const dm = item.date.match(/(\d+)/);
               if (!dm) return item.date;
@@ -1587,7 +1649,7 @@ function TimeOffHubScreen() {
             return Array.from(map.entries()).map(([month, items]) => ({ month, items }));
           };
 
-          const SectionTitle = ({ label, action, actionAriaLabel }) => (
+          const SectionTitle = ({ label, action, actionAriaLabel, onAction }) => (
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <h2 style={{
                 fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 17,
@@ -1596,18 +1658,19 @@ function TimeOffHubScreen() {
               {action && (
                 <button
                   aria-label={actionAriaLabel || action}
+                  onClick={onAction}
                   style={{
                     appearance: 'none', border: 'none', background: 'transparent',
                     cursor: 'pointer', padding: 0,
-                    fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13,
-                    color: P.ink, textDecoration: 'underline', textUnderlineOffset: 2,
+                    fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 13,
+                    color: P.inkSoft, textDecoration: 'underline', textUnderlineOffset: 2,
                   }}>{action}</button>
               )}
             </div>
           );
 
           const ItemCard = ({ items }) => {
-            const showMonthHeaders = items.length > 2;
+            const showMonthHeaders = true;
             const vPad = '16px 0';
             const iconSize = 40;
             const iconRadius = 12;
@@ -1638,7 +1701,7 @@ function TimeOffHubScreen() {
                         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); nav && nav.push('time-off-detail', { item }); } }}
                         className="pf-pressable"
                         style={{
-                          display: 'flex', alignItems: 'center', gap: 12,
+                          display: 'flex', alignItems: 'flex-start', gap: 14,
                           padding: vPad,
                           cursor: 'pointer',
                         }}>
@@ -1672,7 +1735,7 @@ function TimeOffHubScreen() {
                           )}
                         </div>
                         <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontFamily: 'var(--font-display)', fontSize: 14, lineHeight: '20px' }}>
+                          <div style={{ fontFamily: 'var(--font-display)', fontSize: 14, lineHeight: '20px', fontVariantNumeric: 'tabular-nums' }}>
                             <span style={{ fontWeight: 600, color: P.ink }}>{_formatDate(item)}</span>
                             <span style={{ fontWeight: 400, color: P.inkSoft }}>{' · '}{item.days === 1 ? '1 day' : `${item.days} days`}</span>
                           </div>
@@ -1727,7 +1790,12 @@ function TimeOffHubScreen() {
               )}
               {upcoming.length > 0 && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                  <SectionTitle label="Approved time off" />
+                  <SectionTitle
+                    label="Approved time off"
+                    action={past.length > 0 ? 'History' : undefined}
+                    actionAriaLabel="View leave history"
+                    onAction={() => nav && nav.push('time-off-history')}
+                  />
                   <ItemCard items={upcoming} />
                 </div>
               )}
@@ -1735,31 +1803,17 @@ function TimeOffHubScreen() {
           );
         })()}
 
-        {/* Leave history link */}
-        {past.length > 0 ? (
-          <button
-            aria-label="View leave history"
-            onClick={() => nav && nav.push('time-off-history')}
-            style={{
-              appearance: 'none', border: 'none', background: 'transparent',
-              cursor: 'pointer', padding: 0, alignSelf: 'flex-start',
-              fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14,
-              color: P.inkSoft, textDecoration: 'underline', textUnderlineOffset: 3,
-            }}>Leave history</button>
-        ) : null}
-
       </div>
 
       {/* Sticky CTA — hidden in empty state (inline "plan time off" button replaces it) */}
       <div style={{
         position: 'sticky', bottom: 0,
-        padding: '12px 16px 32px',
-        background: '#F2F2F2',
-        borderTop: `1px solid ${P.border}`,
+        padding: '28px 16px 32px',
+        background: 'linear-gradient(to bottom, transparent, #F2F2F2 20px)',
       }}>
         <Button
           variant="primary" size="large" fullWidth
-          onClick={() => nav && nav.push('request-time-off')}>
+          onClick={() => nav && nav.push('request-time-off', window.__newRequestFlow ? { directToCalendar: true } : undefined)}>
           Request time off
         </Button>
       </div>
@@ -1815,7 +1869,8 @@ function TimeOffHubScreen() {
               role="dialog" aria-modal="true" aria-labelledby="balance-info-title"
               style={{ background: 'white', borderRadius: '20px 20px 0 0', display: 'flex', flexDirection: 'column', maxHeight: '88%',
                 overflow: 'hidden',
-                transform: balanceSheetOpen ? 'translateY(0)' : 'translateY(100%)', transition: 'transform 320ms cubic-bezier(0.32, 0.72, 0, 1)',
+                transform: balanceSheetOpen ? 'translateY(0)' : 'translateY(100%)',
+                transition: balanceSheetOpen ? 'transform 320ms cubic-bezier(0.32, 0.72, 0, 1)' : 'transform 200ms cubic-bezier(0.32, 0, 0.67, 0)',
                 willChange: 'transform', backfaceVisibility: 'hidden' }}
             >
               {/* Sticky header */}
@@ -1849,12 +1904,12 @@ function TimeOffHubScreen() {
                     const pct = lt.total > 0 ? lt.remaining / lt.total : 0;
                     const countColor = pct <= 0.2 ? '#dc2626' : pct <= 0.35 ? '#b45309' : P.ink;
                     return (
-                      <div key={lt.name} style={{ padding: '11px 0', borderBottom: isLast ? 'none' : `1px solid ${P.border}` }}>
+                      <div key={lt.name} style={{ padding: '11px 0', borderBottom: isLast ? 'none' : `${window.devicePixelRatio >= 2 ? '0.5px' : '1px'} solid ${P.border}` }}>
                         <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8 }}>
                           <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 15, color: P.ink }}>
                             {lt.name}
                           </div>
-                          <div style={{ fontFamily: 'var(--font-display)', fontSize: 14, flexShrink: 0, whiteSpace: 'nowrap' }}>
+                          <div style={{ fontFamily: 'var(--font-display)', fontSize: 14, flexShrink: 0, whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>
                             <span style={{ fontWeight: 600, color: countColor }}>{lt.remaining}</span>
                             <span style={{ color: P.inkSoft, fontWeight: 400 }}> of {lt.total}</span>
                           </div>
@@ -1946,6 +2001,7 @@ function TimeOffHistoryScreen() {
     const sm = item.date.match(/(\d+)\s*[–-]\s*(\d+)/);
     const sdow = (d, m) => _dayNames[new Date(2026, m, d).getDay()];
     const fmt = (d, m) => `${sdow(d, m)} ${d} ${_moNames[m]}`;
+    const fmtShort = (d, m) => `${sdow(d, m)} ${d}`;
     if (cm) {
       const startMo = _moAbbr[cm[1]] ?? mo;
       const endMo   = _moAbbr[cm[3]] ?? mo;
@@ -1953,7 +2009,7 @@ function TimeOffHistoryScreen() {
       return <>{fmt(startDay, startMo)} <LucideIcon name="MoveRight" size={13} color="currentColor" strokeWidth={2} style={{display:'inline',verticalAlign:'middle',position:'relative',top:-1}} /> {fmt(endDay, endMo)}</>;
     } else if (sm) {
       const startDay = parseInt(sm[1]), endDay = parseInt(sm[2]);
-      return <>{fmt(startDay, mo)} <LucideIcon name="MoveRight" size={13} color="currentColor" strokeWidth={2} style={{display:'inline',verticalAlign:'middle',position:'relative',top:-1}} /> {fmt(endDay, mo)}</>;
+      return <>{fmtShort(startDay, mo)} <LucideIcon name="MoveRight" size={13} color="currentColor" strokeWidth={2} style={{display:'inline',verticalAlign:'middle',position:'relative',top:-1}} /> {fmt(endDay, mo)}</>;
     } else {
       const dm = item.date.match(/(\d+)/);
       if (!dm) return item.date;
@@ -2031,8 +2087,8 @@ function TimeOffHistoryScreen() {
         style={{
           appearance: 'none', cursor: 'pointer',
           border: `1px solid ${P.border}`, borderRadius: 8,
-          background: 'white', padding: '8px 14px',
-          fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.ink,
+          background: 'white', padding: '5px 10px',
+          fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.ink,
           display: 'inline-flex', alignItems: 'center', gap: 4,
         }}>
         {selectedYear}
@@ -2085,16 +2141,22 @@ function TimeOffHistoryScreen() {
       ) : (
         /* Mobile header */
         <>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 16px', borderBottom: `1px solid ${P.border}`, flexShrink: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px 4px', position: 'relative', flexShrink: 0 }}>
             <button onClick={() => nav && nav.pop()} aria-label="Back"
-              style={{ width: 36, height: 36, borderRadius: 10, border: 'none', background: 'transparent', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
-              <LucideIcon name="ArrowLeft" size={22} color={P.ink} strokeWidth={1.75} />
+              style={{ width: 36, height: 36, borderRadius: 8, background: '#F7F7F8', border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+              <LucideIcon name="ChevronLeft" size={20} color={P.ink} strokeWidth={2} />
             </button>
-            <span style={{ flex: 1, fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18, color: P.ink }}>Leave history</span>
-            {yearPicker}
+            <h1 style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18, color: P.ink, letterSpacing: '-0.003em', pointerEvents: 'none', margin: 0, whiteSpace: 'nowrap' }}>Leave history</h1>
+            <div style={{ width: 36 }} />
           </div>
-          <div style={{ padding: '12px 16px', borderBottom: `1px solid ${P.border}`, flexShrink: 0 }}>
-            <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: P.inkSoft }}>{totalDays} {totalDays === 1 ? 'day' : 'days'} taken in {selectedYear}</span>
+          <div style={{ padding: '16px 16px 20px', borderBottom: `1px solid ${P.border}`, flexShrink: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <h2 style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 17, letterSpacing: '-0.003em', color: P.ink, margin: 0 }}>Approved time off in {selectedYear}</h2>
+              {yearPicker}
+            </div>
+            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 400, fontSize: 13, color: P.inkSoft, marginTop: 4, fontVariantNumeric: 'tabular-nums' }}>
+              {totalDays} {totalDays === 1 ? 'day' : 'days'}
+            </div>
           </div>
         </>
       )}
@@ -2444,7 +2506,7 @@ function MiniCalendar({ month, year, onMonthChange, selectedDates, onDateTap, on
                 style={{
                   width: cellSize, height: cellSize,
                   border, background: btnBg,
-                  borderRadius: (sel && !isMidRange) ? '50%' : 8,
+                  borderRadius: (sel && !isMidRange) || todayMark ? '50%' : 8,
                   cursor: (disabled || existing) ? 'default' : 'pointer',
                   fontFamily: 'var(--font-display)', fontWeight, fontSize: 16, color,
                   display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
@@ -2540,7 +2602,7 @@ function _pushToHR(item) {
 }
 
 // ── Main Request Screen ──
-function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
+function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem, directToCalendar }) {
   const nav = window.useNav ? window.useNav() : null;
   const isDesktop = window.ViewModeContext ? React.useContext(window.ViewModeContext) === 'desktop' : false;
   const modalRef = React.useRef(null);
@@ -2602,6 +2664,8 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
   const [error, setError] = React.useState('');
   const [submitting, setSubmitting] = React.useState(false);
   const [attachments, setAttachments] = React.useState(editItem?._attachments || []);
+  const [attUploading, setAttUploading] = React.useState(null); // { name, size } while animating
+  const [attProgress, setAttProgress] = React.useState(0);
   const [showHoursSheet, setShowHoursSheet] = React.useState(false);
   const [editingRangeDays, setEditingRangeDays] = React.useState(null);
   const [directPerDay, setDirectPerDay] = React.useState(false);
@@ -2611,6 +2675,13 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
   const [showHalfDayTip, setShowHalfDayTip] = React.useState(!editItem);
   const [errorToast, setErrorToast] = React.useState(null);
   const [calToast, setCalToast] = React.useState(null);
+
+  // New flow: open leave-type sheet immediately on mount
+  React.useEffect(() => {
+    if (directToCalendar && !editItem && !prefillReason && !isDesktop) {
+      setShowReasonSheet(true);
+    }
+  }, []);
 
   // Compute contiguous working-day ranges from selectedDates
   const _computeRanges = (dates) => {
@@ -2975,14 +3046,14 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
         {/* Centred content */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: isDesktop ? '48px 32px 0' : '32px 20px 0', textAlign: 'center', maxWidth: isDesktop ? 480 : undefined, alignSelf: 'center', width: '100%', boxSizing: 'border-box' }}>
           <SuccessCheck iconName={iconName} iconColor={iconColor} iconBg={iconBg} />
-          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 22, color: P.ink, marginBottom: 8, animation: 'fadeSlideIn 0.5s ease-out 0.15s both' }}>
+          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 22, color: P.ink, marginBottom: 8, animation: 'fadeSlideIn 0.4s cubic-bezier(0.22, 1, 0.36, 1) 0.12s both' }}>
             {heading}
           </div>
-          <div style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, lineHeight: '20px', marginBottom: personalNote ? 8 : 20, maxWidth: 280, animation: 'fadeSlideIn 0.5s ease-out 0.25s both' }}>
+          <div style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, lineHeight: '20px', marginBottom: personalNote ? 8 : 20, maxWidth: 280, animation: 'fadeSlideIn 0.4s cubic-bezier(0.22, 1, 0.36, 1) 0.2s both' }}>
             {subtext}
           </div>
           {/* Receipt card */}
-          <div style={{ width: '100%', background: 'white', border: `1px solid ${P.border}`, borderRadius: 12, marginTop: 28, marginBottom: 8, overflow: 'hidden', textAlign: 'left', animation: 'fadeSlideIn 0.5s ease-out 0.35s both' }}>
+          <div style={{ width: '100%', background: 'white', border: `1px solid ${P.border}`, borderRadius: 12, marginTop: 28, marginBottom: 8, overflow: 'hidden', textAlign: 'left', animation: 'fadeSlideIn 0.4s cubic-bezier(0.22, 1, 0.36, 1) 0.3s both' }}>
             <div style={{ padding: '10px 16px 6px', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 11, color: P.inkSoft, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
               Submitted
             </div>
@@ -3003,7 +3074,7 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
           </div>
         </div>
         {/* Buttons pinned to bottom */}
-        <div style={{ padding: isDesktop ? '24px 32px 40px' : '16px 20px 40px', display: 'flex', justifyContent: 'center', animation: 'fadeSlideIn 0.5s ease-out 0.45s both', maxWidth: isDesktop ? 480 : undefined, alignSelf: 'center', width: '100%', boxSizing: 'border-box' }}>
+        <div style={{ padding: isDesktop ? '24px 32px 40px' : '16px 20px 40px', display: 'flex', justifyContent: 'center', animation: 'fadeSlideIn 0.4s cubic-bezier(0.22, 1, 0.36, 1) 0.42s both', maxWidth: isDesktop ? 480 : undefined, alignSelf: 'center', width: '100%', boxSizing: 'border-box' }}>
           <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 10 }}>
             <Button variant="primary" size="large" fullWidth onClick={handleDone}>
               Back to time off
@@ -3056,7 +3127,7 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
             <div style={{ borderBottom: `1px solid ${P.border}`, width: '100vw', marginLeft: 'calc((100% - 100vw) / 2)' }} />
           </>
         ) : (
-          <div style={{ display: 'flex', alignItems: 'center', padding: '4px 16px 8px', gap: 8 }}>
+          <div style={{ display: 'flex', alignItems: 'center', padding: '12px 16px 4px', gap: 8 }}>
             <div style={{ width: 36 }} />
             <div style={{ flex: 1, textAlign: 'center', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18, color: P.ink }}>
               {editItem ? 'Edit request' : 'Request time off'}
@@ -3065,8 +3136,8 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
               onClick={() => nav && nav.pop()}
               aria-label="Close"
               style={{
-                width: 36, height: 36, borderRadius: 999,
-                border: `1px solid ${P.border}`, background: 'transparent',
+                width: 36, height: 36, borderRadius: 8,
+                border: 'none', background: P.surface,
                 cursor: 'pointer', padding: 0,
                 display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
               }}>
@@ -3089,8 +3160,9 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
             to   { transform: translateY(0); }
           }
           @media (prefers-reduced-motion: reduce) {
-            @keyframes revealDown  { from { opacity: 0; } to { opacity: 1; } }
+            @keyframes revealDown   { from { opacity: 0; } to { opacity: 1; } }
             @keyframes sheetSlideUp { from { opacity: 0; } to { opacity: 1; } }
+            @keyframes sheetFadeIn  { from { opacity: 0; } to { opacity: 1; } }
           }
           * { scrollbar-width: none; }
           *::-webkit-scrollbar { display: none; }
@@ -3223,7 +3295,7 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
           {isDesktop && leaveReason?.startsWith('special-') && (() => {
             const selectedSpecial = SPECIAL_LEAVE_OPTIONS.find(o => o.id === leaveReason || leaveReason?.startsWith(o.id + '-'));
             return (
-              <div style={{ marginBottom: 24, position: 'relative', animation: 'revealDown 0.25s ease-out both' }}>
+              <div style={{ marginBottom: 24, position: 'relative', animation: 'revealDown 0.25s cubic-bezier(0.22, 1, 0.36, 1) both' }}>
                 <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.inkSoft, marginBottom: 8 }}>
                   Type of special leave <span style={{ color: PFC.errorText }}>*</span>
                 </div>
@@ -3299,7 +3371,7 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
 
           {/* Sub-selector dropdown for wedding / bereavement */}
           {(leaveReason === 'special-wedding' || isWeddingSub || leaveReason === 'special-funeral' || isBereavementSub) && (
-          <div style={{ marginBottom: 8, animation: 'revealDown 0.25s ease-out both' }}>
+          <div style={{ marginBottom: 8, animation: 'revealDown 0.25s cubic-bezier(0.22, 1, 0.36, 1) both' }}>
             <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.inkSoft, marginBottom: 8 }}>
               {(leaveReason === 'special-wedding' || isWeddingSub) ? 'Whose wedding?' : 'What is your relationship to the person?'}
               {' '}<span style={{ color: PFC.errorText }}>*</span>
@@ -3413,8 +3485,8 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
                       </div>
                       {overBalance > 0 && leaveReason === 'timeoff' && <><div style={{ height: 1, background: P.border }} /><div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '16px 22px', background: '#FFF3E5' }}><LucideIcon name="AlertTriangle" size={14} color="#92400e" strokeWidth={2} style={{ flexShrink: 0 }} /><span style={{ fontFamily: 'var(--font-body)', fontSize: 13, fontWeight: 500, color: '#92400e', lineHeight: '18px' }}>Exceeds your balance by {overBalance === 0.5 ? '½' : overBalance} day{overBalance > 1 ? 's' : ''} — {plannableTotal} days available</span></div></>}
                       {overEntitlement > 0 && <><div style={{ height: 1, background: P.border }} /><div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '16px 22px', background: '#fef2f2' }}><LucideIcon name="AlertCircle" size={14} color="#b91c1c" strokeWidth={2} style={{ flexShrink: 0 }} /><span style={{ fontFamily: 'var(--font-body)', fontSize: 13, fontWeight: 500, color: '#b91c1c', lineHeight: '18px' }}>Maximum {entitledDaysLimit} day{entitledDaysLimit > 1 ? 's' : ''} for this leave type — reduce by {overEntitlement} day{overEntitlement > 1 ? 's' : ''} — <button onClick={() => { setSelectedDates(new Set()); setHalfDay(null); }} style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: 0, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: '#b91c1c', textDecoration: 'underline', textUnderlineOffset: 2 }}>Clear</button></span></div></>}
-                      {(() => { const n = _computeRanges(selectedDates).length; return n > 1 && <><div style={{ height: 1, background: 'rgba(15,13,40,0.1)' }} /><div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '14px 22px' }}><LucideIcon name="GitBranch" size={14} color={P.inkSoft} strokeWidth={2} style={{ flexShrink: 0 }} /><span style={{ fontFamily: 'var(--font-body)', fontSize: 13, fontWeight: 500, color: P.inkSoft, lineHeight: '18px' }}>You've picked {n} periods · each becomes its own request</span></div></>; })()}
                     </div>
+                    {(() => { const n = _computeRanges(selectedDates).length; return n > 1 && <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '14px 4px 0' }}><LucideIcon name="Info" size={13} color={P.inkSoft} strokeWidth={2} style={{ flexShrink: 0 }} /><span style={{ fontFamily: 'var(--font-body)', fontSize: 13, fontWeight: 500, color: P.inkSoft, lineHeight: '18px' }}>{n} periods — each becomes its own request</span></div>; })()}
                   </div>
                   </RevealPanel>
                 )}
@@ -3438,13 +3510,13 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
                 </div>
                 {(selectedDates.size > 0 && totalDays > 0) && (
                   <RevealPanel>
-                  <div style={{ position: 'relative', padding: '20px 12px 12px' }}>
+                  <div style={{ position: 'relative', padding: '20px 12px 20px' }}>
                     {showHalfDayTip && !halfDay && (
                       <div onClick={() => openHoursSheet()} className="t-tooltip-pop" style={{
-                        position: 'absolute', top: -32, right: 12,
+                        position: 'absolute', top: -20, right: 12,
                         background: P.ink, color: 'white', borderRadius: 10,
                         padding: '8px 12px', fontFamily: 'var(--font-body)', fontSize: 12, fontWeight: 500,
-                        lineHeight: '16px', cursor: 'pointer', animationDelay: '0.2s',
+                        lineHeight: '16px', cursor: 'pointer', animationDelay: '0.15s',
                         boxShadow: '0 4px 12px rgba(0,0,0,0.15)', whiteSpace: 'nowrap', zIndex: 2,
                       }}>
                         Need half a day?
@@ -3453,9 +3525,16 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
                     )}
                     <div style={{ borderRadius: 10, overflow: 'hidden', background: 'rgba(15,13,40,0.06)' }}>
                       <div style={{ padding: '14px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.ink }}>
-                          {totalDays === 0.5 ? '½ working day' : totalDays === 1 ? '1 working day' : `${totalDays} working days`}
-                          {(() => { const ex = holidays + existingOverlaps + nonWorkingDays; return ex > 0 && <span style={{ fontWeight: 500, color: P.inkSoft, marginLeft: 8 }}>({ex} day{ex > 1 ? 's' : ''} excluded)</span>; })()}
+                        <div>
+                          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.ink }}>
+                            {totalDays === 0.5 ? '½ working day' : totalDays === 1 ? '1 working day' : `${totalDays} working days`}
+                            {(() => { const ex = holidays + existingOverlaps + nonWorkingDays; return ex > 0 && <span style={{ fontWeight: 500, color: P.inkSoft, marginLeft: 8 }}>({ex} day{ex > 1 ? 's' : ''} excluded)</span>; })()}
+                          </div>
+                          {leaveReason === 'timeoff' && totalDays > 0 && overBalance === 0 && (
+                            <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, fontWeight: 500, color: P.inkSoft, lineHeight: '16px', marginTop: 2 }}>
+                              {`${Math.max(0, plannableTotal - totalDays)} days remaining after this`}
+                            </div>
+                          )}
                         </div>
                         <button onClick={() => openHoursSheet()} style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: 0 }}>
                           <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, color: P.ink, textDecoration: 'underline', textUnderlineOffset: 2 }}>Edit selection</span>
@@ -3463,9 +3542,8 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
                       </div>
                       {overBalance > 0 && leaveReason === 'timeoff' && <><div style={{ height: 1, background: P.border }} /><div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 16px', background: '#FFF3E5' }}><LucideIcon name="AlertTriangle" size={14} color="#92400e" strokeWidth={2} style={{ flexShrink: 0 }} /><span style={{ fontFamily: 'var(--font-body)', fontSize: 12, fontWeight: 500, color: '#92400e', lineHeight: '16px' }}>Exceeds your balance by {overBalance === 0.5 ? '½' : overBalance} day{overBalance > 1 ? 's' : ''} — {plannableTotal} days available</span></div></>}
                       {overEntitlement > 0 && <><div style={{ height: 1, background: P.border }} /><div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 16px', background: '#fef2f2' }}><LucideIcon name="AlertCircle" size={14} color="#b91c1c" strokeWidth={2} style={{ flexShrink: 0 }} /><span style={{ fontFamily: 'var(--font-body)', fontSize: 12, fontWeight: 500, color: '#b91c1c', lineHeight: '16px' }}>Maximum {entitledDaysLimit} day{entitledDaysLimit > 1 ? 's' : ''} for this leave type — reduce by {overEntitlement} day{overEntitlement > 1 ? 's' : ''} — <button onClick={() => { setSelectedDates(new Set()); setHalfDay(null); }} style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: 0, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, color: '#b91c1c', textDecoration: 'underline', textUnderlineOffset: 2 }}>Clear</button></span></div></>}
-                      {leaveReason === 'timeoff' && totalDays > 0 && overBalance === 0 && <><div style={{ height: 1, background: 'rgba(15,13,40,0.1)' }} /><div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 16px' }}><span style={{ fontFamily: 'var(--font-body)', fontSize: 12, fontWeight: 500, color: P.inkSoft, lineHeight: '16px' }}>{`${Math.max(0, plannableTotal - totalDays)} days remaining after this`}</span></div></>}
-                      {(() => { const n = _computeRanges(selectedDates).length; return n > 1 && <><div style={{ height: 1, background: 'rgba(15,13,40,0.1)' }} /><div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 16px' }}><LucideIcon name="GitBranch" size={14} color={P.inkSoft} strokeWidth={2} style={{ flexShrink: 0 }} /><span style={{ fontFamily: 'var(--font-body)', fontSize: 12, fontWeight: 500, color: P.inkSoft, lineHeight: '16px' }}>You've picked {n} periods · each becomes its own request</span></div></>; })()}
                     </div>
+                    {(() => { const n = _computeRanges(selectedDates).length; return n > 1 && <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '14px 4px 0' }}><LucideIcon name="Info" size={13} color={P.inkSoft} strokeWidth={2} style={{ flexShrink: 0 }} /><span style={{ fontFamily: 'var(--font-body)', fontSize: 12, fontWeight: 500, color: P.inkSoft, lineHeight: '16px' }}>{n} periods — each becomes its own request</span></div>; })()}
                   </div>
                   </RevealPanel>
                 )}
@@ -3476,7 +3554,7 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
                 position: 'absolute', bottom: 8, left: '50%', transform: 'translateX(-50%)',
                 background: P.ink, color: '#fff', padding: '6px 14px', borderRadius: 8,
                 fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 12,
-                whiteSpace: 'nowrap', animation: 'fadeSlideIn 0.2s ease-out',
+                whiteSpace: 'nowrap', animation: 'fadeSlideIn 0.2s cubic-bezier(0.22, 1, 0.36, 1)',
                 zIndex: 10, boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
                 pointerEvents: 'none',
               }}>{calToast}</div>
@@ -3501,7 +3579,7 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
           {/* Overlap info banner for sick leave during existing time off */}
           {hasDates && sickOverlap && (
           <div key="sick-overlap-banner" style={{
-            animation: 'revealDown 0.35s ease-out both',
+            animation: 'revealDown 0.35s cubic-bezier(0.22, 1, 0.36, 1) both',
             margin: '0 0 16px',
             background: '#eff6ff',
             border: '1px solid #bfdbfe',
@@ -3534,7 +3612,7 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
 
           {/* Progressive disclosure: Note & Attachments appear once dates are selected (skip when editing) */}
           {(editItem || hasDates) && (
-          <div key="note-attach" style={editItem ? {} : { animation: 'revealDown 0.35s ease-out both' }}>
+          <div key="note-attach" style={editItem ? {} : { animation: 'revealDown 0.35s cubic-bezier(0.22, 1, 0.36, 1) both' }}>
 
           {/* Note — hidden for plain time off */}
           {leaveReason !== 'timeoff' && <div style={{ marginBottom: 24 }}>
@@ -3567,9 +3645,72 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
                 : <span style={{ fontWeight: 400 }}>(optional)</span>}
             </div>
 
+            {/* Upload button */}
+            {!attUploading && <button
+              onClick={() => {
+                const fakeFiles = [
+                  { name: 'medical_certificate.pdf', size: '245 KB' },
+                  { name: 'wedding_invitation.pdf', size: '1.2 MB' },
+                  { name: 'jury_summons.pdf', size: '128 KB' },
+                ];
+                const next = fakeFiles[attachments.length % fakeFiles.length];
+                setAttUploading(next);
+                setAttProgress(0);
+                [[80,5],[400,22],[800,42],[1200,60],[1600,76],[2000,85],[2300,100]].forEach(([d,p]) => setTimeout(() => setAttProgress(p), d));
+                setTimeout(() => { setAttachments(prev => [...prev, next]); setAttUploading(null); setAttProgress(0); }, 2600);
+              }}
+              style={{
+                width: '100%', padding: '16px 14px',
+                border: `1.5px dashed ${errorToast && requiresAttachment && attachments.length === 0 ? PFC.errorText : P.border}`, borderRadius: 12,
+                background: errorToast && requiresAttachment && attachments.length === 0 ? PFC.errorBg : '#fafafa', cursor: 'pointer',
+                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
+                transition: 'border-color 0.3s, background 0.3s',
+                marginBottom: (attachments.length > 0 || attUploading) ? 8 : 0,
+              }}
+            >
+              <LucideIcon name="Upload" size={28} color={errorToast && requiresAttachment && attachments.length === 0 ? PFC.errorText : P.ink} strokeWidth={1.75} />
+              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: errorToast && requiresAttachment && attachments.length === 0 ? PFC.errorText : P.ink }}>
+                Choose file to upload
+              </span>
+              <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>Max 6 files · Up to 5MB</span>
+            </button>}
+
+            {/* Inline validation error */}
+            {errorToast && requiresAttachment && attachments.length === 0 && !attUploading && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 6 }}>
+                <LucideIcon name="AlertCircle" size={14} color={PFC.errorText} strokeWidth={2} />
+                <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: PFC.errorText, lineHeight: '18px' }}>
+                  Medical certificate required
+                </span>
+              </div>
+            )}
+
+            {/* Uploading progress card */}
+            {attUploading && (
+              <div className="doc-file-card-in" style={{ background: P.surface, border: `1px solid ${P.border}`, borderRadius: 12, marginBottom: 8, overflow: 'hidden' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px' }}>
+                  <div style={{ width: 40, height: 40, borderRadius: 8, background: '#f0f0f2', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <LucideIcon name="FileText" size={20} color={P.inkSoft} strokeWidth={1.5} />
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.ink, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{attUploading.name}</div>
+                    <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>{attUploading.size}</div>
+                  </div>
+                </div>
+                <div style={{ padding: '0 14px 12px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 4 }}>
+                    <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, fontWeight: 500, color: P.inkSoft }}>{attProgress}%</span>
+                  </div>
+                  <div style={{ height: 3, background: P.border, borderRadius: 99, overflow: 'hidden' }}>
+                    <div style={{ height: '100%', background: P.ink, borderRadius: 99, width: `${attProgress}%`, transition: attProgress === 0 ? 'none' : attProgress === 100 ? 'width 150ms linear' : 'width 500ms ease-out' }} />
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Uploaded files list */}
             {attachments.length > 0 && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 8 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {attachments.map((file, i) => (
                   <div key={i} style={{
                     display: 'flex', alignItems: 'center', gap: 8,
@@ -3592,32 +3733,6 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
                 ))}
               </div>
             )}
-
-            {/* Upload button */}
-            <button
-              onClick={() => {
-                // Prototype: simulate file upload
-                const fakeFiles = [
-                  { name: 'medical_certificate.pdf', size: '245 KB' },
-                  { name: 'wedding_invitation.pdf', size: '1.2 MB' },
-                  { name: 'jury_summons.pdf', size: '128 KB' },
-                ];
-                const next = fakeFiles[attachments.length % fakeFiles.length];
-                setAttachments(prev => [...prev, next]);
-              }}
-              style={{
-                width: '100%', padding: '14px',
-                border: `1.5px dashed ${errorToast && requiresAttachment && attachments.length === 0 ? PFC.errorText : P.border}`, borderRadius: 12,
-                background: errorToast && requiresAttachment && attachments.length === 0 ? PFC.errorBg : '#fff', cursor: 'pointer',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                transition: 'border-color 0.3s, background 0.3s',
-              }}
-            >
-              <LucideIcon name="Upload" size={18} color={errorToast && requiresAttachment && attachments.length === 0 ? PFC.errorText : P.inkSoft} strokeWidth={1.75} />
-              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: errorToast && requiresAttachment && attachments.length === 0 ? PFC.errorText : P.inkSoft }}>
-                Upload document
-              </span>
-            </button>
           </div>}
 
           </div>
@@ -3653,43 +3768,22 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
 
         {/* Sticky CTA — mobile only */}
         {!isDesktop && (editItem || (leaveReason && leaveReason !== 'special-' && leaveReason !== 'special-wedding' && leaveReason !== 'special-funeral')) && (
-        <div style={{ position: 'sticky', bottom: 0, padding: '12px 16px 32px', background: 'white', borderTop: `1px solid ${P.border}`, ...(editItem ? {} : { animation: 'revealDown 0.35s ease-out 0.1s both' }) }}>
+        <div style={{ position: 'sticky', bottom: 0, padding: '28px 16px 32px', background: 'linear-gradient(to bottom, transparent, white 20px)', ...(editItem ? {} : { animation: 'revealDown 0.35s cubic-bezier(0.22, 1, 0.36, 1) 0.1s both' }) }}>
           <Button variant="primary" size="large" fullWidth disabled={!canSubmit} onClick={handleSubmit}>
             {submitting ? (editItem ? 'Updating…' : 'Submitting…') : (editItem ? 'Update request' : 'Submit request')}
           </Button>
         </div>
         )}
 
-        {/* Error toast */}
-        {errorToast && appShell && ReactDOM.createPortal(
-          <div
-            role="alert" aria-live="assertive"
-            style={{
-              position: 'absolute', top: 70, left: '50%', transform: 'translateX(-50%)',
-              zIndex: 500, whiteSpace: 'nowrap',
-              background: PFC.errorText, color: 'white',
-              borderRadius: 12, padding: '10px 18px',
-              fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14,
-              boxShadow: '0 4px 24px rgba(0,0,0,0.18)',
-              display: 'inline-flex', alignItems: 'center', gap: 8,
-              animation: 'fadeSlideIn 0.3s ease-out both',
-            }}>
-            <LucideIcon name="AlertCircle" size={16} color="white" strokeWidth={2} />
-            {errorToast}
-          </div>,
-          appShell
-        )}
-
-
         {/* Leave reason bottom sheet (mobile only) */}
         {!isDesktop && showReasonSheet && appShell && ReactDOM.createPortal(
           <div
             onClick={() => setShowReasonSheet(false)}
-            style={{ position: 'absolute', inset: 0, zIndex: 400, background: 'rgba(15,13,40,0.45)', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', animation: 'sheetFadeIn 0.2s ease-out' }}
+            style={{ position: 'absolute', inset: 0, zIndex: 400, background: 'rgba(15,13,40,0.45)', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', animation: 'sheetFadeIn 0.15s cubic-bezier(0.22, 1, 0.36, 1)' }}
           >
             <div
               onClick={(e) => e.stopPropagation()}
-              style={{ background: 'white', borderRadius: '20px 20px 0 0', animation: 'sheetSlideUp 0.25s ease-out' }}
+              style={{ background: 'white', borderRadius: '20px 20px 0 0', animation: 'sheetSlideUp 0.3s cubic-bezier(0.32, 0.72, 0, 1)' }}
             >
               <div style={{ padding: '20px 24px 12px' }}>
                 <div aria-hidden="true" style={{ width: 36, height: 4, borderRadius: 2, background: P.border, margin: '0 auto 16px' }} />
@@ -3754,11 +3848,11 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
         {!isDesktop && showSpecialSheet && appShell && ReactDOM.createPortal(
           <div
             onClick={() => setShowSpecialSheet(false)}
-            style={{ position: 'absolute', inset: 0, zIndex: 400, background: 'rgba(15,13,40,0.45)', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', animation: 'sheetFadeIn 0.2s ease-out' }}
+            style={{ position: 'absolute', inset: 0, zIndex: 400, background: 'rgba(15,13,40,0.45)', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', animation: 'sheetFadeIn 0.15s cubic-bezier(0.22, 1, 0.36, 1)' }}
           >
             <div
               onClick={(e) => e.stopPropagation()}
-              style={{ background: 'white', borderRadius: '20px 20px 0 0', animation: 'sheetSlideUp 0.25s ease-out' }}
+              style={{ background: 'white', borderRadius: '20px 20px 0 0', animation: 'sheetSlideUp 0.3s cubic-bezier(0.32, 0.72, 0, 1)' }}
             >
               <div style={{ padding: '20px 24px 12px' }}>
                 <div aria-hidden="true" style={{ width: 36, height: 4, borderRadius: 2, background: P.border, margin: '0 auto 16px' }} />
@@ -3816,11 +3910,11 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
         {!isDesktop && showSubSheet && appShell && ReactDOM.createPortal(
           <div
             onClick={() => setShowSubSheet(false)}
-            style={{ position: 'absolute', inset: 0, zIndex: 400, background: 'rgba(15,13,40,0.45)', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', animation: 'sheetFadeIn 0.2s ease-out' }}
+            style={{ position: 'absolute', inset: 0, zIndex: 400, background: 'rgba(15,13,40,0.45)', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', animation: 'sheetFadeIn 0.15s cubic-bezier(0.22, 1, 0.36, 1)' }}
           >
             <div
               onClick={(e) => e.stopPropagation()}
-              style={{ background: 'white', borderRadius: '20px 20px 0 0', animation: 'sheetSlideUp 0.25s ease-out' }}
+              style={{ background: 'white', borderRadius: '20px 20px 0 0', animation: 'sheetSlideUp 0.3s cubic-bezier(0.32, 0.72, 0, 1)' }}
             >
               <div style={{ padding: '20px 24px 12px' }}>
                 <div aria-hidden="true" style={{ width: 36, height: 4, borderRadius: 2, background: P.border, margin: '0 auto 16px' }} />
@@ -4088,7 +4182,7 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
             </div>
           ) : (
             /* Mobile: full-screen overlay with bottom sheet for per-day detail */
-            <div style={{ position: 'absolute', inset: 0, zIndex: 400, background: directPerDay ? 'rgba(0,0,0,0.3)' : 'white', display: 'flex', flexDirection: 'column', animation: directPerDay ? 'none' : 'revealDown 0.25s ease-out both' }}>
+            <div style={{ position: 'absolute', inset: 0, zIndex: 400, background: directPerDay ? 'rgba(0,0,0,0.3)' : 'white', display: 'flex', flexDirection: 'column', animation: directPerDay ? 'none' : 'revealDown 0.25s cubic-bezier(0.22, 1, 0.36, 1) both' }}>
               {/* Header — hidden in direct per-day mode */}
               {!directPerDay && <div style={{ padding: '58px 16px 8px', flexShrink: 0 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -4115,7 +4209,7 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
                 {listItems}
               </div>}
               {/* Done button */}
-              {!directPerDay && <div style={{ padding: '12px 16px 32px', background: 'white', borderTop: `1px solid ${P.border}`, flexShrink: 0, position: 'sticky', bottom: 0 }}>
+              {!directPerDay && <div style={{ padding: '28px 16px 32px', background: 'linear-gradient(to bottom, transparent, white 20px)', flexShrink: 0, position: 'sticky', bottom: 0 }}>
                 <Button variant="primary" size="large" fullWidth onClick={() => setShowHoursSheet(false)}>
                   Done
                 </Button>
@@ -4147,7 +4241,7 @@ function RequestTimeOffScreen({ editItem, prefillReason, replaceDeniedItem }) {
                     position: 'absolute', bottom: 0, left: 0, right: 0,
                     background: 'white', borderRadius: '20px 20px 0 0',
                     boxShadow: '0 -8px 30px rgba(0,0,0,0.12)',
-                    zIndex: 410, animation: 'revealDown 0.2s ease-out both',
+                    zIndex: 410, animation: 'revealDown 0.2s cubic-bezier(0.22, 1, 0.36, 1) both',
                     maxHeight: '70%', display: 'flex', flexDirection: 'column',
                   }}>
                     <div style={{ padding: '20px 20px 8px', flexShrink: 0 }}>
@@ -4271,10 +4365,10 @@ function AbsenceTypeScreen() {
         <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 28, lineHeight: '36px', letterSpacing: '-0.04em', color: P.ink }}>What type of leave?</span>
 
         <div>
-          {rows.map(({ iconName, title, subtitle, onClick }) => (
+          {rows.map(({ iconName, title, subtitle, onClick }, i) => (
             <button key={title} onClick={onClick} style={{
               width: '100%', appearance: 'none', background: 'transparent',
-              border: 'none', borderBottom: `1px solid #e3e2e7`,
+              border: 'none', borderBottom: i < rows.length - 1 ? `1px solid #e3e2e7` : 'none',
               padding: '16px 0', cursor: 'pointer', textAlign: 'left',
               display: 'flex', alignItems: 'center', gap: 16,
             }}>
@@ -4372,6 +4466,8 @@ function TimeOffDetailScreen({ item, onClose }) {
       setDocStep(null);
       setDocFile(null);
       setDocFinalizing(false);
+      setShowDocSheet(false);
+      setDocSheetAnim('');
       doClose();
       setTimeout(() => { window.__refreshTimeOff && window.__refreshTimeOff(); window.__showTimeOffToast && window.__showTimeOffToast('Document uploaded'); }, 50);
     }, 1200);
@@ -4519,8 +4615,8 @@ function TimeOffDetailScreen({ item, onClose }) {
             </div>
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '32px 24px', textAlign: 'center' }}>
               <SuccessCheck iconName="CircleCheck" iconColor={PFC.successText} iconBg={PFC.successBg} />
-              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 20, color: P.ink, marginBottom: 8, animation: 'fadeSlideIn 0.5s ease-out 0.15s both' }}>Illness reported</div>
-              <div style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, lineHeight: '20px', maxWidth: 280, animation: 'fadeSlideIn 0.5s ease-out 0.25s both' }}>
+              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 20, color: P.ink, marginBottom: 8, animation: 'fadeSlideIn 0.4s cubic-bezier(0.22, 1, 0.36, 1) 0.12s both' }}>Illness reported</div>
+              <div style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, lineHeight: '20px', maxWidth: 280, animation: 'fadeSlideIn 0.4s cubic-bezier(0.22, 1, 0.36, 1) 0.2s both' }}>
                 {illnessSelectedDays.size} sick day{illnessSelectedDays.size !== 1 ? 's' : ''} {illnessSelectedDays.size !== 1 ? 'have' : 'has'} been submitted for HR review and will be converted back to vacation once approved.
               </div>
             </div>
@@ -4647,8 +4743,8 @@ function TimeOffDetailScreen({ item, onClose }) {
           </div>
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '32px 24px', textAlign: 'center' }}>
             <SuccessCheck iconName="CircleCheck" iconColor={PFC.successText} iconBg={PFC.successBg} />
-            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 20, color: P.ink, marginBottom: 8, animation: 'fadeSlideIn 0.5s ease-out 0.15s both' }}>Document submitted</div>
-            <div style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, lineHeight: '20px', maxWidth: 280, animation: 'fadeSlideIn 0.5s ease-out 0.25s both' }}>
+            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 20, color: P.ink, marginBottom: 8, animation: 'fadeSlideIn 0.4s cubic-bezier(0.22, 1, 0.36, 1) 0.12s both' }}>Document submitted</div>
+            <div style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, lineHeight: '20px', maxWidth: 280, animation: 'fadeSlideIn 0.4s cubic-bezier(0.22, 1, 0.36, 1) 0.2s both' }}>
               Your document has been sent to HR and attached to this leave request.
             </div>
           </div>
@@ -4719,7 +4815,7 @@ function TimeOffDetailScreen({ item, onClose }) {
             ) : (
               <button onClick={() => _startFileUpload(_docFilePool[(docs.length) % _docFilePool.length])} style={{ width: '100%', padding: '16px 14px', border: `1.5px dashed ${P.border}`, borderRadius: 12, background: '#fafafa', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, marginBottom: 8 }}>
                 <LucideIcon name="Upload" size={28} color={P.ink} strokeWidth={1.75} />
-                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.ink }}>Drag & Drop or Choose file to upload</span>
+                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.ink }}>Choose file to upload</span>
                 <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>Max 6 files · Up to 5MB</span>
               </button>
             )}
@@ -4926,7 +5022,7 @@ function TimeOffDetailScreen({ item, onClose }) {
           <div style={{ borderTop: `1px solid ${P.border}` }} />
 
           {/* Action buttons */}
-          {!item._adminRecorded && (item.status === 'denied' || !isPastItem) && (
+          {!item._adminRecorded && (item.status === 'denied' || item.status === 'pending' || !isPastItem) && (
             <div style={{ padding: '12px 24px 20px', display: 'flex', flexDirection: 'row', gap: 8 }}>
               {item.status === 'denied' ? (
                 <Button variant="primary" size="large" fullWidth onClick={() => {
@@ -4989,7 +5085,7 @@ function TimeOffDetailScreen({ item, onClose }) {
         {/* Centered nav bar */}
         <div style={{
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          padding: '4px 16px 8px', position: 'relative',
+          padding: '12px 16px 4px', position: 'relative',
         }}>
           <IconBtn name="ChevronLeft" onClick={() => doClose()} ariaLabel="Back" size={36} color={P.ink} />
           <h1 style={{
@@ -5134,8 +5230,8 @@ function TimeOffDetailScreen({ item, onClose }) {
                     >
                       <span style={labelStyle}>Document</span>
                       {docs.length === 0 ? (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                          <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.ink, textDecoration: 'underline', textUnderlineOffset: 3 }}>Not uploaded</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, color: '#b45309', background: '#fff7ed', borderRadius: 20, padding: '3px 10px', whiteSpace: 'nowrap' }}>Upload document</span>
                           <LucideIcon name="ChevronRight" size={14} color={P.inkSoft} strokeWidth={2} />
                         </div>
                       ) : (
@@ -5157,18 +5253,8 @@ function TimeOffDetailScreen({ item, onClose }) {
                               <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14, color: P.ink, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{file.name}</div>
                               <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>{file.size}</div>
                             </div>
-                            <button
-                              onClick={() => _removeDoc(i)}
-                              aria-label="Remove document"
-                              style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: 4, display: 'inline-flex' }}
-                            >
-                              <LucideIcon name="X" size={16} color={P.inkSoft} strokeWidth={2} />
-                            </button>
                           </div>
                         ))}
-                        <Button variant="secondary" icon="Upload" fullWidth onClick={_startDocForm}>
-                          Add another
-                        </Button>
                       </div>
                     )}
                   </div>
@@ -5244,8 +5330,8 @@ function TimeOffDetailScreen({ item, onClose }) {
 
         </div>
 
-        {/* Bottom CTAs — hidden for admin-recorded items and past leaves */}
-        {!item._adminRecorded && (item.status === 'denied' || !isPastItem) && (
+        {/* Bottom CTAs — hidden for admin-recorded items and past approved leaves */}
+        {!item._adminRecorded && (item.status === 'denied' || item.status === 'pending' || !isPastItem) && (
           item.status === 'denied' ? (
             <div style={{ padding: '16px 24px 40px', borderTop: `1px solid ${P.border}`, background: 'white' }}>
               {(() => {
@@ -5287,7 +5373,7 @@ function TimeOffDetailScreen({ item, onClose }) {
             background: P.ink, color: '#fff', padding: '10px 20px', borderRadius: 12,
             fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14,
             zIndex: 9999, boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-            animation: 'fadeSlideIn 0.25s ease-out',
+            animation: 'fadeSlideIn 0.25s cubic-bezier(0.22, 1, 0.36, 1)',
             display: 'flex', alignItems: 'center', gap: 8,
           }}>
             <LucideIcon name="Check" size={16} color="#fff" strokeWidth={2.5} />
@@ -5552,7 +5638,7 @@ function TimeOffDetailScreen({ item, onClose }) {
               ) : (
                 <>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 20px', borderBottom: `1px solid ${P.border}`, flexShrink: 0 }}>
-                    <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18, color: P.ink }}>Documents</div>
+                    <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18, color: P.ink }}>Upload document</div>
                     <button onClick={() => { if (docSubmitting) return; _closeDocSheet(); }} style={{ width: 32, height: 32, borderRadius: 8, background: P.surface, border: 'none', cursor: docSubmitting ? 'default' : 'pointer', opacity: docSubmitting ? 0.35 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       <LucideIcon name="X" size={18} color={P.ink} strokeWidth={2} />
                     </button>
@@ -5606,14 +5692,14 @@ function TimeOffDetailScreen({ item, onClose }) {
                     ) : (
                       <button onClick={() => _startFileUpload(_docFilePool[(docs.length) % _docFilePool.length])} style={{ width: '100%', padding: '16px 14px', border: `1.5px dashed ${P.border}`, borderRadius: 12, background: '#fafafa', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
                         <LucideIcon name="Upload" size={28} color={P.ink} strokeWidth={1.75} />
-                        <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.ink }}>Drag & Drop or Choose file to upload</span>
+                        <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, color: P.ink }}>Choose file to upload</span>
                         <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>Max 6 files · Up to 5MB</span>
                       </button>
                     )}
                   </div>
                   <div style={{ padding: '14px 24px 40px', borderTop: `1px solid ${P.border}`, flexShrink: 0 }}>
                     <Button variant="primary" size="large" fullWidth disabled={!docFile || docSubmitting} onClick={() => _submitDoc()}>
-                      {docSubmitting ? 'Uploading…' : 'Submit document'}
+                      {docSubmitting ? 'Uploading…' : 'Submit'}
                     </Button>
                   </div>
                 </>
@@ -5780,10 +5866,10 @@ function ReportIllnessScreen({ sourceItem }) {
         {isDesktop ? _desktopHeader : <NavBar title="Report illness" />}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: isDesktop ? '48px 32px 0' : '16px 16px 0', textAlign: 'center' }}>
           <SuccessCheck iconName="CircleCheck" iconColor={PFC.successText} iconBg={PFC.successBg} />
-          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 22, color: P.ink, marginBottom: 8, animation: 'fadeSlideIn 0.5s ease-out 0.15s both' }}>
+          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 22, color: P.ink, marginBottom: 8, animation: 'fadeSlideIn 0.4s cubic-bezier(0.22, 1, 0.36, 1) 0.12s both' }}>
             Illness reported
           </div>
-          <div style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, lineHeight: '20px', maxWidth: 280, animation: 'fadeSlideIn 0.5s ease-out 0.25s both' }}>
+          <div style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: P.inkSoft, lineHeight: '20px', maxWidth: 280, animation: 'fadeSlideIn 0.4s cubic-bezier(0.22, 1, 0.36, 1) 0.2s both' }}>
             {selectedDays.size} sick day{selectedDays.size > 1 ? 's' : ''} {selectedDays.size > 1 ? 'have' : 'has'} been submitted for HR review. {selectedDays.size > 1 ? 'Those days' : 'That day'} will be converted back to vacation once approved.
           </div>
         </div>
@@ -5999,6 +6085,16 @@ function ReportIllnessScreen({ sourceItem }) {
             <LucideIcon name="Upload" size={16} color={errorToast ? PFC.errorText : P.inkSoft} />
             Upload certificate
           </button>
+
+          {/* Inline validation error */}
+          {errorToast && attachments.length === 0 && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 6 }}>
+              <LucideIcon name="AlertCircle" size={14} color={PFC.errorText} strokeWidth={2} />
+              <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: PFC.errorText, lineHeight: '18px' }}>
+                Medical certificate required
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Info note — mobile only; desktop shows this in the page header */}
@@ -6044,21 +6140,6 @@ function ReportIllnessScreen({ sourceItem }) {
         </div>
       )}
 
-      {/* Error toast */}
-      {errorToast && appShell && ReactDOM.createPortal(
-        <div role="alert" style={{
-          position: 'absolute', top: 70, left: '50%', transform: 'translateX(-50%)',
-          zIndex: 500, background: PFC.errorText, color: 'white', borderRadius: 12,
-          padding: '10px 18px', display: 'flex', alignItems: 'center', gap: 8,
-          fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14,
-          boxShadow: '0 4px 20px rgba(0,0,0,0.15)', whiteSpace: 'nowrap',
-          animation: 'popIn 0.25s cubic-bezier(0.34,1.56,0.64,1) both',
-        }}>
-          <LucideIcon name="AlertCircle" size={16} color="white" />
-          {errorToast}
-        </div>,
-        appShell
-      )}
     </div>
   );
 }

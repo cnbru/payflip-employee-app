@@ -578,19 +578,33 @@ function ModalBody({ children, gap = 'var(--space-250)' }) {
 // drawer. Owns the backdrop, panel, and pinned header (title, optional back
 // button for two-step flows, close button); body is supplied as children,
 // either a plain node or a function receiving `close`. See CLAUDE.md.
-function DrawerShell({ onClose, title, onBack, width = 480, children }) {
+function DrawerShell({ onClose, title, subtitle, headerMeta, onBack, width = 480, children, footer }) {
   const { visible, close, closing } = useModalTransition(onClose, SHEET_CLOSE_DUR);
+  const hasSupportingHeaderContent = subtitle || headerMeta;
   return (
     <div onClick={close} style={{ position: 'fixed', inset: 0, zIndex: 200, background: 'rgba(15,13,40,0.25)', ...modalBackdropStyle(visible) }}>
       <div onClick={e => e.stopPropagation()} style={{ position: 'absolute', top: 16, bottom: 16, right: 16, width, background: P.white, borderRadius: 20, boxShadow: '0 24px 64px rgba(15,13,40,0.22), 0 0 0 1px rgba(15,13,40,0.06)', display: 'flex', flexDirection: 'column', overflow: 'hidden', ...sheetPanelStyle(visible, closing) }}>
-        <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: 'var(--space-250) var(--space-300)', borderBottom: `1px solid ${P.border}` }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-125)' }}>
-            {onBack && <IconButton icon="arrow-left" onClick={onBack} />}
-            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-lg)', color: P.ink }}>{title}</span>
+        <div style={{ flexShrink: 0, display: 'flex', alignItems: hasSupportingHeaderContent ? 'flex-start' : 'center', justifyContent: 'space-between', padding: 'var(--space-250) var(--space-300)', borderBottom: `1px solid ${P.border}` }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 'var(--space-125)', flex: 1, minWidth: 0 }}>
+            {onBack && <div style={{ flexShrink: 0, marginTop: hasSupportingHeaderContent ? 2 : 0 }}><IconButton icon="arrow-left" onClick={onBack} /></div>}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-lg)', color: P.ink }}>{title}</span>
+              {headerMeta || (subtitle && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                  <Icon name="calendar" size={11} color={P.inkSoft} />
+                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: P.inkSoft }}>{subtitle}</span>
+                </div>
+              ))}
+            </div>
           </div>
-          <IconButton icon="X" onClick={close} blur />
+          <div style={{ flexShrink: 0, marginTop: hasSupportingHeaderContent ? 2 : 0 }}><IconButton icon="X" onClick={close} blur /></div>
         </div>
         {typeof children === 'function' ? children(close) : children}
+        {footer && (
+          <div style={{ flexShrink: 0, padding: 'var(--space-200) var(--space-300)', borderTop: `1px solid ${P.border}` }}>
+            {typeof footer === 'function' ? footer(close) : footer}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -1574,20 +1588,22 @@ function StatusPill({ status }) {
 }
 
 // ── Sidebar ────────────────────────────────────────────────────────────────
-function SidebarItem({ icon, label, isActive, onClick, badgeDot, chevron, chevronOpen, disabled }) {
+function SidebarItem({ icon, label, isActive, onClick, badgeDot, chevron, chevronOpen, disabled, accentColor }) {
+  const fgColor = accentColor ?? (disabled ? P.inkFaint : isActive ? P.ink : P.inkSoft);
+  const bg = accentColor ? (isActive ? `${accentColor}18` : `${accentColor}0d`) : (isActive ? P.bg : 'transparent');
   return (
     <button onClick={disabled ? undefined : onClick} style={{
       display: 'flex', alignItems: 'center', gap: 'var(--space-100)',
       padding: 'var(--space-100) var(--space-250)', borderRadius: 0,
-      border: 'none', background: isActive ? P.bg : 'transparent',
+      border: 'none', background: bg,
       cursor: disabled ? 'default' : 'pointer', width: '100%', textAlign: 'left',
       transition: `background 120ms ${EASE_OUT}`,
     }}>
-      {icon && <Icon name={icon} size={14} color={disabled ? P.inkFaint : isActive ? P.ink : P.inkSoft} strokeWidth={1.75} />}
-      <span style={{ fontFamily: 'var(--font-display)', fontWeight: isActive ? 700 : 500, fontSize: 'var(--fs-body-sm)', color: disabled ? P.inkFaint : isActive ? P.ink : P.inkSoft, flex: 1 }}>
+      {icon && <Icon name={icon} size={14} color={fgColor} strokeWidth={1.75} />}
+      <span style={{ fontFamily: 'var(--font-display)', fontWeight: isActive ? 700 : 500, fontSize: 'var(--fs-body-sm)', color: fgColor, flex: 1 }}>
         {label}
       </span>
-      {badgeDot && <span style={{ color: P.inkSoft, fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-xs)' }}>{typeof badgeDot === 'number' ? badgeDot : '!'}</span>}
+      {badgeDot && <span style={{ color: accentColor ?? P.inkSoft, fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-xs)' }}>{badgeDot}</span>}
       {chevron && (
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={P.ink} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{
           flexShrink: 0, transform: chevronOpen ? 'scaleY(-1)' : 'scaleY(1)', transition: `transform 200ms ${EASE_OUT}`,
@@ -1755,7 +1771,7 @@ function EntitySwitcher({ value, onChange, mode }) {
   );
 }
 
-function AppModeSidebar({ active, onNav, pendingCount, onEnterSettings, setupInProgress, onboardingCount = 0, offboardingCount = 0 }) {
+function AppModeSidebar({ active, onNav, pendingCount, onEnterSettings, setupInProgress, onboardingCount = 0, offboardingCount = 0, appEntity = null, doneTasks = new Set() }) {
   const isPeopleActive = active === 'employees' || active === 'employees:admin' || active === 'people-onboarding' || active === 'people-offboarding' || active?.startsWith('employee-detail');
   const [peopleOpen, setPeopleOpen] = useState(isPeopleActive);
   const [timeoffOpen, setTimeoffOpen] = useState(active === 'requests' || active === 'team-absences');
@@ -1805,6 +1821,41 @@ function AppModeSidebar({ active, onNav, pendingCount, onEnterSettings, setupInP
 
           <SidebarItem icon="settings" label="Settings" onClick={onEnterSettings} />
 
+          {appEntity && (() => {
+            const doneCount = RELAUNCH_TASKS.filter(t => t.status === 'done' || doneTasks.has(t.id)).length;
+            const total = RELAUNCH_TASKS.length;
+            const pct = Math.round((doneCount / total) * 100);
+            return (
+              <div style={{ padding: '4px var(--space-250)' }}>
+                <button onClick={() => onNav('relaunch-hub')} style={{
+                  display: 'flex', flexDirection: 'column', gap: 8,
+                  width: '100%', padding: '10px 12px', border: 'none', borderRadius: 10,
+                  background: 'var(--bg-brand)', textAlign: 'left', cursor: 'pointer', flexShrink: 0,
+                  transition: `background 150ms ${EASE_OUT}`,
+                }}
+                  onMouseEnter={e => e.currentTarget.style.background = 'var(--purple-100)'}
+                  onMouseLeave={e => e.currentTarget.style.background = 'var(--bg-brand)'}
+                >
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    <Icon name="Rocket" size={14} color={P.action} style={{ marginBottom: 8 }} />
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 13, color: P.action, letterSpacing: '-0.01em' }}>Relaunch hub</span>
+                      <Icon name="chevron-right" size={11} color={P.inkFaint} strokeWidth={2} />
+                    </div>
+                    <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkSoft, lineHeight: 1.4 }}>Complete all tasks before your go-live date.</span>
+                  </div>
+                  <div style={{ height: 6, borderRadius: 99, overflow: 'hidden', background: 'repeating-linear-gradient(-45deg, var(--gray-300) 0px, var(--gray-300) 1px, var(--gray-200) 1px, var(--gray-200) 5px)' }}>
+                    <div style={{ height: '100%', width: `${pct}%`, borderRadius: 99, background: P.action, transition: `width 350ms ${EASE_OUT}` }} />
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
+                    <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkSoft, fontVariantNumeric: 'tabular-nums' }}><span style={{ fontWeight: 700, color: P.action, fontSize: 13 }}>{doneCount}</span> done</span>
+                    <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkSoft, fontVariantNumeric: 'tabular-nums' }}><span style={{ fontWeight: 700, color: P.ink, fontSize: 13 }}>{total - doneCount}</span> left</span>
+                  </div>
+                </button>
+              </div>
+            );
+          })()}
+
           <div style={{ marginTop: 'auto', paddingTop: 'var(--space-125)' }}>
             <SidebarItem icon="blocks" label="Components" isActive={active === 'components'} onClick={() => onNav('components')} />
             <SidebarItem icon="sparkles" label="Product changelog" isActive={active === 'changelog'} onClick={() => onNav('changelog')} />
@@ -1820,6 +1871,7 @@ const COMPANY_IDS  = ['settings-entities','settings-budgets','settings-benefits'
 
 const ROUTE_MAP = [
   { screen: 'dashboard',              path: '/hr-admin' },
+  { screen: 'relaunch-hub',           path: '/hr-admin/relaunch' },
   { screen: 'requests',               path: '/hr-admin/time-off' },
   { screen: 'team-absences',          path: '/hr-admin/time-off/calendar' },
   { screen: 'time-off-history',       path: '/hr-admin/time-off/history' },
@@ -1927,7 +1979,7 @@ function SettingsModeSidebar({ active, onNav, mobilityLive }) {
 }
 
 const PANEL_DUR = 280;
-function Sidebar({ active, onNav, pendingCount, sidebarMode, onSetSidebarMode, appEntity, onSetAppEntity, setupInProgress, onboardingCount = 0, offboardingCount = 0, mobilityLive = false }) {
+function Sidebar({ active, onNav, pendingCount, sidebarMode, onSetSidebarMode, appEntity, onSetAppEntity, setupInProgress, onboardingCount = 0, offboardingCount = 0, mobilityLive = false, doneTasks = new Set() }) {
   const inSettings = sidebarMode === 'settings';
   const panelStyle = (offset) => ({
     position: 'absolute', inset: 0,
@@ -1970,6 +2022,8 @@ function Sidebar({ active, onNav, pendingCount, sidebarMode, onSetSidebarMode, a
             setupInProgress={setupInProgress}
             onboardingCount={onboardingCount}
             offboardingCount={offboardingCount}
+            appEntity={appEntity}
+            doneTasks={doneTasks}
           />
         </div>
         <div style={panelStyle(inSettings ? '0%' : '100%')}>
@@ -6560,7 +6614,132 @@ function EmployeeRow({ emp, onNav, hasInssReview }) {
 }
 
 // ── Employees screen ──────────────────────────────────────────────────────
-function EmployeesScreen({ requests, onNav, initialRoleFilter = 'All', adminAccess = {}, appEntity = null, onAddEmployee, onToast, matchedEmpInssMap = new Map() }) {
+function RelaunchInlineGuidance({ task, appEntity, confirmed, onConfirm, onMarkDone }) {
+  const [expanded, setExpanded] = useState(true);
+  const [showQuestions, setShowQuestions] = useState(false);
+  const deadlineMeta = getRelaunchDeadlineMeta(task.deadline);
+  const entityName = appEntity ? ENTITIES.find(entity => entity.id === appEntity)?.name : 'All entities';
+
+  return (
+    <section style={{ marginBottom: 'var(--space-200)', background: P.white, border: `1px solid ${P.border}`, borderRadius: 10, overflow: 'hidden', boxShadow: '0 1px 3px rgba(15, 13, 40, 0.03)' }}>
+      <button
+        type="button"
+        onClick={() => setExpanded(value => !value)}
+        aria-expanded={expanded}
+        style={{
+          width: '100%', minHeight: 64, padding: 'var(--space-150) var(--space-200)',
+          display: 'flex', alignItems: 'center', gap: 'var(--space-150)',
+          border: 'none', background: P.white, color: P.ink, cursor: 'pointer', textAlign: 'left',
+        }}
+      >
+        <Icon name="Rocket" size={15} color={P.ink} strokeWidth={2} />
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink }}>
+            Check salary dates, wages and work regimes
+          </div>
+          <div style={{ marginTop: 2, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkFaint }}>
+            {entityName} · Complete before the EYP cash-out deadline
+          </div>
+        </div>
+        {deadlineMeta && (
+          <DotPill dot={false} bg={P.warningBg} color={P.warningDark} size={11} whiteSpace="nowrap">
+            {deadlineMeta.relative}
+          </DotPill>
+        )}
+        <span style={{ display: 'flex', transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)', transition: `transform 180ms ${EASE_OUT}` }}>
+          <Icon name="chevron-down" size={15} color={P.inkFaint} strokeWidth={1.75} />
+        </span>
+      </button>
+
+      {expanded && (
+        <div style={{ borderTop: `1px solid ${P.border}` }}>
+          <div className="relaunch-inline-grid" style={{ padding: 'var(--space-200) var(--space-250)', display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 220px', gap: 'var(--space-300)', alignItems: 'start' }}>
+            {/* Left — directive + checklist */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-150)' }}>
+              <div>
+                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-heading-xs)', color: P.ink, marginBottom: 'var(--space-050)' }}>
+                  Check these 3 things for each employee below
+                </div>
+                <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, lineHeight: 1.5, maxWidth: '48ch', textWrap: 'pretty' }}>
+                  Compare Payflip with your HR system and fix any mismatch before the EYP deadline.
+                </p>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-100)' }}>
+                {[
+                  { text: 'Salary start dates are correct.', note: 'Unplanned absences may not sync via integration — this review is still required.' },
+                  { text: 'Wage amounts and work regimes match your HR system.', note: null },
+                  { text: 'Every mismatch is corrected before the EYP cash-out deadline.', note: null },
+                ].map((item, index) => (
+                  <div key={item.text} style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+                    <span style={{ width: 20, height: 20, flexShrink: 0, marginTop: 1, borderRadius: '50%', background: '#f3f0ff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 10, color: P.action }}>
+                      {index + 1}
+                    </span>
+                    <div>
+                      <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, lineHeight: 1.45 }}>{item.text}</div>
+                      {item.note && (
+                        <div style={{ marginTop: 2, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, lineHeight: 1.4 }}>
+                          {item.note}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Right — walkthrough */}
+            <div className="relaunch-inline-help" style={{ minWidth: 0, paddingLeft: 'var(--space-250)', borderLeft: `1px solid ${P.border}`, display: 'flex', flexDirection: 'column', gap: 'var(--space-125)' }}>
+              <div>
+                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink, marginBottom: 2 }}>
+                  Walkthrough
+                </div>
+                <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, lineHeight: 1.4 }}>
+                  2-min guide to checking salary data.
+                </p>
+              </div>
+              <RelaunchVideoPlayer video={task.video} />
+              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)' }}>
+                <a href="https://help.payflip.be/en/articles/11413-how-can-i-modify-my-employee-s-salary-data" target="_blank" rel="noreferrer" style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', fontWeight: 600, color: P.action, textDecoration: 'none', whiteSpace: 'nowrap' }}
+                  onMouseEnter={e => e.currentTarget.style.textDecoration = 'underline'}
+                  onMouseLeave={e => e.currentTarget.style.textDecoration = 'none'}>
+                  Help article →
+                </a>
+                <span style={{ width: 1, height: 12, background: P.border, flexShrink: 0 }} />
+                <button type="button" onClick={() => setShowQuestions(value => !value)} aria-expanded={showQuestions} style={{ padding: 0, border: 'none', background: 'transparent', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', fontWeight: 600, color: P.action, textDecoration: 'none', cursor: 'pointer', whiteSpace: 'nowrap' }}
+                  onMouseEnter={e => e.currentTarget.style.textDecoration = 'underline'}
+                  onMouseLeave={e => e.currentTarget.style.textDecoration = 'none'}>
+                  Common questions
+                </button>
+              </div>
+              {showQuestions && (
+                <div style={{ padding: 'var(--space-125)', borderRadius: 7, background: P.bg, border: `1px solid ${P.border}`, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, lineHeight: 1.6 }}>
+                  This review applies to integration customers too. If you cannot finish before the deadline, contact your Payflip success manager.
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="relaunch-inline-completion" style={{ margin: '0 var(--space-250)', padding: 'var(--space-200) 0', borderTop: `1px solid ${P.border}`, display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', alignItems: 'center', gap: 'var(--space-300)' }}>
+            <RelaunchCompletionConfirmation checked={confirmed} disabled={false} onChange={onConfirm}>
+              I checked the employee data shown here against our HR system and corrected any mismatches.
+            </RelaunchCompletionConfirmation>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 'var(--space-075)' }}>
+              <Button variant="primary" icon={confirmed ? 'check' : undefined} disabled={!confirmed} onClick={() => onMarkDone(task.id)} style={{ minWidth: 190, justifyContent: 'center' }}>
+                Mark as complete
+              </Button>
+              <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkFaint }}>
+                {confirmed ? 'Ready to complete.' : 'Confirm the review above first.'}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}
+
+function EmployeesScreen({ requests, onNav, initialRoleFilter = 'All', adminAccess = {}, appEntity = null, onAddEmployee, onToast, matchedEmpInssMap = new Map(), relaunchTask, relaunchConfirmed = false, onConfirmRelaunch, onMarkRelaunchDone }) {
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState(initialRoleFilter);
   const [statusFilter, setStatusFilter] = useState('Active');
@@ -6598,6 +6777,15 @@ function EmployeesScreen({ requests, onNav, initialRoleFilter = 'All', adminAcce
       </PageHeader>
 
       <div style={{ flex: 1, overflow: 'auto', padding: 'var(--space-250) var(--space-250) var(--space-250)' }}>
+        {relaunchTask?.id === 'q4-1' && (
+          <RelaunchInlineGuidance
+            task={relaunchTask}
+            appEntity={appEntity}
+            confirmed={relaunchConfirmed}
+            onConfirm={onConfirmRelaunch}
+            onMarkDone={onMarkRelaunchDone}
+          />
+        )}
         <div style={{ display: 'flex', gap: 'var(--space-125)', marginBottom: 'var(--space-200)' }}>
           <div style={{ position: 'relative', flex: 1, maxWidth: 220 }}>
             <Icon name="Search" size={14} color={P.inkFaint} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)' }} />
@@ -7602,7 +7790,7 @@ function AnimatedNumber({ value }) {
   );
 }
 
-function ProtoDevPanel({ widgetMode, switchMode, ws, setWs }) {
+function ProtoDevPanel({ widgetMode, switchMode, ws, setWs, screen, relaunchAiMode, setRelaunchAiMode }) {
   const [open, setOpen] = React.useState(false);
   const [pos, setPos] = React.useState(null); // null = default bottom-right
   const dragOffset = React.useRef(null);
@@ -7650,13 +7838,31 @@ function ProtoDevPanel({ widgetMode, switchMode, ws, setWs }) {
 
           <div style={{ padding: '10px 12px', borderBottom: `1px solid ${BORDER}` }}>
             {section('Widget')}
-            <div style={{ display: 'flex', gap: 4 }}>
+            <div style={{ display: 'flex', gap: 4, marginBottom: 6 }}>
+              {btn('Show', !ws.widgetHidden, () => setWs({ widgetHidden: false }))}
+              {btn('Hide', !!ws.widgetHidden, () => setWs({ widgetHidden: true }))}
+            </div>
+            {!ws.widgetHidden && <div style={{ display: 'flex', gap: 4 }}>
               {btn('Mobility', widgetMode === 'mobility', () => switchMode('mobility'))}
               {btn('Food', widgetMode === 'food', () => switchMode('food'))}
-            </div>
+            </div>}
           </div>
 
-          {widgetMode === 'mobility' && (<>
+          {!ws.widgetHidden && widgetMode === 'food' && (
+            <div style={{ padding: '10px 12px', borderBottom: `1px solid ${BORDER}` }}>
+              {section('Wizard step')}
+              <div style={{ display: 'flex', gap: 3, flexWrap: 'wrap' }}>
+                {btn('1', ws.step === 1 && !ws.live, () => setWs({ step: 1, live: false, liveVisible: false, hidden: false }))}
+                {btn('2', ws.step === 2 && !ws.live, () => setWs({ step: 2, live: false, liveVisible: false, hidden: false }))}
+                {btn('3', ws.step === 3 && !ws.live, () => setWs({ step: 3, live: false, liveVisible: false, hidden: false }))}
+                {btn('4', ws.step === 4 && !ws.live, () => setWs({ step: 4, live: false, liveVisible: false, hidden: false }))}
+                {btn('5', ws.step === 5 && !ws.live, () => setWs({ step: 5, live: false, liveVisible: false, hidden: false }))}
+                {btn('Live', !!ws.live, () => setWs({ step: 5, live: true, liveVisible: true, hidden: false }))}
+              </div>
+            </div>
+          )}
+
+          {!ws.widgetHidden && widgetMode === 'mobility' && (<>
             <div style={{ padding: '10px 12px', borderBottom: `1px solid ${BORDER}` }}>
               {section('Wizard step')}
               <div style={{ display: 'flex', gap: 3 }}>
@@ -7690,6 +7896,16 @@ function ProtoDevPanel({ widgetMode, switchMode, ws, setWs }) {
               </div>
             </div>
           </>)}
+
+          {screen === 'relaunch-hub' && (
+            <div style={{ padding: '10px 12px', borderTop: `1px solid ${BORDER}` }}>
+              {section('Relaunch hub')}
+              <div style={{ display: 'flex', gap: 4 }}>
+                {btn('Normal', !relaunchAiMode, () => setRelaunchAiMode(false))}
+                {btn('AI', !!relaunchAiMode, () => setRelaunchAiMode(true))}
+              </div>
+            </div>
+          )}
         </div>
       ) : (
         <button onClick={() => setOpen(true)} style={{ background: BG, border: `1px solid ${BORDER}`, borderRadius: 8, padding: '5px 9px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5, boxShadow: '0 4px 16px rgba(0,0,0,0.4)' }}>
@@ -7746,19 +7962,19 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
 
   // Auto-advance mandate validation after bankConfirmDelay seconds (prototype simulation)
   React.useEffect(() => {
-    if (step !== 2 || mandateValidated || mandateDenied || depositFailed) return;
+    if (widgetMode !== 'mobility' || step !== 2 || mandateValidated || mandateDenied || depositFailed) return;
     const delay = (ws.bankConfirmDelay || 8) * 1000;
     const id = setTimeout(() => setMandateValidated(true), delay);
     return () => clearTimeout(id);
-  }, [step, mandateValidated, mandateDenied, depositFailed, ws.bankConfirmDelay]);
+  }, [widgetMode, step, mandateValidated, mandateDenied, depositFailed, ws.bankConfirmDelay]);
 
   // After mandate validates, auto-advance "Collection scheduled" → step 3 after bankConfirmDelay
   React.useEffect(() => {
-    if (step !== 2 || !mandateValidated || depositFailed) return;
+    if (widgetMode !== 'mobility' || step !== 2 || !mandateValidated || depositFailed) return;
     const delay = (ws.bankConfirmDelay || 8) * 1000;
     const id = setTimeout(() => setStep(3), delay);
     return () => clearTimeout(id);
-  }, [step, mandateValidated, depositFailed, ws.bankConfirmDelay]);
+  }, [widgetMode, step, mandateValidated, depositFailed, ws.bankConfirmDelay]);
 
   // Food-mode INSS state
   const [inssUploaded, setInssUploaded] = useState(false);
@@ -7775,6 +7991,9 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
   const [secSearch, setSecSearch] = useState('');
   const [secRect, setSecRect] = useState(null);
   const secTriggerRef = React.useRef(null);
+  const [pocName, setPocName] = useState('');
+  const [pocEmail, setPocEmail] = useState('');
+  const [pocPhone, setPocPhone] = useState('');
 
   // All employees with a mobility budget, split by remaining budget
   const allEligible = Object.entries(EMPLOYEES)
@@ -7815,7 +8034,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
   const maxTopUp = deposit - topUpStart;
 
   const switchMode = (mode) => {
-    setWs({ widgetMode: mode, hidden: false, step: 1, mandateDenied: false, mandateValidated: false, depositFailed: false, live: false, liveVisible: false });
+    setWs({ widgetMode: mode, hidden: false, widgetHidden: false, step: 1, mandateDenied: false, mandateValidated: false, depositFailed: false, live: false, liveVisible: false });
   };
 
   // Mobility step 2: first 60s = mandate validation, then 60s = deposit collection, then advance
@@ -8198,6 +8417,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
           ];
           const foodMeta = [
             { label: 'Social secretariat', color: P.inkSoft, bg: P.bg },
+            { label: 'Point of contact',   color: P.inkSoft, bg: P.bg },
             { label: 'INSS numbers',       color: P.inkSoft, bg: P.bg },
             { label: 'Review payment',     color: P.inkSoft, bg: P.bg },
             { label: 'Notify employees',   color: P.inkSoft, bg: P.bg },
@@ -8206,7 +8426,8 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
           const meta = widgetMode === 'mobility'
             ? (mobilityMeta[metaIdx] || mobilityMeta[0])
             : (foodMeta[step - 1] || foodMeta[0]);
-          const stepLabel = `${meta.label} · ${mandateDenied ? 1 : step} of 4`;
+          const totalSteps = widgetMode === 'food' ? 5 : 4;
+          const stepLabel = `${meta.label} · ${mandateDenied ? 1 : step} of ${totalSteps}`;
           return (
             <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)' }}>
               {!hidden ? (
@@ -8306,12 +8527,107 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
             )}
           </div>
 
-          {/* Food Step 2 — INSS numbers */}
+          {/* Food Step 2 — Point of contact */}
           <div style={{ background: step === 2 ? P.white : inactiveBg, borderBottom: `1px solid ${P.border}` }}>
             {step === 2 ? (
-              <div key="food-step2-active" style={{ padding: 'var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-250)', animation: `stepContentEnter 250ms ${EASE_OUT} 120ms both` }}>
+              <div key="food-step2-poc" style={{ padding: 'var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-200)', animation: `stepContentEnter 250ms ${EASE_OUT}` }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)' }}>
                   {stepBadgeEl(2)}
+                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.ink }}>Your contact at {socialSecretariat}</span>
+                </div>
+                <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
+                  Switching providers requires your secretariat to update their records. We'll reach out to this person directly to coordinate the transfer.
+                </p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-125)' }}>
+                  {/* Full name */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                    <label htmlFor="poc-name" style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>Full name</label>
+                    <input
+                      id="poc-name"
+                      type="text"
+                      autoComplete="name"
+                      autoFocus={!('ontouchstart' in window)}
+                      value={pocName}
+                      onChange={e => setPocName(e.target.value)}
+                      placeholder="e.g. Jan Janssen"
+                      style={{ height: 40, padding: 'var(--space-100) var(--space-150)', border: `1px solid #bec0c5`, borderRadius: 8, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, background: P.white, outline: 'none', width: '100%', transition: 'border-color 120ms ease' }}
+                      onFocus={e => e.target.style.borderColor = 'var(--bg-primary-default)'}
+                      onBlur={e => e.target.style.borderColor = '#bec0c5'}
+                    />
+                  </div>
+                  {/* Email + Phone side-by-side */}
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 160px', gap: 'var(--space-100)' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                      <label htmlFor="poc-email" style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>Email</label>
+                      <input
+                        id="poc-email"
+                        type="email"
+                        autoComplete="email"
+                        value={pocEmail}
+                        onChange={e => setPocEmail(e.target.value)}
+                        placeholder="name@secretariat.be"
+                        style={{ height: 40, padding: 'var(--space-100) var(--space-150)', border: `1px solid #bec0c5`, borderRadius: 8, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, background: P.white, outline: 'none', width: '100%', transition: 'border-color 120ms ease' }}
+                        onFocus={e => e.target.style.borderColor = 'var(--bg-primary-default)'}
+                        onBlur={e => e.target.style.borderColor = '#bec0c5'}
+                      />
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                      <label htmlFor="poc-phone" style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>Phone</label>
+                      <div style={{ position: 'relative' }}>
+                        <span style={{ position: 'absolute', left: 'var(--space-150)', top: '50%', transform: 'translateY(-50%)', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, pointerEvents: 'none', userSelect: 'none' }}>+32</span>
+                        <input
+                          id="poc-phone"
+                          type="tel"
+                          autoComplete="tel"
+                          value={pocPhone}
+                          onChange={e => {
+                            const digits = e.target.value.replace(/\D/g, '').slice(0, 9);
+                            let fmt = digits;
+                            if (digits.length > 3) fmt = `${digits.slice(0,3)} ${digits.slice(3)}`;
+                            if (digits.length > 5) fmt = `${digits.slice(0,3)} ${digits.slice(3,5)} ${digits.slice(5)}`;
+                            if (digits.length > 7) fmt = `${digits.slice(0,3)} ${digits.slice(3,5)} ${digits.slice(5,7)} ${digits.slice(7)}`;
+                            setPocPhone(fmt);
+                          }}
+                          placeholder="477 48 24 36"
+                          maxLength={12}
+                          style={{ height: 40, paddingLeft: 44, paddingRight: 'var(--space-150)', paddingTop: 'var(--space-100)', paddingBottom: 'var(--space-100)', border: `1px solid #bec0c5`, borderRadius: 8, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, background: P.white, outline: 'none', width: '100%', transition: 'border-color 120ms ease' }}
+                          onFocus={e => e.target.style.borderColor = 'var(--bg-primary-default)'}
+                          onBlur={e => e.target.style.borderColor = '#bec0c5'}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                {(() => {
+                  const canConfirm = pocName.trim() && pocEmail.trim() && pocPhone.replace(/\D/g, '').length >= 8;
+                  return (
+                    <Button variant="primary" disabled={!canConfirm} onClick={() => setStep(3)} style={{ width: '100%', justifyContent: 'center', fontSize: 'var(--fs-body-md)', padding: 'var(--space-125) var(--space-250)' }}>Confirm</Button>
+                  );
+                })()}
+              </div>
+            ) : step < 2 ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', padding: 'var(--space-300)', opacity: 0.55 }}>
+                {stepBadgeEl(2)}
+                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-md)', color: P.inkSoft }}>Your contact at {socialSecretariat}</span>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', padding: 'var(--space-300)', animation: `stepDoneEnter 200ms ${EASE_OUT}`, opacity: 0.70 }}>
+                {stepBadgeEl(2, step === 3)}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.inkSoft }}>{pocName || 'Contact saved'}</span>
+                  {pocEmail && <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkFaint, marginTop: 1 }}>{pocEmail}</div>}
+                </div>
+                <a href="#" onClick={e => { e.preventDefault(); setStep(2); }} style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink, textDecoration: 'underline', flexShrink: 0 }}>Edit</a>
+              </div>
+            )}
+          </div>
+
+          {/* Food Step 3 — INSS numbers */}
+          <div style={{ background: step === 3 ? P.white : inactiveBg, borderBottom: `1px solid ${P.border}` }}>
+            {step === 3 ? (
+              <div key="food-step3-active" style={{ padding: 'var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-250)', animation: `stepContentEnter 250ms ${EASE_OUT} 120ms both` }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)' }}>
+                  {stepBadgeEl(3)}
                   <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.ink }}>INSS numbers</span>
                 </div>
                 <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
@@ -8392,27 +8708,27 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
                     </>
                   )
                 }
-                <Button variant="primary" disabled={!foodInssComplete} onClick={() => setStep(3)} style={{ width: '100%', justifyContent: 'center', fontSize: 'var(--fs-body-md)', padding: 'var(--space-125) var(--space-250)' }}>Continue</Button>
+                <Button variant="primary" disabled={!foodInssComplete} onClick={() => setStep(4)} style={{ width: '100%', justifyContent: 'center', fontSize: 'var(--fs-body-md)', padding: 'var(--space-125) var(--space-250)' }}>Continue</Button>
               </div>
-            ) : step < 2 ? (
+            ) : step < 3 ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', padding: 'var(--space-300)', opacity: 0.55 }}>
-                {stepBadgeEl(2)}
+                {stepBadgeEl(3)}
                 <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-md)', color: P.inkSoft }}>INSS numbers</span>
               </div>
             ) : (
               <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', padding: 'var(--space-300)', animation: `stepDoneEnter 200ms ${EASE_OUT}`, opacity: 0.70 }}>
-                {stepBadgeEl(2)}
+                {stepBadgeEl(3)}
                 <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.inkSoft }}>INSS numbers complete</span>
               </div>
             )}
           </div>
 
-          {/* Food Step 3 — Review payment (mandate already active from Mobility Card) */}
-          <div style={{ background: step === 3 ? P.white : inactiveBg, borderBottom: `1px solid ${P.border}` }}>
-            {step === 3 ? (
-              <div key="food-step3-active" style={{ padding: 'var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-200)', animation: `stepContentEnter 250ms ${EASE_OUT}` }}>
+          {/* Food Step 4 — Review payment (mandate already active from Mobility Card) */}
+          <div style={{ background: step === 4 ? P.white : inactiveBg, borderBottom: `1px solid ${P.border}` }}>
+            {step === 4 ? (
+              <div key="food-step4-active" style={{ padding: 'var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-200)', animation: `stepContentEnter 250ms ${EASE_OUT}` }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)' }}>
-                  {stepBadgeEl(3)}
+                  {stepBadgeEl(4)}
                   <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.ink }}>Review payment</span>
                 </div>
                 {/* Context */}
@@ -8439,28 +8755,28 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
                   <Icon name="info" size={14} color={P.inkSoft} strokeWidth={1.75} style={{ flexShrink: 0, marginTop: 2 }} />
                   <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, lineHeight: '18px' }}>Payment will be taken once the first order is sent from {socialSecretariat}.</span>
                 </div>
-                <Button variant="primary" onClick={() => setStep(4)} style={{ width: '100%', justifyContent: 'center', fontSize: 'var(--fs-body-md)', padding: 'var(--space-125) var(--space-250)' }}>Confirm mandate</Button>
+                <Button variant="primary" onClick={() => setStep(5)} style={{ width: '100%', justifyContent: 'center', fontSize: 'var(--fs-body-md)', padding: 'var(--space-125) var(--space-250)' }}>Confirm mandate</Button>
               </div>
-            ) : step < 3 ? (
+            ) : step < 4 ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', padding: 'var(--space-300)', opacity: 0.55 }}>
-                {stepBadgeEl(3)}
+                {stepBadgeEl(4)}
                 <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-md)', color: P.inkSoft }}>Review payment</span>
               </div>
             ) : (
               <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', padding: 'var(--space-300)', animation: `stepDoneEnter 200ms ${EASE_OUT}`, opacity: 0.70 }}>
-                {stepBadgeEl(3)}
+                {stepBadgeEl(4)}
                 <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.inkSoft }}>Mandate confirmed</span>
               </div>
             )}
           </div>
 
 
-          {/* Food Step 4 — Notify employees */}
-          <div style={{ background: step === 4 ? P.white : inactiveBg, borderBottom: `1px solid ${P.border}` }}>
-            {step === 4 ? (
-              <div key="food-step4-active" style={{ padding: 'var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-200)', animation: `stepContentEnter 250ms ${EASE_OUT}` }}>
+          {/* Food Step 5 — Notify employees */}
+          <div style={{ background: step === 5 ? P.white : inactiveBg, borderBottom: `1px solid ${P.border}` }}>
+            {step === 5 ? (
+              <div key="food-step5-active" style={{ padding: 'var(--space-300)', display: 'flex', flexDirection: 'column', gap: 'var(--space-200)', animation: `stepContentEnter 250ms ${EASE_OUT}` }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)' }}>
-                  {stepBadgeEl(4)}
+                  {stepBadgeEl(5)}
                   <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-md)', color: P.ink }}>Notify employees</span>
                 </div>
                 <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, lineHeight: '20px', margin: 0 }}>
@@ -8476,7 +8792,7 @@ function MobilityLaunchWidget({ onToast, onNav, physicalCardsAllowed, onPhysical
               </div>
             ) : (
               <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)', padding: 'var(--space-300)', opacity: 0.55 }}>
-                {stepBadgeEl(4)}
+                {stepBadgeEl(5)}
                 <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-md)', color: P.inkSoft }}>Notify employees</span>
               </div>
             )}
@@ -9174,6 +9490,453 @@ function UnmatchedMatchModal({ matchQueue, setMatchQueue, setFoodUnmatched, setS
   );
 }
 
+// ── Relaunch Hub ───────────────────────────────────────────────────────────
+
+const RELAUNCH_TASKS = [
+  // October / November
+  {
+    id: 'q4-1', month: 'October / November', title: 'Check salary dates and wages',
+    description: 'Verify every employee has the correct salary and work regime in Payflip so budgets are calculated accurately.',
+    status: 'active',
+    deadline: '8 Oct 2026',
+    cta: 'Go to People',
+    navTarget: 'employees',
+    whatToDo: 'Salary errors carry forward into the year-end payroll and bonus calculations. Check every employee before the deadline to avoid having to submit a correction file afterwards.',
+    video: { title: 'How to check salary dates & wages', duration: '2:14' },
+    checklist: [
+      'Check the salary start date for every employee',
+      'Confirm the wage amount and work regime are correct',
+      'Fix any mismatch before moving on to budgets',
+    ],
+    faq: [
+      { q: 'What if I can\'t finish this before the deadline?', a: 'Contact your Payflip success manager — we can extend the window for salary corrections without affecting the choice deadline.' },
+      { q: 'Does this apply to integration customers too?', a: 'Yes. Even if your social secretary manages salary data, you need to confirm the figures in Payflip match.' },
+    ],
+  },
+  { id: 'q4-2', month: 'October / November', title: 'Check choice & cash-out deadlines', description: 'Confirm your choice deadline and cash-out date are still accurate before the window opens.', status: 'active', deadline: '20 Oct 2026', cta: 'Go to Budget settings', navTarget: 'settings-allowances' },
+  // December
+  { id: 'dec-1', month: 'December', title: 'Assign bonus budgets to new employees', description: 'Employees must sign bonus annexes before year-end to be eligible. New employees always need to sign.', status: 'locked' },
+  { id: 'dec-2', month: 'December', title: 'Approve all pending choices', description: 'Clear every pending choice so nothing is left in the shopping cart before the cash-out deadline.', status: 'locked' },
+  { id: 'dec-3', month: 'December', title: 'Process year-end payroll files (EYP & Bonus)', description: 'Year-end files are auto-sent to your payroll contact. Confirm the social secretary has processed them before Christmas.', status: 'locked' },
+  // January
+  { id: 'jan-1', month: 'January', title: 'Process year-end payroll files (Mobility)', description: 'Mobility budget cash-out file is sent in the 2nd week of January. Confirm it\'s processed before adding new top-ups.', status: 'locked' },
+  { id: 'jan-2', month: 'January', title: 'Add new employees', description: 'Add everyone who joined between Jul–Dec 2026 and anyone starting Jan 1, 2027 before the end of January.', status: 'locked' },
+  { id: 'jan-3', month: 'January', title: 'Activate your benefits', description: 'Re-activate any benefits that were paused at the choice deadline so employees can use them again.', status: 'locked' },
+  { id: 'jan-4', month: 'January', title: 'Assign budgets', description: 'Assign EYP, bonus, or mobility budgets to employees who didn\'t have them last year. Existing employees don\'t need to re-sign EYP.', status: 'locked' },
+  { id: 'jan-5', month: 'January', title: 'Add top-ups', description: 'Add a new top-up line for employees who had a manual top-up last year — the automatic calculation won\'t run for them.', status: 'locked' },
+  { id: 'jan-6', month: 'January', title: 'Invite new employees', description: 'Send invites to newly added employees once their budgets and benefits are active.', status: 'locked' },
+  { id: 'jan-7', month: 'January', title: 'Update budget settings & activate', description: 'Set the new choice deadline and cash-out date, then activate so employees can start spending their budget.', status: 'locked' },
+  // February / March
+  { id: 'feb-1', month: 'February / March', title: 'Add indexed salaries', description: 'Enter new salary lines once your social secretary confirms the index percentage. Budgets recalculate automatically.', status: 'locked' },
+];
+
+const RELAUNCH_MONTHS = ['October / November', 'December', 'January', 'February / March'];
+
+const RELAUNCH_AI_RESULTS = {
+  'q4-1': { status: 'issues', label: '2 salary mismatches found' },
+  'q4-2': { status: 'clear', label: 'Deadline set correctly' },
+};
+
+function getRelaunchDeadlineMeta(deadline) {
+  if (!deadline) return null;
+  const [day, monthName, year] = deadline.split(' ');
+  const month = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].indexOf(monthName);
+  if (month < 0) return null;
+
+  const dueDate = new Date(Number(year), month, Number(day));
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const daysRemaining = Math.round((dueDate.getTime() - today.getTime()) / 86400000);
+  const state = daysRemaining < 0 ? 'overdue' : daysRemaining <= 30 ? 'approaching' : 'neutral';
+  const relative = daysRemaining < 0
+    ? `${Math.abs(daysRemaining)} ${Math.abs(daysRemaining) === 1 ? 'day' : 'days'} overdue`
+    : daysRemaining === 0
+    ? 'due today'
+    : `${daysRemaining} ${daysRemaining === 1 ? 'day' : 'days'} left`;
+
+  return { shortDate: `${day} ${monthName}`, relative, state };
+}
+
+function RelaunchCompletionConfirmation({ checked, disabled, onChange, children }) {
+  return (
+    <label
+      style={{
+        minHeight: 44,
+        display: 'flex', alignItems: 'flex-start', gap: 10,
+        cursor: disabled ? 'not-allowed' : 'pointer',
+        opacity: disabled ? 0.5 : 1,
+        transition: `opacity 150ms ${EASE_OUT}`,
+      }}
+    >
+      <input
+        type="checkbox"
+        checked={checked}
+        disabled={disabled}
+        onChange={onChange}
+        style={{
+          width: 18, height: 18, margin: '1px 0 0', flexShrink: 0,
+          accentColor: P.action,
+          cursor: disabled ? 'not-allowed' : 'pointer',
+        }}
+      />
+      <span style={{
+        fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)',
+        color: P.ink, lineHeight: 1.55,
+        transition: `color 150ms ${EASE_OUT}`,
+      }}>
+        {children}
+      </span>
+    </label>
+  );
+}
+
+function RelaunchTaskDrawer({ task, confirmed, onConfirm, onClose, onMarkDone, onNav, onContextStart, currentScreen }) {
+  const [hasNavigated, setHasNavigated] = React.useState(() => currentScreen === task.navTarget);
+  const checklistRequired = Boolean(task.checklist?.length);
+  const canMarkComplete = !checklistRequired || confirmed;
+  const deadlineMeta = getRelaunchDeadlineMeta(task.deadline);
+  const deadlineColors = deadlineMeta?.state === 'overdue'
+    ? { background: P.dangerBg, border: P.dangerBorder, color: P.dangerDark }
+    : deadlineMeta?.state === 'approaching'
+    ? { background: P.warningBg, border: P.warningBorder, color: P.warningDark }
+    : { background: P.bg, border: P.border, color: P.inkSoft };
+
+  const goToTarget = () => {
+    setHasNavigated(true);
+    if (onContextStart) onContextStart(task);
+    if (onNav) onNav(task.navTarget);
+  };
+
+  return (
+    <DrawerShell
+      title={task.title}
+      headerMeta={deadlineMeta && (
+        <div style={{ alignSelf: 'flex-start', display: 'inline-flex', alignItems: 'center', gap: 6, marginTop: 4, padding: '4px 8px', borderRadius: 999, background: deadlineColors.background, border: `1px solid ${deadlineColors.border}`, color: deadlineColors.color }}>
+          <Icon name="calendar" size={12} color={deadlineColors.color} strokeWidth={2} />
+          <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, lineHeight: '16px', fontWeight: 600 }}>
+            Due {deadlineMeta.shortDate} · {deadlineMeta.relative}
+          </span>
+        </div>
+      )}
+      onClose={onClose}
+      width={520}
+      footer={() => {
+        if (!hasNavigated && task.navTarget) {
+          return <Button variant="primary" icon="arrow-right" onClick={goToTarget} style={{ width: '100%', justifyContent: 'center' }}>{task.cta || 'Go to Payflip'}</Button>;
+        }
+        return <Button variant="primary" icon={canMarkComplete ? 'check' : undefined} disabled={!canMarkComplete} onClick={() => onMarkDone(task.id)} style={{ width: '100%', justifyContent: 'center' }}>Mark as complete</Button>;
+      }}
+    >
+      {() => (
+        <div className="hide-scrollbar" style={{ flex: 1, overflowY: 'auto', padding: '24px 28px', display: 'flex', flexDirection: 'column', gap: 20 }}>
+
+          {/* Why */}
+          {(task.whatToDo || task.description) && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div style={{ ...SL, marginBottom: 0 }}>Why</div>
+              <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, margin: 0, lineHeight: 1.65 }}>
+                {task.whatToDo || task.description}
+              </p>
+            </div>
+          )}
+
+          {/* Steps and completion confirmation */}
+          {task.checklist && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div style={{ ...SL, marginBottom: 0 }}>Steps</div>
+              <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', lineHeight: 1.5, color: P.inkSoft }}>
+                Follow these steps while reviewing the employee data.
+              </p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 4 }}>
+                {task.checklist.map((item, i) => (
+                  <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+                    <span style={{ width: 22, height: 22, borderRadius: '50%', flexShrink: 0, border: `1px solid ${P.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, color: P.inkSoft }}>
+                      {i + 1}
+                    </span>
+                    <span style={{ paddingTop: 1, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, lineHeight: 1.55 }}>
+                      {item}
+                    </span>
+                  </div>
+                ))}
+              </div>
+              <div style={{ marginTop: 8 }}>
+                <RelaunchCompletionConfirmation checked={confirmed} disabled={!hasNavigated} onChange={onConfirm}>
+                  I reviewed all employees and fixed any mismatches.
+                </RelaunchCompletionConfirmation>
+              </div>
+              {/* In phase 2, show return button only when not already on the target screen */}
+              {hasNavigated && task.navTarget && currentScreen !== task.navTarget && (
+                <Button variant="secondary" onClick={goToTarget} style={{ marginTop: 4, justifyContent: 'center' }}>{task.cta || 'Go to Payflip'}</Button>
+              )}
+            </div>
+          )}
+
+          {/* How — video */}
+          {task.video && <RelaunchVideoPlayer video={task.video} />}
+
+          {/* FAQs */}
+          {task.faq && task.faq.length > 0 && (
+            <div style={{ paddingTop: 4 }}>
+              <div style={{ ...SL, marginBottom: 0 }}>FAQs</div>
+              {task.faq.map((item, i) => (
+                <RelaunchFaqRow key={i} q={item.q} a={item.a} last={i === task.faq.length - 1} />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </DrawerShell>
+  );
+}
+
+function RelaunchVideoPlayer({ video, heading = null, description = null }) {
+  const [playing, setPlaying] = React.useState(false);
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      {heading && <div style={{ ...SL, marginBottom: 0 }}>{heading}</div>}
+      {description && (
+        <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, lineHeight: 1.5 }}>
+          {description}
+        </p>
+      )}
+      <div onClick={() => setPlaying(p => !p)} style={{ position: 'relative', borderRadius: 10, overflow: 'hidden', aspectRatio: '16/9', background: '#1a1625', cursor: 'pointer', userSelect: 'none' }}>
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, #2d1f4e 0%, #1a1020 50%, #0f1a2e 100%)', opacity: 0.9 }} />
+        <div style={{ position: 'absolute', inset: 0, backgroundImage: 'linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
+        <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          {playing ? (
+            <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+              <div style={{ width: 4, height: 20, background: 'white', borderRadius: 2, opacity: 0.9 }} />
+              <div style={{ width: 4, height: 20, background: 'white', borderRadius: 2, opacity: 0.9 }} />
+            </div>
+          ) : (
+            <div style={{ width: 48, height: 48, borderRadius: '50%', background: 'rgba(255,255,255,0.15)', border: '1.5px solid rgba(255,255,255,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(4px)' }}>
+              <div style={{ width: 0, height: 0, borderTop: '8px solid transparent', borderBottom: '8px solid transparent', borderLeft: '14px solid rgba(255,255,255,0.9)', marginLeft: 3 }} />
+            </div>
+          )}
+        </div>
+        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '10px 14px', background: 'linear-gradient(to top, rgba(0,0,0,0.6), transparent)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: 'rgba(255,255,255,0.85)', fontWeight: 500 }}>{video.title}</span>
+          <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: 'rgba(255,255,255,0.6)', background: 'rgba(0,0,0,0.4)', padding: '2px 6px', borderRadius: 4 }}>{video.duration}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function RelaunchHubScreen({ appEntity = null, aiMode = false, onNav, doneTasks, startedTasks = new Set(), onMarkDone, onOpenTask }) {
+  const entityName = appEntity ? ENTITIES.find(e => e.id === appEntity)?.name : null;
+
+  const isTaskDone = (task) => task.status === 'done' || doneTasks.has(task.id);
+
+  const doneCount = RELAUNCH_TASKS.filter(t => isTaskDone(t)).length;
+  const totalCount = RELAUNCH_TASKS.length;
+
+  const progressPct = Math.round((doneCount / totalCount) * 100);
+  const hairline = `${window.devicePixelRatio >= 2 ? '0.5px' : '1px'} solid ${P.border}`;
+
+  const tasksByMonth = RELAUNCH_MONTHS.reduce((acc, m) => {
+    acc[m] = RELAUNCH_TASKS.filter(t => t.month === m);
+    return acc;
+  }, {});
+
+  const monthDone = (month) => tasksByMonth[month].filter(t => isTaskDone(t)).length;
+  const monthLocked = (month) => {
+    const mi = RELAUNCH_MONTHS.indexOf(month);
+    if (mi === 0) return false;
+    const prevMonth = RELAUNCH_MONTHS[mi - 1];
+    return !tasksByMonth[prevMonth].every(t => isTaskDone(t));
+  };
+
+  const activeMonth = RELAUNCH_MONTHS.find(m => !monthLocked(m) && monthDone(m) < tasksByMonth[m].length);
+  const [expandedMonths, setExpandedMonths] = useState(() => new Set([activeMonth || RELAUNCH_MONTHS[0]]));
+  useEffect(() => {
+    if (!activeMonth) return;
+    setExpandedMonths(prev => {
+      if (prev.has(activeMonth)) return prev;
+      return new Set([...prev, activeMonth]);
+    });
+  }, [activeMonth]);
+
+  const toggleMonth = (month) => {
+    setExpandedMonths(prev => {
+      const next = new Set(prev);
+      if (next.has(month)) next.delete(month);
+      else next.add(month);
+      return next;
+    });
+  };
+  return (
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+      <PageHeader
+        title="Relaunch hub"
+        subtitle="Annual relaunch · Oct 2026 → Mar 2027"
+        badge={entityName}
+        maxWidth={880}
+      />
+
+      <div className="hide-scrollbar" style={{ flex: 1, overflowY: 'auto' }}>
+        <div style={{ maxWidth: 880, margin: '0 auto', padding: '28px 28px 48px' }}>
+
+          {/* Progress — inline, no card */}
+          <div style={{ marginBottom: 28 }}>
+            <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 8 }}>
+              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: doneCount === totalCount ? P.success : P.ink }}>
+                {doneCount === totalCount ? 'All tasks complete' : `${doneCount} of ${totalCount} done`}
+              </span>
+              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: doneCount === totalCount ? P.success : P.inkSoft }}>
+                {progressPct}%
+              </span>
+            </div>
+            <div style={{ height: 6, borderRadius: 99, overflow: 'hidden', background: 'repeating-linear-gradient(-45deg, var(--gray-300) 0px, var(--gray-300) 1px, var(--gray-200) 1px, var(--gray-200) 5px)' }}>
+              <div style={{ height: '100%', width: `${progressPct}%`, borderRadius: 99, background: doneCount === totalCount ? P.success : P.action, transition: 'width 400ms cubic-bezier(0.22,1,0.36,1)' }} />
+            </div>
+          </div>
+
+          {/* Collapsible phase cards */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {RELAUNCH_MONTHS.map((month, mi) => {
+              const tasks = tasksByMonth[month];
+              const done = monthDone(month);
+              const locked = monthLocked(month);
+              const allDone = done === tasks.length;
+              const isActive = !locked && !allDone;
+              const isExpanded = expandedMonths.has(month);
+              const taskOffset = RELAUNCH_MONTHS.slice(0, mi).reduce((sum, m) => sum + tasksByMonth[m].length, 0);
+              const phaseTone = allDone
+                ? { label: 'Complete', bg: P.successBg, color: P.successDark }
+                : isActive
+                ? { label: 'Current', bg: 'var(--purple-100)', color: 'var(--purple-800)' }
+                : { label: 'Upcoming', bg: P.bg, color: P.inkSoft };
+
+              return (
+                <div key={month} style={{ background: P.white, border: hairline, borderRadius: 10, overflow: 'hidden', boxShadow: '0 1px 3px rgba(15, 13, 40, 0.03)' }}>
+                  <button
+                    type="button"
+                    onClick={() => toggleMonth(month)}
+                    aria-expanded={isExpanded}
+                    style={{
+                      width: '100%', minHeight: 66, padding: 'var(--space-125) var(--space-200)',
+                      display: 'flex', alignItems: 'center', gap: 'var(--space-200)',
+                      border: 'none', background: 'transparent', color: P.ink,
+                      textAlign: 'left', cursor: 'pointer',
+                    }}
+                  >
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-heading-xs)', color: locked ? P.inkSoft : P.ink }}>{month}</div>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-125)', flexShrink: 0 }}>
+                      {!isActive && <DotPill dot={false} bg={phaseTone.bg} color={phaseTone.color} size={11}>{phaseTone.label}</DotPill>}
+                      <span style={{ minWidth: 24, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkFaint, fontVariantNumeric: 'tabular-nums' }}>{done}/{tasks.length}</span>
+                      <div style={{ transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)', transition: `transform 180ms ${EASE_OUT}`, display: 'flex' }}>
+                        <Icon name="chevron-down" size={15} color={P.inkFaint} strokeWidth={1.75} />
+                      </div>
+                    </div>
+                  </button>
+
+                  {isExpanded && (
+                    <div style={{ borderTop: hairline }}>
+                    {tasks.map((task, ti) => {
+                          const isDone = isTaskDone(task);
+                          const taskIsActive = !locked && !isDone;
+                          const isActionable = taskIsActive && (task.whatToDo || task.checklist || task.faq || task.navTarget);
+                          const isStarted = startedTasks.has(task.id);
+                          const progressSummary = isDone
+                            ? `Completed · ${task.description}`
+                            : isStarted
+                            ? `In progress · ${task.description}`
+                            : task.description;
+                          const aiResult = aiMode && taskIsActive ? RELAUNCH_AI_RESULTS[task.id] : null;
+                          const aiColor = aiResult?.status === 'issues' ? P.warning : P.success;
+                          const deadlineMeta = task.deadline ? getRelaunchDeadlineMeta(task.deadline) : null;
+                          const deadlineTone = deadlineMeta?.state === 'overdue'
+                            ? { bg: P.dangerBg, color: P.dangerDark }
+                            : { bg: P.warningBg, color: P.warningDark };
+                          return (
+                            <div key={task.id}
+                              style={{
+                                width: '100%',
+                                display: 'flex', alignItems: 'center', gap: 14,
+                                padding: 'var(--space-250)',
+                                border: 'none',
+                                borderBottom: ti < tasks.length - 1 ? hairline : 'none',
+                                opacity: locked ? 0.55 : 1,
+                                background: 'transparent',
+                                color: P.ink,
+                                textAlign: 'left',
+                              }}
+                            >
+                              {/* Step badge — numbered ring → green check → AI sparkle */}
+                              {isDone ? (
+                                <div style={{ width: 20, height: 20, borderRadius: '50%', flexShrink: 0, background: P.success, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                  <Icon name="check" size={11} color="white" strokeWidth={2.5} />
+                                </div>
+                              ) : aiResult ? (
+                                <div style={{ width: 20, height: 20, borderRadius: '50%', flexShrink: 0, background: aiResult.status === 'issues' ? 'var(--orange-100, #ffedd5)' : 'var(--green-100, #dcfce7)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                  <Icon name="sparkles" size={11} color={aiColor} strokeWidth={2} />
+                                </div>
+                              ) : (
+                                <span style={{ width: 20, height: 20, borderRadius: '50%', flexShrink: 0, border: `1.5px solid ${P.inkSoft}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 11, color: P.inkSoft }}>
+                                  {taskOffset + ti + 1}
+                                </span>
+                              )}
+                              <div style={{ flex: 1, minWidth: 0 }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-100)', minWidth: 0 }}>
+                                  <div style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: isDone ? P.inkSoft : P.ink, textDecoration: isDone ? 'line-through' : 'none' }}>{task.title}</div>
+                                  {taskIsActive && task.deadline && (
+                                    <DotPill dot={false} bg={deadlineTone.bg} color={deadlineTone.color} size={11} whiteSpace="nowrap">
+                                      Due {task.deadline.replace(' 2026', '').replace(' 2027', '')}
+                                    </DotPill>
+                                  )}
+                                </div>
+                                {progressSummary && (
+                                  <div style={{ marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: isDone ? P.successDark : P.inkFaint }}>
+                                    {progressSummary}
+                                  </div>
+                                )}
+                                {aiResult && (
+                                  <div style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: aiColor, marginTop: 2 }}>{aiResult.label}</div>
+                                )}
+                              </div>
+                              {isActionable && (
+                                <Button variant="secondary" onClick={() => onOpenTask(task)} style={{ padding: '7px 12px', fontSize: 'var(--fs-body-xs)', whiteSpace: 'nowrap' }}>
+                                  {isStarted ? 'Continue' : 'Start task'}
+                                </Button>
+                              )}
+                            </div>
+                          );
+                    })}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  );
+}
+
+function RelaunchFaqRow({ q, a, last = false }) {
+  const [open, setOpen] = React.useState(false);
+  const EASE = 'cubic-bezier(0.22,1,0.36,1)';
+  return (
+    <div style={{ borderBottom: last ? 'none' : `1px solid ${P.border}` }}>
+      <button onClick={() => setOpen(v => !v)} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '12px 0', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left' }}>
+        <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, flex: 1 }}>{q}</span>
+        <div style={{ transform: open ? 'rotate(180deg)' : 'rotate(0deg)', transition: `transform 200ms ${EASE}`, flexShrink: 0 }}>
+          <Icon name="chevron-down" size={15} color={P.inkSoft} />
+        </div>
+      </button>
+      {open && (
+        <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, paddingBottom: 12, lineHeight: 1.55 }}>{a}</div>
+      )}
+    </div>
+  );
+}
+
 function DashboardScreen({ requests, onNav, onToast, appEntity = null, physicalCardsAllowed, onPhysicalCardsChange, cardDelivery, onCardDeliveryChange, mobilityWidgetState, onMobilityWidgetStateChange, pendingRequests = 0, pendingExpenses = 0, pendingChoices = 0, activeBudgets = 0, onAddEmployee, foodUnmatched = 0, setFoodUnmatched, unmatchedQueue = [], setUnmatchedQueue, matchedEmpInssMap = new Map(), onboardingCount = 0, offboardingCount = 0 }) {
   const [showInssQueue, setShowInssQueue] = useState(false);
   const [recentActivity] = useState(RECENT_ACTIVITY_SEED);
@@ -9246,7 +10009,7 @@ function DashboardScreen({ requests, onNav, onToast, appEntity = null, physicalC
       <div style={{ maxWidth: 960, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 'var(--space-400)' }}>
 
         {/* Full-width setup widget — always full-width until live */}
-        {!mobilityWidgetState.live && (
+        {!mobilityWidgetState.live && !mobilityWidgetState.widgetHidden && (
           <div style={{ position: 'relative', zIndex: 2 }}>
             <MobilityLaunchWidget onToast={onToast} onNav={onNav} physicalCardsAllowed={physicalCardsAllowed} onPhysicalCardsChange={onPhysicalCardsChange} cardDelivery={cardDelivery} onCardDeliveryChange={onCardDeliveryChange} mobilityWidgetState={mobilityWidgetState} onMobilityWidgetStateChange={onMobilityWidgetStateChange} foodUnmatched={foodUnmatched} unmatchedQueue={unmatchedQueue} />
           </div>
@@ -14530,6 +15293,12 @@ const reviewSection = (title, targetStep, rows) => (
 // ── Root App ───────────────────────────────────────────────────────────────
 function App() {
   const [screen, setScreen] = useState(() => pathToScreen(window.location.pathname));
+  const [relaunchAiMode, setRelaunchAiMode] = useState(false);
+  const [relaunchDoneTasks, setRelaunchDoneTasks] = useState(new Set());
+  const [relaunchLearnMore, setRelaunchLearnMore] = useState(null);
+  const [relaunchContextTask, setRelaunchContextTask] = useState(null);
+  const [relaunchStartedTasks, setRelaunchStartedTasks] = useState(new Set());
+  const [relaunchConfirmedTasks, setRelaunchConfirmedTasks] = useState(new Set());
   const [adminAccess, setAdminAccess] = useState(() =>
     Object.entries(EMPLOYEES)
       .filter(([, u]) => u.adminAccess)
@@ -14997,13 +15766,13 @@ function App() {
         <div onClick={() => setMobilityWidgetState(prev => ({ ...prev, hidden: true }))} style={{ position: 'fixed', inset: 0, zIndex: 1, cursor: 'pointer' }} />
       )}
 
-      <Sidebar active={screen} onNav={handleNav} pendingCount={pendingCount} sidebarMode={sidebarMode} onSetSidebarMode={setSidebarMode} appEntity={appEntity} onSetAppEntity={setAppEntity} setupInProgress={screen === 'dashboard' && !mobilityWidgetState.live && !mobilityWidgetState.hidden} onboardingCount={onboardingIds.size + drafts.size} offboardingCount={offboardingIds.size} mobilityLive={!!mobilityWidgetState.live} />
+      <Sidebar active={screen} onNav={handleNav} pendingCount={pendingCount} sidebarMode={sidebarMode} onSetSidebarMode={setSidebarMode} appEntity={appEntity} onSetAppEntity={setAppEntity} setupInProgress={screen === 'dashboard' && !mobilityWidgetState.live && !mobilityWidgetState.hidden} onboardingCount={onboardingIds.size + drafts.size} offboardingCount={offboardingIds.size} mobilityLive={!!mobilityWidgetState.live} doneTasks={relaunchDoneTasks} />
 
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, overflow: 'hidden' }}>
         {screen === 'dashboard' && <DashboardScreen key={appEntity ?? 'all'} requests={entityFilteredRequests} onNav={handleNav} onToast={addToast} appEntity={appEntity} physicalCardsAllowed={physicalCardsAllowed} onPhysicalCardsChange={setPhysicalCardsAllowed} cardDelivery={cardDelivery} onCardDeliveryChange={setCardDelivery} mobilityWidgetState={mobilityWidgetState} onMobilityWidgetStateChange={setMobilityWidgetState} pendingRequests={pendingRequestsCount} pendingExpenses={pendingExpensesCount} pendingChoices={pendingChoicesCount} activeBudgets={allowances.filter(a => a.active).length} onAddEmployee={(pf) => { setAddEmployeePrefill({ ...(pf||{}), _draftId: 'draft-' + Date.now() }); setAddEmployeeOpen(true); }} foodUnmatched={foodUnmatched} setFoodUnmatched={setFoodUnmatched} unmatchedQueue={unmatchedQueue} setUnmatchedQueue={setUnmatchedQueue} matchedEmpInssMap={matchedEmpInssMap} onboardingCount={[...onboardingIds].filter(id => !appEntity || EMPLOYEES[id]?.entityId === appEntity).length} offboardingCount={[...offboardingIds].filter(id => !appEntity || EMPLOYEES[id]?.entityId === appEntity).length} />}
         {screen === 'team-absences' && <TeamAbsencesScreen key={appEntity ?? 'all'} requests={entityFilteredRequests} pendingCount={pendingRequestsCount} onNav={setScreen} onShowDetail={setCalDetail} activeReqId={calDetail?.id} onSave={saveRequest} companyEvents={companyEvents} onCancelCompanyEvent={cancelCompanyEvent} initialDate={calendarJumpDate} initialDeptFilter={calendarDeptFilter} appEntity={appEntity} leaveTypes={leaveTypes} />}
         {screen === 'requests' && <RequestsScreen key={appEntity ?? 'all'} requests={entityFilteredRequests} onApprove={approve} onDecline={requestDecline} onSave={saveRequest} onCancel={requestCancel} onNav={setScreen} onViewInCalendar={(req) => { const d = req._selectedDates?.[0] || req.startDate; if (d) { const iso = typeof d === 'string' && d.match(/^\d{4}-/) ? d : null; setCalendarJumpDate(iso ? new Date(iso) : parseDisplayDate(d)); } setCalDetail(req); setScreen('team-absences'); }} appEntity={appEntity} />}
-        {(screen === 'employees' || screen === 'employees:admin') && <EmployeesScreen key={appEntity ?? 'all'} requests={entityFilteredRequests} onNav={setScreen} initialRoleFilter={screen === 'employees:admin' ? 'Admin' : 'All'} adminAccess={adminAccess} appEntity={appEntity} onAddEmployee={(pf) => { setAddEmployeePrefill({ ...(pf||{}), _draftId: 'draft-' + Date.now() }); setAddEmployeeOpen(true); }} onToast={addToast} matchedEmpInssMap={matchedEmpInssMap} />}
+        {(screen === 'employees' || screen === 'employees:admin') && <EmployeesScreen key={appEntity ?? 'all'} requests={entityFilteredRequests} onNav={setScreen} initialRoleFilter={screen === 'employees:admin' ? 'Admin' : 'All'} adminAccess={adminAccess} appEntity={appEntity} onAddEmployee={(pf) => { setAddEmployeePrefill({ ...(pf||{}), _draftId: 'draft-' + Date.now() }); setAddEmployeeOpen(true); }} onToast={addToast} matchedEmpInssMap={matchedEmpInssMap} relaunchTask={relaunchContextTask?.navTarget === 'employees' && !relaunchDoneTasks.has(relaunchContextTask.id) ? relaunchContextTask : null} relaunchConfirmed={relaunchContextTask ? relaunchConfirmedTasks.has(relaunchContextTask.id) : false} onConfirmRelaunch={() => setRelaunchConfirmedTasks(prev => { const next = new Set(prev); const id = relaunchContextTask?.id; if (!id) return next; next.has(id) ? next.delete(id) : next.add(id); return next; })} onMarkRelaunchDone={(id) => { setRelaunchDoneTasks(prev => new Set([...prev, id])); if (relaunchContextTask?.id === id) setRelaunchContextTask(null); }} />}
         {screen === 'people-onboarding' && <OnboardingScreen onboardingIds={onboardingIds} drafts={drafts} onSendInvite={handleSendOnboardingInvite} onAddWithoutInvite={handleAddWithoutInvite} onRemoveFromOnboarding={handleRemoveFromOnboarding} onNav={handleNav} onAddEmployee={() => { setAddEmployeePrefill({ _draftId: 'draft-' + Date.now() }); setAddEmployeeOpen(true); }} onContinueDraft={handleContinueDraft} onEditEmployee={handleEditOnboardingEmployee} appEntity={appEntity} />}
         {screen === 'people-offboarding' && <OffboardingScreen offboardingIds={offboardingIds} onCompleteOffboarding={handleCompleteOffboarding} onNav={handleNav} appEntity={appEntity} />}
         {screen.startsWith('employee-detail:') && (() => { const [, detailEmpId, detailTab] = screen.split(':'); return <EmployeeDetailScreen employeeId={detailEmpId} requests={requests} onNav={setScreen} onSave={saveRequest} onCancel={cancelRequest} onApprove={approve} onDecline={requestDecline} onViewTeamCalendar={(dept) => { setCalendarDeptFilter(dept || null); setScreen('team-absences'); }} employeeBalance={employeeBalances[detailEmpId]} onUpdateBalance={(newBal) => updateBalances(detailEmpId, newBal)} needsSetup={needsBalanceSetup.has(detailEmpId)} confirmedDate={balanceConfirmedDates[detailEmpId]} onConfirmBalances={() => confirmBalancesFor(detailEmpId)} onToast={addToast} adminAccess={adminAccess} onAdminSave={handleAdminSave} companyRegime={companyRegime} onEmployeeUpdate={handleEmployeeUpdate} getEmpWithOverrides={getEmpWithOverrides} physicalCardsAllowed={physicalCardsAllowed} mobilityWidgetState={mobilityWidgetState} initialTab={detailTab || (freshEmployeeId === detailEmpId ? 'details' : 'choices')} unmatchedRecord={matchedEmpInssMap.get(detailEmpId)} onResolveUnmatched={resolveUnmatched} onStartOffboarding={handleStartOffboarding} isOnboarding={onboardingIds.has(detailEmpId)} leaveTypes={leaveTypes} />; })()}
@@ -15011,6 +15780,7 @@ function App() {
         {screen === 'expense-history' && <ExpenseHistoryScreen key={appEntity ?? 'all'} expenses={entityFilteredExpenses} categories={expenseCategories} appEntity={appEntity} onDetail={(exp) => { setExpDetailRejectMode(false); setExpDetail(exp); }} onToast={addToast} />}
         {screen === 'expense-reports' && <ExpenseReportsScreen key={appEntity ?? 'all'} expenses={entityFilteredExpenses} appEntity={appEntity} onToast={addToast} />}
         {screen === 'time-off-history' && <TimeOffHistoryScreen key={appEntity ?? 'all'} requests={entityFilteredRequests} appEntity={appEntity} onToast={addToast} />}
+        {screen === 'relaunch-hub' && <RelaunchHubScreen key={appEntity ?? 'all'} appEntity={appEntity} aiMode={relaunchAiMode} onNav={handleNav} doneTasks={relaunchDoneTasks} startedTasks={relaunchStartedTasks} onMarkDone={(id) => { setRelaunchDoneTasks(prev => new Set([...prev, id])); if (relaunchContextTask?.id === id) setRelaunchContextTask(null); }} onOpenTask={(task) => { setRelaunchStartedTasks(prev => new Set([...prev, task.id])); setRelaunchLearnMore(task.id === 'q4-1' ? null : task); if (task.navTarget) { setRelaunchContextTask(task); handleNav(task.navTarget); } }} />}
         {screen === 'choices' && <ChoicesScreen key={appEntity ?? 'all'} choices={entityFilteredChoices} onApprove={approveChoice} onDecline={declineChoice} onDetail={setChoiceDetail} appEntity={appEntity} />}
         {screen === 'payroll-overview' && <StubScreen title="Payroll Overview" description="Monthly payroll run and submission" />}
         {screen === 'payroll-reports' && <StubScreen title="Payroll Reports" description="Reporting and exports" />}
@@ -15028,6 +15798,24 @@ function App() {
         {screen === 'components' && <ComponentLibraryScreen />}
         {screen.startsWith('settings-') && screen !== 'settings-landing' && screen !== 'settings-allowances' && screen !== 'settings-expenses' && screen !== 'settings-team' && screen !== 'settings-timeoff' && screen !== 'settings-entities' && screen !== 'settings-documents' && screen !== 'settings-payroll' && screen !== 'settings-benefits' && screen !== 'settings-cardrules' && <StubScreen title={SETTINGS_TITLES[screen] || 'Settings'} description={`Configure ${(SETTINGS_TITLES[screen] || 'settings').toLowerCase()}`} />}
       </div>
+
+      {/* Relaunch hub task drawer — lives at App level so it persists when navigating to People etc. */}
+      {relaunchLearnMore && relaunchLearnMore.id !== 'q4-1' && (
+        <RelaunchTaskDrawer
+          task={relaunchLearnMore}
+          confirmed={relaunchConfirmedTasks.has(relaunchLearnMore.id)}
+          onConfirm={() => setRelaunchConfirmedTasks(prev => {
+            const next = new Set(prev);
+            next.has(relaunchLearnMore.id) ? next.delete(relaunchLearnMore.id) : next.add(relaunchLearnMore.id);
+            return next;
+          })}
+          onClose={() => setRelaunchLearnMore(null)}
+          onMarkDone={(id) => { setRelaunchDoneTasks(prev => new Set([...prev, id])); if (relaunchContextTask?.id === id) setRelaunchContextTask(null); setRelaunchLearnMore(null); }}
+          onNav={handleNav}
+          onContextStart={setRelaunchContextTask}
+          currentScreen={screen}
+        />
+      )}
 
       {calDetail && (
         <CalendarDrawer
@@ -15144,6 +15932,9 @@ function App() {
         switchMode={(mode) => setMobilityWidgetState(prev => ({ ...prev, widgetMode: mode, hidden: false, step: 1, mandateDenied: false, mandateValidated: false, depositFailed: false, live: false, liveVisible: false }))}
         ws={mobilityWidgetState}
         setWs={(updater) => setMobilityWidgetState(prev => typeof updater === 'function' ? { ...prev, ...updater(prev) } : { ...prev, ...updater })}
+        screen={screen}
+        relaunchAiMode={relaunchAiMode}
+        setRelaunchAiMode={setRelaunchAiMode}
       />
     </div>
   );
