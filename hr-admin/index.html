@@ -124,6 +124,19 @@
       @starting-style { .section-reveal { opacity: 0; transform: none; } }
     }
 
+    @media (max-width: 800px) {
+      .relaunch-inline-grid {
+        grid-template-columns: minmax(0, 1fr) !important;
+      }
+      .relaunch-inline-completion {
+        grid-template-columns: minmax(0, 1fr) !important;
+      }
+      .relaunch-inline-help {
+        padding-left: 0 !important;
+        border-left: none !important;
+      }
+    }
+
     .filter-count-badge {
       transform: scale(1);
       opacity: 1;
@@ -145,6 +158,6 @@
 </head>
 <body>
   <div id="root"></div>
-  <script type="text/babel" src="app.jsx?v=2181"></script>
+  <script type="text/babel" src="app.jsx?v=2323"></script>
 </body>
 </html>
