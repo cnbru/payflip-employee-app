@@ -31,11 +31,11 @@
     }
     #root { height: 100%; }
     button:focus-visible { outline: 2px solid var(--blue-500); outline-offset: 2px; border-radius: 6px; }
-    button:not([disabled]) { transition: transform 150ms cubic-bezier(0.22, 1, 0.36, 1); }
-    button:not([disabled]):active { transform: scale(0.97); }
+    button.btn-press:not([disabled]) { transition: transform 150ms cubic-bezier(0.25, 0.46, 0.45, 0.94); }
+    button.btn-press:not([disabled]):active { transform: scale(0.97); }
     @media (prefers-reduced-motion: reduce) {
-      button:not([disabled]) { transition: none; }
-      button:not([disabled]):active { transform: none; }
+      button.btn-press:not([disabled]) { transition: none; }
+      button.btn-press:not([disabled]):active { transform: none; }
     }
     .hide-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
     .hide-scrollbar::-webkit-scrollbar { display: none; }
@@ -124,17 +124,64 @@
       @starting-style { .section-reveal { opacity: 0; transform: none; } }
     }
 
-    @media (max-width: 800px) {
-      .relaunch-inline-grid {
-        grid-template-columns: minmax(0, 1fr) !important;
-      }
-      .relaunch-inline-completion {
-        grid-template-columns: minmax(0, 1fr) !important;
-      }
-      .relaunch-inline-help {
-        padding-left: 0 !important;
-        border-left: none !important;
-      }
+    @keyframes relaunchFloatIn {
+      from { opacity: 0; transform: translateY(8px) scale(0.96); }
+      to { opacity: 1; transform: none; }
+    }
+    @keyframes relaunchFloatOut {
+      to { opacity: 0; transform: translateY(8px) scale(0.96); }
+    }
+    @keyframes relaunchFloatOutReduced { to { opacity: 0; } }
+    @keyframes relaunchCountIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: none; }
+    }
+    @keyframes relaunchCountFade { from { opacity: 0; } to { opacity: 1; } }
+    .relaunch-float.is-leaving {
+      animation: relaunchFloatOut 180ms cubic-bezier(0.23, 1, 0.32, 1) forwards;
+      pointer-events: none;
+    }
+    .relaunch-count {
+      display: inline-block;
+      animation: relaunchCountIn 200ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .relaunch-float-close { background: transparent; }
+    .relaunch-float-close:hover { background: rgba(255,255,255,0.08); }
+    .relaunch-float-launcher { background: #1c1c1e; }
+    .relaunch-float-launcher:hover { background: #2a2a2e; }
+    .relaunch-check::before { content: ""; position: absolute; inset: -12px 0; }
+    .relaunch-check-input {
+      position: absolute; width: 18px; height: 18px; margin: 1px 0 0; opacity: 0; cursor: inherit;
+    }
+    .relaunch-check-input:focus-visible + .relaunch-check-box {
+      outline: 2px solid var(--blue-500); outline-offset: 2px;
+    }
+    .relaunch-float-close:focus-visible,
+    .relaunch-float-launcher:focus-visible,
+    .relaunch-float-link:focus-visible {
+      outline: 2px solid #fff;
+      outline-offset: 2px;
+    }
+    .relaunch-float-body { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.22) transparent; }
+    .relaunch-float-body::-webkit-scrollbar { width: 8px; }
+    .relaunch-float-body::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.22); border-radius: 4px; }
+    .relaunch-float-link {
+      position: relative;
+      display: inline-flex; align-items: center;
+      padding: 0 2px; border: none; background: none; cursor: pointer;
+      font-family: var(--font-body); font-size: var(--fs-body-xs); font-weight: 500;
+      color: rgba(255,255,255,0.92);
+      text-decoration: underline; text-decoration-color: rgba(255,255,255,0.55); text-underline-offset: 3px;
+      transition: color 150ms cubic-bezier(0.22, 1, 0.36, 1), text-decoration-color 150ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .relaunch-float-link::before { content: ""; position: absolute; inset: -12px 0; }
+    .relaunch-float-link:hover { color: #fff; text-decoration-color: #fff; }
+    @media (prefers-reduced-motion: reduce) {
+      .relaunch-float:not(.is-leaving), .relaunch-float-launcher { animation: none !important; }
+      .relaunch-float.is-leaving { animation: relaunchFloatOutReduced 160ms ease forwards !important; }
+      .relaunch-count { animation: relaunchCountFade 160ms ease; }
+      .relaunch-check-box { transition: none !important; }
+      .relaunch-float-link { transition: none; }
     }
 
     .filter-count-badge {
@@ -158,6 +205,6 @@
 </head>
 <body>
   <div id="root"></div>
-  <script type="text/babel" src="app.jsx?v=2323"></script>
+  <script type="text/babel" src="app.jsx?v=2356"></script>
 </body>
 </html>
