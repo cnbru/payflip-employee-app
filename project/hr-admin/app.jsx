@@ -443,14 +443,14 @@ function IconButton({ icon, onClick, size = 30, iconSize = 14, color = P.ink, bl
   const [hovered, setHovered] = useState(false);
   const isDangerHover = danger && hovered;
   return (
-    <button onClick={onClick}
+    <button className="btn-press" onClick={onClick}
       onMouseEnter={() => danger && setHovered(true)}
       onMouseLeave={() => danger && setHovered(false)}
       style={{
         border: 'none', cursor: 'pointer', width: size, height: size, borderRadius: '50%', flexShrink: 0,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         background: isDangerHover ? P.dangerBg : 'rgba(60,60,67,0.1)',
-        transition: danger ? 'background 120ms' : undefined,
+        transition: danger ? 'background 120ms, transform 150ms cubic-bezier(0.25, 0.46, 0.45, 0.94)' : undefined,
         ...(blur ? { backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)' } : {}),
         ...style,
       }}>
@@ -1771,6 +1771,26 @@ function EntitySwitcher({ value, onChange, mode }) {
   );
 }
 
+function RelaunchDoneCount({ value }) {
+  const [shown, setShown] = useState(value);
+  const [play, setPlay] = useState(false);
+  if (value !== shown) {
+    setShown(value);
+    setPlay(true);
+  }
+  return (
+    <span key={shown} className={play ? 'relaunch-count' : undefined} style={{ fontWeight: 700, color: '#fff', fontSize: 13 }}>{shown}</span>
+  );
+}
+
+function relaunchHubCopy(appEntity) {
+  const entityName = appEntity ? ENTITIES.find(e => e.id === appEntity)?.name : null;
+  return {
+    title: entityName ? `Relaunch ${entityName}` : 'Close this year and relaunch the next',
+    subtitle: 'Follow these tasks by their deadlines so budgets and year-end payroll are correct.',
+  };
+}
+
 function AppModeSidebar({ active, onNav, pendingCount, onEnterSettings, setupInProgress, onboardingCount = 0, offboardingCount = 0, appEntity = null, doneTasks = new Set() }) {
   const isPeopleActive = active === 'employees' || active === 'employees:admin' || active === 'people-onboarding' || active === 'people-offboarding' || active?.startsWith('employee-detail');
   const [peopleOpen, setPeopleOpen] = useState(isPeopleActive);
@@ -1825,31 +1845,32 @@ function AppModeSidebar({ active, onNav, pendingCount, onEnterSettings, setupInP
             const doneCount = RELAUNCH_TASKS.filter(t => t.status === 'done' || doneTasks.has(t.id)).length;
             const total = RELAUNCH_TASKS.length;
             const pct = Math.round((doneCount / total) * 100);
+            const hubCopy = relaunchHubCopy(appEntity);
             return (
               <div style={{ padding: '4px var(--space-250)' }}>
                 <button onClick={() => onNav('relaunch-hub')} style={{
                   display: 'flex', flexDirection: 'column', gap: 8,
                   width: '100%', padding: '10px 12px', border: 'none', borderRadius: 10,
-                  background: 'var(--bg-brand)', textAlign: 'left', cursor: 'pointer', flexShrink: 0,
+                  background: P.action, textAlign: 'left', cursor: 'pointer', flexShrink: 0,
                   transition: `background 150ms ${EASE_OUT}`,
                 }}
-                  onMouseEnter={e => e.currentTarget.style.background = 'var(--purple-100)'}
-                  onMouseLeave={e => e.currentTarget.style.background = 'var(--bg-brand)'}
+                  onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-primary-hover)'}
+                  onMouseLeave={e => e.currentTarget.style.background = P.action}
                 >
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                    <Icon name="Rocket" size={14} color={P.action} style={{ marginBottom: 8 }} />
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 13, color: P.action, letterSpacing: '-0.01em' }}>Relaunch hub</span>
-                      <Icon name="chevron-right" size={11} color={P.inkFaint} strokeWidth={2} />
+                    <Icon name="Rocket" size={14} color="rgba(255,255,255,0.9)" style={{ marginBottom: 8 }} />
+                    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
+                      <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 13, color: '#fff', letterSpacing: '-0.01em' }}>{hubCopy.title}</span>
+                      <Icon name="chevron-right" size={11} color="rgba(255,255,255,0.5)" strokeWidth={2} style={{ flexShrink: 0, marginTop: 3 }} />
                     </div>
-                    <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkSoft, lineHeight: 1.4 }}>Complete all tasks before your go-live date.</span>
+                    <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: 'rgba(255,255,255,0.7)', lineHeight: 1.4 }}>{hubCopy.subtitle}</span>
                   </div>
-                  <div style={{ height: 6, borderRadius: 99, overflow: 'hidden', background: 'repeating-linear-gradient(-45deg, var(--gray-300) 0px, var(--gray-300) 1px, var(--gray-200) 1px, var(--gray-200) 5px)' }}>
-                    <div style={{ height: '100%', width: `${pct}%`, borderRadius: 99, background: P.action, transition: `width 350ms ${EASE_OUT}` }} />
+                  <div style={{ height: 6, borderRadius: 99, overflow: 'hidden', background: 'rgba(255,255,255,0.2)' }}>
+                    <div style={{ height: '100%', width: `${pct}%`, borderRadius: 99, background: '#fff', transition: `width 350ms ${EASE_OUT}` }} />
                   </div>
                   <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
-                    <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkSoft, fontVariantNumeric: 'tabular-nums' }}><span style={{ fontWeight: 700, color: P.action, fontSize: 13 }}>{doneCount}</span> done</span>
-                    <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkSoft, fontVariantNumeric: 'tabular-nums' }}><span style={{ fontWeight: 700, color: P.ink, fontSize: 13 }}>{total - doneCount}</span> left</span>
+                    <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: 'rgba(255,255,255,0.7)', fontVariantNumeric: 'tabular-nums' }}><RelaunchDoneCount value={doneCount} /> done</span>
+                    <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: 'rgba(255,255,255,0.7)', fontVariantNumeric: 'tabular-nums' }}><span style={{ fontWeight: 700, color: '#fff', fontSize: 13 }}>{total - doneCount}</span> left</span>
                   </div>
                 </button>
               </div>
@@ -6614,127 +6635,150 @@ function EmployeeRow({ emp, onNav, hasInssReview }) {
 }
 
 // ── Employees screen ──────────────────────────────────────────────────────
-function RelaunchInlineGuidance({ task, appEntity, confirmed, onConfirm, onMarkDone }) {
-  const [expanded, setExpanded] = useState(true);
-  const [showQuestions, setShowQuestions] = useState(false);
-  const deadlineMeta = getRelaunchDeadlineMeta(task.deadline);
-  const entityName = appEntity ? ENTITIES.find(entity => entity.id === appEntity)?.name : 'All entities';
+function relaunchSalaryNote(appEntity) {
+  const inScope = appEntity ? ENTITIES.filter(entity => entity.id === appEntity) : ENTITIES;
+  const integrated = inScope.filter(entity => entity.integrationId);
+  const deadline = 'If you cannot finish before the deadline, contact your Payflip success manager.';
+  if (integrated.length === 0) return deadline;
+  if (appEntity) {
+    return `${integrated[0].payrollProvider} sends your salary data. Confirm it matches Payflip, because unplanned absences are not synced. ${deadline}`;
+  }
+  const sources = integrated.map(entity => `${entity.payrollProvider} for ${entity.name}`);
+  const list = sources.length === 2 ? `${sources[0]} and ${sources[1]}` : `${sources.slice(0, -1).join(', ')}, and ${sources[sources.length - 1]}`;
+  return `Salary data is sent by ${list}. Confirm it matches Payflip, because unplanned absences are not synced. ${deadline}`;
+}
 
-  return (
-    <section style={{ marginBottom: 'var(--space-200)', background: P.white, border: `1px solid ${P.border}`, borderRadius: 10, overflow: 'hidden', boxShadow: '0 1px 3px rgba(15, 13, 40, 0.03)' }}>
+function RelaunchGuidanceCard({ task, appEntity, confirmed, onConfirm, onMarkDone }) {
+  const [open, setOpen] = useState(true);
+  const [leaving, setLeaving] = useState(false);
+  const deadlineMeta = getRelaunchDeadlineMeta(task.deadline);
+  const floatMotion = PREFERS_REDUCED_MOTION ? 'none' : 'relaunchFloatIn 220ms cubic-bezier(0.23, 1, 0.32, 1)';
+  const leaveMs = PREFERS_REDUCED_MOTION ? 160 : 180;
+  useEffect(() => {
+    if (!leaving) return;
+    const id = setTimeout(() => onMarkDone(task.id), leaveMs);
+    return () => clearTimeout(id);
+  }, [leaving, leaveMs, onMarkDone, task.id]);
+  const anchor = {
+        position: 'fixed', right: 24, bottom: 56, zIndex: 40,
+    transformOrigin: 'bottom right', animation: leaving ? undefined : floatMotion,
+  };
+  const shadow = '0 0 0 1px rgb(0 0 0 / 0.12), 0 8px 24px rgb(0 0 0 / 0.18)';
+
+  if (!open) {
+    return (
       <button
         type="button"
-        onClick={() => setExpanded(value => !value)}
-        aria-expanded={expanded}
+        className="relaunch-float-launcher"
+        onClick={() => setOpen(true)}
+        aria-expanded={false}
         style={{
-          width: '100%', minHeight: 64, padding: 'var(--space-150) var(--space-200)',
-          display: 'flex', alignItems: 'center', gap: 'var(--space-150)',
-          border: 'none', background: P.white, color: P.ink, cursor: 'pointer', textAlign: 'left',
+          ...anchor,
+          display: 'flex', alignItems: 'center', gap: 10,
+          height: 44, padding: '0 14px 0 16px',
+          border: 'none', borderRadius: 12, color: '#fff',
+          fontFamily: 'var(--font-display)', fontSize: 'var(--fs-body-sm)', fontWeight: 600,
+          cursor: 'pointer', boxShadow: shadow,
         }}
       >
-        <Icon name="Rocket" size={15} color={P.ink} strokeWidth={2} />
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink }}>
-            Check salary dates, wages and work regimes
-          </div>
-          <div style={{ marginTop: 2, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkFaint }}>
-            {entityName} · Complete before the EYP cash-out deadline
-          </div>
-        </div>
+        <span>Check salary dates and wages</span>
         {deadlineMeta && (
-          <DotPill dot={false} bg={P.warningBg} color={P.warningDark} size={11} whiteSpace="nowrap">
+          <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', fontWeight: 600, color: '#fbbf24' }}>
             {deadlineMeta.relative}
-          </DotPill>
+          </span>
         )}
-        <span style={{ display: 'flex', transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)', transition: `transform 180ms ${EASE_OUT}` }}>
-          <Icon name="chevron-down" size={15} color={P.inkFaint} strokeWidth={1.75} />
-        </span>
       </button>
+    );
+  }
 
-      {expanded && (
-        <div style={{ borderTop: `1px solid ${P.border}` }}>
-          <div className="relaunch-inline-grid" style={{ padding: 'var(--space-200) var(--space-250)', display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 220px', gap: 'var(--space-300)', alignItems: 'start' }}>
-            {/* Left — directive + checklist */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-150)' }}>
-              <div>
-                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-heading-xs)', color: P.ink, marginBottom: 'var(--space-050)' }}>
-                  Check these 3 things for each employee below
-                </div>
-                <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, lineHeight: 1.5, maxWidth: '48ch', textWrap: 'pretty' }}>
-                  Compare Payflip with your HR system and fix any mismatch before the EYP deadline.
-                </p>
-              </div>
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-100)' }}>
-                {[
-                  { text: 'Salary start dates are correct.', note: 'Unplanned absences may not sync via integration — this review is still required.' },
-                  { text: 'Wage amounts and work regimes match your HR system.', note: null },
-                  { text: 'Every mismatch is corrected before the EYP cash-out deadline.', note: null },
-                ].map((item, index) => (
-                  <div key={item.text} style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
-                    <span style={{ width: 20, height: 20, flexShrink: 0, marginTop: 1, borderRadius: '50%', background: '#f3f0ff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 10, color: P.action }}>
-                      {index + 1}
-                    </span>
-                    <div>
-                      <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, lineHeight: 1.45 }}>{item.text}</div>
-                      {item.note && (
-                        <div style={{ marginTop: 2, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, lineHeight: 1.4 }}>
-                          {item.note}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Right — walkthrough */}
-            <div className="relaunch-inline-help" style={{ minWidth: 0, paddingLeft: 'var(--space-250)', borderLeft: `1px solid ${P.border}`, display: 'flex', flexDirection: 'column', gap: 'var(--space-125)' }}>
-              <div>
-                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink, marginBottom: 2 }}>
-                  Walkthrough
-                </div>
-                <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, lineHeight: 1.4 }}>
-                  2-min guide to checking salary data.
-                </p>
-              </div>
-              <RelaunchVideoPlayer video={task.video} />
-              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-150)' }}>
-                <a href="https://help.payflip.be/en/articles/11413-how-can-i-modify-my-employee-s-salary-data" target="_blank" rel="noreferrer" style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', fontWeight: 600, color: P.action, textDecoration: 'none', whiteSpace: 'nowrap' }}
-                  onMouseEnter={e => e.currentTarget.style.textDecoration = 'underline'}
-                  onMouseLeave={e => e.currentTarget.style.textDecoration = 'none'}>
-                  Help article →
-                </a>
-                <span style={{ width: 1, height: 12, background: P.border, flexShrink: 0 }} />
-                <button type="button" onClick={() => setShowQuestions(value => !value)} aria-expanded={showQuestions} style={{ padding: 0, border: 'none', background: 'transparent', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', fontWeight: 600, color: P.action, textDecoration: 'none', cursor: 'pointer', whiteSpace: 'nowrap' }}
-                  onMouseEnter={e => e.currentTarget.style.textDecoration = 'underline'}
-                  onMouseLeave={e => e.currentTarget.style.textDecoration = 'none'}>
-                  Common questions
-                </button>
-              </div>
-              {showQuestions && (
-                <div style={{ padding: 'var(--space-125)', borderRadius: 7, background: P.bg, border: `1px solid ${P.border}`, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, lineHeight: 1.6 }}>
-                  This review applies to integration customers too. If you cannot finish before the deadline, contact your Payflip success manager.
-                </div>
-              )}
-            </div>
+  return (
+    <section
+      className={leaving ? 'relaunch-float is-leaving' : 'relaunch-float'}
+      role="dialog"
+      aria-label="Check salary dates and wages"
+      style={{
+        ...anchor,
+        width: 420, maxHeight: 'calc(100vh - 80px)',
+        display: 'flex', flexDirection: 'column', overflow: 'hidden',
+        padding: 16, background: '#1c1c1e', color: '#fff', borderRadius: 24,
+        boxShadow: '0 0 0 1px rgb(0 0 0 / 0.12), 0 2px 4px rgb(0 0 0 / 0.08), 0 16px 40px rgb(0 0 0 / 0.22)',
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, paddingBottom: 16 }}>
+        <div style={{ minWidth: 0 }}>
+          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-heading-xs)', letterSpacing: '-0.015em', lineHeight: 1.3 }}>
+            Check salary dates and wages
           </div>
-
-          <div className="relaunch-inline-completion" style={{ margin: '0 var(--space-250)', padding: 'var(--space-200) 0', borderTop: `1px solid ${P.border}`, display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', alignItems: 'center', gap: 'var(--space-300)' }}>
-            <RelaunchCompletionConfirmation checked={confirmed} disabled={false} onChange={onConfirm}>
-              I checked the employee data shown here against our HR system and corrected any mismatches.
-            </RelaunchCompletionConfirmation>
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 'var(--space-075)' }}>
-              <Button variant="primary" icon={confirmed ? 'check' : undefined} disabled={!confirmed} onClick={() => onMarkDone(task.id)} style={{ minWidth: 190, justifyContent: 'center' }}>
-                Mark as complete
-              </Button>
-              <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkFaint }}>
-                {confirmed ? 'Ready to complete.' : 'Confirm the review above first.'}
-              </div>
+          {deadlineMeta && (
+            <div style={{ marginTop: 2, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', fontWeight: 600, fontVariantNumeric: 'tabular-nums', color: '#fbbf24' }}>
+              {deadlineMeta.relative}
             </div>
-          </div>
+          )}
         </div>
-      )}
+        <button
+          type="button"
+          className="relaunch-float-close"
+          onClick={() => setOpen(false)}
+          aria-label="Close"
+          style={{
+            marginLeft: 'auto', marginTop: -6, marginRight: -8, flexShrink: 0,
+            width: 44, height: 44, border: 'none', borderRadius: 10,
+            color: 'rgba(255,255,255,0.7)', cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}
+        >
+          <Icon name="X" size={16} color="currentColor" strokeWidth={2} />
+        </button>
+      </div>
+
+      <div className="relaunch-float-body" style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+        <div style={{ borderRadius: 8, overflow: 'hidden' }}>
+          <RelaunchVideoPlayer video={task.video} showTitle={false} aspectRatio="2.35 / 1" />
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+        <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', lineHeight: 1.45, color: '#fff', textWrap: 'pretty' }}>
+          Compare each employee with your HR system so their budget matches what they are entitled to.
+        </p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          {[
+            { text: 'Salary start date', note: 'A raise or a change in work regime needs a new start date. Unplanned absences are not synced from your HR system.' },
+            { text: 'Wage and work regime', note: 'Nothing updates these during the year. Check the wage and the regime against your HR system.' },
+          ].map((item, index) => (
+            <div key={item.text} style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+              <span style={{ width: 18, height: 18, flexShrink: 0, marginTop: 2, borderRadius: '50%', background: 'rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-body)', fontWeight: 600, fontSize: 11, fontVariantNumeric: 'tabular-nums', color: 'rgba(255,255,255,0.7)' }}>
+                {index + 1}
+              </span>
+              <div>
+                <div style={{ fontFamily: 'var(--font-body)', fontWeight: 400, fontSize: 'var(--fs-body-sm)', color: 'rgba(255,255,255,0.88)', lineHeight: 1.4 }}>{item.text}</div>
+                {item.note && (
+                  <div style={{ marginTop: 2, fontFamily: 'var(--font-body)', fontWeight: 400, fontSize: 'var(--fs-body-xs)', color: 'rgba(255,255,255,0.62)', lineHeight: 1.4 }}>
+                    {item.note}
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+        <a className="relaunch-float-link" href="https://help.payflip.be/en/articles/11413-how-can-i-modify-my-employee-s-salary-data" target="_blank" rel="noreferrer">
+          Help article
+        </a>
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, padding: '10px 12px', borderRadius: 8, background: 'rgba(255,255,255,0.06)' }}>
+          <Icon name="info" size={14} color="rgba(255,255,255,0.72)" strokeWidth={2} style={{ flexShrink: 0, marginTop: 2 }} />
+          <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: 'rgba(255,255,255,0.72)', lineHeight: 1.55 }}>
+            {relaunchSalaryNote(appEntity)}
+          </p>
+        </div>
+        </div>
+      </div>
+
+      <div style={{ flexShrink: 0, marginTop: 20, paddingTop: 16, borderTop: '1px solid #2a2a2e', display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <RelaunchCompletionConfirmation checked={confirmed} disabled={false} onChange={onConfirm} color="rgba(255,255,255,0.72)" size="sm" colorScheme="dark">
+          I checked both and corrected any mismatches.
+        </RelaunchCompletionConfirmation>
+        <Button variant="primary" disabled={!confirmed || leaving} onClick={() => setLeaving(true)} style={{ width: '100%', justifyContent: 'center' }}>
+          Mark as complete
+        </Button>
+      </div>
     </section>
   );
 }
@@ -6777,15 +6821,6 @@ function EmployeesScreen({ requests, onNav, initialRoleFilter = 'All', adminAcce
       </PageHeader>
 
       <div style={{ flex: 1, overflow: 'auto', padding: 'var(--space-250) var(--space-250) var(--space-250)' }}>
-        {relaunchTask?.id === 'q4-1' && (
-          <RelaunchInlineGuidance
-            task={relaunchTask}
-            appEntity={appEntity}
-            confirmed={relaunchConfirmed}
-            onConfirm={onConfirmRelaunch}
-            onMarkDone={onMarkRelaunchDone}
-          />
-        )}
         <div style={{ display: 'flex', gap: 'var(--space-125)', marginBottom: 'var(--space-200)' }}>
           <div style={{ position: 'relative', flex: 1, maxWidth: 220 }}>
             <Icon name="Search" size={14} color={P.inkFaint} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)' }} />
@@ -6822,6 +6857,15 @@ function EmployeesScreen({ requests, onNav, initialRoleFilter = 'All', adminAcce
           </table></div>
         </div>
       </div>
+      {relaunchTask?.id === 'q4-1' && (
+        <RelaunchGuidanceCard
+          task={relaunchTask}
+          appEntity={appEntity}
+          confirmed={relaunchConfirmed}
+          onConfirm={onConfirmRelaunch}
+          onMarkDone={onMarkRelaunchDone}
+        />
+      )}
     </div>
   );
 }
@@ -9504,9 +9548,8 @@ const RELAUNCH_TASKS = [
     whatToDo: 'Salary errors carry forward into the year-end payroll and bonus calculations. Check every employee before the deadline to avoid having to submit a correction file afterwards.',
     video: { title: 'How to check salary dates & wages', duration: '2:14' },
     checklist: [
-      'Check the salary start date for every employee',
-      'Confirm the wage amount and work regime are correct',
-      'Fix any mismatch before moving on to budgets',
+      'Check the salary start date, including after a raise or a change in work regime',
+      'Check the wage and the work regime against the HR system',
     ],
     faq: [
       { q: 'What if I can\'t finish this before the deadline?', a: 'Contact your Payflip success manager — we can extend the window for salary corrections without affecting the choice deadline.' },
@@ -9557,11 +9600,15 @@ function getRelaunchDeadlineMeta(deadline) {
   return { shortDate: `${day} ${monthName}`, relative, state };
 }
 
-function RelaunchCompletionConfirmation({ checked, disabled, onChange, children }) {
+function RelaunchCompletionConfirmation({ checked, disabled, onChange, children, color = P.ink, size = 'md', colorScheme }) {
+  const dark = colorScheme === 'dark';
+  const boxBorder = checked ? (dark ? '#fff' : P.action) : (dark ? '#5c5c60' : P.border);
+  const boxBg = checked ? (dark ? '#fff' : P.action) : 'transparent';
   return (
     <label
+      className="relaunch-check"
       style={{
-        minHeight: 44,
+        position: 'relative',
         display: 'flex', alignItems: 'flex-start', gap: 10,
         cursor: disabled ? 'not-allowed' : 'pointer',
         opacity: disabled ? 0.5 : 1,
@@ -9570,18 +9617,27 @@ function RelaunchCompletionConfirmation({ checked, disabled, onChange, children 
     >
       <input
         type="checkbox"
+        className="relaunch-check-input"
         checked={checked}
         disabled={disabled}
         onChange={onChange}
-        style={{
-          width: 18, height: 18, margin: '1px 0 0', flexShrink: 0,
-          accentColor: P.action,
-          cursor: disabled ? 'not-allowed' : 'pointer',
-        }}
       />
+      <span
+        aria-hidden="true"
+        className="relaunch-check-box"
+        style={{
+          width: 18, height: 18, marginTop: 1, flexShrink: 0, borderRadius: 4,
+          border: `2px solid ${boxBorder}`,
+          background: boxBg,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          transition: `background 120ms ${EASE_OUT}, border-color 120ms ${EASE_OUT}`,
+        }}
+      >
+        {checked && <Icon name="check" size={11} color={dark ? P.action : '#fff'} strokeWidth={3} />}
+      </span>
       <span style={{
-        fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)',
-        color: P.ink, lineHeight: 1.55,
+        fontFamily: 'var(--font-body)', fontSize: size === 'sm' ? 'var(--fs-body-xs)' : 'var(--fs-body-sm)',
+        color, lineHeight: 1.45,
         transition: `color 150ms ${EASE_OUT}`,
       }}>
         {children}
@@ -9661,7 +9717,7 @@ function RelaunchTaskDrawer({ task, confirmed, onConfirm, onClose, onMarkDone, o
               </div>
               <div style={{ marginTop: 8 }}>
                 <RelaunchCompletionConfirmation checked={confirmed} disabled={!hasNavigated} onChange={onConfirm}>
-                  I reviewed all employees and fixed any mismatches.
+                  I followed these steps and corrected any mismatches.
                 </RelaunchCompletionConfirmation>
               </div>
               {/* In phase 2, show return button only when not already on the target screen */}
@@ -9689,7 +9745,7 @@ function RelaunchTaskDrawer({ task, confirmed, onConfirm, onClose, onMarkDone, o
   );
 }
 
-function RelaunchVideoPlayer({ video, heading = null, description = null }) {
+function RelaunchVideoPlayer({ video, heading = null, description = null, showTitle = true, aspectRatio = '16 / 9' }) {
   const [playing, setPlaying] = React.useState(false);
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -9699,7 +9755,7 @@ function RelaunchVideoPlayer({ video, heading = null, description = null }) {
           {description}
         </p>
       )}
-      <div onClick={() => setPlaying(p => !p)} style={{ position: 'relative', borderRadius: 10, overflow: 'hidden', aspectRatio: '16/9', background: '#1a1625', cursor: 'pointer', userSelect: 'none' }}>
+      <div onClick={() => setPlaying(p => !p)} style={{ position: 'relative', borderRadius: 10, overflow: 'hidden', aspectRatio, background: '#1a1625', cursor: 'pointer', userSelect: 'none' }}>
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, #2d1f4e 0%, #1a1020 50%, #0f1a2e 100%)', opacity: 0.9 }} />
         <div style={{ position: 'absolute', inset: 0, backgroundImage: 'linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
         <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -9710,13 +9766,13 @@ function RelaunchVideoPlayer({ video, heading = null, description = null }) {
             </div>
           ) : (
             <div style={{ width: 48, height: 48, borderRadius: '50%', background: 'rgba(255,255,255,0.15)', border: '1.5px solid rgba(255,255,255,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(4px)' }}>
-              <div style={{ width: 0, height: 0, borderTop: '8px solid transparent', borderBottom: '8px solid transparent', borderLeft: '14px solid rgba(255,255,255,0.9)', marginLeft: 3 }} />
+              <div style={{ width: 0, height: 0, borderTop: '8px solid transparent', borderBottom: '8px solid transparent', borderLeft: '14px solid rgba(255,255,255,0.9)', marginLeft: 2 }} />
             </div>
           )}
         </div>
         <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '10px 14px', background: 'linear-gradient(to top, rgba(0,0,0,0.6), transparent)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: 'rgba(255,255,255,0.85)', fontWeight: 500 }}>{video.title}</span>
-          <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: 'rgba(255,255,255,0.6)', background: 'rgba(0,0,0,0.4)', padding: '2px 6px', borderRadius: 4 }}>{video.duration}</span>
+          {showTitle && <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: 'rgba(255,255,255,0.85)', fontWeight: 500 }}>{video.title}</span>}
+          <span style={{ marginLeft: 'auto', fontFamily: 'var(--font-body)', fontSize: 11, fontVariantNumeric: 'tabular-nums', color: 'rgba(255,255,255,0.6)', background: 'rgba(0,0,0,0.4)', padding: '2px 6px', borderRadius: 4 }}>{video.duration}</span>
         </div>
       </div>
     </div>
@@ -9724,7 +9780,7 @@ function RelaunchVideoPlayer({ video, heading = null, description = null }) {
 }
 
 function RelaunchHubScreen({ appEntity = null, aiMode = false, onNav, doneTasks, startedTasks = new Set(), onMarkDone, onOpenTask }) {
-  const entityName = appEntity ? ENTITIES.find(e => e.id === appEntity)?.name : null;
+  const hubCopy = relaunchHubCopy(appEntity);
 
   const isTaskDone = (task) => task.status === 'done' || doneTasks.has(task.id);
 
@@ -9766,11 +9822,10 @@ function RelaunchHubScreen({ appEntity = null, aiMode = false, onNav, doneTasks,
     });
   };
   return (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', background: P.white }}>
       <PageHeader
-        title="Relaunch hub"
-        subtitle="Annual relaunch · Oct 2026 → Mar 2027"
-        badge={entityName}
+        title={hubCopy.title}
+        subtitle={hubCopy.subtitle}
         maxWidth={880}
       />
 
@@ -9794,28 +9849,21 @@ function RelaunchHubScreen({ appEntity = null, aiMode = false, onNav, doneTasks,
 
           {/* Collapsible phase cards */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            {RELAUNCH_MONTHS.map((month, mi) => {
+            {RELAUNCH_MONTHS.map((month) => {
               const tasks = tasksByMonth[month];
               const done = monthDone(month);
               const locked = monthLocked(month);
               const allDone = done === tasks.length;
-              const isActive = !locked && !allDone;
               const isExpanded = expandedMonths.has(month);
-              const taskOffset = RELAUNCH_MONTHS.slice(0, mi).reduce((sum, m) => sum + tasksByMonth[m].length, 0);
-              const phaseTone = allDone
-                ? { label: 'Complete', bg: P.successBg, color: P.successDark }
-                : isActive
-                ? { label: 'Current', bg: 'var(--purple-100)', color: 'var(--purple-800)' }
-                : { label: 'Upcoming', bg: P.bg, color: P.inkSoft };
 
               return (
-                <div key={month} style={{ background: P.white, border: hairline, borderRadius: 10, overflow: 'hidden', boxShadow: '0 1px 3px rgba(15, 13, 40, 0.03)' }}>
+                <div key={month} style={{ background: P.bg, border: hairline, borderRadius: 10, overflow: 'hidden' }}>
                   <button
                     type="button"
                     onClick={() => toggleMonth(month)}
                     aria-expanded={isExpanded}
                     style={{
-                      width: '100%', minHeight: 66, padding: 'var(--space-125) var(--space-200)',
+                      width: '100%', padding: '14px 16px',
                       display: 'flex', alignItems: 'center', gap: 'var(--space-200)',
                       border: 'none', background: 'transparent', color: P.ink,
                       textAlign: 'left', cursor: 'pointer',
@@ -9825,7 +9873,7 @@ function RelaunchHubScreen({ appEntity = null, aiMode = false, onNav, doneTasks,
                       <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-heading-xs)', color: locked ? P.inkSoft : P.ink }}>{month}</div>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-125)', flexShrink: 0 }}>
-                      {!isActive && <DotPill dot={false} bg={phaseTone.bg} color={phaseTone.color} size={11}>{phaseTone.label}</DotPill>}
+                      {allDone && <DotPill dot={false} bg={P.successBg} color={P.successDark} size={11}>Complete</DotPill>}
                       <span style={{ minWidth: 24, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkFaint, fontVariantNumeric: 'tabular-nums' }}>{done}/{tasks.length}</span>
                       <div style={{ transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)', transition: `transform 180ms ${EASE_OUT}`, display: 'flex' }}>
                         <Icon name="chevron-down" size={15} color={P.inkFaint} strokeWidth={1.75} />
@@ -9834,15 +9882,13 @@ function RelaunchHubScreen({ appEntity = null, aiMode = false, onNav, doneTasks,
                   </button>
 
                   {isExpanded && (
-                    <div style={{ borderTop: hairline }}>
+                    <div style={{ background: P.white, borderTop: hairline, borderTopLeftRadius: 10, borderTopRightRadius: 10, overflow: 'hidden' }}>
                     {tasks.map((task, ti) => {
                           const isDone = isTaskDone(task);
                           const taskIsActive = !locked && !isDone;
                           const isActionable = taskIsActive && (task.whatToDo || task.checklist || task.faq || task.navTarget);
                           const isStarted = startedTasks.has(task.id);
-                          const progressSummary = isDone
-                            ? `Completed · ${task.description}`
-                            : isStarted
+                          const progressSummary = isStarted && !isDone
                             ? `In progress · ${task.description}`
                             : task.description;
                           const aiResult = aiMode && taskIsActive ? RELAUNCH_AI_RESULTS[task.id] : null;
@@ -9865,31 +9911,10 @@ function RelaunchHubScreen({ appEntity = null, aiMode = false, onNav, doneTasks,
                                 textAlign: 'left',
                               }}
                             >
-                              {/* Step badge — numbered ring → green check → AI sparkle */}
-                              {isDone ? (
-                                <div style={{ width: 20, height: 20, borderRadius: '50%', flexShrink: 0, background: P.success, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                  <Icon name="check" size={11} color="white" strokeWidth={2.5} />
-                                </div>
-                              ) : aiResult ? (
-                                <div style={{ width: 20, height: 20, borderRadius: '50%', flexShrink: 0, background: aiResult.status === 'issues' ? 'var(--orange-100, #ffedd5)' : 'var(--green-100, #dcfce7)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                  <Icon name="sparkles" size={11} color={aiColor} strokeWidth={2} />
-                                </div>
-                              ) : (
-                                <span style={{ width: 20, height: 20, borderRadius: '50%', flexShrink: 0, border: `1.5px solid ${P.inkSoft}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 11, color: P.inkSoft }}>
-                                  {taskOffset + ti + 1}
-                                </span>
-                              )}
                               <div style={{ flex: 1, minWidth: 0 }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-100)', minWidth: 0 }}>
-                                  <div style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: isDone ? P.inkSoft : P.ink, textDecoration: isDone ? 'line-through' : 'none' }}>{task.title}</div>
-                                  {taskIsActive && task.deadline && (
-                                    <DotPill dot={false} bg={deadlineTone.bg} color={deadlineTone.color} size={11} whiteSpace="nowrap">
-                                      Due {task.deadline.replace(' 2026', '').replace(' 2027', '')}
-                                    </DotPill>
-                                  )}
-                                </div>
+                                <div style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: isDone ? P.inkSoft : P.ink, textDecoration: isDone ? 'line-through' : 'none' }}>{task.title}</div>
                                 {progressSummary && (
-                                  <div style={{ marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: isDone ? P.successDark : P.inkFaint }}>
+                                  <div style={{ marginTop: 2, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkFaint, lineHeight: 1.4 }}>
                                     {progressSummary}
                                   </div>
                                 )}
@@ -9897,8 +9922,15 @@ function RelaunchHubScreen({ appEntity = null, aiMode = false, onNav, doneTasks,
                                   <div style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: aiColor, marginTop: 2 }}>{aiResult.label}</div>
                                 )}
                               </div>
-                              {isActionable && (
-                                <Button variant="secondary" onClick={() => onOpenTask(task)} style={{ padding: '7px 12px', fontSize: 'var(--fs-body-xs)', whiteSpace: 'nowrap' }}>
+                              {taskIsActive && task.deadline && (
+                                <DotPill dot={false} bg={deadlineTone.bg} color={deadlineTone.color} size={11} whiteSpace="nowrap">
+                                  Due {task.deadline.replace(' 2026', '').replace(' 2027', '')}
+                                </DotPill>
+                              )}
+                              {isDone ? (
+                                <DotPill bg={P.successBg} color={P.successDark} size={11} whiteSpace="nowrap">Done</DotPill>
+                              ) : isActionable && (
+                                <Button variant="primary" onClick={() => onOpenTask(task)} style={{ padding: '7px 12px', fontSize: 'var(--fs-body-xs)', whiteSpace: 'nowrap', minWidth: 96, justifyContent: 'center' }}>
                                   {isStarted ? 'Continue' : 'Start task'}
                                 </Button>
                               )}
