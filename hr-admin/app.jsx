@@ -6640,12 +6640,14 @@ function relaunchSalaryNote(appEntity) {
   const integrated = inScope.filter(entity => entity.integrationId);
   const deadline = 'If you cannot finish before the deadline, contact your Payflip success manager.';
   if (integrated.length === 0) return deadline;
+  const followUp = `Confirm it matches Payflip, because unplanned absences are not synced. ${deadline}`;
   if (appEntity) {
-    return `${integrated[0].payrollProvider} sends your salary data. Confirm it matches Payflip, because unplanned absences are not synced. ${deadline}`;
+    return `Salary data comes from the integration with ${integrated[0].payrollProvider}. ${followUp}`;
   }
   const sources = integrated.map(entity => `${entity.payrollProvider} for ${entity.name}`);
   const list = sources.length === 2 ? `${sources[0]} and ${sources[1]}` : `${sources.slice(0, -1).join(', ')}, and ${sources[sources.length - 1]}`;
-  return `Salary data is sent by ${list}. Confirm it matches Payflip, because unplanned absences are not synced. ${deadline}`;
+  const integrationWord = integrated.length === 1 ? 'integration' : 'integrations';
+  return `Salary data comes from the ${integrationWord} with ${list}. ${followUp}`;
 }
 
 function RelaunchGuidanceCard({ task, appEntity, confirmed, onConfirm, onMarkDone }) {
@@ -6674,19 +6676,20 @@ function RelaunchGuidanceCard({ task, appEntity, confirmed, onConfirm, onMarkDon
         aria-expanded={false}
         style={{
           ...anchor,
-          display: 'flex', alignItems: 'center', gap: 10,
-          height: 44, padding: '0 14px 0 16px',
-          border: 'none', borderRadius: 12, color: '#fff',
+          display: 'flex', alignItems: 'center', gap: 8,
+          height: 44, maxWidth: 280, padding: '0 12px 0 16px',
+          border: 'none', borderRadius: 22, color: '#fff',
           fontFamily: 'var(--font-display)', fontSize: 'var(--fs-body-sm)', fontWeight: 600,
           cursor: 'pointer', boxShadow: shadow,
         }}
       >
-        <span>Check salary dates and wages</span>
+        <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>Check salary dates and wages</span>
         {deadlineMeta && (
-          <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', fontWeight: 600, color: '#fbbf24' }}>
+          <span style={{ flexShrink: 0, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', fontWeight: 600, fontVariantNumeric: 'tabular-nums', color: '#fbbf24', whiteSpace: 'nowrap' }}>
             {deadlineMeta.relative}
           </span>
         )}
+        <Icon name="chevron-up" size={15} color="rgba(255,255,255,0.7)" strokeWidth={2} style={{ flexShrink: 0 }} />
       </button>
     );
   }
@@ -6721,8 +6724,8 @@ function RelaunchGuidanceCard({ task, appEntity, confirmed, onConfirm, onMarkDon
           onClick={() => setOpen(false)}
           aria-label="Close"
           style={{
-            marginLeft: 'auto', marginTop: -6, marginRight: -8, flexShrink: 0,
-            width: 44, height: 44, border: 'none', borderRadius: 10,
+            marginLeft: 'auto', marginTop: -8, marginRight: -8, flexShrink: 0,
+            width: 44, height: 44, border: 'none', borderRadius: 16,
             color: 'rgba(255,255,255,0.7)', cursor: 'pointer',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}
@@ -6773,7 +6776,7 @@ function RelaunchGuidanceCard({ task, appEntity, confirmed, onConfirm, onMarkDon
 
       <div style={{ flexShrink: 0, marginTop: 20, paddingTop: 16, borderTop: '1px solid #2a2a2e', display: 'flex', flexDirection: 'column', gap: 12 }}>
         <RelaunchCompletionConfirmation checked={confirmed} disabled={false} onChange={onConfirm} color="rgba(255,255,255,0.72)" size="sm" colorScheme="dark">
-          I checked both and corrected any mismatches.
+          I followed these steps.
         </RelaunchCompletionConfirmation>
         <Button variant="primary" disabled={!confirmed || leaving} onClick={() => setLeaving(true)} style={{ width: '100%', justifyContent: 'center' }}>
           Mark as complete
@@ -9717,7 +9720,7 @@ function RelaunchTaskDrawer({ task, confirmed, onConfirm, onClose, onMarkDone, o
               </div>
               <div style={{ marginTop: 8 }}>
                 <RelaunchCompletionConfirmation checked={confirmed} disabled={!hasNavigated} onChange={onConfirm}>
-                  I followed these steps and corrected any mismatches.
+                  I followed these steps.
                 </RelaunchCompletionConfirmation>
               </div>
               {/* In phase 2, show return button only when not already on the target screen */}
@@ -9881,7 +9884,13 @@ function RelaunchHubScreen({ appEntity = null, aiMode = false, onNav, doneTasks,
                     </div>
                   </button>
 
-                  {isExpanded && (
+                  <div style={{
+                    display: 'grid',
+                    gridTemplateRows: isExpanded ? '1fr' : '0fr',
+                    transition: PREFERS_REDUCED_MOTION ? 'none' : `grid-template-rows 250ms ${EASE_OUT}`,
+                    overflow: 'hidden',
+                  }}>
+                    <div ref={(node) => { if (node) node.inert = !isExpanded; }} style={{ minHeight: 0, overflow: 'hidden' }}>
                     <div style={{ background: P.white, borderTop: hairline, borderTopLeftRadius: 10, borderTopRightRadius: 10, overflow: 'hidden' }}>
                     {tasks.map((task, ti) => {
                           const isDone = isTaskDone(task);
@@ -9938,7 +9947,8 @@ function RelaunchHubScreen({ appEntity = null, aiMode = false, onNav, doneTasks,
                           );
                     })}
                     </div>
-                  )}
+                    </div>
+                  </div>
                 </div>
               );
             })}
