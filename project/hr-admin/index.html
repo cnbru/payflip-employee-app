@@ -145,9 +145,12 @@
       display: inline-block;
       animation: relaunchCountIn 200ms cubic-bezier(0.22, 1, 0.36, 1);
     }
-    .relaunch-float-close { background: transparent; }
+    .relaunch-float-close {
+      background: transparent;
+      transition: background 150ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
     .relaunch-float-close:hover { background: rgba(255,255,255,0.08); }
-    .relaunch-float-launcher { background: #1c1c1e; }
+    .relaunch-float-launcher { background: #1c1c1e; transition: background 150ms cubic-bezier(0.22, 1, 0.36, 1); }
     .relaunch-float-launcher:hover { background: #2a2a2e; }
     .relaunch-check::before { content: ""; position: absolute; inset: -12px 0; }
     .relaunch-check-input {
@@ -181,7 +184,7 @@
       .relaunch-float.is-leaving { animation: relaunchFloatOutReduced 160ms ease forwards !important; }
       .relaunch-count { animation: relaunchCountFade 160ms ease; }
       .relaunch-check-box { transition: none !important; }
-      .relaunch-float-link { transition: none; }
+      .relaunch-float-link, .relaunch-float-close, .relaunch-float-launcher { transition: none; }
     }
 
     .filter-count-badge {
@@ -205,6 +208,6 @@
 </head>
 <body>
   <div id="root"></div>
-  <script type="text/babel" src="app.jsx?v=2356"></script>
+  <script type="text/babel" src="app.jsx?v=2362"></script>
 </body>
 </html>
