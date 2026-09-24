@@ -1791,6 +1791,47 @@ function relaunchHubCopy(appEntity) {
   };
 }
 
+function relaunchTaskKey(entityId, taskId) {
+  return `${entityId}:${taskId}`;
+}
+
+function relaunchDeadlineTime(deadline) {
+  const meta = deadline ? getRelaunchDeadlineMeta(deadline) : null;
+  if (!deadline || !meta) return Infinity;
+  const [day, monthName, year] = deadline.split(' ');
+  const month = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].indexOf(monthName);
+  if (month < 0) return Infinity;
+  return new Date(Number(year), month, Number(day)).getTime();
+}
+
+function relaunchEntityProgress(doneTasks, entityId) {
+  const total = RELAUNCH_TASKS.length;
+  const remaining = RELAUNCH_TASKS.filter(task => task.status !== 'done' && !doneTasks.has(relaunchTaskKey(entityId, task.id)));
+  const nextTask = remaining
+    .filter(task => task.deadline)
+    .slice()
+    .sort((a, b) => relaunchDeadlineTime(a.deadline) - relaunchDeadlineTime(b.deadline))[0];
+  return {
+    done: total - remaining.length,
+    total,
+    left: remaining.length,
+    nextDeadline: nextTask?.deadline || null,
+  };
+}
+
+function relaunchEntitiesForStart(doneTasks, query) {
+  const q = query.trim().toLowerCase();
+  return ENTITIES
+    .filter(entity => entity.name.toLowerCase().includes(q))
+    .map(entity => ({ entity, ...relaunchEntityProgress(doneTasks, entity.id) }))
+    .sort((a, b) => {
+      if ((a.left === 0) !== (b.left === 0)) return a.left === 0 ? 1 : -1;
+      const byDeadline = relaunchDeadlineTime(a.nextDeadline) - relaunchDeadlineTime(b.nextDeadline);
+      if (byDeadline !== 0) return byDeadline;
+      return a.entity.name.localeCompare(b.entity.name);
+    });
+}
+
 function AppModeSidebar({ active, onNav, pendingCount, onEnterSettings, setupInProgress, onboardingCount = 0, offboardingCount = 0, appEntity = null, doneTasks = new Set() }) {
   const isPeopleActive = active === 'employees' || active === 'employees:admin' || active === 'people-onboarding' || active === 'people-offboarding' || active?.startsWith('employee-detail');
   const [peopleOpen, setPeopleOpen] = useState(isPeopleActive);
@@ -1841,11 +1882,12 @@ function AppModeSidebar({ active, onNav, pendingCount, onEnterSettings, setupInP
 
           <SidebarItem icon="settings" label="Settings" onClick={onEnterSettings} />
 
-          {appEntity && (() => {
-            const doneCount = RELAUNCH_TASKS.filter(t => t.status === 'done' || doneTasks.has(t.id)).length;
-            const total = RELAUNCH_TASKS.length;
-            const pct = Math.round((doneCount / total) * 100);
-            const hubCopy = relaunchHubCopy(appEntity);
+          {(() => {
+            const entityProgress = appEntity ? relaunchEntityProgress(doneTasks, appEntity) : null;
+            const stillOpen = ENTITIES.filter(entity => relaunchEntityProgress(doneTasks, entity.id).left > 0).length;
+            const title = appEntity ? relaunchHubCopy(appEntity).title : 'Relaunch';
+            const status = stillOpen === 0 ? 'All done' : stillOpen === 1 ? '1 still open' : `${stillOpen} still open`;
+            const pct = entityProgress ? Math.round((entityProgress.done / entityProgress.total) * 100) : 0;
             return (
               <div style={{ padding: '4px var(--space-250)' }}>
                 <button onClick={() => onNav('relaunch-hub')} style={{
@@ -1860,18 +1902,24 @@ function AppModeSidebar({ active, onNav, pendingCount, onEnterSettings, setupInP
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                     <Icon name="Rocket" size={14} color="rgba(255,255,255,0.9)" style={{ marginBottom: 8 }} />
                     <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
-                      <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 13, color: '#fff', letterSpacing: '-0.01em' }}>{hubCopy.title}</span>
+                      <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 13, color: '#fff', letterSpacing: '-0.01em' }}>{title}</span>
                       <Icon name="chevron-right" size={11} color="rgba(255,255,255,0.5)" strokeWidth={2} style={{ flexShrink: 0, marginTop: 3 }} />
                     </div>
-                    <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: 'rgba(255,255,255,0.7)', lineHeight: 1.4 }}>{hubCopy.subtitle}</span>
+                    {!appEntity && (
+                      <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: 'rgba(255,255,255,0.7)', lineHeight: 1.4, fontVariantNumeric: 'tabular-nums' }}>{status}</span>
+                    )}
                   </div>
-                  <div style={{ height: 6, borderRadius: 99, overflow: 'hidden', background: 'rgba(255,255,255,0.2)' }}>
-                    <div style={{ height: '100%', width: `${pct}%`, borderRadius: 99, background: '#fff', transition: `width 350ms ${EASE_OUT}` }} />
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
-                    <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: 'rgba(255,255,255,0.7)', fontVariantNumeric: 'tabular-nums' }}><RelaunchDoneCount value={doneCount} /> done</span>
-                    <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: 'rgba(255,255,255,0.7)', fontVariantNumeric: 'tabular-nums' }}><span style={{ fontWeight: 700, color: '#fff', fontSize: 13 }}>{total - doneCount}</span> left</span>
-                  </div>
+                  {entityProgress && (
+                    <>
+                      <div style={{ height: 6, borderRadius: 99, overflow: 'hidden', background: 'rgba(255,255,255,0.2)' }}>
+                        <div style={{ height: '100%', width: `${pct}%`, borderRadius: 99, background: '#fff', transition: `width 350ms ${EASE_OUT}` }} />
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
+                        <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: 'rgba(255,255,255,0.7)', fontVariantNumeric: 'tabular-nums' }}><RelaunchDoneCount value={entityProgress.done} /> done</span>
+                        <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: 'rgba(255,255,255,0.7)', fontVariantNumeric: 'tabular-nums' }}><span style={{ fontWeight: 700, color: '#fff', fontSize: 13 }}>{entityProgress.left}</span> left</span>
+                      </div>
+                    </>
+                  )}
                 </button>
               </div>
             );
@@ -6650,9 +6698,10 @@ function relaunchSalaryNote(appEntity) {
   return `Salary data comes from the ${integrationWord} with ${list}. ${followUp}`;
 }
 
-function RelaunchGuidanceCard({ task, appEntity, confirmed, onConfirm, onMarkDone }) {
+function RelaunchGuidanceCard({ task, appEntity, confirmed, completed, onConfirm, onMarkDone, onNav, onStartNext, onDismiss }) {
   const [open, setOpen] = useState(true);
   const [leaving, setLeaving] = useState(false);
+  const nextTask = RELAUNCH_TASKS.find(item => item.month === task.month && item.id !== task.id && item.status !== 'locked');
   const deadlineMeta = getRelaunchDeadlineMeta(task.deadline);
   const floatMotion = PREFERS_REDUCED_MOTION ? 'none' : 'relaunchFloatIn 220ms cubic-bezier(0.23, 1, 0.32, 1)';
   const leaveMs = PREFERS_REDUCED_MOTION ? 160 : 180;
@@ -6662,9 +6711,10 @@ function RelaunchGuidanceCard({ task, appEntity, confirmed, onConfirm, onMarkDon
     return () => clearTimeout(id);
   }, [leaving, leaveMs, onMarkDone, task.id]);
   const anchor = {
-        position: 'fixed', right: 24, bottom: 56, zIndex: 40,
-    transformOrigin: 'bottom right', animation: leaving ? undefined : floatMotion,
+    position: 'fixed', right: 24, bottom: 56, zIndex: 40,
+    transformOrigin: 'bottom right',
   };
+  const enter = leaving ? undefined : floatMotion;
   const shadow = '0 0 0 1px rgb(0 0 0 / 0.12), 0 8px 24px rgb(0 0 0 / 0.18)';
 
   if (!open) {
@@ -6676,6 +6726,7 @@ function RelaunchGuidanceCard({ task, appEntity, confirmed, onConfirm, onMarkDon
         aria-expanded={false}
         style={{
           ...anchor,
+          animation: floatMotion,
           display: 'flex', alignItems: 'center', gap: 8,
           height: 44, maxWidth: 280, padding: '0 12px 0 16px',
           border: 'none', borderRadius: 22, color: '#fff',
@@ -6683,7 +6734,7 @@ function RelaunchGuidanceCard({ task, appEntity, confirmed, onConfirm, onMarkDon
           cursor: 'pointer', boxShadow: shadow,
         }}
       >
-        <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>Check salary dates and wages</span>
+        <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{task.title}</span>
         {deadlineMeta && (
           <span style={{ flexShrink: 0, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', fontWeight: 600, fontVariantNumeric: 'tabular-nums', color: '#fbbf24', whiteSpace: 'nowrap' }}>
             {deadlineMeta.relative}
@@ -6694,23 +6745,105 @@ function RelaunchGuidanceCard({ task, appEntity, confirmed, onConfirm, onMarkDon
     );
   }
 
+  if (completed && nextTask) {
+    const dueLabel = nextTask.deadline ? `Due ${nextTask.deadline.replace(/ \d{4}$/, '')}` : '';
+    const monthTasks = RELAUNCH_TASKS.filter(item => item.month === task.month);
+    const monthDoneCount = monthTasks.filter(item => item.status === 'done' || item.id === task.id).length;
+    const latestDeadline = monthTasks.reduce((latest, item) => {
+      if (!item.deadline) return latest;
+      const [day, monthName, year] = item.deadline.split(' ');
+      const monthIndex = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].indexOf(monthName);
+      const time = monthIndex < 0 ? null : new Date(Number(year), monthIndex, Number(day)).getTime();
+      if (time == null) return latest;
+      if (!latest || time > latest.time) return { time, label: item.deadline.replace(/ \d{4}$/, '') };
+      return latest;
+    }, null);
+    const taskWord = monthTasks.length === 1 ? 'task' : 'tasks';
+    const monthLead = latestDeadline
+      ? `${monthTasks.length} ${taskWord} to finish before ${latestDeadline.label}.`
+      : `${monthTasks.length} ${taskWord} to finish.`;
+    const rowTitle = { fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', lineHeight: 1.4, color: '#fff' };
+    const pill = { display: 'inline-flex', alignItems: 'center', flexShrink: 0, borderRadius: 20, padding: '1px 7px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, lineHeight: 1.4, whiteSpace: 'nowrap' };
+    return (
+      <section
+        className="relaunch-float"
+        role="dialog"
+        aria-label="Next tasks"
+        style={{
+          ...anchor,
+          width: 420,
+          display: 'flex', flexDirection: 'column',
+          padding: 20, background: '#1c1c1e', color: '#fff', borderRadius: 24,
+          '--bg-primary-default': 'oklch(0.628 0.287 314)',
+          '--bg-primary-hover': 'oklch(0.578 0.286 314)',
+          boxShadow: '0 0 0 1px rgb(0 0 0 / 0.12), 0 2px 4px rgb(0 0 0 / 0.08), 0 16px 40px rgb(0 0 0 / 0.22)',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginLeft: -20, marginRight: -20, marginBottom: 16, padding: '0 20px 16px', borderBottom: '1px solid #2a2a2e' }}>
+          <div style={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-heading-xs)', letterSpacing: '-0.015em', lineHeight: 1.3 }}>Next tasks</div>
+            <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', lineHeight: 1.4, color: 'oklch(0.827 0 286)' }}>{monthLead}</p>
+          </div>
+          <button type="button" className="relaunch-float-close" onClick={onDismiss} aria-label="Close" style={{ marginLeft: 'auto', marginTop: -8, marginRight: -8, flexShrink: 0, width: 44, height: 44, border: 'none', borderRadius: 16, color: 'rgba(255,255,255,0.7)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Icon name="X" size={16} color="currentColor" strokeWidth={2} />
+          </button>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, paddingBottom: 12 }}>
+          <div style={{ flex: 1, minWidth: 0, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', lineHeight: 1.3 }}>{task.month}</div>
+          <span style={{ flexShrink: 0, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: 'oklch(0.827 0 286)', fontVariantNumeric: 'tabular-nums' }}>{monthDoneCount}/{monthTasks.length}</span>
+        </div>
+        <div style={{ background: '#2a2a2e', borderRadius: 4, overflow: 'hidden' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '16px' }}>
+            <span className="relaunch-done-mark" aria-hidden="true">
+              <Icon name="check" size={10} color="currentColor" strokeWidth={2.5} />
+            </span>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={rowTitle}>
+                <span className="relaunch-done-title">
+                  {task.title}
+                  <span className="relaunch-done-strike" aria-hidden="true" />
+                </span>
+              </div>
+            </div>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '16px', borderTop: '1px solid #3a3a3e' }}>
+            <span className="relaunch-open-mark" aria-hidden="true">
+              <Icon name="check" size={10} color="currentColor" strokeWidth={2.5} />
+            </span>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={rowTitle}>{nextTask.title}</div>
+            </div>
+            {dueLabel && <span style={{ ...pill, background: '#3d2e14', color: '#fbbf24' }}>{dueLabel}</span>}
+          </div>
+        </div>
+        <div style={{ flexShrink: 0, marginTop: 16, paddingTop: 16, borderTop: '1px solid #2a2a2e', display: 'flex', flexDirection: 'column', gap: 12, '--gray-900': '#fff', '--gray-200': '#3a3a3e', '--gray-100': 'rgba(255,255,255,0.08)' }}>
+          <Button variant="primary" onClick={() => onStartNext(nextTask)} style={{ width: '100%', justifyContent: 'center' }}>Start next task</Button>
+          <Button variant="secondary" onClick={() => { onDismiss(); onNav('relaunch-hub'); }} style={{ width: '100%', justifyContent: 'center' }}>Back to the list</Button>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section
       className={leaving ? 'relaunch-float is-leaving' : 'relaunch-float'}
       role="dialog"
-      aria-label="Check salary dates and wages"
+      aria-label={task.title}
       style={{
         ...anchor,
+        animation: enter,
         width: 420, maxHeight: 'calc(100vh - 80px)',
         display: 'flex', flexDirection: 'column', overflow: 'hidden',
         padding: 16, background: '#1c1c1e', color: '#fff', borderRadius: 24,
+        '--bg-primary-default': 'oklch(0.628 0.287 314)',
+        '--bg-primary-hover': 'oklch(0.578 0.286 314)',
         boxShadow: '0 0 0 1px rgb(0 0 0 / 0.12), 0 2px 4px rgb(0 0 0 / 0.08), 0 16px 40px rgb(0 0 0 / 0.22)',
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, paddingBottom: 16 }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginLeft: -16, marginRight: -16, marginBottom: 16, padding: '0 16px 16px', borderBottom: '1px solid #2a2a2e' }}>
         <div style={{ minWidth: 0 }}>
           <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-heading-xs)', letterSpacing: '-0.015em', lineHeight: 1.3 }}>
-            Check salary dates and wages
+            {task.title}
           </div>
           {deadlineMeta && (
             <div style={{ marginTop: 2, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', fontWeight: 600, fontVariantNumeric: 'tabular-nums', color: '#fbbf24' }}>
@@ -6734,59 +6867,101 @@ function RelaunchGuidanceCard({ task, appEntity, confirmed, onConfirm, onMarkDon
         </button>
       </div>
 
-      <div className="relaunch-float-body" style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-        <div style={{ borderRadius: 8, overflow: 'hidden' }}>
-          <RelaunchVideoPlayer video={task.video} showTitle={false} aspectRatio="2.35 / 1" />
-        </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-        <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', lineHeight: 1.45, color: '#fff', textWrap: 'pretty' }}>
-          Compare each employee with your HR system so their budget matches what they are entitled to.
-        </p>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          {[
-            { text: 'Salary start date', note: 'A raise or a change in work regime needs a new start date. Unplanned absences are not synced from your HR system.' },
-            { text: 'Wage and work regime', note: 'Nothing updates these during the year. Check the wage and the regime against your HR system.' },
-          ].map((item, index) => (
-            <div key={item.text} style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
-              <span style={{ width: 18, height: 18, flexShrink: 0, marginTop: 2, borderRadius: '50%', background: 'rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-body)', fontWeight: 600, fontSize: 11, fontVariantNumeric: 'tabular-nums', color: 'rgba(255,255,255,0.7)' }}>
-                {index + 1}
-              </span>
-              <div>
-                <div style={{ fontFamily: 'var(--font-body)', fontWeight: 400, fontSize: 'var(--fs-body-sm)', color: 'rgba(255,255,255,0.88)', lineHeight: 1.4 }}>{item.text}</div>
-                {item.note && (
-                  <div style={{ marginTop: 2, fontFamily: 'var(--font-body)', fontWeight: 400, fontSize: 'var(--fs-body-xs)', color: 'rgba(255,255,255,0.62)', lineHeight: 1.4 }}>
-                    {item.note}
-                  </div>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-        <a className="relaunch-float-link" href="https://help.payflip.be/en/articles/11413-how-can-i-modify-my-employee-s-salary-data" target="_blank" rel="noreferrer">
-          Help article
-        </a>
-        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, padding: '10px 12px', borderRadius: 8, background: 'rgba(255,255,255,0.06)' }}>
-          <Icon name="info" size={14} color="rgba(255,255,255,0.72)" strokeWidth={2} style={{ flexShrink: 0, marginTop: 2 }} />
-          <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: 'rgba(255,255,255,0.72)', lineHeight: 1.55 }}>
-            {relaunchSalaryNote(appEntity)}
+      <div className="relaunch-float-body" style={{ display: 'flex', flexDirection: 'column', gap: 20, flex: 1, minHeight: 0, overflowY: 'auto' }}>
+        {task.id !== 'q4-1' && task.id !== 'q4-2' && (
+          <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', lineHeight: 1.45, color: '#fff', textWrap: 'pretty' }}>
+            {task.description}
           </p>
-        </div>
-        </div>
+        )}
+        {task.id === 'q4-2' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+            <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', lineHeight: 1.45, color: '#fff', textWrap: 'pretty' }}>
+              Confirm both dates are still right. This has to be done before either date arrives.
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              {[
+                { text: 'Choice deadline', note: 'Employees stop submitting choices. The last day to submit is the day before, and anything still in the shopping bag is deleted.' },
+                { text: 'Cash-out date', note: 'Unspent budget is paid out in cash. Approve every choice the day before, or it is cancelled.' },
+              ].map((item, index) => (
+                <div key={item.text} style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+                  <span style={{ width: 18, height: 18, flexShrink: 0, marginTop: 2, borderRadius: '50%', background: 'rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-body)', fontWeight: 600, fontSize: 11, fontVariantNumeric: 'tabular-nums', color: 'rgba(255,255,255,0.7)' }}>
+                    {index + 1}
+                  </span>
+                  <div>
+                    <div style={{ fontFamily: 'var(--font-body)', fontWeight: 400, fontSize: 'var(--fs-body-sm)', color: 'rgba(255,255,255,0.88)', lineHeight: 1.4 }}>{item.text}</div>
+                    <div style={{ marginTop: 2, fontFamily: 'var(--font-body)', fontWeight: 400, fontSize: 'var(--fs-body-xs)', color: 'oklch(0.827 0 286)', lineHeight: 1.4 }}>{item.note}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <a className="relaunch-float-link" href="https://help.payflip.be/en/articles/776698-budget-deadlines-explained-the-difference-between-the-choice-deadline-and-the-yearly-cash-out-date" target="_blank" rel="noreferrer">
+              Help article
+            </a>
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, padding: '10px 12px', borderRadius: 8, background: 'rgba(255,255,255,0.06)' }}>
+              <Icon name="info" size={14} color="rgba(255,255,255,0.72)" strokeWidth={2} style={{ flexShrink: 0, marginTop: 2 }} />
+              <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: 'rgba(255,255,255,0.72)', lineHeight: 1.55 }}>
+                Leave about a week between the two dates so you still have time to approve the last choices. Change a date at least a week before it arrives.
+              </p>
+            </div>
+          </div>
+        )}
+        {task.id === 'q4-1' && <div style={{ borderRadius: 8, overflow: 'hidden' }}>
+          <RelaunchVideoPlayer video={task.video} showTitle={false} aspectRatio="2.35 / 1" />
+        </div>}
+        {task.id === 'q4-1' && <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+          <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', lineHeight: 1.45, color: '#fff', textWrap: 'pretty' }}>
+            Compare each employee with your HR system so their budget matches what they are entitled to.
+          </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            {[
+              { text: 'Salary start date', note: 'A raise or a change in work regime needs a new start date. Unplanned absences are not synced from your HR system.' },
+              { text: 'Wage and work regime', note: 'Nothing updates these during the year. Check the wage and the regime against your HR system.' },
+            ].map((item, index) => (
+              <div key={item.text} style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+                <span style={{ width: 18, height: 18, flexShrink: 0, marginTop: 2, borderRadius: '50%', background: 'rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-body)', fontWeight: 600, fontSize: 11, fontVariantNumeric: 'tabular-nums', color: 'rgba(255,255,255,0.7)' }}>
+                  {index + 1}
+                </span>
+                <div>
+                  <div style={{ fontFamily: 'var(--font-body)', fontWeight: 400, fontSize: 'var(--fs-body-sm)', color: 'rgba(255,255,255,0.88)', lineHeight: 1.4 }}>{item.text}</div>
+                  {item.note && (
+                    <div style={{ marginTop: 2, fontFamily: 'var(--font-body)', fontWeight: 400, fontSize: 'var(--fs-body-xs)', color: 'oklch(0.827 0 286)', lineHeight: 1.4 }}>
+                      {item.note}
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+          <a className="relaunch-float-link" href="https://help.payflip.be/en/articles/11413-how-can-i-modify-my-employee-s-salary-data" target="_blank" rel="noreferrer">
+            Help article
+          </a>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, padding: '10px 12px', borderRadius: 8, background: 'rgba(255,255,255,0.06)' }}>
+            <Icon name="info" size={14} color="rgba(255,255,255,0.72)" strokeWidth={2} style={{ flexShrink: 0, marginTop: 2 }} />
+            <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: 'rgba(255,255,255,0.72)', lineHeight: 1.55 }}>
+              {relaunchSalaryNote(appEntity)}
+            </p>
+          </div>
+        </div>}
       </div>
 
-      <div style={{ flexShrink: 0, marginTop: 20, paddingTop: 16, borderTop: '1px solid #2a2a2e', display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <div style={{ flexShrink: 0, marginTop: 20, paddingTop: 16, borderTop: '1px solid #2a2a2e', display: 'flex', flexDirection: 'column', gap: 12, '--gray-900': '#fff', '--gray-200': '#3a3a3e', '--gray-100': 'rgba(255,255,255,0.08)' }}>
         <RelaunchCompletionConfirmation checked={confirmed} disabled={false} onChange={onConfirm} color="rgba(255,255,255,0.72)" size="sm" colorScheme="dark">
-          I followed these steps.
+          I've done this.
         </RelaunchCompletionConfirmation>
-        <Button variant="primary" disabled={!confirmed || leaving} onClick={() => setLeaving(true)} style={{ width: '100%', justifyContent: 'center' }}>
+        <Button variant="primary" disabled={!confirmed || leaving || completed} onClick={() => onMarkDone(task.id)} style={{ width: '100%', justifyContent: 'center' }}>
           Mark as complete
         </Button>
+        {onNav && (
+          <Button variant="secondary" onClick={() => onNav('relaunch-hub')} style={{ width: '100%', justifyContent: 'center' }}>
+            Back to the list
+          </Button>
+        )}
       </div>
     </section>
   );
 }
 
-function EmployeesScreen({ requests, onNav, initialRoleFilter = 'All', adminAccess = {}, appEntity = null, onAddEmployee, onToast, matchedEmpInssMap = new Map(), relaunchTask, relaunchConfirmed = false, onConfirmRelaunch, onMarkRelaunchDone }) {
+function EmployeesScreen({ requests, onNav, initialRoleFilter = 'All', adminAccess = {}, appEntity = null, onAddEmployee, onToast, matchedEmpInssMap = new Map(), relaunchTask, relaunchConfirmed = false, relaunchCompleted = false, onConfirmRelaunch, onMarkRelaunchDone, onStartNextRelaunch, onDismissRelaunch }) {
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState(initialRoleFilter);
   const [statusFilter, setStatusFilter] = useState('Active');
@@ -6860,15 +7035,6 @@ function EmployeesScreen({ requests, onNav, initialRoleFilter = 'All', adminAcce
           </table></div>
         </div>
       </div>
-      {relaunchTask?.id === 'q4-1' && (
-        <RelaunchGuidanceCard
-          task={relaunchTask}
-          appEntity={appEntity}
-          confirmed={relaunchConfirmed}
-          onConfirm={onConfirmRelaunch}
-          onMarkDone={onMarkRelaunchDone}
-        />
-      )}
     </div>
   );
 }
@@ -9559,7 +9725,7 @@ const RELAUNCH_TASKS = [
       { q: 'Does this apply to integration customers too?', a: 'Yes. Even if your social secretary manages salary data, you need to confirm the figures in Payflip match.' },
     ],
   },
-  { id: 'q4-2', month: 'October / November', title: 'Check choice & cash-out deadlines', description: 'Confirm your choice deadline and cash-out date are still accurate before the window opens.', status: 'active', deadline: '20 Oct 2026', cta: 'Go to Budget settings', navTarget: 'settings-allowances' },
+  { id: 'q4-2', month: 'October / November', title: 'Check choice & cash-out deadlines', description: 'Confirm your choice deadline and cash-out date are still accurate before the window opens.', status: 'active', deadline: '20 Oct 2026', cta: 'Go to Budget settings', navTarget: 'settings-budgets' },
   // December
   { id: 'dec-1', month: 'December', title: 'Assign bonus budgets to new employees', description: 'Employees must sign bonus annexes before year-end to be eligible. New employees always need to sign.', status: 'locked' },
   { id: 'dec-2', month: 'December', title: 'Approve all pending choices', description: 'Clear every pending choice so nothing is left in the shopping cart before the cash-out deadline.', status: 'locked' },
@@ -9612,7 +9778,7 @@ function RelaunchCompletionConfirmation({ checked, disabled, onChange, children,
       className="relaunch-check"
       style={{
         position: 'relative',
-        display: 'flex', alignItems: 'flex-start', gap: 10,
+        display: 'flex', alignItems: 'center', gap: 10,
         cursor: disabled ? 'not-allowed' : 'pointer',
         opacity: disabled ? 0.5 : 1,
         transition: `opacity 150ms ${EASE_OUT}`,
@@ -9629,7 +9795,7 @@ function RelaunchCompletionConfirmation({ checked, disabled, onChange, children,
         aria-hidden="true"
         className="relaunch-check-box"
         style={{
-          width: 18, height: 18, marginTop: 1, flexShrink: 0, borderRadius: 4,
+          width: 18, height: 18, flexShrink: 0, borderRadius: 4,
           border: `2px solid ${boxBorder}`,
           background: boxBg,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -9640,7 +9806,7 @@ function RelaunchCompletionConfirmation({ checked, disabled, onChange, children,
       </span>
       <span style={{
         fontFamily: 'var(--font-body)', fontSize: size === 'sm' ? 'var(--fs-body-xs)' : 'var(--fs-body-sm)',
-        color, lineHeight: 1.45,
+        color, lineHeight: '18px',
         transition: `color 150ms ${EASE_OUT}`,
       }}>
         {children}
@@ -9720,7 +9886,7 @@ function RelaunchTaskDrawer({ task, confirmed, onConfirm, onClose, onMarkDone, o
               </div>
               <div style={{ marginTop: 8 }}>
                 <RelaunchCompletionConfirmation checked={confirmed} disabled={!hasNavigated} onChange={onConfirm}>
-                  I followed these steps.
+                  I've done this.
                 </RelaunchCompletionConfirmation>
               </div>
               {/* In phase 2, show return button only when not already on the target screen */}
@@ -9782,10 +9948,15 @@ function RelaunchVideoPlayer({ video, heading = null, description = null, showTi
   );
 }
 
-function RelaunchHubScreen({ appEntity = null, aiMode = false, onNav, doneTasks, startedTasks = new Set(), onMarkDone, onOpenTask }) {
+function RelaunchHubScreen({ appEntity = null, aiMode = false, onNav, doneTasks, startedTasks = new Set(), onMarkDone, onOpenTask, onChooseEntity }) {
   const hubCopy = relaunchHubCopy(appEntity);
+  const [entityPickerTask, setEntityPickerTask] = useState(null);
+  const [entityQuery, setEntityQuery] = useState('');
 
-  const isTaskDone = (task) => task.status === 'done' || doneTasks.has(task.id);
+  const isTaskDone = (task) => {
+    if (!appEntity) return task.status === 'done';
+    return task.status === 'done' || doneTasks.has(relaunchTaskKey(appEntity, task.id));
+  };
 
   const doneCount = RELAUNCH_TASKS.filter(t => isTaskDone(t)).length;
   const totalCount = RELAUNCH_TASKS.length;
@@ -9835,8 +10006,8 @@ function RelaunchHubScreen({ appEntity = null, aiMode = false, onNav, doneTasks,
       <div className="hide-scrollbar" style={{ flex: 1, overflowY: 'auto' }}>
         <div style={{ maxWidth: 880, margin: '0 auto', padding: '28px 28px 48px' }}>
 
-          {/* Progress — inline, no card */}
-          <div style={{ marginBottom: 28 }}>
+          {/* Progress — company progress, once an entity is selected */}
+          {appEntity && <div style={{ marginBottom: 28 }}>
             <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 8 }}>
               <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: doneCount === totalCount ? P.success : P.ink }}>
                 {doneCount === totalCount ? 'All tasks complete' : `${doneCount} of ${totalCount} done`}
@@ -9848,7 +10019,7 @@ function RelaunchHubScreen({ appEntity = null, aiMode = false, onNav, doneTasks,
             <div style={{ height: 6, borderRadius: 99, overflow: 'hidden', background: 'repeating-linear-gradient(-45deg, var(--gray-300) 0px, var(--gray-300) 1px, var(--gray-200) 1px, var(--gray-200) 5px)' }}>
               <div style={{ height: '100%', width: `${progressPct}%`, borderRadius: 99, background: doneCount === totalCount ? P.success : P.action, transition: 'width 400ms cubic-bezier(0.22,1,0.36,1)' }} />
             </div>
-          </div>
+          </div>}
 
           {/* Collapsible phase cards */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -9896,7 +10067,7 @@ function RelaunchHubScreen({ appEntity = null, aiMode = false, onNav, doneTasks,
                           const isDone = isTaskDone(task);
                           const taskIsActive = !locked && !isDone;
                           const isActionable = taskIsActive && (task.whatToDo || task.checklist || task.faq || task.navTarget);
-                          const isStarted = startedTasks.has(task.id);
+                          const isStarted = !!appEntity && startedTasks.has(relaunchTaskKey(appEntity, task.id));
                           const progressSummary = isStarted && !isDone
                             ? `In progress · ${task.description}`
                             : task.description;
@@ -9920,9 +10091,12 @@ function RelaunchHubScreen({ appEntity = null, aiMode = false, onNav, doneTasks,
                                 textAlign: 'left',
                               }}
                             >
+                              <span aria-hidden="true" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 16, height: 16, flexShrink: 0, borderRadius: '50%', border: `1.5px solid ${isDone ? P.inkSoft : P.border}`, color: isDone ? P.inkSoft : P.inkFaint }}>
+                                <Icon name="check" size={10} color="currentColor" strokeWidth={2.5} />
+                              </span>
                               <div style={{ flex: 1, minWidth: 0 }}>
                                 <div style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: isDone ? P.inkSoft : P.ink, textDecoration: isDone ? 'line-through' : 'none' }}>{task.title}</div>
-                                {progressSummary && (
+                                {!isDone && progressSummary && (
                                   <div style={{ marginTop: 2, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkFaint, lineHeight: 1.4 }}>
                                     {progressSummary}
                                   </div>
@@ -9936,10 +10110,15 @@ function RelaunchHubScreen({ appEntity = null, aiMode = false, onNav, doneTasks,
                                   Due {task.deadline.replace(' 2026', '').replace(' 2027', '')}
                                 </DotPill>
                               )}
-                              {isDone ? (
-                                <DotPill bg={P.successBg} color={P.successDark} size={11} whiteSpace="nowrap">Done</DotPill>
-                              ) : isActionable && (
-                                <Button variant="primary" onClick={() => onOpenTask(task)} style={{ padding: '7px 12px', fontSize: 'var(--fs-body-xs)', whiteSpace: 'nowrap', minWidth: 96, justifyContent: 'center' }}>
+                              {!isDone && isActionable && (
+                                <Button variant="primary" onClick={() => {
+                                  if (!appEntity) {
+                                    setEntityQuery('');
+                                    setEntityPickerTask(task);
+                                    return;
+                                  }
+                                  onOpenTask(task);
+                                }} style={{ padding: '7px 12px', fontSize: 'var(--fs-body-xs)', whiteSpace: 'nowrap', minWidth: 96, justifyContent: 'center' }}>
                                   {isStarted ? 'Continue' : 'Start task'}
                                 </Button>
                               )}
@@ -9956,6 +10135,110 @@ function RelaunchHubScreen({ appEntity = null, aiMode = false, onNav, doneTasks,
 
         </div>
       </div>
+
+      {entityPickerTask && (
+        <ModalShell
+          title="Choose an entity"
+          width={520}
+          maxHeight="min(640px, calc(100vh - 48px))"
+          onClose={() => setEntityPickerTask(null)}
+          footer={(close) => <Button variant="secondary" onClick={close}>Cancel</Button>}
+        >
+          {() => {
+            const showSearch = ENTITIES.length > 10;
+            const choices = relaunchEntitiesForStart(doneTasks, showSearch ? entityQuery : '');
+            const ledgerCols = {
+              display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 84px 76px 72px',
+              alignItems: 'center', columnGap: 12,
+            };
+            const numStyle = {
+              textAlign: 'right', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)',
+              color: P.inkSoft, fontVariantNumeric: 'tabular-nums',
+            };
+            return (
+              <>
+                {showSearch && (
+                <div style={{ padding: 'var(--space-150) var(--space-300) var(--space-100)', flexShrink: 0 }}>
+                  <div className="relaunch-entity-search-wrap" style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-075)', borderRadius: 8, padding: 'var(--space-075) var(--space-125)', background: P.bg, boxSizing: 'border-box' }}>
+                    <Icon name="search" size={13} color={P.inkFaint} strokeWidth={1.75} />
+                    <label htmlFor="relaunch-entity-search" style={{ position: 'absolute', width: 1, height: 1, padding: 0, margin: -1, overflow: 'hidden', clip: 'rect(0,0,0,0)', whiteSpace: 'nowrap', border: 0 }}>Search entities</label>
+                    <input
+                      id="relaunch-entity-search"
+                      className="relaunch-entity-search"
+                      type="search"
+                      autoFocus
+                      value={entityQuery}
+                      onChange={e => setEntityQuery(e.target.value)}
+                      placeholder="Search entities…"
+                      autoComplete="off"
+                      style={{
+                        fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', lineHeight: '16px', color: P.ink, flex: 1, minWidth: 0, padding: 0,
+                      }}
+                    />
+                    {entityQuery && (
+                      <button type="button" aria-label="Clear search" onClick={() => setEntityQuery('')} style={{ border: 'none', background: 'none', cursor: 'pointer', padding: 0, display: 'flex' }}>
+                        <Icon name="X" size={13} color={P.inkFaint} strokeWidth={2} />
+                      </button>
+                    )}
+                  </div>
+                </div>
+                )}
+                <div style={{ overflowY: 'auto', maxHeight: 320 }}>
+                  {choices.length === 0 && (
+                    <div style={{ padding: 'var(--space-300)', textAlign: 'center', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft }}>
+                      No entities matching “{entityQuery.trim()}”
+                    </div>
+                  )}
+                  {choices.length > 0 && (
+                    <div aria-hidden="true" style={{ ...ledgerCols, padding: `${showSearch ? 'var(--space-050)' : 'var(--space-150)'} var(--space-300) var(--space-075)`, borderBottom: hairline, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkFaint }}>
+                      <span />
+                      <span style={{ textAlign: 'right' }}>Employees</span>
+                      <span style={{ textAlign: 'right' }}>Tasks left</span>
+                      <span style={{ textAlign: 'right' }}>Due</span>
+                    </div>
+                  )}
+                  {choices.map(({ entity, left, nextDeadline }, index) => {
+                    const meta = nextDeadline ? getRelaunchDeadlineMeta(nextDeadline) : null;
+                    const tone = meta?.state === 'overdue'
+                      ? { background: P.dangerBg, color: P.dangerDark }
+                      : meta?.state === 'approaching'
+                      ? { background: P.warningBg, color: P.warningDark }
+                      : { background: P.bg, color: P.inkSoft };
+                    const ariaLabel = left === 0
+                      ? `${entity.name}, ${entity.employeeCount} employees, done`
+                      : `${entity.name}, ${entity.employeeCount} employees, ${left} ${left === 1 ? 'task' : 'tasks'} left, due ${meta?.shortDate || ''}`;
+                    return (
+                      <button
+                        key={entity.id}
+                        className="relaunch-entity-row"
+                        aria-label={ariaLabel}
+                        onClick={() => {
+                          onChooseEntity(entity.id, entityPickerTask);
+                          setEntityPickerTask(null);
+                        }}
+                        style={{
+                          ...ledgerCols, width: '100%', minHeight: 44, padding: '0 var(--space-300)',
+                          border: 'none', borderBottom: index < choices.length - 1 ? hairline : 'none',
+                          textAlign: 'left', cursor: 'pointer',
+                        }}
+                      >
+                        <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{entity.name}</span>
+                        <span style={numStyle}>{entity.employeeCount}</span>
+                        {left === 0
+                          ? <span style={{ ...numStyle, color: P.inkFaint }}>Done</span>
+                          : <span style={numStyle}>{left}</span>}
+                        {left === 0 || !meta
+                          ? <span />
+                          : <span style={{ justifySelf: 'end', display: 'inline-flex' }}><DotPill dot={false} bg={tone.background} color={tone.color} size={11} whiteSpace="nowrap">{meta.shortDate}</DotPill></span>}
+                      </button>
+                    );
+                  })}
+                </div>
+              </>
+            );
+          }}
+        </ModalShell>
+      )}
 
     </div>
   );
@@ -14435,6 +14718,128 @@ function SettingsLandingScreen({ onNav, mobilityLive = false }) {
   );
 }
 
+const BUDGETS_SEED = [
+  { id: 'eyp', name: 'End of year premium', status: 'active', choiceDeadline: '2026-12-13', cashOut: '2026-12-20' },
+  { id: 'mobility', name: 'Mobility budget', status: 'active', choiceDeadline: '2026-12-13', cashOut: '2026-12-20' },
+  { id: 'smartphone', name: 'Smartphone budget', status: 'active', choiceDeadline: '2026-12-13', cashOut: '2026-12-20' },
+];
+
+function formatBudgetDate(iso) {
+  if (!iso) return '—';
+  const [year, month, day] = iso.split('-');
+  if (!year || !month || !day) return iso;
+  return `${day}/${month}/${year}`;
+}
+
+const BUDGET_STATUS = {
+  active: { label: 'Active', bg: P.successBg, color: P.successDark },
+  inactive: { label: 'Inactive', bg: P.bg, color: P.inkSoft },
+  draft: { label: 'Draft', bg: P.warningBg, color: P.warningDark },
+};
+
+function BudgetRow({ budget, onActivate }) {
+  const [hover, setHover] = useState(false);
+  const [pressed, setPressed] = useState(false);
+  const status = BUDGET_STATUS[budget.status] || BUDGET_STATUS.draft;
+  const inactive = budget.status === 'inactive';
+  return (
+    <tr
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => { setHover(false); setPressed(false); }}
+      onPointerDown={() => setPressed(true)}
+      onPointerUp={() => setPressed(false)}
+      style={{
+        borderBottom: `1px solid ${P.border}`,
+        background: pressed ? P.border : hover ? P.bg : 'transparent',
+        transition: `background 120ms ${EASE_OUT}`,
+        height: 52,
+      }}
+    >
+      <td style={{ padding: 'var(--space-125) var(--space-200)' }}>
+        <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink }}>{budget.name}</span>
+      </td>
+      <td style={{ padding: 'var(--space-125) var(--space-200)', color: P.ink, fontVariantNumeric: 'tabular-nums' }}>{formatBudgetDate(budget.choiceDeadline)}</td>
+      <td style={{ padding: 'var(--space-125) var(--space-200)', color: P.ink, fontVariantNumeric: 'tabular-nums' }}>{formatBudgetDate(budget.cashOut)}</td>
+      <td style={{ padding: 'var(--space-125) var(--space-200)' }}>
+        <DotPill bg={status.bg} color={status.color} size={11}>{status.label}</DotPill>
+      </td>
+      <td style={{ padding: 'var(--space-075) var(--space-200)', textAlign: 'right' }}>
+        <Button
+          variant="secondary"
+          onClick={inactive ? (e => { e.stopPropagation(); onActivate(); }) : undefined}
+          style={{ padding: '6px 12px', fontSize: 'var(--fs-body-xs)' }}
+        >
+          {inactive ? 'Activate' : 'Edit'}
+        </Button>
+      </td>
+    </tr>
+  );
+}
+
+function BudgetsSettings({ appEntity = null }) {
+  const [budgets, setBudgets] = useState(BUDGETS_SEED);
+  const [statusFilter, setStatusFilter] = useState('all');
+  const visible = statusFilter === 'all' ? budgets : budgets.filter(budget => budget.status === statusFilter);
+  const selectStyle = { padding: 'var(--space-100) var(--space-400) var(--space-100) var(--space-125)', border: `1px solid ${P.border}`, borderRadius: 8, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, background: P.white, cursor: 'pointer', outline: 'none', appearance: 'none', backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 8px center' };
+  const th = { textAlign: 'left', padding: 'var(--space-125) var(--space-200)', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em' };
+
+  return (
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, overflow: 'hidden', animation: `screenEnter 180ms ${EASE_OUT}` }}>
+      <PageHeader
+        title="Budgets"
+        subtitle="Choice deadlines, cash-out dates, and which budgets employees can use"
+        badge={appEntity ? ENTITIES.find(e => e.id === appEntity)?.name : null}
+        maxWidth={880}
+        padding="31px 28px 20px"
+      >
+        <Button
+          variant="primary"
+          icon="plus"
+          onClick={() => setBudgets(prev => [...prev, { id: `draft-${Date.now()}`, name: 'New budget', status: 'draft' }])}
+        >
+          New budget
+        </Button>
+      </PageHeader>
+      <div style={{ flex: 1, overflow: 'auto' }}>
+        <div style={{ maxWidth: 880, margin: '0 auto', padding: 'var(--space-300) var(--space-400)', display: 'flex', flexDirection: 'column', gap: 'var(--space-200)' }}>
+          <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} style={{ ...selectStyle, alignSelf: 'flex-start' }}>
+            <option value="all">Status: All</option>
+            <option value="active">Status: Active</option>
+            <option value="draft">Status: Draft</option>
+            <option value="inactive">Status: Inactive</option>
+          </select>
+          <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 12, overflow: 'hidden' }}>
+            {visible.length === 0 ? (
+              <EmptyState icon="wallet" title="No budgets" description="Nothing matches this status." />
+            ) : (
+              <div style={{ overflowX: 'auto' }}><table style={{ width: 'max-content', minWidth: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)' }}>
+                <thead>
+                  <tr style={{ borderBottom: `1px solid ${P.border}` }}>
+                    <th style={th}>Budget</th>
+                    <th style={th}>Choice deadline</th>
+                    <th style={th}>Cash-out date</th>
+                    <th style={th}>Status</th>
+                    <th style={{ ...th, textAlign: 'right' }}>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {visible.map(budget => (
+                    <BudgetRow
+                      key={budget.id}
+                      budget={budget}
+                      onActivate={() => setBudgets(prev => prev.map(item => item.id === budget.id ? { ...item, status: 'active' } : item))}
+                    />
+                  ))}
+                </tbody>
+              </table></div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function StubScreen({ title, description }) {
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, overflow: 'hidden', animation: `screenEnter 180ms ${EASE_OUT}` }}>
@@ -15481,6 +15886,30 @@ function App() {
     setScreen(id);
     history.pushState({ screen: id }, '', screenToPath(id));
   };
+  const openRelaunchTask = (task, entityId) => {
+    if (!entityId || !task) return;
+    const key = relaunchTaskKey(entityId, task.id);
+    setRelaunchStartedTasks(prev => new Set([...prev, key]));
+    setRelaunchLearnMore(null);
+    setRelaunchContextTask({ ...task, entityId });
+    if (task.navTarget) handleNav(task.navTarget);
+  };
+  const toggleRelaunchConfirmed = (entityId, taskId) => {
+    if (!entityId || !taskId) return;
+    const key = relaunchTaskKey(entityId, taskId);
+    setRelaunchConfirmedTasks(prev => {
+      const next = new Set(prev);
+      next.has(key) ? next.delete(key) : next.add(key);
+      return next;
+    });
+  };
+  const markRelaunchDone = (entityId, taskId) => {
+    if (!entityId || !taskId) return;
+    setRelaunchDoneTasks(prev => new Set([...prev, relaunchTaskKey(entityId, taskId)]));
+    const task = RELAUNCH_TASKS.find(item => item.id === taskId);
+    const keepHandoff = task?.navTarget === 'employees' && relaunchContextTask?.id === taskId && relaunchContextTask?.entityId === entityId;
+    if (!keepHandoff && relaunchContextTask?.id === taskId && relaunchContextTask?.entityId === entityId) setRelaunchContextTask(null);
+  };
   React.useEffect(() => {
     history.replaceState({ screen }, '', screenToPath(screen));
     const onPop = (e) => {
@@ -15814,7 +16243,7 @@ function App() {
         {screen === 'dashboard' && <DashboardScreen key={appEntity ?? 'all'} requests={entityFilteredRequests} onNav={handleNav} onToast={addToast} appEntity={appEntity} physicalCardsAllowed={physicalCardsAllowed} onPhysicalCardsChange={setPhysicalCardsAllowed} cardDelivery={cardDelivery} onCardDeliveryChange={setCardDelivery} mobilityWidgetState={mobilityWidgetState} onMobilityWidgetStateChange={setMobilityWidgetState} pendingRequests={pendingRequestsCount} pendingExpenses={pendingExpensesCount} pendingChoices={pendingChoicesCount} activeBudgets={allowances.filter(a => a.active).length} onAddEmployee={(pf) => { setAddEmployeePrefill({ ...(pf||{}), _draftId: 'draft-' + Date.now() }); setAddEmployeeOpen(true); }} foodUnmatched={foodUnmatched} setFoodUnmatched={setFoodUnmatched} unmatchedQueue={unmatchedQueue} setUnmatchedQueue={setUnmatchedQueue} matchedEmpInssMap={matchedEmpInssMap} onboardingCount={[...onboardingIds].filter(id => !appEntity || EMPLOYEES[id]?.entityId === appEntity).length} offboardingCount={[...offboardingIds].filter(id => !appEntity || EMPLOYEES[id]?.entityId === appEntity).length} />}
         {screen === 'team-absences' && <TeamAbsencesScreen key={appEntity ?? 'all'} requests={entityFilteredRequests} pendingCount={pendingRequestsCount} onNav={setScreen} onShowDetail={setCalDetail} activeReqId={calDetail?.id} onSave={saveRequest} companyEvents={companyEvents} onCancelCompanyEvent={cancelCompanyEvent} initialDate={calendarJumpDate} initialDeptFilter={calendarDeptFilter} appEntity={appEntity} leaveTypes={leaveTypes} />}
         {screen === 'requests' && <RequestsScreen key={appEntity ?? 'all'} requests={entityFilteredRequests} onApprove={approve} onDecline={requestDecline} onSave={saveRequest} onCancel={requestCancel} onNav={setScreen} onViewInCalendar={(req) => { const d = req._selectedDates?.[0] || req.startDate; if (d) { const iso = typeof d === 'string' && d.match(/^\d{4}-/) ? d : null; setCalendarJumpDate(iso ? new Date(iso) : parseDisplayDate(d)); } setCalDetail(req); setScreen('team-absences'); }} appEntity={appEntity} />}
-        {(screen === 'employees' || screen === 'employees:admin') && <EmployeesScreen key={appEntity ?? 'all'} requests={entityFilteredRequests} onNav={setScreen} initialRoleFilter={screen === 'employees:admin' ? 'Admin' : 'All'} adminAccess={adminAccess} appEntity={appEntity} onAddEmployee={(pf) => { setAddEmployeePrefill({ ...(pf||{}), _draftId: 'draft-' + Date.now() }); setAddEmployeeOpen(true); }} onToast={addToast} matchedEmpInssMap={matchedEmpInssMap} relaunchTask={relaunchContextTask?.navTarget === 'employees' && !relaunchDoneTasks.has(relaunchContextTask.id) ? relaunchContextTask : null} relaunchConfirmed={relaunchContextTask ? relaunchConfirmedTasks.has(relaunchContextTask.id) : false} onConfirmRelaunch={() => setRelaunchConfirmedTasks(prev => { const next = new Set(prev); const id = relaunchContextTask?.id; if (!id) return next; next.has(id) ? next.delete(id) : next.add(id); return next; })} onMarkRelaunchDone={(id) => { setRelaunchDoneTasks(prev => new Set([...prev, id])); if (relaunchContextTask?.id === id) setRelaunchContextTask(null); }} />}
+        {(screen === 'employees' || screen === 'employees:admin') && <EmployeesScreen key={appEntity ?? 'all'} requests={entityFilteredRequests} onNav={handleNav} initialRoleFilter={screen === 'employees:admin' ? 'Admin' : 'All'} adminAccess={adminAccess} appEntity={appEntity} onAddEmployee={(pf) => { setAddEmployeePrefill({ ...(pf||{}), _draftId: 'draft-' + Date.now() }); setAddEmployeeOpen(true); }} onToast={addToast} matchedEmpInssMap={matchedEmpInssMap} relaunchTask={relaunchContextTask?.navTarget === 'employees' && relaunchContextTask.entityId === appEntity ? relaunchContextTask : null} relaunchConfirmed={relaunchContextTask?.entityId === appEntity ? relaunchConfirmedTasks.has(relaunchTaskKey(appEntity, relaunchContextTask.id)) : false} relaunchCompleted={!!(relaunchContextTask?.entityId === appEntity && relaunchDoneTasks.has(relaunchTaskKey(appEntity, relaunchContextTask.id)))} onConfirmRelaunch={() => toggleRelaunchConfirmed(appEntity, relaunchContextTask?.id)} onMarkRelaunchDone={(id) => markRelaunchDone(appEntity, id)} onStartNextRelaunch={(task) => openRelaunchTask(task, appEntity)} onDismissRelaunch={() => setRelaunchContextTask(null)} />}
         {screen === 'people-onboarding' && <OnboardingScreen onboardingIds={onboardingIds} drafts={drafts} onSendInvite={handleSendOnboardingInvite} onAddWithoutInvite={handleAddWithoutInvite} onRemoveFromOnboarding={handleRemoveFromOnboarding} onNav={handleNav} onAddEmployee={() => { setAddEmployeePrefill({ _draftId: 'draft-' + Date.now() }); setAddEmployeeOpen(true); }} onContinueDraft={handleContinueDraft} onEditEmployee={handleEditOnboardingEmployee} appEntity={appEntity} />}
         {screen === 'people-offboarding' && <OffboardingScreen offboardingIds={offboardingIds} onCompleteOffboarding={handleCompleteOffboarding} onNav={handleNav} appEntity={appEntity} />}
         {screen.startsWith('employee-detail:') && (() => { const [, detailEmpId, detailTab] = screen.split(':'); return <EmployeeDetailScreen employeeId={detailEmpId} requests={requests} onNav={setScreen} onSave={saveRequest} onCancel={cancelRequest} onApprove={approve} onDecline={requestDecline} onViewTeamCalendar={(dept) => { setCalendarDeptFilter(dept || null); setScreen('team-absences'); }} employeeBalance={employeeBalances[detailEmpId]} onUpdateBalance={(newBal) => updateBalances(detailEmpId, newBal)} needsSetup={needsBalanceSetup.has(detailEmpId)} confirmedDate={balanceConfirmedDates[detailEmpId]} onConfirmBalances={() => confirmBalancesFor(detailEmpId)} onToast={addToast} adminAccess={adminAccess} onAdminSave={handleAdminSave} companyRegime={companyRegime} onEmployeeUpdate={handleEmployeeUpdate} getEmpWithOverrides={getEmpWithOverrides} physicalCardsAllowed={physicalCardsAllowed} mobilityWidgetState={mobilityWidgetState} initialTab={detailTab || (freshEmployeeId === detailEmpId ? 'details' : 'choices')} unmatchedRecord={matchedEmpInssMap.get(detailEmpId)} onResolveUnmatched={resolveUnmatched} onStartOffboarding={handleStartOffboarding} isOnboarding={onboardingIds.has(detailEmpId)} leaveTypes={leaveTypes} />; })()}
@@ -15822,7 +16251,7 @@ function App() {
         {screen === 'expense-history' && <ExpenseHistoryScreen key={appEntity ?? 'all'} expenses={entityFilteredExpenses} categories={expenseCategories} appEntity={appEntity} onDetail={(exp) => { setExpDetailRejectMode(false); setExpDetail(exp); }} onToast={addToast} />}
         {screen === 'expense-reports' && <ExpenseReportsScreen key={appEntity ?? 'all'} expenses={entityFilteredExpenses} appEntity={appEntity} onToast={addToast} />}
         {screen === 'time-off-history' && <TimeOffHistoryScreen key={appEntity ?? 'all'} requests={entityFilteredRequests} appEntity={appEntity} onToast={addToast} />}
-        {screen === 'relaunch-hub' && <RelaunchHubScreen key={appEntity ?? 'all'} appEntity={appEntity} aiMode={relaunchAiMode} onNav={handleNav} doneTasks={relaunchDoneTasks} startedTasks={relaunchStartedTasks} onMarkDone={(id) => { setRelaunchDoneTasks(prev => new Set([...prev, id])); if (relaunchContextTask?.id === id) setRelaunchContextTask(null); }} onOpenTask={(task) => { setRelaunchStartedTasks(prev => new Set([...prev, task.id])); setRelaunchLearnMore(task.id === 'q4-1' ? null : task); if (task.navTarget) { setRelaunchContextTask(task); handleNav(task.navTarget); } }} />}
+        {screen === 'relaunch-hub' && <RelaunchHubScreen key={appEntity ?? 'all'} appEntity={appEntity} aiMode={relaunchAiMode} onNav={handleNav} doneTasks={relaunchDoneTasks} startedTasks={relaunchStartedTasks} onMarkDone={(id) => markRelaunchDone(appEntity, id)} onOpenTask={(task) => openRelaunchTask(task, appEntity)} onChooseEntity={(entityId, task) => { setAppEntity(entityId); openRelaunchTask(task, entityId); }} />}
         {screen === 'choices' && <ChoicesScreen key={appEntity ?? 'all'} choices={entityFilteredChoices} onApprove={approveChoice} onDecline={declineChoice} onDetail={setChoiceDetail} appEntity={appEntity} />}
         {screen === 'payroll-overview' && <StubScreen title="Payroll Overview" description="Monthly payroll run and submission" />}
         {screen === 'payroll-reports' && <StubScreen title="Payroll Reports" description="Reporting and exports" />}
@@ -15835,26 +16264,37 @@ function App() {
         {screen === 'settings-documents' && <DocumentsSettings key={appEntity ?? 'all'} appEntity={appEntity} documents={settingsDocuments} onDocumentsChange={setSettingsDocuments} />}
         {screen === 'settings-payroll' && <PayrollSettings companyRegime={companyRegime} onRegimeChange={setCompanyRegime} appEntity={appEntity} onToast={addToast} />}
         {screen === 'settings-benefits' && <BenefitsSettings key={appEntity ?? 'all'} appEntity={appEntity} />}
+        {screen === 'settings-budgets' && <BudgetsSettings key={appEntity ?? 'all'} appEntity={appEntity} />}
         {screen === 'settings-cardrules' && <CardRulesSettings key={appEntity ?? 'all'} physicalCardsAllowed={physicalCardsAllowed} onPhysicalCardsChange={setPhysicalCardsAllowed} cardDelivery={cardDelivery} onCardDeliveryChange={setCardDelivery} onToast={addToast} mobilityWidgetState={mobilityWidgetState} onMobilityWidgetStateChange={setMobilityWidgetState} onNav={handleNav} appEntity={appEntity} />}
         {screen === 'changelog' && <ChangelogScreen />}
         {screen === 'components' && <ComponentLibraryScreen />}
-        {screen.startsWith('settings-') && screen !== 'settings-landing' && screen !== 'settings-allowances' && screen !== 'settings-expenses' && screen !== 'settings-team' && screen !== 'settings-timeoff' && screen !== 'settings-entities' && screen !== 'settings-documents' && screen !== 'settings-payroll' && screen !== 'settings-benefits' && screen !== 'settings-cardrules' && <StubScreen title={SETTINGS_TITLES[screen] || 'Settings'} description={`Configure ${(SETTINGS_TITLES[screen] || 'settings').toLowerCase()}`} />}
+        {screen.startsWith('settings-') && screen !== 'settings-landing' && screen !== 'settings-allowances' && screen !== 'settings-expenses' && screen !== 'settings-team' && screen !== 'settings-timeoff' && screen !== 'settings-entities' && screen !== 'settings-documents' && screen !== 'settings-payroll' && screen !== 'settings-benefits' && screen !== 'settings-budgets' && screen !== 'settings-cardrules' && <StubScreen title={SETTINGS_TITLES[screen] || 'Settings'} description={`Configure ${(SETTINGS_TITLES[screen] || 'settings').toLowerCase()}`} />}
       </div>
 
       {/* Relaunch hub task drawer — lives at App level so it persists when navigating to People etc. */}
+      {relaunchContextTask && relaunchContextTask.entityId === appEntity && screen === relaunchContextTask.navTarget && (
+        <RelaunchGuidanceCard
+          task={relaunchContextTask}
+          appEntity={appEntity}
+          confirmed={relaunchConfirmedTasks.has(relaunchTaskKey(appEntity, relaunchContextTask.id))}
+          completed={relaunchDoneTasks.has(relaunchTaskKey(appEntity, relaunchContextTask.id))}
+          onConfirm={() => toggleRelaunchConfirmed(appEntity, relaunchContextTask.id)}
+          onMarkDone={(id) => markRelaunchDone(appEntity, id)}
+          onNav={handleNav}
+          onStartNext={(task) => openRelaunchTask(task, appEntity)}
+          onDismiss={() => setRelaunchContextTask(null)}
+        />
+      )}
+
       {relaunchLearnMore && relaunchLearnMore.id !== 'q4-1' && (
         <RelaunchTaskDrawer
           task={relaunchLearnMore}
-          confirmed={relaunchConfirmedTasks.has(relaunchLearnMore.id)}
-          onConfirm={() => setRelaunchConfirmedTasks(prev => {
-            const next = new Set(prev);
-            next.has(relaunchLearnMore.id) ? next.delete(relaunchLearnMore.id) : next.add(relaunchLearnMore.id);
-            return next;
-          })}
+          confirmed={!!relaunchLearnMore.entityId && relaunchConfirmedTasks.has(relaunchTaskKey(relaunchLearnMore.entityId, relaunchLearnMore.id))}
+          onConfirm={() => toggleRelaunchConfirmed(relaunchLearnMore.entityId, relaunchLearnMore.id)}
           onClose={() => setRelaunchLearnMore(null)}
-          onMarkDone={(id) => { setRelaunchDoneTasks(prev => new Set([...prev, id])); if (relaunchContextTask?.id === id) setRelaunchContextTask(null); setRelaunchLearnMore(null); }}
+          onMarkDone={(id) => { markRelaunchDone(relaunchLearnMore.entityId, id); setRelaunchLearnMore(null); }}
           onNav={handleNav}
-          onContextStart={setRelaunchContextTask}
+          onContextStart={(task) => setRelaunchContextTask({ ...task, entityId: relaunchLearnMore.entityId })}
           currentScreen={screen}
         />
       )}
