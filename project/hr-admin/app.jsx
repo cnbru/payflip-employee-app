@@ -1783,11 +1783,19 @@ function RelaunchDoneCount({ value }) {
   );
 }
 
-function relaunchHubCopy(appEntity) {
-  const entityName = appEntity ? ENTITIES.find(e => e.id === appEntity)?.name : null;
+function relaunchHubCopy(entityId) {
+  const entityName = entityId ? ENTITIES.find(e => e.id === entityId)?.name : null;
+  if (!entityId) {
+    return {
+      title: 'Reset season',
+      subtitle: 'Pick a company to close this year\'s plan and launch the next one.',
+      badge: null,
+    };
+  }
   return {
-    title: entityName ? `Relaunch ${entityName}` : 'Close this year and relaunch the next',
-    subtitle: 'Follow these tasks by their deadlines so budgets and year-end payroll are correct.',
+    title: 'Reset season',
+    subtitle: 'Open a task to see what to check, then go to the page where you do it.',
+    badge: entityName,
   };
 }
 
@@ -1819,6 +1827,30 @@ function relaunchEntityProgress(doneTasks, entityId) {
   };
 }
 
+function relaunchOpenWork(doneTasks, entityId) {
+  const isDone = (task) => task.status === 'done' || doneTasks.has(relaunchTaskKey(entityId, task.id));
+  const monthIsLocked = (month) => {
+    const mi = RELAUNCH_MONTHS.indexOf(month);
+    if (mi <= 0) return false;
+    const prev = RELAUNCH_MONTHS[mi - 1];
+    return !RELAUNCH_TASKS.filter(task => task.month === prev).every(isDone);
+  };
+  const inOpenMonths = RELAUNCH_TASKS.filter(task => !monthIsLocked(task.month));
+  const openTasks = inOpenMonths.filter(task => !isDone(task));
+  const byDeadline = (task) => relaunchDeadlineTime(task.deadline);
+  const nextTask = openTasks.filter(task => task.deadline).slice().sort((a, b) => byDeadline(a) - byDeadline(b))[0] || openTasks[0] || null;
+  const windowEnd = inOpenMonths.filter(task => task.deadline).slice().sort((a, b) => byDeadline(b) - byDeadline(a))[0];
+  const before = windowEnd ? getRelaunchDeadlineMeta(windowEnd.deadline)?.shortDate : null;
+  const done = inOpenMonths.length - openTasks.length;
+  const allDone = RELAUNCH_TASKS.every(isDone);
+  const taskWord = (n) => (n === 1 ? 'task' : 'tasks');
+  let label = 'Nothing else is open yet';
+  if (allDone) label = 'All tasks complete';
+  else if (openTasks.length && done === 0 && before) label = `${openTasks.length} ${taskWord(openTasks.length)} before ${before}`;
+  else if (openTasks.length && before) label = `${done} of ${inOpenMonths.length} done before ${before}`;
+  return { openTasks, nextTask, done, total: inOpenMonths.length, before, label, allDone };
+}
+
 function relaunchEntitiesForStart(doneTasks, query) {
   const q = query.trim().toLowerCase();
   return ENTITIES
@@ -1832,7 +1864,7 @@ function relaunchEntitiesForStart(doneTasks, query) {
     });
 }
 
-function AppModeSidebar({ active, onNav, pendingCount, onEnterSettings, setupInProgress, onboardingCount = 0, offboardingCount = 0, appEntity = null, doneTasks = new Set() }) {
+function AppModeSidebar({ active, onNav, pendingCount, onEnterSettings, setupInProgress, onboardingCount = 0, offboardingCount = 0, appEntity = null, doneTasks = new Set(), onOpenRelaunch }) {
   const isPeopleActive = active === 'employees' || active === 'employees:admin' || active === 'people-onboarding' || active === 'people-offboarding' || active?.startsWith('employee-detail');
   const [peopleOpen, setPeopleOpen] = useState(isPeopleActive);
   const [timeoffOpen, setTimeoffOpen] = useState(active === 'requests' || active === 'team-absences');
@@ -1883,16 +1915,14 @@ function AppModeSidebar({ active, onNav, pendingCount, onEnterSettings, setupInP
           <SidebarItem icon="settings" label="Settings" onClick={onEnterSettings} />
 
           {(() => {
-            const entityProgress = appEntity ? relaunchEntityProgress(doneTasks, appEntity) : null;
-            const stillOpen = ENTITIES.filter(entity => relaunchEntityProgress(doneTasks, entity.id).left > 0).length;
-            const title = appEntity ? relaunchHubCopy(appEntity).title : 'Relaunch';
-            const status = stillOpen === 0 ? 'All done' : stillOpen === 1 ? '1 still open' : `${stillOpen} still open`;
-            const pct = entityProgress ? Math.round((entityProgress.done / entityProgress.total) * 100) : 0;
+            const seasonProgress = appEntity ? relaunchEntityProgress(doneTasks, appEntity) : null;
+            const title = relaunchHubCopy(appEntity).title;
+            const pct = seasonProgress ? Math.round((seasonProgress.done / seasonProgress.total) * 100) : 0;
             return (
               <div style={{ padding: '4px var(--space-250)' }}>
-                <button onClick={() => onNav('relaunch-hub')} style={{
+                <button onClick={() => (onOpenRelaunch ? onOpenRelaunch() : onNav('relaunch-hub'))} style={{
                   display: 'flex', flexDirection: 'column', gap: 8,
-                  width: '100%', padding: '10px 12px', border: 'none', borderRadius: 10,
+                  width: '100%', padding: 16, border: 'none', borderRadius: 10,
                   background: P.action, textAlign: 'left', cursor: 'pointer', flexShrink: 0,
                   transition: `background 150ms ${EASE_OUT}`,
                 }}
@@ -1905,19 +1935,14 @@ function AppModeSidebar({ active, onNav, pendingCount, onEnterSettings, setupInP
                       <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 13, color: '#fff', letterSpacing: '-0.01em' }}>{title}</span>
                       <Icon name="chevron-right" size={11} color="rgba(255,255,255,0.5)" strokeWidth={2} style={{ flexShrink: 0, marginTop: 3 }} />
                     </div>
-                    {!appEntity && (
-                      <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: 'rgba(255,255,255,0.7)', lineHeight: 1.4, fontVariantNumeric: 'tabular-nums' }}>{status}</span>
-                    )}
+                    <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: 'rgba(255,255,255,0.7)', lineHeight: 1.4 }}>Close this year and launch the next</span>
                   </div>
-                  {entityProgress && (
+                  {seasonProgress && (
                     <>
                       <div style={{ height: 6, borderRadius: 99, overflow: 'hidden', background: 'rgba(255,255,255,0.2)' }}>
                         <div style={{ height: '100%', width: `${pct}%`, borderRadius: 99, background: '#fff', transition: `width 350ms ${EASE_OUT}` }} />
                       </div>
-                      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
-                        <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: 'rgba(255,255,255,0.7)', fontVariantNumeric: 'tabular-nums' }}><RelaunchDoneCount value={entityProgress.done} /> done</span>
-                        <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: 'rgba(255,255,255,0.7)', fontVariantNumeric: 'tabular-nums' }}><span style={{ fontWeight: 700, color: '#fff', fontSize: 13 }}>{entityProgress.left}</span> left</span>
-                      </div>
+                      <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: 'rgba(255,255,255,0.7)', fontVariantNumeric: 'tabular-nums' }}>{seasonProgress.done} of {seasonProgress.total} done</span>
                     </>
                   )}
                 </button>
@@ -2048,7 +2073,7 @@ function SettingsModeSidebar({ active, onNav, mobilityLive }) {
 }
 
 const PANEL_DUR = 280;
-function Sidebar({ active, onNav, pendingCount, sidebarMode, onSetSidebarMode, appEntity, onSetAppEntity, setupInProgress, onboardingCount = 0, offboardingCount = 0, mobilityLive = false, doneTasks = new Set() }) {
+function Sidebar({ active, onNav, pendingCount, sidebarMode, onSetSidebarMode, appEntity, onSetAppEntity, setupInProgress, onboardingCount = 0, offboardingCount = 0, mobilityLive = false, doneTasks = new Set(), onOpenRelaunch }) {
   const inSettings = sidebarMode === 'settings';
   const panelStyle = (offset) => ({
     position: 'absolute', inset: 0,
@@ -2093,6 +2118,7 @@ function Sidebar({ active, onNav, pendingCount, sidebarMode, onSetSidebarMode, a
             offboardingCount={offboardingCount}
             appEntity={appEntity}
             doneTasks={doneTasks}
+            onOpenRelaunch={onOpenRelaunch}
           />
         </div>
         <div style={panelStyle(inSettings ? '0%' : '100%')}>
@@ -9948,20 +9974,18 @@ function RelaunchVideoPlayer({ video, heading = null, description = null, showTi
   );
 }
 
-function RelaunchHubScreen({ appEntity = null, aiMode = false, onNav, doneTasks, startedTasks = new Set(), onMarkDone, onOpenTask, onChooseEntity }) {
-  const hubCopy = relaunchHubCopy(appEntity);
+function RelaunchHubScreen({ appEntity = null, aiMode = false, onNav, doneTasks, startedTasks = new Set(), onMarkDone, onOpenTask, onChooseEntity, onSelectEntity }) {
+  const scopeEntity = appEntity;
+  const hubCopy = relaunchHubCopy(scopeEntity);
   const [entityPickerTask, setEntityPickerTask] = useState(null);
   const [entityQuery, setEntityQuery] = useState('');
 
-  const isTaskDone = (task) => {
-    if (!appEntity) return task.status === 'done';
-    return task.status === 'done' || doneTasks.has(relaunchTaskKey(appEntity, task.id));
+  const taskDoneFor = (task, entityId) => {
+    if (!entityId) return task.status === 'done';
+    return task.status === 'done' || doneTasks.has(relaunchTaskKey(entityId, task.id));
   };
-
-  const doneCount = RELAUNCH_TASKS.filter(t => isTaskDone(t)).length;
-  const totalCount = RELAUNCH_TASKS.length;
-
-  const progressPct = Math.round((doneCount / totalCount) * 100);
+  const isTaskDone = (task) => taskDoneFor(task, scopeEntity);
+  const seasonProgress = scopeEntity ? relaunchEntityProgress(doneTasks, scopeEntity) : null;
   const hairline = `${window.devicePixelRatio >= 2 ? '0.5px' : '1px'} solid ${P.border}`;
 
   const tasksByMonth = RELAUNCH_MONTHS.reduce((acc, m) => {
@@ -9969,13 +9993,15 @@ function RelaunchHubScreen({ appEntity = null, aiMode = false, onNav, doneTasks,
     return acc;
   }, {});
 
-  const monthDone = (month) => tasksByMonth[month].filter(t => isTaskDone(t)).length;
-  const monthLocked = (month) => {
+  const monthDoneFor = (month, entityId) => tasksByMonth[month].filter(t => taskDoneFor(t, entityId)).length;
+  const monthLockedFor = (month, entityId) => {
     const mi = RELAUNCH_MONTHS.indexOf(month);
     if (mi === 0) return false;
     const prevMonth = RELAUNCH_MONTHS[mi - 1];
-    return !tasksByMonth[prevMonth].every(t => isTaskDone(t));
+    return !tasksByMonth[prevMonth].every(t => taskDoneFor(t, entityId));
   };
+  const monthDone = (month) => monthDoneFor(month, scopeEntity);
+  const monthLocked = (month) => monthLockedFor(month, scopeEntity);
 
   const activeMonth = RELAUNCH_MONTHS.find(m => !monthLocked(m) && monthDone(m) < tasksByMonth[m].length);
   const [expandedMonths, setExpandedMonths] = useState(() => new Set([activeMonth || RELAUNCH_MONTHS[0]]));
@@ -9995,38 +10021,10 @@ function RelaunchHubScreen({ appEntity = null, aiMode = false, onNav, doneTasks,
       return next;
     });
   };
-  return (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', background: P.white }}>
-      <PageHeader
-        title={hubCopy.title}
-        subtitle={hubCopy.subtitle}
-        maxWidth={880}
-      />
-
-      <div className="hide-scrollbar" style={{ flex: 1, overflowY: 'auto' }}>
-        <div style={{ maxWidth: 880, margin: '0 auto', padding: '28px 28px 48px' }}>
-
-          {/* Progress — company progress, once an entity is selected */}
-          {appEntity && <div style={{ marginBottom: 28 }}>
-            <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 8 }}>
-              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: doneCount === totalCount ? P.success : P.ink }}>
-                {doneCount === totalCount ? 'All tasks complete' : `${doneCount} of ${totalCount} done`}
-              </span>
-              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: doneCount === totalCount ? P.success : P.inkSoft }}>
-                {progressPct}%
-              </span>
-            </div>
-            <div style={{ height: 6, borderRadius: 99, overflow: 'hidden', background: 'repeating-linear-gradient(-45deg, var(--gray-300) 0px, var(--gray-300) 1px, var(--gray-200) 1px, var(--gray-200) 5px)' }}>
-              <div style={{ height: '100%', width: `${progressPct}%`, borderRadius: 99, background: doneCount === totalCount ? P.success : P.action, transition: 'width 400ms cubic-bezier(0.22,1,0.36,1)' }} />
-            </div>
-          </div>}
-
-          {/* Collapsible phase cards */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            {RELAUNCH_MONTHS.map((month) => {
+  const monthGroups = (groupEntity) => RELAUNCH_MONTHS.map((month) => {
               const tasks = tasksByMonth[month];
-              const done = monthDone(month);
-              const locked = monthLocked(month);
+              const done = monthDoneFor(month, groupEntity);
+              const locked = monthLockedFor(month, groupEntity);
               const allDone = done === tasks.length;
               const isExpanded = expandedMonths.has(month);
 
@@ -10047,8 +10045,14 @@ function RelaunchHubScreen({ appEntity = null, aiMode = false, onNav, doneTasks,
                       <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-heading-xs)', color: locked ? P.inkSoft : P.ink }}>{month}</div>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-125)', flexShrink: 0 }}>
-                      {allDone && <DotPill dot={false} bg={P.successBg} color={P.successDark} size={11}>Complete</DotPill>}
-                      <span style={{ minWidth: 24, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkFaint, fontVariantNumeric: 'tabular-nums' }}>{done}/{tasks.length}</span>
+                      {locked ? (
+                        <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkFaint }}>Not open yet</span>
+                      ) : (
+                        <>
+                          {allDone && <DotPill dot={false} bg={P.successBg} color={P.successDark} size={11}>Complete</DotPill>}
+                          <span style={{ minWidth: 24, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkFaint, fontVariantNumeric: 'tabular-nums' }}>{done}/{tasks.length}</span>
+                        </>
+                      )}
                       <div style={{ transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)', transition: `transform 180ms ${EASE_OUT}`, display: 'flex' }}>
                         <Icon name="chevron-down" size={15} color={P.inkFaint} strokeWidth={1.75} />
                       </div>
@@ -10064,10 +10068,10 @@ function RelaunchHubScreen({ appEntity = null, aiMode = false, onNav, doneTasks,
                     <div ref={(node) => { if (node) node.inert = !isExpanded; }} style={{ minHeight: 0, overflow: 'hidden' }}>
                     <div style={{ background: P.white, borderTop: hairline, borderTopLeftRadius: 10, borderTopRightRadius: 10, overflow: 'hidden' }}>
                     {tasks.map((task, ti) => {
-                          const isDone = isTaskDone(task);
+                          const isDone = taskDoneFor(task, groupEntity);
                           const taskIsActive = !locked && !isDone;
                           const isActionable = taskIsActive && (task.whatToDo || task.checklist || task.faq || task.navTarget);
-                          const isStarted = !!appEntity && startedTasks.has(relaunchTaskKey(appEntity, task.id));
+                          const isStarted = startedTasks.has(relaunchTaskKey(groupEntity, task.id));
                           const progressSummary = isStarted && !isDone
                             ? `In progress · ${task.description}`
                             : task.description;
@@ -10091,9 +10095,11 @@ function RelaunchHubScreen({ appEntity = null, aiMode = false, onNav, doneTasks,
                                 textAlign: 'left',
                               }}
                             >
-                              <span aria-hidden="true" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 16, height: 16, flexShrink: 0, borderRadius: '50%', border: `1.5px solid ${isDone ? P.inkSoft : P.border}`, color: isDone ? P.inkSoft : P.inkFaint }}>
-                                <Icon name="check" size={10} color="currentColor" strokeWidth={2.5} />
-                              </span>
+                              {isDone && (
+                                <span aria-hidden="true" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 16, height: 16, flexShrink: 0, borderRadius: '50%', border: `1.5px solid ${P.inkSoft}`, color: P.inkSoft }}>
+                                  <Icon name="check" size={10} color="currentColor" strokeWidth={2.5} />
+                                </span>
+                              )}
                               <div style={{ flex: 1, minWidth: 0 }}>
                                 <div style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: isDone ? P.inkSoft : P.ink, textDecoration: isDone ? 'line-through' : 'none' }}>{task.title}</div>
                                 {!isDone && progressSummary && (
@@ -10111,15 +10117,8 @@ function RelaunchHubScreen({ appEntity = null, aiMode = false, onNav, doneTasks,
                                 </DotPill>
                               )}
                               {!isDone && isActionable && (
-                                <Button variant="primary" onClick={() => {
-                                  if (!appEntity) {
-                                    setEntityQuery('');
-                                    setEntityPickerTask(task);
-                                    return;
-                                  }
-                                  onOpenTask(task);
-                                }} style={{ padding: '7px 12px', fontSize: 'var(--fs-body-xs)', whiteSpace: 'nowrap', minWidth: 96, justifyContent: 'center' }}>
-                                  {isStarted ? 'Continue' : 'Start task'}
+                                <Button variant="primary" onClick={() => onChooseEntity(groupEntity, task)} style={{ padding: '7px 12px', fontSize: 'var(--fs-body-xs)', whiteSpace: 'nowrap', justifyContent: 'center' }}>
+                                  {isStarted ? 'Continue' : 'Start'}
                                 </Button>
                               )}
                             </div>
@@ -10130,8 +10129,70 @@ function RelaunchHubScreen({ appEntity = null, aiMode = false, onNav, doneTasks,
                   </div>
                 </div>
               );
-            })}
-          </div>
+  });
+  return (
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', background: P.white }}>
+      <PageHeader
+        title={hubCopy.title}
+        subtitle={hubCopy.subtitle}
+        badge={hubCopy.badge}
+        maxWidth={880}
+        noBorder
+      />
+
+      <div className="hide-scrollbar" style={{ flex: 1, overflowY: 'auto' }}>
+        <div style={{ maxWidth: 880, margin: '0 auto', padding: '28px 28px 48px' }}>
+
+          {scopeEntity && seasonProgress && <div style={{ marginBottom: 28, display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: seasonProgress.done === seasonProgress.total ? P.success : P.ink }}>
+              {seasonProgress.done === seasonProgress.total ? 'All tasks complete' : `${seasonProgress.done} of ${seasonProgress.total} done`}
+            </span>
+            <div style={{ height: 6, borderRadius: 99, overflow: 'hidden', background: 'repeating-linear-gradient(-45deg, var(--gray-300) 0px, var(--gray-300) 1px, var(--gray-200) 1px, var(--gray-200) 5px)' }}>
+              <div style={{ height: '100%', width: `${Math.round((seasonProgress.done / seasonProgress.total) * 100)}%`, borderRadius: 99, background: seasonProgress.done === seasonProgress.total ? P.success : P.action, transition: 'width 400ms cubic-bezier(0.22,1,0.36,1)' }} />
+            </div>
+          </div>}
+
+          {!scopeEntity && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {relaunchEntitiesForStart(doneTasks, '').map(({ entity }) => {
+                const work = relaunchOpenWork(doneTasks, entity.id);
+                const meta = work.nextTask?.deadline ? getRelaunchDeadlineMeta(work.nextTask.deadline) : null;
+                return (
+                  <button
+                    key={entity.id}
+                    type="button"
+                    onClick={() => onSelectEntity(entity.id)}
+                    style={{
+                      width: '100%', padding: '16px',
+                      display: 'flex', alignItems: 'center', gap: 12,
+                      background: P.bg, border: hairline, borderRadius: 10,
+                      textAlign: 'left', cursor: 'pointer', color: P.ink,
+                      transition: `background 150ms ${EASE_OUT}`,
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.background = P.border; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = P.bg; }}
+                    onMouseDown={e => { e.currentTarget.style.background = P.borderStrong; }}
+                    onMouseUp={e => { e.currentTarget.style.background = P.border; }}
+                  >
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-heading-xs)' }}>{entity.name}</div>
+                      <div style={{ marginTop: 4, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: work.allDone ? P.successDark : P.inkSoft, lineHeight: 1.4 }}>
+                        {work.allDone ? 'All tasks complete' : (work.nextTask ? work.nextTask.title : work.label)}
+                        {meta && !work.allDone ? ` · Due ${meta.shortDate}` : ''}
+                      </div>
+                    </div>
+                    {work.allDone && <DotPill dot={false} bg={P.successBg} color={P.successDark} size={11}>Complete</DotPill>}
+                    <Icon name="chevron-right" size={15} color={P.inkFaint} strokeWidth={1.75} />
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Collapsible phase cards */}
+          {scopeEntity && <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {monthGroups(scopeEntity)}
+          </div>}
 
         </div>
       </div>
@@ -15770,6 +15831,7 @@ function App() {
   };
   const [sidebarMode, setSidebarMode] = useState('app');
   const [appEntity, setAppEntity] = useState(null);
+  const [relaunchHubNonce, setRelaunchHubNonce] = useState(0);
   const [requests, setRequests] = useState(() => mergeRequests(generatedRequests, readLS()));
   const [companyEvents, setCompanyEvents] = useState([]);
   const [toasts, setToasts] = useState([]);
@@ -16237,7 +16299,7 @@ function App() {
         <div onClick={() => setMobilityWidgetState(prev => ({ ...prev, hidden: true }))} style={{ position: 'fixed', inset: 0, zIndex: 1, cursor: 'pointer' }} />
       )}
 
-      <Sidebar active={screen} onNav={handleNav} pendingCount={pendingCount} sidebarMode={sidebarMode} onSetSidebarMode={setSidebarMode} appEntity={appEntity} onSetAppEntity={setAppEntity} setupInProgress={screen === 'dashboard' && !mobilityWidgetState.live && !mobilityWidgetState.hidden} onboardingCount={onboardingIds.size + drafts.size} offboardingCount={offboardingIds.size} mobilityLive={!!mobilityWidgetState.live} doneTasks={relaunchDoneTasks} />
+      <Sidebar active={screen} onNav={handleNav} pendingCount={pendingCount} sidebarMode={sidebarMode} onSetSidebarMode={setSidebarMode} appEntity={appEntity} onSetAppEntity={setAppEntity} setupInProgress={screen === 'dashboard' && !mobilityWidgetState.live && !mobilityWidgetState.hidden} onboardingCount={onboardingIds.size + drafts.size} offboardingCount={offboardingIds.size} mobilityLive={!!mobilityWidgetState.live} doneTasks={relaunchDoneTasks} onOpenRelaunch={() => { setRelaunchHubNonce(n => n + 1); handleNav('relaunch-hub'); }} />
 
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, overflow: 'hidden' }}>
         {screen === 'dashboard' && <DashboardScreen key={appEntity ?? 'all'} requests={entityFilteredRequests} onNav={handleNav} onToast={addToast} appEntity={appEntity} physicalCardsAllowed={physicalCardsAllowed} onPhysicalCardsChange={setPhysicalCardsAllowed} cardDelivery={cardDelivery} onCardDeliveryChange={setCardDelivery} mobilityWidgetState={mobilityWidgetState} onMobilityWidgetStateChange={setMobilityWidgetState} pendingRequests={pendingRequestsCount} pendingExpenses={pendingExpensesCount} pendingChoices={pendingChoicesCount} activeBudgets={allowances.filter(a => a.active).length} onAddEmployee={(pf) => { setAddEmployeePrefill({ ...(pf||{}), _draftId: 'draft-' + Date.now() }); setAddEmployeeOpen(true); }} foodUnmatched={foodUnmatched} setFoodUnmatched={setFoodUnmatched} unmatchedQueue={unmatchedQueue} setUnmatchedQueue={setUnmatchedQueue} matchedEmpInssMap={matchedEmpInssMap} onboardingCount={[...onboardingIds].filter(id => !appEntity || EMPLOYEES[id]?.entityId === appEntity).length} offboardingCount={[...offboardingIds].filter(id => !appEntity || EMPLOYEES[id]?.entityId === appEntity).length} />}
@@ -16251,7 +16313,7 @@ function App() {
         {screen === 'expense-history' && <ExpenseHistoryScreen key={appEntity ?? 'all'} expenses={entityFilteredExpenses} categories={expenseCategories} appEntity={appEntity} onDetail={(exp) => { setExpDetailRejectMode(false); setExpDetail(exp); }} onToast={addToast} />}
         {screen === 'expense-reports' && <ExpenseReportsScreen key={appEntity ?? 'all'} expenses={entityFilteredExpenses} appEntity={appEntity} onToast={addToast} />}
         {screen === 'time-off-history' && <TimeOffHistoryScreen key={appEntity ?? 'all'} requests={entityFilteredRequests} appEntity={appEntity} onToast={addToast} />}
-        {screen === 'relaunch-hub' && <RelaunchHubScreen key={appEntity ?? 'all'} appEntity={appEntity} aiMode={relaunchAiMode} onNav={handleNav} doneTasks={relaunchDoneTasks} startedTasks={relaunchStartedTasks} onMarkDone={(id) => markRelaunchDone(appEntity, id)} onOpenTask={(task) => openRelaunchTask(task, appEntity)} onChooseEntity={(entityId, task) => { setAppEntity(entityId); openRelaunchTask(task, entityId); }} />}
+        {screen === 'relaunch-hub' && <RelaunchHubScreen key={`${appEntity ?? 'all'}-${relaunchHubNonce}`} appEntity={appEntity} aiMode={relaunchAiMode} onNav={handleNav} doneTasks={relaunchDoneTasks} startedTasks={relaunchStartedTasks} onMarkDone={(id) => markRelaunchDone(appEntity, id)} onOpenTask={(task) => openRelaunchTask(task, appEntity)} onChooseEntity={(entityId, task) => { setAppEntity(entityId); openRelaunchTask(task, entityId); }} onSelectEntity={setAppEntity} />}
         {screen === 'choices' && <ChoicesScreen key={appEntity ?? 'all'} choices={entityFilteredChoices} onApprove={approveChoice} onDecline={declineChoice} onDetail={setChoiceDetail} appEntity={appEntity} />}
         {screen === 'payroll-overview' && <StubScreen title="Payroll Overview" description="Monthly payroll run and submission" />}
         {screen === 'payroll-reports' && <StubScreen title="Payroll Reports" description="Reporting and exports" />}
