@@ -1788,7 +1788,7 @@ function relaunchHubCopy(entityId) {
   if (!entityId) {
     return {
       title: 'Reset season',
-      subtitle: 'Pick a company to close this year\'s plan and launch the next one.',
+      subtitle: 'Pick an entity to close this year\'s plan and launch the next one.',
       badge: null,
     };
   }
@@ -1922,27 +1922,32 @@ function AppModeSidebar({ active, onNav, pendingCount, onEnterSettings, setupInP
               <div style={{ padding: '4px var(--space-250)' }}>
                 <button onClick={() => (onOpenRelaunch ? onOpenRelaunch() : onNav('relaunch-hub'))} style={{
                   display: 'flex', flexDirection: 'column', gap: 8,
-                  width: '100%', padding: 16, border: 'none', borderRadius: 10,
-                  background: P.action, textAlign: 'left', cursor: 'pointer', flexShrink: 0,
+                  width: '100%', padding: 16, borderRadius: 10,
+                  background: P.bg, border: `${window.devicePixelRatio >= 2 ? '0.5px' : '1px'} solid ${P.border}`,
+                  textAlign: 'left', cursor: 'pointer', flexShrink: 0, color: P.ink,
                   transition: `background 150ms ${EASE_OUT}`,
                 }}
-                  onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-primary-hover)'}
-                  onMouseLeave={e => e.currentTarget.style.background = P.action}
+                  onMouseEnter={e => { e.currentTarget.style.background = P.border; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = P.bg; }}
+                  onMouseDown={e => { e.currentTarget.style.background = P.borderStrong; }}
+                  onMouseUp={e => { e.currentTarget.style.background = P.border; }}
                 >
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                    <Icon name="Rocket" size={14} color="rgba(255,255,255,0.9)" style={{ marginBottom: 8 }} />
-                    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
-                      <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 13, color: '#fff', letterSpacing: '-0.01em' }}>{title}</span>
-                      <Icon name="chevron-right" size={11} color="rgba(255,255,255,0.5)" strokeWidth={2} style={{ flexShrink: 0, marginTop: 3 }} />
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                      <div style={{ width: 36, height: 36, flexShrink: 0, borderRadius: 10, background: P.white, border: `1px solid ${P.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <Icon name="Rocket" size={16} color={P.ink} strokeWidth={1.5} />
+                      </div>
+                      <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 13, color: P.ink, letterSpacing: '-0.01em' }}>{title}</span>
+                      <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkSoft, lineHeight: 1.4 }}>Close this year and launch the next</span>
                     </div>
-                    <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: 'rgba(255,255,255,0.7)', lineHeight: 1.4 }}>Close this year and launch the next</span>
+                    <Icon name="chevron-right" size={15} color={P.inkFaint} strokeWidth={1.75} />
                   </div>
                   {seasonProgress && (
                     <>
-                      <div style={{ height: 6, borderRadius: 99, overflow: 'hidden', background: 'rgba(255,255,255,0.2)' }}>
-                        <div style={{ height: '100%', width: `${pct}%`, borderRadius: 99, background: '#fff', transition: `width 350ms ${EASE_OUT}` }} />
+                      <div style={{ height: 6, borderRadius: 99, overflow: 'hidden', background: P.border }}>
+                        <div style={{ height: '100%', width: `${pct}%`, borderRadius: 99, background: P.ink, transition: `width 350ms ${EASE_OUT}` }} />
                       </div>
-                      <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: 'rgba(255,255,255,0.7)', fontVariantNumeric: 'tabular-nums' }}>{seasonProgress.done} of {seasonProgress.total} done</span>
+                      <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkSoft, fontVariantNumeric: 'tabular-nums' }}>{seasonProgress.done} of {seasonProgress.total} done</span>
                     </>
                   )}
                 </button>
@@ -10156,7 +10161,11 @@ function RelaunchHubScreen({ appEntity = null, aiMode = false, onNav, doneTasks,
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               {relaunchEntitiesForStart(doneTasks, '').map(({ entity }) => {
                 const work = relaunchOpenWork(doneTasks, entity.id);
+                const progress = relaunchEntityProgress(doneTasks, entity.id);
                 const meta = work.nextTask?.deadline ? getRelaunchDeadlineMeta(work.nextTask.deadline) : null;
+                const deadlineTone = meta?.state === 'overdue'
+                  ? { bg: P.dangerBg, color: P.dangerDark }
+                  : { bg: P.warningBg, color: P.warningDark };
                 return (
                   <button
                     key={entity.id}
@@ -10174,15 +10183,29 @@ function RelaunchHubScreen({ appEntity = null, aiMode = false, onNav, doneTasks,
                     onMouseDown={e => { e.currentTarget.style.background = P.borderStrong; }}
                     onMouseUp={e => { e.currentTarget.style.background = P.border; }}
                   >
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-heading-xs)' }}>{entity.name}</div>
-                      <div style={{ marginTop: 4, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: work.allDone ? P.successDark : P.inkSoft, lineHeight: 1.4 }}>
-                        {work.allDone ? 'All tasks complete' : (work.nextTask ? work.nextTask.title : work.label)}
-                        {meta && !work.allDone ? ` · Due ${meta.shortDate}` : ''}
+                    <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                      <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-heading-xs)', minWidth: 0 }}>{entity.name}</div>
+                      <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, minWidth: 0 }}>
+                        <div style={{ minWidth: 0, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: work.allDone ? P.successDark : P.inkSoft, lineHeight: 1.4 }}>
+                          {work.allDone ? 'All tasks complete' : (work.nextTask ? work.nextTask.title : work.label)}
+                        </div>
+                        <span style={{ flexShrink: 0, fontFamily: 'var(--font-body)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.ink, fontVariantNumeric: 'tabular-nums' }}>{progress.done}/{progress.total}</span>
                       </div>
                     </div>
-                    {work.allDone && <DotPill dot={false} bg={P.successBg} color={P.successDark} size={11}>Complete</DotPill>}
-                    <Icon name="chevron-right" size={15} color={P.inkFaint} strokeWidth={1.75} />
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
+                      {meta && !work.allDone && (
+                        <DotPill dot={false} bg={deadlineTone.bg} color={deadlineTone.color} size={11} whiteSpace="nowrap">
+                          Due {meta.shortDate}
+                        </DotPill>
+                      )}
+                      {!meta && !work.allDone && work.nextTask && (
+                        <DotPill dot={false} bg={P.white} color={P.inkSoft} size={11} border={P.border} whiteSpace="nowrap">
+                          Starts {work.nextTask.month}
+                        </DotPill>
+                      )}
+                      {work.allDone && <DotPill dot={false} bg={P.successBg} color={P.successDark} size={11}>Complete</DotPill>}
+                      <Icon name="chevron-right" size={15} color={P.inkFaint} strokeWidth={1.75} />
+                    </div>
                   </button>
                 );
               })}
@@ -15802,7 +15825,10 @@ const reviewSection = (title, targetStep, rows) => (
 function App() {
   const [screen, setScreen] = useState(() => pathToScreen(window.location.pathname));
   const [relaunchAiMode, setRelaunchAiMode] = useState(false);
-  const [relaunchDoneTasks, setRelaunchDoneTasks] = useState(new Set());
+  const [relaunchDoneTasks, setRelaunchDoneTasks] = useState(() => new Set([
+    'lumio-group:q4-1',
+    'lumio-group:q4-2',
+  ]));
   const [relaunchLearnMore, setRelaunchLearnMore] = useState(null);
   const [relaunchContextTask, setRelaunchContextTask] = useState(null);
   const [relaunchStartedTasks, setRelaunchStartedTasks] = useState(new Set());
