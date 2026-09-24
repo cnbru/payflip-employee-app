@@ -1932,15 +1932,14 @@ function AppModeSidebar({ active, onNav, pendingCount, onEnterSettings, setupInP
                   onMouseDown={e => { e.currentTarget.style.background = P.borderStrong; }}
                   onMouseUp={e => { e.currentTarget.style.background = P.border; }}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
-                      <div style={{ width: 36, height: 36, flexShrink: 0, borderRadius: 10, background: P.white, border: `1px solid ${P.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <Icon name="Rocket" size={16} color={P.ink} strokeWidth={1.5} />
-                      </div>
-                      <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 13, color: P.ink, letterSpacing: '-0.01em' }}>{title}</span>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    <div style={{ width: 36, height: 36, flexShrink: 0, borderRadius: 10, background: P.white, border: `1px solid ${P.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <Icon name="Rocket" size={16} color={P.ink} strokeWidth={1.5} />
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-100)' }}>
+                      <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 13, lineHeight: 1, color: P.ink, letterSpacing: '-0.01em' }}>{title}</span>
                       <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkSoft, lineHeight: 1.4 }}>Close this year and launch the next</span>
                     </div>
-                    <Icon name="chevron-right" size={15} color={P.inkFaint} strokeWidth={1.75} />
                   </div>
                   {seasonProgress && (
                     <>
@@ -1949,6 +1948,11 @@ function AppModeSidebar({ active, onNav, pendingCount, onEnterSettings, setupInP
                       </div>
                       <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkSoft, fontVariantNumeric: 'tabular-nums' }}>{seasonProgress.done} of {seasonProgress.total} done</span>
                     </>
+                  )}
+                  {(!seasonProgress || seasonProgress.done < seasonProgress.total) && (
+                    <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 32, borderRadius: 8, background: P.ink, color: P.white, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12 }}>
+                      {seasonProgress && seasonProgress.done > 0 ? 'Continue' : 'Get started'}
+                    </span>
                   )}
                 </button>
               </div>
@@ -6714,19 +6718,8 @@ function EmployeeRow({ emp, onNav, hasInssReview }) {
 }
 
 // ── Employees screen ──────────────────────────────────────────────────────
-function relaunchSalaryNote(appEntity) {
-  const inScope = appEntity ? ENTITIES.filter(entity => entity.id === appEntity) : ENTITIES;
-  const integrated = inScope.filter(entity => entity.integrationId);
-  const deadline = 'If you cannot finish before the deadline, contact your Payflip success manager.';
-  if (integrated.length === 0) return deadline;
-  const followUp = `Confirm it matches Payflip, because unplanned absences are not synced. ${deadline}`;
-  if (appEntity) {
-    return `Salary data comes from the integration with ${integrated[0].payrollProvider}. ${followUp}`;
-  }
-  const sources = integrated.map(entity => `${entity.payrollProvider} for ${entity.name}`);
-  const list = sources.length === 2 ? `${sources[0]} and ${sources[1]}` : `${sources.slice(0, -1).join(', ')}, and ${sources[sources.length - 1]}`;
-  const integrationWord = integrated.length === 1 ? 'integration' : 'integrations';
-  return `Salary data comes from the ${integrationWord} with ${list}. ${followUp}`;
+function relaunchSalaryNote() {
+  return 'Salary data comes from the integration with Liantis. Confirm it matches Payflip, because unplanned absences are not synced.';
 }
 
 function RelaunchGuidanceCard({ task, appEntity, confirmed, completed, onConfirm, onMarkDone, onNav, onStartNext, onDismiss }) {
@@ -6789,10 +6782,11 @@ function RelaunchGuidanceCard({ task, appEntity, confirmed, completed, onConfirm
       if (!latest || time > latest.time) return { time, label: item.deadline.replace(/ \d{4}$/, '') };
       return latest;
     }, null);
-    const taskWord = monthTasks.length === 1 ? 'task' : 'tasks';
+    const remaining = monthTasks.length - monthDoneCount;
+    const taskWord = remaining === 1 ? 'task' : 'tasks';
     const monthLead = latestDeadline
-      ? `${monthTasks.length} ${taskWord} to finish before ${latestDeadline.label}.`
-      : `${monthTasks.length} ${taskWord} to finish.`;
+      ? `${remaining} ${taskWord} to finish before ${latestDeadline.label}.`
+      : `${remaining} ${taskWord} to finish.`;
     const rowTitle = { fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', lineHeight: 1.4, color: '#fff' };
     const pill = { display: 'inline-flex', alignItems: 'center', flexShrink: 0, borderRadius: 20, padding: '1px 7px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, lineHeight: 1.4, whiteSpace: 'nowrap' };
     return (
@@ -6969,7 +6963,7 @@ function RelaunchGuidanceCard({ task, appEntity, confirmed, completed, onConfirm
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, padding: '10px 12px', borderRadius: 8, background: 'rgba(255,255,255,0.06)' }}>
             <Icon name="info" size={14} color="rgba(255,255,255,0.72)" strokeWidth={2} style={{ flexShrink: 0, marginTop: 2 }} />
             <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: 'rgba(255,255,255,0.72)', lineHeight: 1.55 }}>
-              {relaunchSalaryNote(appEntity)}
+              {relaunchSalaryNote()}
             </p>
           </div>
         </div>}
@@ -10216,6 +10210,13 @@ function RelaunchHubScreen({ appEntity = null, aiMode = false, onNav, doneTasks,
           {scopeEntity && <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {monthGroups(scopeEntity)}
           </div>}
+
+          <div style={{ display: 'flex', gap: 'var(--space-150)', marginTop: 'var(--space-300)', padding: 'var(--space-200)', borderRadius: 10, background: 'var(--blue-100)', border: `1px solid var(--blue-200)`, alignItems: 'flex-start' }}>
+            <Icon name="info" size={14} color="var(--blue-500)" strokeWidth={2} style={{ flexShrink: 0, marginTop: 'var(--space-025)' }} />
+            <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, lineHeight: '18px', margin: 0 }}>
+              If you cannot finish before the deadline, contact your Payflip success manager.
+            </p>
+          </div>
 
         </div>
       </div>
