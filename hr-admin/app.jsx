@@ -1009,90 +1009,19 @@ function BudgetsTab({ empId }) {
 }
 function SalaryTab({ empId, emp, companyRegime, onEmployeeUpdate }) {
   const { history, components } = genSalary(empId, companyRegime?.contractedHours);
-  const regime = companyRegime || COMPANY_REGIME_DEFAULTS;
-  const [localFte, setLocalFte] = React.useState(emp?.fte ?? 1.0);
-  const [localSchedule, setLocalSchedule] = React.useState(emp?.workSchedule ?? [1,2,3,4,5]);
-  const DAY_LABELS = ['Mon','Tue','Wed','Thu','Fri'];
-  const advDays = calcAdvDays(regime, { ...emp, fte: localFte });
-  const legalLeave = calcLegalLeave({ ...emp, fte: localFte });
-  const handleFteChange = (newFte) => {
-    setLocalFte(newFte);
-    const defaultSchedule = newFte >= 1.0 ? [1,2,3,4,5] : newFte >= 0.9 ? [1,2,3,4,5] : newFte >= 0.8 ? [1,2,3,4] : [1,2,3];
-    setLocalSchedule(defaultSchedule);
-    if (onEmployeeUpdate) onEmployeeUpdate(empId, { fte: newFte, workSchedule: defaultSchedule });
-  };
-  const toggleDay = (day) => {
-    const next = localSchedule.includes(day) ? localSchedule.filter(d => d !== day) : [...localSchedule, day].sort();
-    setLocalSchedule(next);
-    if (onEmployeeUpdate) onEmployeeUpdate(empId, { fte: localFte, workSchedule: next });
-  };
-  const fieldStyle = { background: P.white, border: `1px solid ${P.border}`, borderRadius: 8, padding: 'var(--space-125) var(--space-200)', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink };
-  const labelStyle = { display: 'block', fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: P.ink, marginBottom: 'var(--space-075)' };
   const th = { textAlign: 'left', padding: 'var(--space-100) var(--space-200)', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em', whiteSpace: 'nowrap' };
-  const SalSecHead = ({ title, onAdd }) => (
+  const SalSecHead = ({ title, actionLabel, onAdd }) => (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-125)' }}>
       <div style={SL}>{title}</div>
       <button onClick={onAdd} style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-075)', padding: 'var(--space-075) var(--space-200)', borderRadius: 8, border: 'none', background: P.action, color: '#fff', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)' }}>
-        <Icon name="Plus" size={12} color="#fff" />Add
+        <Icon name="Plus" size={12} color="#fff" />{actionLabel}
       </button>
     </div>
   );
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-500)' }}>
       <div>
-        <h3 style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'var(--fs-body-lg)', color: P.ink, margin: '0 0 var(--space-200)' }}>Contract</h3>
-        <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 12, padding: 'var(--space-250)' }}>
-        <div style={{ display: 'flex', gap: 'var(--space-200)', marginBottom: 'var(--space-200)' }}>
-          <div style={{ flex: 1 }}>
-            <label style={labelStyle}>FTE</label>
-            <select value={localFte} onChange={e => handleFteChange(parseFloat(e.target.value))}
-              style={{ ...fieldStyle, width: '100%', cursor: 'pointer', appearance: 'none', backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b6b80' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 12px center', paddingRight: 'var(--space-400)' }}>
-              {[1.0, 0.9, 0.8, 0.6, 0.5].map(v => <option key={v} value={v}>{v === 1.0 ? '1.0 — Full-time' : `${v} — Part-time`}</option>)}
-            </select>
-          </div>
-          <div style={{ flex: 1 }}>
-            <label style={labelStyle}>Contracted hours</label>
-            <div style={{ ...fieldStyle, display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: P.bg }}>
-              <span>{regime.contractedHours}:00 / week</span>
-              <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkFaint, background: P.white, padding: 'var(--space-025) var(--space-075)', borderRadius: 4, border: `1px solid ${P.border}` }}>Company default</span>
-            </div>
-          </div>
-        </div>
-        <div style={{ marginBottom: 'var(--space-200)' }}>
-          <label style={labelStyle}>Work schedule</label>
-          <div style={{ display: 'flex', gap: 'var(--space-075)' }}>
-            {DAY_LABELS.map((label, i) => {
-              const day = i + 1;
-              const active = localSchedule.includes(day);
-              return (
-                <button key={day} onClick={() => toggleDay(day)}
-                  style={{ width: 48, height: 36, borderRadius: 8, border: `1.5px solid ${active ? P.action : P.border}`, background: active ? '#f3f0ff' : 'transparent', color: active ? P.action : P.inkSoft, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', cursor: 'pointer', transition: 'all 120ms ease' }}>
-                  {label}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-        <div style={{ display: 'flex', gap: 'var(--space-200)' }}>
-          <div style={{ flex: 1 }}>
-            <label style={labelStyle}>ADV entitlement</label>
-            <div style={{ ...fieldStyle, display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: P.bg }}>
-              <span>{advDays} days / year</span>
-              <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.success, background: P.successBg, padding: 'var(--space-025) var(--space-075)', borderRadius: 4 }}>Auto</span>
-            </div>
-          </div>
-          <div style={{ flex: 1 }}>
-            <label style={labelStyle}>Legal leave</label>
-            <div style={{ ...fieldStyle, display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: P.bg }}>
-              <span>{legalLeave} days{localFte < 1.0 ? ` (${localFte} FTE)` : ''}</span>
-              <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.success, background: P.successBg, padding: 'var(--space-025) var(--space-075)', borderRadius: 4 }}>Auto</span>
-            </div>
-          </div>
-        </div>
-        </div>
-      </div>
-      <div>
-        <SalSecHead title="Salary" onAdd={() => {}} />
+        <SalSecHead title="Salary" actionLabel="Add Salary" onAdd={() => {}} />
         <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 12, overflow: 'hidden' }}>
           <div style={{ overflowX: 'auto' }}><table style={{ width: 'max-content', minWidth: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)' }}>
             <thead><tr style={{ borderBottom: `1px solid ${P.border}` }}>
@@ -1127,7 +1056,7 @@ function SalaryTab({ empId, emp, companyRegime, onEmployeeUpdate }) {
         </div>
       </div>
       <div>
-        <SalSecHead title="Salary components" onAdd={() => {}} />
+        <SalSecHead title="Salary components" actionLabel="Add component" onAdd={() => {}} />
         <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.inkSoft, margin: '-8px 0 14px' }}>
           Components are benefits offered as part of the employee's remuneration where a benefit in kind is charged for. <AppLink onClick={e => e.preventDefault()}>Learn more</AppLink>
         </p>
@@ -1591,7 +1520,7 @@ function StatusPill({ status }) {
 function SidebarItem({ icon, label, isActive, onClick, badgeDot, chevron, chevronOpen, disabled, accentColor }) {
   const [hover, setHover] = useState(false);
   const fgColor = accentColor ?? (disabled ? P.inkFaint : P.ink);
-  const bg = isActive ? P.white : hover && !disabled ? 'color-mix(in srgb, #0f0d28 5%, transparent)' : 'transparent';
+  const bg = isActive ? 'color-mix(in srgb, #C42BFC 12%, white)' : hover && !disabled ? 'color-mix(in srgb, #0f0d28 5%, transparent)' : 'transparent';
   return (
     <button
       onClick={disabled ? undefined : onClick}
@@ -1601,7 +1530,7 @@ function SidebarItem({ icon, label, isActive, onClick, badgeDot, chevron, chevro
         display: 'flex', alignItems: 'center', gap: 'var(--space-100)',
         margin: '0 0 0 var(--space-100)',
         width: 'calc(100% - var(--space-100))',
-        padding: 'var(--space-100) var(--space-150)',
+        padding: 'var(--space-075) var(--space-150)',
         borderRadius: 8,
         border: 'none', background: bg,
         cursor: disabled ? 'default' : 'pointer', textAlign: 'left',
@@ -1645,12 +1574,14 @@ function SidebarSub({ items, active, onNav }) {
         return (
           <button key={id} onClick={() => onNav(id)} style={{
             display: 'flex', alignItems: 'center', gap: 0,
-            padding: 'var(--space-075) var(--space-150) var(--space-075) 43px', borderRadius: 0,
-            border: 'none', background: 'transparent', position: 'relative',
-            cursor: 'pointer', width: '100%', textAlign: 'left',
+            margin: '0 0 0 var(--space-100)',
+            width: 'calc(100% - var(--space-100))',
+            padding: 'var(--space-075) var(--space-150) var(--space-075) 35px', borderRadius: 8,
+            border: 'none', background: isActive ? 'color-mix(in srgb, #C42BFC 12%, white)' : 'transparent', position: 'relative',
+            cursor: 'pointer', textAlign: 'left',
           }}>
-            <div style={{ position: 'absolute', left: 26, top: 0, bottom: 0, width: 1, background: isActive ? '#C42BFC' : P.border }} />
-            <span style={{ fontFamily: 'var(--font-display)', fontWeight: isActive ? 600 : 400, fontSize: 'var(--fs-body-sm)', color: isActive ? '#C42BFC' : P.ink, flex: 1 }}>{label}</span>
+            <div style={{ position: 'absolute', left: 18, top: 0, bottom: 0, width: 1, background: P.border }} />
+            <span style={{ fontFamily: 'var(--font-display)', fontWeight: isActive ? 700 : 400, fontSize: 'var(--fs-body-sm)', color: P.ink, flex: 1 }}>{label}</span>
             {badge > 0 && (
               <span style={{ color: P.inkSoft, fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-xs)' }}>{badge}</span>
             )}
@@ -1701,15 +1632,38 @@ function AdminProfileFooter() {
   );
 }
 
+function EntitySwitchRow({ label, active, activeFill, hoverFill, onClick }) {
+  const [hover, setHover] = useState(false);
+  return (
+    <button
+      onClick={onClick}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+      style={{
+        display: 'flex', alignItems: 'center', gap: 'var(--space-100)',
+        width: '100%', padding: 'var(--space-075) var(--space-150)',
+        borderRadius: 8, border: 'none',
+        background: active ? activeFill : hover ? hoverFill : 'transparent',
+        cursor: 'pointer', textAlign: 'left',
+        transition: `background 150ms ${EASE_OUT}`,
+      }}
+    >
+      <span style={{ fontFamily: 'var(--font-display)', fontWeight: active ? 700 : 500, fontSize: 'var(--fs-body-sm)', color: P.ink, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{label}</span>
+    </button>
+  );
+}
+
 function EntitySwitcher({ value, onChange, mode }) {
   const [open, setOpen] = useState(false);
+  const [hover, setHover] = useState(false);
   const btnRef = React.useRef(null);
   const popRef = React.useRef(null);
   const selected = value ? ENTITIES.find(e => e.id === value) : null;
   const isSettings = mode === 'settings';
   const defaultLabel = isSettings ? 'Company defaults' : 'All entities';
-  const defaultSub = isSettings ? 'All entities inherit' : 'Show data across entities';
   const defaultIcon = isSettings ? 'building-2' : 'layers';
+  const activeFill = 'color-mix(in srgb, #C42BFC 12%, white)';
+  const hoverFill = 'color-mix(in srgb, #0f0d28 5%, transparent)';
 
   React.useEffect(() => {
     if (!open) return;
@@ -1724,53 +1678,45 @@ function EntitySwitcher({ value, onChange, mode }) {
 
   return (
     <React.Fragment>
-      <button ref={btnRef} onClick={() => setOpen(o => !o)} style={{
-        display: 'flex', alignItems: 'center', gap: 'var(--space-100)',
-        padding: 'var(--space-200) var(--space-150) var(--space-200) var(--space-250)', width: '100%', border: 'none',
-        borderBottom: `1px solid ${P.border}`,
-        background: 'transparent', cursor: 'pointer', textAlign: 'left',
-      }}>
-        <Icon name={defaultIcon} size={14} color={selected ? P.ink : P.inkSoft} strokeWidth={1.75} />
+      <button
+        ref={btnRef}
+        onClick={() => setOpen(o => !o)}
+        onMouseEnter={() => setHover(true)}
+        onMouseLeave={() => setHover(false)}
+        style={{
+          display: 'flex', alignItems: 'center', gap: 'var(--space-100)',
+          margin: 'var(--space-100) 0 0 var(--space-100)',
+          width: 'calc(100% - var(--space-100))',
+          padding: 'var(--space-075) var(--space-150)',
+          borderRadius: 8, border: 'none',
+          background: hover || open ? 'color-mix(in srgb, #0f0d28 5%, transparent)' : 'transparent',
+          cursor: 'pointer', textAlign: 'left',
+          transition: `background 150ms ${EASE_OUT}`,
+        }}
+      >
+        <Icon name={defaultIcon} size={14} color={P.ink} strokeWidth={1.75} />
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: selected ? P.ink : P.inkSoft, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {selected ? selected.name : defaultLabel}
           </div>
         </div>
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={P.ink} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={P.ink} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, transform: open ? 'scaleY(-1)' : 'scaleY(1)', transition: `transform 200ms ${EASE_OUT}` }}>
           <polyline points="6 9 12 15 18 9" />
         </svg>
       </button>
       {open && rect && ReactDOM.createPortal(
         <div ref={popRef} style={{
-          position: 'fixed', top: rect.top, left: rect.right + 8, zIndex: 500,
+          position: 'fixed', top: rect.bottom + 4, left: rect.left, width: rect.width, zIndex: 500,
           background: P.white, border: `1px solid ${P.border}`, borderRadius: 12,
-          boxShadow: '0 8px 32px rgba(15,13,40,0.12)', minWidth: 230, overflow: 'hidden',
+          boxShadow: '0 8px 32px rgba(15,13,40,0.12)', overflow: 'hidden',
         }}>
           <div style={{ padding: 'var(--space-150) var(--space-200) var(--space-075)', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
             Entities
           </div>
-          <div style={{ padding: '0 var(--space-100) var(--space-100)' }}>
-            <button onClick={() => { onChange(null); setOpen(false); }} style={{
-              display: 'flex', alignItems: 'center', gap: 'var(--space-125)', width: '100%', padding: 'var(--space-100) var(--space-100)', border: 'none', borderRadius: 8,
-              background: !value ? P.bg : 'transparent', cursor: 'pointer', textAlign: 'left', position: 'relative',
-            }}>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink }}>{defaultLabel}</div>
-                <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>{defaultSub}</div>
-              </div>
-              {!value && <Icon name="check" size={13} color="#C42BFC" strokeWidth={2.5} />}
-            </button>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-050)', padding: '0 var(--space-100) var(--space-100)' }}>
+            <EntitySwitchRow label={defaultLabel} active={!value} activeFill={activeFill} hoverFill={hoverFill} onClick={() => { onChange(null); setOpen(false); }} />
             {ENTITIES.map(ent => (
-              <button key={ent.id} onClick={() => { onChange(ent.id); setOpen(false); }} style={{
-                display: 'flex', alignItems: 'center', gap: 'var(--space-125)', width: '100%', padding: 'var(--space-100) var(--space-100)', border: 'none', borderRadius: 8,
-                background: value === ent.id ? P.bg : 'transparent', cursor: 'pointer', textAlign: 'left',
-              }}>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: P.ink }}>{ent.name}</div>
-                  <div style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft }}>{ent.employeeCount} employees</div>
-                </div>
-                {value === ent.id && <Icon name="check" size={13} color="#C42BFC" strokeWidth={2.5} />}
-              </button>
+              <EntitySwitchRow key={ent.id} label={ent.name} active={value === ent.id} activeFill={activeFill} hoverFill={hoverFill} onClick={() => { onChange(ent.id); setOpen(false); }} />
             ))}
           </div>
         </div>,
@@ -1796,13 +1742,13 @@ function relaunchHubCopy(entityId) {
   const entityName = entityId ? ENTITIES.find(e => e.id === entityId)?.name : null;
   if (!entityId) {
     return {
-      title: 'Close this year and launch the next',
+      title: 'Close 2026 and launch 2027',
       subtitle: 'Pick an entity.',
       badge: null,
     };
   }
   return {
-    title: 'Close this year and launch the next',
+    title: 'Close 2026 and launch 2027',
     subtitle: 'Open a task to see what to check, then go to the page where you do it.',
     badge: entityName,
   };
@@ -1822,36 +1768,31 @@ function relaunchDeadlineTime(deadline) {
 }
 
 function relaunchEntityProgress(doneTasks, entityId) {
-  const total = RELAUNCH_TASKS.length;
-  const remaining = RELAUNCH_TASKS.filter(task => task.status !== 'done' && !doneTasks.has(relaunchTaskKey(entityId, task.id)));
+  const visible = relaunchTasksFor(entityId);
+  const total = visible.length;
+  const remaining = visible.filter(task => !relaunchIsDone(task, entityId, doneTasks));
   const nextTask = remaining
-    .filter(task => task.deadline)
+    .filter(task => relaunchDeadline(task, entityId))
     .slice()
-    .sort((a, b) => relaunchDeadlineTime(a.deadline) - relaunchDeadlineTime(b.deadline))[0];
+    .sort((a, b) => relaunchDeadlineTime(relaunchDeadline(a, entityId)) - relaunchDeadlineTime(relaunchDeadline(b, entityId)))[0];
   return {
     done: total - remaining.length,
     total,
     left: remaining.length,
-    nextDeadline: nextTask?.deadline || null,
+    nextDeadline: nextTask ? relaunchDeadline(nextTask, entityId) : null,
   };
 }
 
 function relaunchOpenWork(doneTasks, entityId) {
-  const isDone = (task) => task.status === 'done' || doneTasks.has(relaunchTaskKey(entityId, task.id));
-  const monthIsLocked = (month) => {
-    const mi = RELAUNCH_MONTHS.indexOf(month);
-    if (mi <= 0) return false;
-    const prev = RELAUNCH_MONTHS[mi - 1];
-    return !RELAUNCH_TASKS.filter(task => task.month === prev).every(isDone);
-  };
-  const inOpenMonths = RELAUNCH_TASKS.filter(task => !monthIsLocked(task.month));
+  const isDone = (task) => relaunchIsDone(task, entityId, doneTasks);
+  const inOpenMonths = relaunchTasksFor(entityId).filter(task => relaunchMonthIsOpen(task.month));
   const openTasks = inOpenMonths.filter(task => !isDone(task));
-  const byDeadline = (task) => relaunchDeadlineTime(task.deadline);
-  const nextTask = openTasks.filter(task => task.deadline).slice().sort((a, b) => byDeadline(a) - byDeadline(b))[0] || openTasks[0] || null;
-  const windowEnd = inOpenMonths.filter(task => task.deadline).slice().sort((a, b) => byDeadline(b) - byDeadline(a))[0];
-  const before = windowEnd ? getRelaunchDeadlineMeta(windowEnd.deadline)?.shortDate : null;
+  const byDeadline = (task) => relaunchDeadlineTime(relaunchDeadline(task, entityId));
+  const nextTask = openTasks.filter(task => relaunchDeadline(task, entityId)).slice().sort((a, b) => byDeadline(a) - byDeadline(b))[0] || openTasks[0] || null;
+  const windowEnd = inOpenMonths.filter(task => relaunchDeadline(task, entityId)).slice().sort((a, b) => byDeadline(b) - byDeadline(a))[0];
+  const before = windowEnd ? getRelaunchDeadlineMeta(relaunchDeadline(windowEnd, entityId))?.shortDate : null;
   const done = inOpenMonths.length - openTasks.length;
-  const allDone = RELAUNCH_TASKS.every(isDone);
+  const allDone = relaunchTasksFor(entityId).every(isDone);
   const taskWord = (n) => (n === 1 ? 'task' : 'tasks');
   let label = 'Nothing else is open yet';
   if (allDone) label = 'All tasks complete';
@@ -1886,7 +1827,7 @@ function AppModeSidebar({ active, onNav, pendingCount, onEnterSettings, setupInP
       <nav style={{ flex: 1, padding: 'var(--space-200) 0 var(--space-125)', display: 'flex', flexDirection: 'column', gap: 'var(--space-050)', overflow: 'auto' }}>
         <SidebarItem icon="house" label="Home" isActive={active === 'dashboard'} onClick={() => onNav('dashboard')} />
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 'var(--space-050)', opacity: setupInProgress ? 0.35 : 1, pointerEvents: setupInProgress ? 'none' : 'auto', transition: `opacity 250ms ${EASE_OUT}` }}>
-          <SidebarItem icon="users" label="People" isActive={isPeopleActive} onClick={() => setPeopleOpen(o => !o)} chevron chevronOpen={peopleOpen} />
+          <SidebarItem icon="users" label="People" onClick={() => setPeopleOpen(o => !o)} chevron chevronOpen={peopleOpen} />
           <SidebarAccordion open={peopleOpen}>
             <SidebarSub active={active} onNav={onNav} items={[
               { id: 'employees', label: 'Team overview' },
@@ -1896,7 +1837,7 @@ function AppModeSidebar({ active, onNav, pendingCount, onEnterSettings, setupInP
           </SidebarAccordion>
           <SidebarItem icon="list-checks" label="Choices" isActive={active === 'choices'} onClick={() => onNav('choices')} badgeDot={pendingCount?.choices || null} />
 
-          <SidebarItem icon="calendar-days" label="Time off" onClick={() => setTimeoffOpen(o => !o)} chevron chevronOpen={timeoffOpen} isActive={active === 'requests' || active === 'team-absences' || active === 'time-off-history'} badgeDot={!timeoffOpen && (pendingCount?.requests ?? pendingCount) > 0 ? (pendingCount?.requests ?? pendingCount) : null} />
+          <SidebarItem icon="calendar-days" label="Time off" onClick={() => setTimeoffOpen(o => !o)} chevron chevronOpen={timeoffOpen} badgeDot={!timeoffOpen && (pendingCount?.requests ?? pendingCount) > 0 ? (pendingCount?.requests ?? pendingCount) : null} />
           <SidebarAccordion open={timeoffOpen}>
             <SidebarSub active={active} onNav={onNav} items={[
               { id: 'requests', label: 'Requests', badge: pendingCount?.requests ?? pendingCount },
@@ -1913,7 +1854,7 @@ function AppModeSidebar({ active, onNav, pendingCount, onEnterSettings, setupInP
             ]} />
           </SidebarAccordion>
 
-          <SidebarItem icon="receipt" label="Expenses" onClick={() => setExpensesOpen(o => !o)} chevron chevronOpen={expensesOpen} isActive={active === 'expenses' || active === 'expense-history'} badgeDot={!expensesOpen && (pendingCount?.expenses || null)} />
+          <SidebarItem icon="receipt" label="Expenses" onClick={() => setExpensesOpen(o => !o)} chevron chevronOpen={expensesOpen} badgeDot={!expensesOpen && (pendingCount?.expenses || null)} />
           <SidebarAccordion open={expensesOpen}>
             <SidebarSub active={active} onNav={onNav} items={[
               { id: 'expenses', label: 'Requests', badge: pendingCount?.expenses },
@@ -1927,26 +1868,20 @@ function AppModeSidebar({ active, onNav, pendingCount, onEnterSettings, setupInP
             const seasonProgress = appEntity ? relaunchEntityProgress(doneTasks, appEntity) : null;
             const pct = seasonProgress ? Math.round((seasonProgress.done / seasonProgress.total) * 100) : 0;
             return (
-              <div style={{ padding: '4px var(--space-150) 4px var(--space-250)' }}>
-                <button onClick={() => (onOpenRelaunch ? onOpenRelaunch() : onNav('relaunch-hub'))} style={{
+              <div style={{ padding: 'var(--space-150) var(--space-150) 4px var(--space-250)' }}>
+                <div style={{
                   display: 'flex', flexDirection: 'column', gap: 'var(--space-200)',
                   width: '100%', padding: 'var(--space-200)', borderRadius: 10,
                   background: P.white, border: `${window.devicePixelRatio >= 2 ? '0.5px' : '1px'} solid ${P.border}`,
-                  textAlign: 'left', cursor: 'pointer', flexShrink: 0, color: P.ink,
-                  transition: `background 150ms ${EASE_OUT}`,
-                }}
-                  onMouseEnter={e => { e.currentTarget.style.background = P.bg; }}
-                  onMouseLeave={e => { e.currentTarget.style.background = P.white; }}
-                  onMouseDown={e => { e.currentTarget.style.background = P.border; }}
-                  onMouseUp={e => { e.currentTarget.style.background = P.bg; }}
-                >
+                  textAlign: 'left', flexShrink: 0, color: P.ink,
+                }}>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-150)' }}>
                     <div style={{ width: 36, height: 36, flexShrink: 0, borderRadius: 10, background: P.white, border: `1px solid ${P.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       <Icon name="Rocket" size={16} color={P.ink} strokeWidth={1.5} />
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-100)' }}>
                       <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 13, lineHeight: 1, color: P.ink, letterSpacing: '-0.01em' }}>Close the year</span>
-                      <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkSoft, lineHeight: 1.4 }}>Close 2026, prepare for 2027</span>
+                      <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkSoft, lineHeight: 1.4 }}>Required to launch 2027</span>
                     </div>
                   </div>
                   {seasonProgress && (
@@ -1958,11 +1893,19 @@ function AppModeSidebar({ active, onNav, pendingCount, onEnterSettings, setupInP
                     </div>
                   )}
                   {(!seasonProgress || seasonProgress.done < seasonProgress.total) && (
-                    <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 32, borderRadius: 8, background: P.ink, color: P.white, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12 }}>
+                    <button
+                      type="button"
+                      onClick={() => (onOpenRelaunch ? onOpenRelaunch() : onNav('relaunch-hub'))}
+                      style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 32, borderRadius: 8, border: 'none', background: P.ink, color: P.white, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12, cursor: 'pointer', transition: `background 150ms ${EASE_OUT}` }}
+                      onMouseEnter={e => { e.currentTarget.style.background = 'var(--gray-800)'; }}
+                      onMouseLeave={e => { e.currentTarget.style.background = P.ink; }}
+                      onMouseDown={e => { e.currentTarget.style.background = 'var(--gray-700)'; }}
+                      onMouseUp={e => { e.currentTarget.style.background = 'var(--gray-800)'; }}
+                    >
                       {seasonProgress && seasonProgress.done > 0 ? 'Continue' : 'Get started'}
-                    </span>
+                    </button>
                   )}
-                </button>
+                </div>
               </div>
             );
           })()}
@@ -2058,7 +2001,7 @@ function SettingsModeSidebar({ active, onNav, mobilityLive }) {
     <React.Fragment>
       <nav style={{ flex: 1, padding: 'var(--space-125) 0', display: 'flex', flexDirection: 'column', gap: 'var(--space-050)', overflow: 'auto' }}>
         <SidebarItem icon="layout-grid" label="Overview" onClick={() => onNav('settings-landing')} isActive={active === 'settings-landing'} />
-        <SidebarItem icon="user" label="Personal" onClick={() => setPersonalOpen(o => !o)} chevron chevronOpen={personalOpen} isActive={PERSONAL_IDS.includes(active)} />
+        <SidebarItem icon="user" label="Personal" onClick={() => setPersonalOpen(o => !o)} chevron chevronOpen={personalOpen} />
         <SidebarAccordion open={personalOpen}>
           <SidebarSub active={active} onNav={onNav} items={[
             { id: 'settings-notifications', label: 'Notifications' },
@@ -2066,7 +2009,7 @@ function SettingsModeSidebar({ active, onNav, mobilityLive }) {
           ]} />
         </SidebarAccordion>
 
-        <SidebarItem icon="building-2" label="Company" onClick={() => setCompanyOpen(o => !o)} chevron chevronOpen={companyOpen} isActive={COMPANY_IDS.includes(active)} />
+        <SidebarItem icon="building-2" label="Company" onClick={() => setCompanyOpen(o => !o)} chevron chevronOpen={companyOpen} />
         <SidebarAccordion open={companyOpen}>
           <SidebarSub active={active} onNav={onNav} items={[
             { id: 'settings-entities',     label: 'Entities' },
@@ -5908,11 +5851,23 @@ function TabBar({ tabs, activeTab, onTabChange, padding = '0 28px' }) {
   );
 }
 
-function PageHeader({ title, subtitle, badge, children, tabs, maxWidth: mw, noBorder, padding: paddingOverride }) {
+function PageHeader({ title, subtitle, badge, children, tabs, maxWidth: mw, noBorder, padding: paddingOverride, onBack }) {
   const inner = (
     <>
       <div style={{ padding: paddingOverride ?? (tabs ? '40px 28px 24px' : '40px 28px 20px'), display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-        <div>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+          {onBack && (
+            <button type="button" onClick={onBack} aria-label="Back" style={{
+              display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+              width: 32, height: 32, flexShrink: 0,
+              border: `1px solid ${P.border}`, background: P.white,
+              cursor: 'pointer', borderRadius: 8, marginBottom: 'var(--space-300)',
+            }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={P.ink} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M19 12H5M12 5l-7 7 7 7"/>
+              </svg>
+            </button>
+          )}
           {badge && (
             <span style={{
               display: 'inline-flex', alignItems: 'center',
@@ -9757,24 +9712,64 @@ const RELAUNCH_TASKS = [
       { q: 'Does this apply to integration customers too?', a: 'Yes. Even if your social secretary manages salary data, you need to confirm the figures in Payflip match.' },
     ],
   },
-  { id: 'q4-2', month: 'October / November', title: 'Check choice & cash-out deadlines', description: 'Confirm your choice deadline and cash-out date are still accurate before the window opens.', status: 'active', deadline: '20 Oct 2026', cta: 'Go to Budget settings', navTarget: 'settings-budgets' },
-  // December
-  { id: 'dec-1', month: 'December', title: 'Assign bonus budgets to new employees', description: 'Employees must sign bonus annexes before year-end to be eligible. New employees always need to sign.', status: 'locked' },
-  { id: 'dec-2', month: 'December', title: 'Approve all pending choices', description: 'Clear every pending choice so nothing is left in the shopping cart before the cash-out deadline.', status: 'locked' },
-  { id: 'dec-3', month: 'December', title: 'Process year-end payroll files (EYP & Bonus)', description: 'Year-end files are auto-sent to your payroll contact. Confirm the social secretary has processed them before Christmas.', status: 'locked' },
-  // January
-  { id: 'jan-1', month: 'January', title: 'Process year-end payroll files (Mobility)', description: 'Mobility budget cash-out file is sent in the 2nd week of January. Confirm it\'s processed before adding new top-ups.', status: 'locked' },
-  { id: 'jan-2', month: 'January', title: 'Add new employees', description: 'Add everyone who joined between Jul–Dec 2026 and anyone starting Jan 1, 2027 before the end of January.', status: 'locked' },
-  { id: 'jan-3', month: 'January', title: 'Activate your benefits', description: 'Re-activate any benefits that were paused at the choice deadline so employees can use them again.', status: 'locked' },
-  { id: 'jan-4', month: 'January', title: 'Assign budgets', description: 'Assign EYP, bonus, or mobility budgets to employees who didn\'t have them last year. Existing employees don\'t need to re-sign EYP.', status: 'locked' },
-  { id: 'jan-5', month: 'January', title: 'Add top-ups', description: 'Add a new top-up line for employees who had a manual top-up last year — the automatic calculation won\'t run for them.', status: 'locked' },
-  { id: 'jan-6', month: 'January', title: 'Invite new employees', description: 'Send invites to newly added employees once their budgets and benefits are active.', status: 'locked' },
-  { id: 'jan-7', month: 'January', title: 'Update budget settings & activate', description: 'Set the new choice deadline and cash-out date, then activate so employees can start spending their budget.', status: 'locked' },
+  { id: 'q4-neg', month: 'October / November', title: 'Handle negative balances', description: 'Correct wages can push a balance below zero. Settle those outside Payflip before the cash-out.', deadline: '8 Oct 2026', show: (p) => p.negative > 0, note: (p) => `${p.negative} ${p.negative === 1 ? 'employee has' : 'employees have'} a negative balance`, navTarget: 'employees' },
+  { id: 'q4-2', month: 'October / November', title: 'Check choice & cash-out deadlines', description: 'Confirm your choice deadline and cash-out date are still accurate before the window opens.', status: 'active', deadline: { 'lumio-group': '20 Oct 2026', 'lumio-france': '1 Nov 2026', 'lumio-nl': '12 Oct 2026' }, cta: 'Go to Budget settings', navTarget: 'settings-budgets' },
+  { id: 'dec-1', month: 'December', title: 'Get bonus annexes signed', description: 'Employees need a signed annex before 20 Dec, ahead of the 31 Dec bonus reference period.', deadline: '20 Dec 2026', show: (p) => p.hasBonus, auto: (p) => ({ done: p.bonusUnsigned === 0, note: p.bonusUnsigned === 0 ? 'Everyone who needs an annex has signed' : `${p.bonusUnsigned} still need to sign` }) },
+  { id: 'dec-2', month: 'December', title: 'Approve all pending choices', description: 'Clear every pending choice before the cash-out.', show: (p) => p.pendingChoices > 0, auto: (p) => ({ done: p.pendingChoices === 0, note: `${p.pendingChoices} still waiting` }) },
+  { id: 'dec-3', month: 'December', title: 'Confirm the year-end file was received', description: 'Payflip sends the file to your payroll contact. Confirm they have it. The social secretary processes it.', note: (p) => p.payrollNote || 'No payroll contact on file' },
+  { id: 'dec-bike', month: 'December', title: 'Send the bike lease report', description: 'Send the year-end lease report for every active bike lease.', show: (p) => p.bike > 0, note: (p) => `${p.bike} active ${p.bike === 1 ? 'lease' : 'leases'} this year` },
+  { id: 'jan-1', month: 'January', title: 'Confirm the mobility file was received', description: 'Top-ups and budget activation stay locked until this is confirmed, so mobility is not paid out twice.', show: (p) => p.mobility, note: (p) => p.mobilityNote || 'Mobility cash-out file goes out in the 2nd week of January' },
+  { id: 'jan-2', month: 'January', title: 'Add new employees', description: 'Add everyone who joined between Jul–Dec 2026 and anyone starting 1 Jan 2027.' },
+  { id: 'jan-3', month: 'January', title: 'Activate paused benefits', description: 'Turn back on benefits that were paused at the choice deadline. Benefits left inactive on purpose stay off.', show: (p) => p.pausedBenefits > 0, note: (p) => `${p.pausedBenefits} paused at the choice deadline` },
+  { id: 'jan-5', month: 'January', title: 'Add top-ups', description: 'Each assigned employee needs a top-up for this year.', show: (p) => p.hasTopUpWork, auto: (p) => ({ done: p.topUpsLeft === 0, note: p.topUpsLeft === 0 ? 'Every assigned employee has a top-up' : `${p.topUpsLeft} still need a top-up` }) },
+  { id: 'jan-7', month: 'January', title: 'Update budget settings and activate', description: 'Set the new choice deadline and cash-out date, then activate the budgets.', auto: (p) => ({ done: p.budgetActive, note: p.budgetActive ? 'Budgets are active' : 'Budgets are still draft' }) },
+  { id: 'jan-6', month: 'January', title: 'Invite new employees', description: 'Send invites once budgets are active.', show: (p) => p.uninvited > 0, auto: (p) => ({ done: p.uninvited === 0, note: `${p.uninvited} not invited yet` }) },
   // February / March
   { id: 'feb-1', month: 'February / March', title: 'Add indexed salaries', description: 'Enter new salary lines once your social secretary confirms the index percentage. Budgets recalculate automatically.', status: 'locked' },
 ];
 
 const RELAUNCH_MONTHS = ['October / November', 'December', 'January', 'February / March'];
+const RELAUNCH_MONTH_OPENS = { 'December': '1 Dec', 'January': '1 Jan', 'February / March': '1 Feb' };
+const RELAUNCH_ENTITY = {
+  'lumio-group':  { negative: 2, hasBonus: true, bonusUnsigned: 3, pendingChoices: 4, payrollNote: 'Sent 12 Dec to SD Worx', bike: 2, mobility: true, mobilityNote: null, pausedBenefits: 1, hasTopUpWork: true, topUpsLeft: 5, budgetActive: false, uninvited: 2 },
+  'lumio-france': { negative: 0, hasBonus: true, bonusUnsigned: 0, pendingChoices: 0, payrollNote: null, bike: 0, mobility: false, pausedBenefits: 2, hasTopUpWork: true, topUpsLeft: 0, budgetActive: false, uninvited: 1 },
+  'lumio-nl':     { negative: 1, hasBonus: false, bonusUnsigned: 0, pendingChoices: 2, payrollNote: 'Sent 12 Dec to Partena', bike: 0, mobility: true, mobilityNote: null, pausedBenefits: 0, hasTopUpWork: true, topUpsLeft: 2, budgetActive: true, uninvited: 0 },
+};
+
+function relaunchProfile(entityId) {
+  return RELAUNCH_ENTITY[entityId] || RELAUNCH_ENTITY['lumio-group'];
+}
+function relaunchMonthIsOpen(month) {
+  const label = RELAUNCH_MONTH_OPENS[month];
+  if (!label) return true;
+  const [day, mon] = label.split(' ');
+  const monthIndex = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].indexOf(mon);
+  const year = mon === 'Dec' ? 2026 : 2027;
+  return new Date(2026, 8, 25) >= new Date(year, monthIndex, Number(day));
+}
+function relaunchDeadline(task, entityId) {
+  if (!task || !task.deadline) return null;
+  if (typeof task.deadline === 'string') return task.deadline;
+  return task.deadline[entityId] || null;
+}
+function relaunchTaskShown(task, entityId) {
+  return task.show ? task.show(relaunchProfile(entityId)) : true;
+}
+function relaunchTaskAuto(task, entityId) {
+  return task.auto ? task.auto(relaunchProfile(entityId)) : null;
+}
+function relaunchTasksFor(entityId) {
+  return RELAUNCH_TASKS.filter(task => relaunchTaskShown(task, entityId));
+}
+function relaunchIsDone(task, entityId, doneTasks) {
+  const auto = relaunchTaskAuto(task, entityId);
+  return task.status === 'done' || doneTasks.has(relaunchTaskKey(entityId, task.id)) || !!(auto && auto.done);
+}
+function relaunchTaskNote(task, entityId) {
+  const auto = relaunchTaskAuto(task, entityId);
+  if (auto && auto.note) return auto.note;
+  return task.note ? task.note(relaunchProfile(entityId)) : null;
+}
 
 const RELAUNCH_AI_RESULTS = {
   'q4-1': { status: 'issues', label: '2 salary mismatches found' },
@@ -9988,28 +9983,20 @@ function RelaunchHubScreen({ appEntity = null, aiMode = false, onNav, doneTasks,
 
   const taskDoneFor = (task, entityId) => {
     if (!entityId) return task.status === 'done';
-    return task.status === 'done' || doneTasks.has(relaunchTaskKey(entityId, task.id));
+    return relaunchIsDone(task, entityId, doneTasks);
   };
   const isTaskDone = (task) => taskDoneFor(task, scopeEntity);
   const seasonProgress = scopeEntity ? relaunchEntityProgress(doneTasks, scopeEntity) : null;
   const hairline = `${window.devicePixelRatio >= 2 ? '0.5px' : '1px'} solid ${P.border}`;
 
-  const tasksByMonth = RELAUNCH_MONTHS.reduce((acc, m) => {
-    acc[m] = RELAUNCH_TASKS.filter(t => t.month === m);
-    return acc;
-  }, {});
+  const tasksForMonth = (month, entityId) => relaunchTasksFor(entityId).filter(t => t.month === month);
 
-  const monthDoneFor = (month, entityId) => tasksByMonth[month].filter(t => taskDoneFor(t, entityId)).length;
-  const monthLockedFor = (month, entityId) => {
-    const mi = RELAUNCH_MONTHS.indexOf(month);
-    if (mi === 0) return false;
-    const prevMonth = RELAUNCH_MONTHS[mi - 1];
-    return !tasksByMonth[prevMonth].every(t => taskDoneFor(t, entityId));
-  };
+  const monthDoneFor = (month, entityId) => tasksForMonth(month, entityId).filter(t => taskDoneFor(t, entityId)).length;
+  const monthLockedFor = (month) => !relaunchMonthIsOpen(month);
   const monthDone = (month) => monthDoneFor(month, scopeEntity);
   const monthLocked = (month) => monthLockedFor(month, scopeEntity);
 
-  const activeMonth = RELAUNCH_MONTHS.find(m => !monthLocked(m) && monthDone(m) < tasksByMonth[m].length);
+  const activeMonth = RELAUNCH_MONTHS.find(m => !monthLocked(m) && monthDone(m) < tasksForMonth(m, scopeEntity).length);
   const [expandedMonths, setExpandedMonths] = useState(() => new Set([activeMonth || RELAUNCH_MONTHS[0]]));
   useEffect(() => {
     if (!activeMonth) return;
@@ -10028,14 +10015,15 @@ function RelaunchHubScreen({ appEntity = null, aiMode = false, onNav, doneTasks,
     });
   };
   const monthGroups = (groupEntity) => RELAUNCH_MONTHS.map((month) => {
-              const tasks = tasksByMonth[month];
+              const tasks = tasksForMonth(month, groupEntity);
+              if (!tasks.length) return null;
               const done = monthDoneFor(month, groupEntity);
               const locked = monthLockedFor(month, groupEntity);
               const allDone = done === tasks.length;
               const isExpanded = expandedMonths.has(month);
 
               return (
-                <div key={month} style={{ background: P.white, border: hairline, borderRadius: 10, overflow: 'hidden' }}>
+                <div key={month} style={{ background: P.bg, border: hairline, borderRadius: 10, overflow: 'hidden' }}>
                   <button
                     type="button"
                     onClick={() => toggleMonth(month)}
@@ -10043,7 +10031,7 @@ function RelaunchHubScreen({ appEntity = null, aiMode = false, onNav, doneTasks,
                     style={{
                       width: '100%', padding: '14px 16px',
                       display: 'flex', alignItems: 'center', gap: 'var(--space-200)',
-                      border: 'none', background: 'transparent', color: P.ink,
+                      border: 'none', background: P.bg, color: P.ink,
                       textAlign: 'left', cursor: 'pointer',
                     }}
                   >
@@ -10052,7 +10040,7 @@ function RelaunchHubScreen({ appEntity = null, aiMode = false, onNav, doneTasks,
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-125)', flexShrink: 0 }}>
                       {locked ? (
-                        <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkFaint }}>Not open yet</span>
+                        <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkFaint }}>Opens {RELAUNCH_MONTH_OPENS[month]}</span>
                       ) : (
                         <>
                           {allDone && <DotPill dot={false} bg={P.successBg} color={P.successDark} size={11}>Complete</DotPill>}
@@ -10076,14 +10064,16 @@ function RelaunchHubScreen({ appEntity = null, aiMode = false, onNav, doneTasks,
                     {tasks.map((task, ti) => {
                           const isDone = taskDoneFor(task, groupEntity);
                           const taskIsActive = !locked && !isDone;
-                          const isActionable = taskIsActive && (task.whatToDo || task.checklist || task.faq || task.navTarget);
+                          const isActionable = taskIsActive && !task.auto && (task.whatToDo || task.checklist || task.faq || task.navTarget);
                           const isStarted = startedTasks.has(relaunchTaskKey(groupEntity, task.id));
+                          const liveNote = relaunchTaskNote(task, groupEntity);
                           const progressSummary = isStarted && !isDone
-                            ? `In progress · ${task.description}`
-                            : task.description;
+                            ? `In progress · ${liveNote || task.description}`
+                            : (liveNote || task.description);
                           const aiResult = aiMode && taskIsActive ? RELAUNCH_AI_RESULTS[task.id] : null;
                           const aiColor = aiResult?.status === 'issues' ? P.warning : P.success;
-                          const deadlineMeta = task.deadline ? getRelaunchDeadlineMeta(task.deadline) : null;
+                          const deadlineLabel = relaunchDeadline(task, groupEntity);
+                          const deadlineMeta = deadlineLabel ? getRelaunchDeadlineMeta(deadlineLabel) : null;
                           const deadlineTone = deadlineMeta?.state === 'overdue'
                             ? { bg: P.dangerBg, color: P.dangerDark }
                             : { bg: P.warningBg, color: P.warningDark };
@@ -10109,9 +10099,9 @@ function RelaunchHubScreen({ appEntity = null, aiMode = false, onNav, doneTasks,
                               <div style={{ flex: 1, minWidth: 0 }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-100)', minWidth: 0 }}>
                                   <div style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: isDone ? P.inkSoft : P.ink, textDecoration: isDone ? 'line-through' : 'none' }}>{task.title}</div>
-                                  {taskIsActive && task.deadline && (
+                                  {taskIsActive && deadlineLabel && (
                                     <DotPill bg={deadlineTone.bg} color={deadlineTone.color} size={11} whiteSpace="nowrap">
-                                      Due {task.deadline.replace(' 2026', '').replace(' 2027', '')}
+                                      Due {deadlineLabel.replace(' 2026', '').replace(' 2027', '')}
                                     </DotPill>
                                   )}
                                 </div>
@@ -10146,6 +10136,7 @@ function RelaunchHubScreen({ appEntity = null, aiMode = false, onNav, doneTasks,
         badge={hubCopy.badge}
         maxWidth={880}
         noBorder
+        onBack={scopeEntity ? () => onSelectEntity(null) : undefined}
       />
 
       <div className="hide-scrollbar" style={{ flex: 1, overflowY: 'auto' }}>
@@ -16343,7 +16334,7 @@ function App() {
       <Sidebar active={screen} onNav={handleNav} pendingCount={pendingCount} sidebarMode={sidebarMode} onSetSidebarMode={setSidebarMode} appEntity={appEntity} onSetAppEntity={setAppEntity} setupInProgress={screen === 'dashboard' && !mobilityWidgetState.live && !mobilityWidgetState.hidden} onboardingCount={onboardingIds.size + drafts.size} offboardingCount={offboardingIds.size} mobilityLive={!!mobilityWidgetState.live} doneTasks={relaunchDoneTasks} onOpenRelaunch={() => { setRelaunchHubNonce(n => n + 1); handleNav('relaunch-hub'); }} />
 
       <div style={{ flex: 1, minWidth: 0, padding: 8, display: 'flex' }}>
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, overflow: 'hidden', background: P.white, borderRadius: 16, border: `1px solid ${P.border}` }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, overflow: 'hidden', background: P.white, borderRadius: 16, boxShadow: '0 0 0 1px rgb(0 0 0 / 0.05), 0 1px 2px rgb(0 0 0 / 0.04), 0 2px 6px -2px rgb(0 0 0 / 0.05)' }}>
         {screen === 'dashboard' && <DashboardScreen key={appEntity ?? 'all'} requests={entityFilteredRequests} onNav={handleNav} onToast={addToast} appEntity={appEntity} physicalCardsAllowed={physicalCardsAllowed} onPhysicalCardsChange={setPhysicalCardsAllowed} cardDelivery={cardDelivery} onCardDeliveryChange={setCardDelivery} mobilityWidgetState={mobilityWidgetState} onMobilityWidgetStateChange={setMobilityWidgetState} pendingRequests={pendingRequestsCount} pendingExpenses={pendingExpensesCount} pendingChoices={pendingChoicesCount} activeBudgets={allowances.filter(a => a.active).length} onAddEmployee={(pf) => { setAddEmployeePrefill({ ...(pf||{}), _draftId: 'draft-' + Date.now() }); setAddEmployeeOpen(true); }} foodUnmatched={foodUnmatched} setFoodUnmatched={setFoodUnmatched} unmatchedQueue={unmatchedQueue} setUnmatchedQueue={setUnmatchedQueue} matchedEmpInssMap={matchedEmpInssMap} onboardingCount={[...onboardingIds].filter(id => !appEntity || EMPLOYEES[id]?.entityId === appEntity).length} offboardingCount={[...offboardingIds].filter(id => !appEntity || EMPLOYEES[id]?.entityId === appEntity).length} />}
         {screen === 'team-absences' && <TeamAbsencesScreen key={appEntity ?? 'all'} requests={entityFilteredRequests} pendingCount={pendingRequestsCount} onNav={setScreen} onShowDetail={setCalDetail} activeReqId={calDetail?.id} onSave={saveRequest} companyEvents={companyEvents} onCancelCompanyEvent={cancelCompanyEvent} initialDate={calendarJumpDate} initialDeptFilter={calendarDeptFilter} appEntity={appEntity} leaveTypes={leaveTypes} />}
         {screen === 'requests' && <RequestsScreen key={appEntity ?? 'all'} requests={entityFilteredRequests} onApprove={approve} onDecline={requestDecline} onSave={saveRequest} onCancel={requestCancel} onNav={setScreen} onViewInCalendar={(req) => { const d = req._selectedDates?.[0] || req.startDate; if (d) { const iso = typeof d === 'string' && d.match(/^\d{4}-/) ? d : null; setCalendarJumpDate(iso ? new Date(iso) : parseDisplayDate(d)); } setCalDetail(req); setScreen('team-absences'); }} appEntity={appEntity} />}
