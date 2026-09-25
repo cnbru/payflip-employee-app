@@ -1589,16 +1589,25 @@ function StatusPill({ status }) {
 
 // ── Sidebar ────────────────────────────────────────────────────────────────
 function SidebarItem({ icon, label, isActive, onClick, badgeDot, chevron, chevronOpen, disabled, accentColor }) {
-  const fgColor = accentColor ?? (disabled ? P.inkFaint : isActive ? P.ink : P.inkSoft);
-  const bg = accentColor ? (isActive ? `${accentColor}18` : `${accentColor}0d`) : (isActive ? P.bg : 'transparent');
+  const [hover, setHover] = useState(false);
+  const fgColor = accentColor ?? (disabled ? P.inkFaint : P.ink);
+  const bg = isActive ? P.white : hover && !disabled ? 'color-mix(in srgb, #0f0d28 5%, transparent)' : 'transparent';
   return (
-    <button onClick={disabled ? undefined : onClick} style={{
-      display: 'flex', alignItems: 'center', gap: 'var(--space-100)',
-      padding: 'var(--space-100) var(--space-250)', borderRadius: 0,
-      border: 'none', background: bg,
-      cursor: disabled ? 'default' : 'pointer', width: '100%', textAlign: 'left',
-      transition: `background 120ms ${EASE_OUT}`,
-    }}>
+    <button
+      onClick={disabled ? undefined : onClick}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+      style={{
+        display: 'flex', alignItems: 'center', gap: 'var(--space-100)',
+        margin: '0 0 0 var(--space-100)',
+        width: 'calc(100% - var(--space-100))',
+        padding: 'var(--space-100) var(--space-150)',
+        borderRadius: 8,
+        border: 'none', background: bg,
+        cursor: disabled ? 'default' : 'pointer', textAlign: 'left',
+        transition: `background 150ms ${EASE_OUT}`,
+      }}
+    >
       {icon && <Icon name={icon} size={14} color={fgColor} strokeWidth={1.75} />}
       <span style={{ fontFamily: 'var(--font-display)', fontWeight: isActive ? 700 : 500, fontSize: 'var(--fs-body-sm)', color: fgColor, flex: 1 }}>
         {label}
@@ -1636,12 +1645,12 @@ function SidebarSub({ items, active, onNav }) {
         return (
           <button key={id} onClick={() => onNav(id)} style={{
             display: 'flex', alignItems: 'center', gap: 0,
-            padding: 'var(--space-075) var(--space-250) var(--space-075) 43px', borderRadius: 0,
+            padding: 'var(--space-075) var(--space-150) var(--space-075) 43px', borderRadius: 0,
             border: 'none', background: 'transparent', position: 'relative',
             cursor: 'pointer', width: '100%', textAlign: 'left',
           }}>
             <div style={{ position: 'absolute', left: 26, top: 0, bottom: 0, width: 1, background: isActive ? '#C42BFC' : P.border }} />
-            <span style={{ fontFamily: 'var(--font-display)', fontWeight: isActive ? 600 : 400, fontSize: 'var(--fs-body-sm)', color: isActive ? '#C42BFC' : P.inkSoft, flex: 1 }}>{label}</span>
+            <span style={{ fontFamily: 'var(--font-display)', fontWeight: isActive ? 600 : 400, fontSize: 'var(--fs-body-sm)', color: isActive ? '#C42BFC' : P.ink, flex: 1 }}>{label}</span>
             {badge > 0 && (
               <span style={{ color: P.inkSoft, fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-xs)' }}>{badge}</span>
             )}
@@ -1655,7 +1664,7 @@ function SidebarSub({ items, active, onNav }) {
 function SidebarSectionHeader({ label }) {
   return (
     <div style={{
-      padding: 'var(--space-200) var(--space-250) var(--space-050)',
+      padding: 'var(--space-200) var(--space-150) var(--space-050) var(--space-250)',
       fontFamily: 'var(--font-display)',
       fontWeight: 700,
       fontSize: 'var(--fs-body-xs)',
@@ -1670,7 +1679,7 @@ function SidebarSectionHeader({ label }) {
 
 function AdminProfileFooter() {
   return (
-    <div style={{ borderTop: `1px solid ${P.border}`, padding: 'var(--space-125) var(--space-250) var(--space-150)', display: 'flex', alignItems: 'center', gap: 'var(--space-125)' }}>
+    <div style={{ borderTop: `1px solid ${P.border}`, padding: 'var(--space-125) var(--space-150) var(--space-150) var(--space-250)', display: 'flex', alignItems: 'center', gap: 'var(--space-125)' }}>
       <div style={{
         width: 28, height: 28, borderRadius: '50%', background: CURRENT_USER.color, flexShrink: 0,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -1717,7 +1726,7 @@ function EntitySwitcher({ value, onChange, mode }) {
     <React.Fragment>
       <button ref={btnRef} onClick={() => setOpen(o => !o)} style={{
         display: 'flex', alignItems: 'center', gap: 'var(--space-100)',
-        padding: 'var(--space-200) var(--space-250)', width: '100%', border: 'none',
+        padding: 'var(--space-200) var(--space-150) var(--space-200) var(--space-250)', width: '100%', border: 'none',
         borderBottom: `1px solid ${P.border}`,
         background: 'transparent', cursor: 'pointer', textAlign: 'left',
       }}>
@@ -1787,13 +1796,13 @@ function relaunchHubCopy(entityId) {
   const entityName = entityId ? ENTITIES.find(e => e.id === entityId)?.name : null;
   if (!entityId) {
     return {
-      title: 'Reset season',
-      subtitle: 'Pick an entity to close this year\'s plan and launch the next one.',
+      title: 'Close this year and launch the next',
+      subtitle: 'Pick an entity.',
       badge: null,
     };
   }
   return {
-    title: 'Reset season',
+    title: 'Close this year and launch the next',
     subtitle: 'Open a task to see what to check, then go to the page where you do it.',
     badge: entityName,
   };
@@ -1916,38 +1925,37 @@ function AppModeSidebar({ active, onNav, pendingCount, onEnterSettings, setupInP
 
           {(() => {
             const seasonProgress = appEntity ? relaunchEntityProgress(doneTasks, appEntity) : null;
-            const title = relaunchHubCopy(appEntity).title;
             const pct = seasonProgress ? Math.round((seasonProgress.done / seasonProgress.total) * 100) : 0;
             return (
-              <div style={{ padding: '4px var(--space-250)' }}>
+              <div style={{ padding: '4px var(--space-150) 4px var(--space-250)' }}>
                 <button onClick={() => (onOpenRelaunch ? onOpenRelaunch() : onNav('relaunch-hub'))} style={{
-                  display: 'flex', flexDirection: 'column', gap: 8,
-                  width: '100%', padding: 16, borderRadius: 10,
-                  background: P.bg, border: `${window.devicePixelRatio >= 2 ? '0.5px' : '1px'} solid ${P.border}`,
+                  display: 'flex', flexDirection: 'column', gap: 'var(--space-200)',
+                  width: '100%', padding: 'var(--space-200)', borderRadius: 10,
+                  background: P.white, border: `${window.devicePixelRatio >= 2 ? '0.5px' : '1px'} solid ${P.border}`,
                   textAlign: 'left', cursor: 'pointer', flexShrink: 0, color: P.ink,
                   transition: `background 150ms ${EASE_OUT}`,
                 }}
-                  onMouseEnter={e => { e.currentTarget.style.background = P.border; }}
-                  onMouseLeave={e => { e.currentTarget.style.background = P.bg; }}
-                  onMouseDown={e => { e.currentTarget.style.background = P.borderStrong; }}
-                  onMouseUp={e => { e.currentTarget.style.background = P.border; }}
+                  onMouseEnter={e => { e.currentTarget.style.background = P.bg; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = P.white; }}
+                  onMouseDown={e => { e.currentTarget.style.background = P.border; }}
+                  onMouseUp={e => { e.currentTarget.style.background = P.bg; }}
                 >
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-150)' }}>
                     <div style={{ width: 36, height: 36, flexShrink: 0, borderRadius: 10, background: P.white, border: `1px solid ${P.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       <Icon name="Rocket" size={16} color={P.ink} strokeWidth={1.5} />
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-100)' }}>
-                      <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 13, lineHeight: 1, color: P.ink, letterSpacing: '-0.01em' }}>{title}</span>
-                      <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkSoft, lineHeight: 1.4 }}>Close this year and launch the next</span>
+                      <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 13, lineHeight: 1, color: P.ink, letterSpacing: '-0.01em' }}>Close the year</span>
+                      <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkSoft, lineHeight: 1.4 }}>Close 2026, prepare for 2027</span>
                     </div>
                   </div>
                   {seasonProgress && (
-                    <>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-075)' }}>
                       <div style={{ height: 6, borderRadius: 99, overflow: 'hidden', background: P.border }}>
                         <div style={{ height: '100%', width: `${pct}%`, borderRadius: 99, background: P.ink, transition: `width 350ms ${EASE_OUT}` }} />
                       </div>
                       <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkSoft, fontVariantNumeric: 'tabular-nums' }}>{seasonProgress.done} of {seasonProgress.total} done</span>
-                    </>
+                    </div>
                   )}
                   {(!seasonProgress || seasonProgress.done < seasonProgress.total) && (
                     <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 32, borderRadius: 8, background: P.ink, color: P.white, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12 }}>
@@ -2093,12 +2101,11 @@ function Sidebar({ active, onNav, pendingCount, sidebarMode, onSetSidebarMode, a
 
   return (
     <div style={{
-      width: 255, flexShrink: 0, background: P.white,
-      borderRight: `1px solid ${P.border}`,
+      width: 255, flexShrink: 0, background: '#F8F7F7',
       display: 'flex', flexDirection: 'column',
       height: '100vh', position: 'sticky', top: 0,
     }}>
-      <div style={{ borderBottom: `1px solid ${P.border}`, flexShrink: 0, position: 'relative', height: 53, opacity: setupInProgress ? 0.35 : 1, transition: `opacity 250ms ${EASE_OUT}`, pointerEvents: setupInProgress ? 'none' : 'auto' }}>
+      <div style={{ flexShrink: 0, position: 'relative', height: 53, opacity: setupInProgress ? 0.35 : 1, transition: `opacity 250ms ${EASE_OUT}`, pointerEvents: setupInProgress ? 'none' : 'auto' }}>
         <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', padding: '0 var(--space-250)', opacity: inSettings ? 0 : 1, transition: `opacity 200ms ${EASE_OUT}`, pointerEvents: inSettings ? 'none' : 'auto' }}>
           <svg width="90" height="22" viewBox="0 0 115 28" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M45.753 5.26971C48.8202 5.29294 51.0277 7.91867 51.0277 10.5909C51.0277 13.2631 48.8202 15.8888 45.753 15.912H41.8725V22H39.1074V5.26971H45.753ZM45.7065 13.1236C47.1937 13.1236 48.2393 11.8921 48.2393 10.5909C48.2393 9.26639 47.1937 8.03485 45.7065 8.03485H41.8725V13.1236H45.7065ZM60.7159 10.01H63.481V22H60.7159V20.3502C59.8329 21.4656 58.6014 22.1394 57.0677 22.1394C54.1864 22.1394 51.8628 19.4207 51.8628 16.005C51.8628 12.5892 54.1864 9.87054 57.0677 9.87054C58.6014 9.87054 59.8794 10.5909 60.7159 11.683V10.01ZM57.6951 19.3975C59.4146 19.3975 60.7159 17.8871 60.7159 16.005C60.7159 14.1228 59.4146 12.6124 57.6951 12.6124C55.9524 12.6124 54.6511 14.1228 54.6511 16.005C54.6511 17.8871 55.9524 19.3975 57.6951 19.3975ZM77.1976 10.01V21.7444C77.1976 25.2299 74.7346 27.7162 71.4815 27.7162C67.8798 27.7162 65.9512 25.2066 65.8118 22.9062H68.6931C68.879 24.2075 69.8781 25.1369 71.5279 25.1369C73.3404 25.1369 74.4325 23.7195 74.4325 21.8141V20.4432C73.6192 21.4191 72.318 22.1394 70.9238 22.1394C68.1819 22.1394 66.6947 19.9784 66.6947 17.2365V10.01H69.4599V16.8183C69.4599 18.2357 70.552 19.3975 71.9462 19.3975C73.3404 19.3975 74.4325 18.2124 74.4325 16.8183V10.01H77.1976ZM87.1382 10.01V12.4266H84.1639V22H81.3987V12.4266H79.4701V10.01H81.3987V9.12697C81.3987 6.75684 82.9091 5.13029 85.1631 5.13029C86.046 5.13029 86.6037 5.26971 86.9755 5.36265V7.8722C86.7664 7.80249 86.2552 7.6863 85.7672 7.6863C84.8842 7.6863 84.1639 8.01162 84.1639 9.0805V10.01H87.1382ZM92.108 5.26971V22H89.3429V5.26971H92.108ZM96.8158 8.49958C95.7702 8.49958 94.9104 7.66307 94.9104 6.59419C94.9104 5.52531 95.7702 4.66556 96.8158 4.66556C97.9312 4.66556 98.7909 5.52531 98.7909 6.59419C98.7909 7.66307 97.8847 8.49958 96.8158 8.49958ZM98.1868 22H95.4216V10.01H98.1868V22ZM101.595 26.7402V10.01H104.361V11.7295C105.197 10.4282 106.452 9.87054 107.985 9.87054C110.797 9.87054 113.214 12.4498 113.214 16.005C113.214 19.5602 110.797 22.1394 107.985 22.1394C106.452 22.1394 105.127 21.3494 104.361 20.2573V26.7402H101.595ZM107.358 12.5892C105.592 12.5892 104.361 14.1228 104.361 16.005C104.361 17.8871 105.592 19.3975 107.358 19.3975C109.124 19.3975 110.449 17.8871 110.449 16.005C110.449 14.1228 109.124 12.5892 107.358 12.5892Z" fill={P.ink}/>
@@ -10028,7 +10035,7 @@ function RelaunchHubScreen({ appEntity = null, aiMode = false, onNav, doneTasks,
               const isExpanded = expandedMonths.has(month);
 
               return (
-                <div key={month} style={{ background: P.bg, border: hairline, borderRadius: 10, overflow: 'hidden' }}>
+                <div key={month} style={{ background: P.white, border: hairline, borderRadius: 10, overflow: 'hidden' }}>
                   <button
                     type="button"
                     onClick={() => toggleMonth(month)}
@@ -10100,7 +10107,14 @@ function RelaunchHubScreen({ appEntity = null, aiMode = false, onNav, doneTasks,
                                 </span>
                               )}
                               <div style={{ flex: 1, minWidth: 0 }}>
-                                <div style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: isDone ? P.inkSoft : P.ink, textDecoration: isDone ? 'line-through' : 'none' }}>{task.title}</div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-100)', minWidth: 0 }}>
+                                  <div style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: isDone ? P.inkSoft : P.ink, textDecoration: isDone ? 'line-through' : 'none' }}>{task.title}</div>
+                                  {taskIsActive && task.deadline && (
+                                    <DotPill bg={deadlineTone.bg} color={deadlineTone.color} size={11} whiteSpace="nowrap">
+                                      Due {task.deadline.replace(' 2026', '').replace(' 2027', '')}
+                                    </DotPill>
+                                  )}
+                                </div>
                                 {!isDone && progressSummary && (
                                   <div style={{ marginTop: 2, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkFaint, lineHeight: 1.4 }}>
                                     {progressSummary}
@@ -10110,11 +10124,6 @@ function RelaunchHubScreen({ appEntity = null, aiMode = false, onNav, doneTasks,
                                   <div style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: aiColor, marginTop: 2 }}>{aiResult.label}</div>
                                 )}
                               </div>
-                              {taskIsActive && task.deadline && (
-                                <DotPill dot={false} bg={deadlineTone.bg} color={deadlineTone.color} size={11} whiteSpace="nowrap">
-                                  Due {task.deadline.replace(' 2026', '').replace(' 2027', '')}
-                                </DotPill>
-                              )}
                               {!isDone && isActionable && (
                                 <Button variant="primary" onClick={() => onChooseEntity(groupEntity, task)} style={{ padding: '7px 12px', fontSize: 'var(--fs-body-xs)', whiteSpace: 'nowrap', justifyContent: 'center' }}>
                                   {isStarted ? 'Continue' : 'Start'}
@@ -10130,7 +10139,7 @@ function RelaunchHubScreen({ appEntity = null, aiMode = false, onNav, doneTasks,
               );
   });
   return (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', background: P.white }}>
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
       <PageHeader
         title={hubCopy.title}
         subtitle={hubCopy.subtitle}
@@ -10168,14 +10177,14 @@ function RelaunchHubScreen({ appEntity = null, aiMode = false, onNav, doneTasks,
                     style={{
                       width: '100%', padding: '16px',
                       display: 'flex', alignItems: 'center', gap: 12,
-                      background: P.bg, border: hairline, borderRadius: 10,
+                      background: P.white, border: hairline, borderRadius: 10,
                       textAlign: 'left', cursor: 'pointer', color: P.ink,
                       transition: `background 150ms ${EASE_OUT}`,
                     }}
-                    onMouseEnter={e => { e.currentTarget.style.background = P.border; }}
-                    onMouseLeave={e => { e.currentTarget.style.background = P.bg; }}
-                    onMouseDown={e => { e.currentTarget.style.background = P.borderStrong; }}
-                    onMouseUp={e => { e.currentTarget.style.background = P.border; }}
+                    onMouseEnter={e => { e.currentTarget.style.background = P.bg; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = P.white; }}
+                    onMouseDown={e => { e.currentTarget.style.background = P.border; }}
+                    onMouseUp={e => { e.currentTarget.style.background = P.bg; }}
                   >
                     <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
                       <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-heading-xs)', minWidth: 0 }}>{entity.name}</div>
@@ -14816,16 +14825,9 @@ function formatBudgetDate(iso) {
   return `${day}/${month}/${year}`;
 }
 
-const BUDGET_STATUS = {
-  active: { label: 'Active', bg: P.successBg, color: P.successDark },
-  inactive: { label: 'Inactive', bg: P.bg, color: P.inkSoft },
-  draft: { label: 'Draft', bg: P.warningBg, color: P.warningDark },
-};
-
 function BudgetRow({ budget, onActivate }) {
   const [hover, setHover] = useState(false);
   const [pressed, setPressed] = useState(false);
-  const status = BUDGET_STATUS[budget.status] || BUDGET_STATUS.draft;
   const inactive = budget.status === 'inactive';
   return (
     <tr
@@ -14845,9 +14847,6 @@ function BudgetRow({ budget, onActivate }) {
       </td>
       <td style={{ padding: 'var(--space-125) var(--space-200)', color: P.ink, fontVariantNumeric: 'tabular-nums' }}>{formatBudgetDate(budget.choiceDeadline)}</td>
       <td style={{ padding: 'var(--space-125) var(--space-200)', color: P.ink, fontVariantNumeric: 'tabular-nums' }}>{formatBudgetDate(budget.cashOut)}</td>
-      <td style={{ padding: 'var(--space-125) var(--space-200)' }}>
-        <DotPill bg={status.bg} color={status.color} size={11}>{status.label}</DotPill>
-      </td>
       <td style={{ padding: 'var(--space-075) var(--space-200)', textAlign: 'right' }}>
         <Button
           variant="secondary"
@@ -14863,9 +14862,18 @@ function BudgetRow({ budget, onActivate }) {
 
 function BudgetsSettings({ appEntity = null }) {
   const [budgets, setBudgets] = useState(BUDGETS_SEED);
-  const [statusFilter, setStatusFilter] = useState('all');
-  const visible = statusFilter === 'all' ? budgets : budgets.filter(budget => budget.status === statusFilter);
-  const selectStyle = { padding: 'var(--space-100) var(--space-400) var(--space-100) var(--space-125)', border: `1px solid ${P.border}`, borderRadius: 8, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, background: P.white, cursor: 'pointer', outline: 'none', appearance: 'none', backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 8px center' };
+  const [tab, setTab] = useState('active');
+  const counts = {
+    active: budgets.filter(budget => budget.status === 'active').length,
+    draft: budgets.filter(budget => budget.status === 'draft').length,
+    inactive: budgets.filter(budget => budget.status === 'inactive').length,
+  };
+  const visible = budgets.filter(budget => budget.status === tab);
+  const emptyCopy = {
+    active: 'No active budgets',
+    draft: 'No drafts',
+    inactive: 'No inactive budgets',
+  };
   const th = { textAlign: 'left', padding: 'var(--space-125) var(--space-200)', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em' };
 
   return (
@@ -14876,26 +14884,33 @@ function BudgetsSettings({ appEntity = null }) {
         badge={appEntity ? ENTITIES.find(e => e.id === appEntity)?.name : null}
         maxWidth={880}
         padding="31px 28px 20px"
+        tabs={<TabBar
+          tabs={[
+            { id: 'active', label: `Active${counts.active > 0 ? ` (${counts.active})` : ''}` },
+            { id: 'draft', label: `Draft${counts.draft > 0 ? ` (${counts.draft})` : ''}` },
+            { id: 'inactive', label: `Inactive${counts.inactive > 0 ? ` (${counts.inactive})` : ''}` },
+          ]}
+          activeTab={tab}
+          onTabChange={setTab}
+          padding="0"
+        />}
       >
         <Button
           variant="primary"
           icon="plus"
-          onClick={() => setBudgets(prev => [...prev, { id: `draft-${Date.now()}`, name: 'New budget', status: 'draft' }])}
+          onClick={() => {
+            setBudgets(prev => [...prev, { id: `draft-${Date.now()}`, name: 'New budget', status: 'draft' }]);
+            setTab('draft');
+          }}
         >
           New budget
         </Button>
       </PageHeader>
       <div style={{ flex: 1, overflow: 'auto' }}>
         <div style={{ maxWidth: 880, margin: '0 auto', padding: 'var(--space-300) var(--space-400)', display: 'flex', flexDirection: 'column', gap: 'var(--space-200)' }}>
-          <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} style={{ ...selectStyle, alignSelf: 'flex-start' }}>
-            <option value="all">Status: All</option>
-            <option value="active">Status: Active</option>
-            <option value="draft">Status: Draft</option>
-            <option value="inactive">Status: Inactive</option>
-          </select>
-          <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 12, overflow: 'hidden' }}>
+          <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 16, overflow: 'hidden' }}>
             {visible.length === 0 ? (
-              <EmptyState icon="wallet" title="No budgets" description="Nothing matches this status." />
+              <EmptyState icon="wallet" title={emptyCopy[tab]} />
             ) : (
               <div style={{ overflowX: 'auto' }}><table style={{ width: 'max-content', minWidth: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)' }}>
                 <thead>
@@ -14903,8 +14918,7 @@ function BudgetsSettings({ appEntity = null }) {
                     <th style={th}>Budget</th>
                     <th style={th}>Choice deadline</th>
                     <th style={th}>Cash-out date</th>
-                    <th style={th}>Status</th>
-                    <th style={{ ...th, textAlign: 'right' }}>Actions</th>
+                    <th style={{ ...th, textAlign: 'right' }} />
                   </tr>
                 </thead>
                 <tbody>
@@ -16205,7 +16219,7 @@ function App() {
   const pendingCount = { requests: pendingRequestsCount, expenses: pendingExpensesCount, choices: pendingChoicesCount };
 
   return (
-    <div style={{ display: 'flex', height: '100vh', background: P.bg }}>
+    <div style={{ display: 'flex', height: '100vh', background: '#F8F7F7' }}>
       <style>{`
         @keyframes fadeUp {
           from { opacity: 0; transform: translateX(-50%) translateY(8px); }
@@ -16328,7 +16342,8 @@ function App() {
 
       <Sidebar active={screen} onNav={handleNav} pendingCount={pendingCount} sidebarMode={sidebarMode} onSetSidebarMode={setSidebarMode} appEntity={appEntity} onSetAppEntity={setAppEntity} setupInProgress={screen === 'dashboard' && !mobilityWidgetState.live && !mobilityWidgetState.hidden} onboardingCount={onboardingIds.size + drafts.size} offboardingCount={offboardingIds.size} mobilityLive={!!mobilityWidgetState.live} doneTasks={relaunchDoneTasks} onOpenRelaunch={() => { setRelaunchHubNonce(n => n + 1); handleNav('relaunch-hub'); }} />
 
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, overflow: 'hidden' }}>
+      <div style={{ flex: 1, minWidth: 0, padding: 8, display: 'flex' }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, overflow: 'hidden', background: P.white, borderRadius: 16, border: `1px solid ${P.border}` }}>
         {screen === 'dashboard' && <DashboardScreen key={appEntity ?? 'all'} requests={entityFilteredRequests} onNav={handleNav} onToast={addToast} appEntity={appEntity} physicalCardsAllowed={physicalCardsAllowed} onPhysicalCardsChange={setPhysicalCardsAllowed} cardDelivery={cardDelivery} onCardDeliveryChange={setCardDelivery} mobilityWidgetState={mobilityWidgetState} onMobilityWidgetStateChange={setMobilityWidgetState} pendingRequests={pendingRequestsCount} pendingExpenses={pendingExpensesCount} pendingChoices={pendingChoicesCount} activeBudgets={allowances.filter(a => a.active).length} onAddEmployee={(pf) => { setAddEmployeePrefill({ ...(pf||{}), _draftId: 'draft-' + Date.now() }); setAddEmployeeOpen(true); }} foodUnmatched={foodUnmatched} setFoodUnmatched={setFoodUnmatched} unmatchedQueue={unmatchedQueue} setUnmatchedQueue={setUnmatchedQueue} matchedEmpInssMap={matchedEmpInssMap} onboardingCount={[...onboardingIds].filter(id => !appEntity || EMPLOYEES[id]?.entityId === appEntity).length} offboardingCount={[...offboardingIds].filter(id => !appEntity || EMPLOYEES[id]?.entityId === appEntity).length} />}
         {screen === 'team-absences' && <TeamAbsencesScreen key={appEntity ?? 'all'} requests={entityFilteredRequests} pendingCount={pendingRequestsCount} onNav={setScreen} onShowDetail={setCalDetail} activeReqId={calDetail?.id} onSave={saveRequest} companyEvents={companyEvents} onCancelCompanyEvent={cancelCompanyEvent} initialDate={calendarJumpDate} initialDeptFilter={calendarDeptFilter} appEntity={appEntity} leaveTypes={leaveTypes} />}
         {screen === 'requests' && <RequestsScreen key={appEntity ?? 'all'} requests={entityFilteredRequests} onApprove={approve} onDecline={requestDecline} onSave={saveRequest} onCancel={requestCancel} onNav={setScreen} onViewInCalendar={(req) => { const d = req._selectedDates?.[0] || req.startDate; if (d) { const iso = typeof d === 'string' && d.match(/^\d{4}-/) ? d : null; setCalendarJumpDate(iso ? new Date(iso) : parseDisplayDate(d)); } setCalDetail(req); setScreen('team-absences'); }} appEntity={appEntity} />}
@@ -16358,6 +16373,7 @@ function App() {
         {screen === 'changelog' && <ChangelogScreen />}
         {screen === 'components' && <ComponentLibraryScreen />}
         {screen.startsWith('settings-') && screen !== 'settings-landing' && screen !== 'settings-allowances' && screen !== 'settings-expenses' && screen !== 'settings-team' && screen !== 'settings-timeoff' && screen !== 'settings-entities' && screen !== 'settings-documents' && screen !== 'settings-payroll' && screen !== 'settings-benefits' && screen !== 'settings-budgets' && screen !== 'settings-cardrules' && <StubScreen title={SETTINGS_TITLES[screen] || 'Settings'} description={`Configure ${(SETTINGS_TITLES[screen] || 'settings').toLowerCase()}`} />}
+      </div>
       </div>
 
       {/* Relaunch hub task drawer — lives at App level so it persists when navigating to People etc. */}
