@@ -636,13 +636,13 @@ function HoverTooltip({ label, children }) {
   const [pos, setPos] = React.useState(null);
   return (
     <span
-      onMouseEnter={e => { const r = e.currentTarget.getBoundingClientRect(); setPos({ x: r.left + r.width / 2, y: r.top }); }}
+      onMouseEnter={e => { const r = e.currentTarget.getBoundingClientRect(); setPos({ x: r.right, y: r.top + r.height / 2 }); }}
       onMouseLeave={() => setPos(null)}
       style={{ display: 'inline-flex' }}
     >
       {children}
       {pos && ReactDOM.createPortal(
-        <span style={{ position: 'fixed', left: pos.x, top: pos.y - 6, transform: 'translateX(-50%) translateY(-100%)', padding: 'var(--space-050) var(--space-100)', borderRadius: 6, background: P.action, color: '#fff', fontSize: 'var(--fs-body-sm)', fontWeight: 600, fontFamily: 'var(--font-display)', whiteSpace: 'nowrap', pointerEvents: 'none', zIndex: 9999 }}>
+        <span style={{ position: 'fixed', left: pos.x + 8, top: pos.y, transform: 'translateY(-50%)', maxWidth: 200, padding: 'var(--space-100) var(--space-150)', borderRadius: 8, background: P.action, color: '#fff', boxShadow: '0 4px 16px rgba(0,0,0,0.2)', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', fontWeight: 400, lineHeight: 1.5, pointerEvents: 'none', zIndex: 9999 }}>
           {label}
         </span>,
         document.body
@@ -1772,7 +1772,7 @@ function relaunchEntityProgress(doneTasks, entityId) {
   const total = visible.length;
   const remaining = visible.filter(task => !relaunchIsDone(task, entityId, doneTasks));
   const nextTask = remaining
-    .filter(task => relaunchDeadline(task, entityId))
+    .filter(task => !relaunchTaskBlocked(task, entityId, doneTasks) && relaunchDeadline(task, entityId))
     .slice()
     .sort((a, b) => relaunchDeadlineTime(relaunchDeadline(a, entityId)) - relaunchDeadlineTime(relaunchDeadline(b, entityId)))[0];
   return {
@@ -1788,7 +1788,8 @@ function relaunchOpenWork(doneTasks, entityId) {
   const inOpenMonths = relaunchTasksFor(entityId).filter(task => relaunchMonthIsOpen(task.month));
   const openTasks = inOpenMonths.filter(task => !isDone(task));
   const byDeadline = (task) => relaunchDeadlineTime(relaunchDeadline(task, entityId));
-  const nextTask = openTasks.filter(task => relaunchDeadline(task, entityId)).slice().sort((a, b) => byDeadline(a) - byDeadline(b))[0] || openTasks[0] || null;
+  const readyTasks = openTasks.filter(task => !relaunchTaskBlocked(task, entityId, doneTasks));
+  const nextTask = readyTasks.filter(task => relaunchDeadline(task, entityId)).slice().sort((a, b) => byDeadline(a) - byDeadline(b))[0] || readyTasks[0] || null;
   const windowEnd = inOpenMonths.filter(task => relaunchDeadline(task, entityId)).slice().sort((a, b) => byDeadline(b) - byDeadline(a))[0];
   const before = windowEnd ? getRelaunchDeadlineMeta(relaunchDeadline(windowEnd, entityId))?.shortDate : null;
   const done = inOpenMonths.length - openTasks.length;
@@ -9712,7 +9713,7 @@ const RELAUNCH_TASKS = [
       { q: 'Does this apply to integration customers too?', a: 'Yes. Even if your social secretary manages salary data, you need to confirm the figures in Payflip match.' },
     ],
   },
-  { id: 'q4-neg', month: 'October / November', title: 'Handle negative balances', description: 'Correct wages can push a balance below zero. Settle those outside Payflip before the cash-out.', deadline: '8 Oct 2026', show: (p) => p.negative > 0, note: (p) => `${p.negative} ${p.negative === 1 ? 'employee has' : 'employees have'} a negative balance`, navTarget: 'employees' },
+  { id: 'q4-neg', month: 'October / November', title: 'Handle negative balances', description: 'Correct wages can push a balance below zero. Settle those outside Payflip before the cash-out.', deadline: '8 Oct 2026', after: 'q4-1', show: (p) => p.negative > 0, note: (p) => `${p.negative} ${p.negative === 1 ? 'employee has' : 'employees have'} a negative balance`, navTarget: 'employees' },
   { id: 'q4-2', month: 'October / November', title: 'Check choice & cash-out deadlines', description: 'Confirm your choice deadline and cash-out date are still accurate before the window opens.', status: 'active', deadline: { 'lumio-group': '20 Oct 2026', 'lumio-france': '1 Nov 2026', 'lumio-nl': '12 Oct 2026' }, cta: 'Go to Budget settings', navTarget: 'settings-budgets' },
   { id: 'dec-1', month: 'December', title: 'Get bonus annexes signed', description: 'Employees need a signed annex before 20 Dec, ahead of the 31 Dec bonus reference period.', deadline: '20 Dec 2026', show: (p) => p.hasBonus, auto: (p) => ({ done: p.bonusUnsigned === 0, note: p.bonusUnsigned === 0 ? 'Everyone who needs an annex has signed' : `${p.bonusUnsigned} still need to sign` }) },
   { id: 'dec-2', month: 'December', title: 'Approve all pending choices', description: 'Clear every pending choice before the cash-out.', show: (p) => p.pendingChoices > 0, auto: (p) => ({ done: p.pendingChoices === 0, note: `${p.pendingChoices} still waiting` }) },
@@ -9764,6 +9765,12 @@ function relaunchTasksFor(entityId) {
 function relaunchIsDone(task, entityId, doneTasks) {
   const auto = relaunchTaskAuto(task, entityId);
   return task.status === 'done' || doneTasks.has(relaunchTaskKey(entityId, task.id)) || !!(auto && auto.done);
+}
+function relaunchTaskBlocked(task, entityId, doneTasks) {
+  if (!task.after) return false;
+  const prior = RELAUNCH_TASKS.find(item => item.id === task.after);
+  if (!prior || !relaunchTaskShown(prior, entityId)) return false;
+  return !relaunchIsDone(prior, entityId, doneTasks);
 }
 function relaunchTaskNote(task, entityId) {
   const auto = relaunchTaskAuto(task, entityId);
@@ -10063,13 +10070,15 @@ function RelaunchHubScreen({ appEntity = null, aiMode = false, onNav, doneTasks,
                     <div style={{ background: P.white, borderTop: hairline, borderTopLeftRadius: 10, borderTopRightRadius: 10, overflow: 'hidden' }}>
                     {tasks.map((task, ti) => {
                           const isDone = taskDoneFor(task, groupEntity);
+                          const blocked = relaunchTaskBlocked(task, groupEntity, doneTasks);
                           const taskIsActive = !locked && !isDone;
-                          const isActionable = taskIsActive && !task.auto && (task.whatToDo || task.checklist || task.faq || task.navTarget);
+                          const isActionable = taskIsActive && !blocked && !task.auto && (task.whatToDo || task.checklist || task.faq || task.navTarget);
                           const isStarted = startedTasks.has(relaunchTaskKey(groupEntity, task.id));
                           const liveNote = relaunchTaskNote(task, groupEntity);
                           const progressSummary = isStarted && !isDone
                             ? `In progress · ${liveNote || task.description}`
                             : (liveNote || task.description);
+                          const priorTitle = blocked ? RELAUNCH_TASKS.find(item => item.id === task.after)?.title : null;
                           const aiResult = aiMode && taskIsActive ? RELAUNCH_AI_RESULTS[task.id] : null;
                           const aiColor = aiResult?.status === 'issues' ? P.warning : P.success;
                           const deadlineLabel = relaunchDeadline(task, groupEntity);
@@ -10114,6 +10123,13 @@ function RelaunchHubScreen({ appEntity = null, aiMode = false, onNav, doneTasks,
                                   <div style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: aiColor, marginTop: 2 }}>{aiResult.label}</div>
                                 )}
                               </div>
+                              {!isDone && blocked && (
+                                <HoverTooltip label={priorTitle ? `Finish ${priorTitle} first` : 'Finish the earlier task first'}>
+                                  <Button variant="primary" disabled style={{ padding: '7px 12px', fontSize: 'var(--fs-body-xs)', whiteSpace: 'nowrap', justifyContent: 'center', pointerEvents: 'none' }}>
+                                    Start
+                                  </Button>
+                                </HoverTooltip>
+                              )}
                               {!isDone && isActionable && (
                                 <Button variant="primary" onClick={() => onChooseEntity(groupEntity, task)} style={{ padding: '7px 12px', fontSize: 'var(--fs-body-xs)', whiteSpace: 'nowrap', justifyContent: 'center' }}>
                                   {isStarted ? 'Continue' : 'Start'}
@@ -10178,15 +10194,19 @@ function RelaunchHubScreen({ appEntity = null, aiMode = false, onNav, doneTasks,
                     onMouseUp={e => { e.currentTarget.style.background = P.bg; }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
-                    <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
-                      <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-heading-xs)', minWidth: 0 }}>{entity.name}</div>
-                      {!work.allDone && (
-                        <div style={{ minWidth: 0, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, lineHeight: 1.4 }}>
-                          {work.nextTask ? `Next · ${work.nextTask.title}` : work.label}
-                        </div>
-                      )}
+                      <div style={{ flex: 1, minWidth: 0, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-heading-xs)' }}>{entity.name}</div>
+                      {work.allDone && <DotPill dot={false} bg={P.successBg} color={P.successDark} size={11}>Complete</DotPill>}
+                      <Icon name="chevron-right" size={15} color={P.inkFaint} strokeWidth={1.75} />
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
+                      {!work.allDone ? (
+                        <div style={{ flex: 1, minWidth: 0, fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: 'var(--fs-body-xs)', color: P.ink, lineHeight: 1.4 }}>
+                          {work.nextTask ? `Next · ${work.nextTask.title}` : work.label}
+                          <span style={{ color: P.inkSoft, fontVariantNumeric: 'tabular-nums' }}>{` · ${progress.done} of ${progress.total} tasks done`}</span>
+                        </div>
+                      ) : (
+                        <span style={{ flex: 1, minWidth: 0, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.successDark, fontVariantNumeric: 'tabular-nums' }}>All tasks complete</span>
+                      )}
                       {meta && !work.allDone && (
                         <DotPill dot={false} bg={deadlineTone.bg} color={deadlineTone.color} size={11} whiteSpace="nowrap">
                           Due {meta.shortDate}
@@ -10197,17 +10217,9 @@ function RelaunchHubScreen({ appEntity = null, aiMode = false, onNav, doneTasks,
                           Starts {work.nextTask.month}
                         </DotPill>
                       )}
-                      {work.allDone && <DotPill dot={false} bg={P.successBg} color={P.successDark} size={11}>Complete</DotPill>}
-                      <Icon name="chevron-right" size={15} color={P.inkFaint} strokeWidth={1.75} />
                     </div>
-                    </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                      <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: progress.done === progress.total ? P.success : P.ink }}>
-                        {progress.done === progress.total ? 'All tasks complete' : `${progress.done} of ${progress.total} tasks done`}
-                      </span>
-                      <div style={{ height: 6, borderRadius: 99, overflow: 'hidden', background: 'repeating-linear-gradient(-45deg, var(--gray-300) 0px, var(--gray-300) 1px, var(--gray-200) 1px, var(--gray-200) 5px)' }}>
-                        <div style={{ height: '100%', width: `${Math.round((progress.done / progress.total) * 100)}%`, borderRadius: 99, background: progress.done === progress.total ? P.success : P.action, transition: 'width 400ms cubic-bezier(0.22,1,0.36,1)' }} />
-                      </div>
+                    <div style={{ height: 6, borderRadius: 99, overflow: 'hidden', background: P.border }}>
+                      <div style={{ height: '100%', width: `${Math.round((progress.done / progress.total) * 100)}%`, borderRadius: 99, background: progress.done === progress.total ? P.success : P.ink, transition: `width 350ms ${EASE_OUT}` }} />
                     </div>
                   </button>
                 );
