@@ -1889,7 +1889,7 @@ function AppModeSidebar({ active, onNav, pendingCount, onEnterSettings, setupInP
                       <div style={{ height: 6, borderRadius: 99, overflow: 'hidden', background: P.border }}>
                         <div style={{ height: '100%', width: `${pct}%`, borderRadius: 99, background: P.ink, transition: `width 350ms ${EASE_OUT}` }} />
                       </div>
-                      <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkSoft, fontVariantNumeric: 'tabular-nums' }}>{seasonProgress.done} of {seasonProgress.total} done</span>
+                      <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkSoft, fontVariantNumeric: 'tabular-nums' }}>{seasonProgress.done} of {seasonProgress.total} tasks done</span>
                     </div>
                   )}
                   {(!seasonProgress || seasonProgress.done < seasonProgress.total) && (
@@ -10144,7 +10144,7 @@ function RelaunchHubScreen({ appEntity = null, aiMode = false, onNav, doneTasks,
 
           {scopeEntity && seasonProgress && <div style={{ marginBottom: 28, display: 'flex', flexDirection: 'column', gap: 12 }}>
             <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: seasonProgress.done === seasonProgress.total ? P.success : P.ink }}>
-              {seasonProgress.done === seasonProgress.total ? 'All tasks complete' : `${seasonProgress.done} of ${seasonProgress.total} done`}
+              {seasonProgress.done === seasonProgress.total ? 'All tasks complete' : `${seasonProgress.done} of ${seasonProgress.total} tasks done`}
             </span>
             <div style={{ height: 6, borderRadius: 99, overflow: 'hidden', background: 'repeating-linear-gradient(-45deg, var(--gray-300) 0px, var(--gray-300) 1px, var(--gray-200) 1px, var(--gray-200) 5px)' }}>
               <div style={{ height: '100%', width: `${Math.round((seasonProgress.done / seasonProgress.total) * 100)}%`, borderRadius: 99, background: seasonProgress.done === seasonProgress.total ? P.success : P.action, transition: 'width 400ms cubic-bezier(0.22,1,0.36,1)' }} />
@@ -10167,7 +10167,7 @@ function RelaunchHubScreen({ appEntity = null, aiMode = false, onNav, doneTasks,
                     onClick={() => onSelectEntity(entity.id)}
                     style={{
                       width: '100%', padding: '16px',
-                      display: 'flex', alignItems: 'center', gap: 12,
+                      display: 'flex', flexDirection: 'column', alignItems: 'stretch', gap: 12,
                       background: P.white, border: hairline, borderRadius: 10,
                       textAlign: 'left', cursor: 'pointer', color: P.ink,
                       transition: `background 150ms ${EASE_OUT}`,
@@ -10177,14 +10177,14 @@ function RelaunchHubScreen({ appEntity = null, aiMode = false, onNav, doneTasks,
                     onMouseDown={e => { e.currentTarget.style.background = P.border; }}
                     onMouseUp={e => { e.currentTarget.style.background = P.bg; }}
                   >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
                     <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
                       <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-heading-xs)', minWidth: 0 }}>{entity.name}</div>
-                      <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, minWidth: 0 }}>
-                        <div style={{ minWidth: 0, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: work.allDone ? P.successDark : P.inkSoft, lineHeight: 1.4 }}>
-                          {work.allDone ? 'All tasks complete' : (work.nextTask ? work.nextTask.title : work.label)}
+                      {!work.allDone && (
+                        <div style={{ minWidth: 0, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkSoft, lineHeight: 1.4 }}>
+                          {work.nextTask ? `Next · ${work.nextTask.title}` : work.label}
                         </div>
-                        <span style={{ flexShrink: 0, fontFamily: 'var(--font-body)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.ink, fontVariantNumeric: 'tabular-nums' }}>{progress.done}/{progress.total}</span>
-                      </div>
+                      )}
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
                       {meta && !work.allDone && (
@@ -10199,6 +10199,15 @@ function RelaunchHubScreen({ appEntity = null, aiMode = false, onNav, doneTasks,
                       )}
                       {work.allDone && <DotPill dot={false} bg={P.successBg} color={P.successDark} size={11}>Complete</DotPill>}
                       <Icon name="chevron-right" size={15} color={P.inkFaint} strokeWidth={1.75} />
+                    </div>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                      <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: progress.done === progress.total ? P.success : P.ink }}>
+                        {progress.done === progress.total ? 'All tasks complete' : `${progress.done} of ${progress.total} tasks done`}
+                      </span>
+                      <div style={{ height: 6, borderRadius: 99, overflow: 'hidden', background: 'repeating-linear-gradient(-45deg, var(--gray-300) 0px, var(--gray-300) 1px, var(--gray-200) 1px, var(--gray-200) 5px)' }}>
+                        <div style={{ height: '100%', width: `${Math.round((progress.done / progress.total) * 100)}%`, borderRadius: 99, background: progress.done === progress.total ? P.success : P.action, transition: 'width 400ms cubic-bezier(0.22,1,0.36,1)' }} />
+                      </div>
                     </div>
                   </button>
                 );
