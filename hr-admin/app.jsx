@@ -1589,16 +1589,25 @@ function StatusPill({ status }) {
 
 // ── Sidebar ────────────────────────────────────────────────────────────────
 function SidebarItem({ icon, label, isActive, onClick, badgeDot, chevron, chevronOpen, disabled, accentColor }) {
-  const fgColor = accentColor ?? (disabled ? P.inkFaint : isActive ? P.ink : P.inkSoft);
-  const bg = accentColor ? (isActive ? `${accentColor}18` : `${accentColor}0d`) : (isActive ? P.bg : 'transparent');
+  const [hover, setHover] = useState(false);
+  const fgColor = accentColor ?? (disabled ? P.inkFaint : P.ink);
+  const bg = isActive ? P.white : hover && !disabled ? 'color-mix(in srgb, #0f0d28 5%, transparent)' : 'transparent';
   return (
-    <button onClick={disabled ? undefined : onClick} style={{
-      display: 'flex', alignItems: 'center', gap: 'var(--space-100)',
-      padding: 'var(--space-100) var(--space-250)', borderRadius: 0,
-      border: 'none', background: bg,
-      cursor: disabled ? 'default' : 'pointer', width: '100%', textAlign: 'left',
-      transition: `background 120ms ${EASE_OUT}`,
-    }}>
+    <button
+      onClick={disabled ? undefined : onClick}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+      style={{
+        display: 'flex', alignItems: 'center', gap: 'var(--space-100)',
+        margin: '0 0 0 var(--space-100)',
+        width: 'calc(100% - var(--space-100))',
+        padding: 'var(--space-100) var(--space-150)',
+        borderRadius: 8,
+        border: 'none', background: bg,
+        cursor: disabled ? 'default' : 'pointer', textAlign: 'left',
+        transition: `background 150ms ${EASE_OUT}`,
+      }}
+    >
       {icon && <Icon name={icon} size={14} color={fgColor} strokeWidth={1.75} />}
       <span style={{ fontFamily: 'var(--font-display)', fontWeight: isActive ? 700 : 500, fontSize: 'var(--fs-body-sm)', color: fgColor, flex: 1 }}>
         {label}
@@ -1636,12 +1645,12 @@ function SidebarSub({ items, active, onNav }) {
         return (
           <button key={id} onClick={() => onNav(id)} style={{
             display: 'flex', alignItems: 'center', gap: 0,
-            padding: 'var(--space-075) var(--space-250) var(--space-075) 43px', borderRadius: 0,
+            padding: 'var(--space-075) var(--space-150) var(--space-075) 43px', borderRadius: 0,
             border: 'none', background: 'transparent', position: 'relative',
             cursor: 'pointer', width: '100%', textAlign: 'left',
           }}>
             <div style={{ position: 'absolute', left: 26, top: 0, bottom: 0, width: 1, background: isActive ? '#C42BFC' : P.border }} />
-            <span style={{ fontFamily: 'var(--font-display)', fontWeight: isActive ? 600 : 400, fontSize: 'var(--fs-body-sm)', color: isActive ? '#C42BFC' : P.inkSoft, flex: 1 }}>{label}</span>
+            <span style={{ fontFamily: 'var(--font-display)', fontWeight: isActive ? 600 : 400, fontSize: 'var(--fs-body-sm)', color: isActive ? '#C42BFC' : P.ink, flex: 1 }}>{label}</span>
             {badge > 0 && (
               <span style={{ color: P.inkSoft, fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-xs)' }}>{badge}</span>
             )}
@@ -1655,7 +1664,7 @@ function SidebarSub({ items, active, onNav }) {
 function SidebarSectionHeader({ label }) {
   return (
     <div style={{
-      padding: 'var(--space-200) var(--space-250) var(--space-050)',
+      padding: 'var(--space-200) var(--space-150) var(--space-050) var(--space-250)',
       fontFamily: 'var(--font-display)',
       fontWeight: 700,
       fontSize: 'var(--fs-body-xs)',
@@ -1670,7 +1679,7 @@ function SidebarSectionHeader({ label }) {
 
 function AdminProfileFooter() {
   return (
-    <div style={{ borderTop: `1px solid ${P.border}`, padding: 'var(--space-125) var(--space-250) var(--space-150)', display: 'flex', alignItems: 'center', gap: 'var(--space-125)' }}>
+    <div style={{ borderTop: `1px solid ${P.border}`, padding: 'var(--space-125) var(--space-150) var(--space-150) var(--space-250)', display: 'flex', alignItems: 'center', gap: 'var(--space-125)' }}>
       <div style={{
         width: 28, height: 28, borderRadius: '50%', background: CURRENT_USER.color, flexShrink: 0,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -1717,7 +1726,7 @@ function EntitySwitcher({ value, onChange, mode }) {
     <React.Fragment>
       <button ref={btnRef} onClick={() => setOpen(o => !o)} style={{
         display: 'flex', alignItems: 'center', gap: 'var(--space-100)',
-        padding: 'var(--space-200) var(--space-250)', width: '100%', border: 'none',
+        padding: 'var(--space-200) var(--space-150) var(--space-200) var(--space-250)', width: '100%', border: 'none',
         borderBottom: `1px solid ${P.border}`,
         background: 'transparent', cursor: 'pointer', textAlign: 'left',
       }}>
@@ -1783,11 +1792,19 @@ function RelaunchDoneCount({ value }) {
   );
 }
 
-function relaunchHubCopy(appEntity) {
-  const entityName = appEntity ? ENTITIES.find(e => e.id === appEntity)?.name : null;
+function relaunchHubCopy(entityId) {
+  const entityName = entityId ? ENTITIES.find(e => e.id === entityId)?.name : null;
+  if (!entityId) {
+    return {
+      title: 'Close this year and launch the next',
+      subtitle: 'Pick an entity.',
+      badge: null,
+    };
+  }
   return {
-    title: entityName ? `Relaunch ${entityName}` : 'Close this year and relaunch the next',
-    subtitle: 'Follow these tasks by their deadlines so budgets and year-end payroll are correct.',
+    title: 'Close this year and launch the next',
+    subtitle: 'Open a task to see what to check, then go to the page where you do it.',
+    badge: entityName,
   };
 }
 
@@ -1819,6 +1836,30 @@ function relaunchEntityProgress(doneTasks, entityId) {
   };
 }
 
+function relaunchOpenWork(doneTasks, entityId) {
+  const isDone = (task) => task.status === 'done' || doneTasks.has(relaunchTaskKey(entityId, task.id));
+  const monthIsLocked = (month) => {
+    const mi = RELAUNCH_MONTHS.indexOf(month);
+    if (mi <= 0) return false;
+    const prev = RELAUNCH_MONTHS[mi - 1];
+    return !RELAUNCH_TASKS.filter(task => task.month === prev).every(isDone);
+  };
+  const inOpenMonths = RELAUNCH_TASKS.filter(task => !monthIsLocked(task.month));
+  const openTasks = inOpenMonths.filter(task => !isDone(task));
+  const byDeadline = (task) => relaunchDeadlineTime(task.deadline);
+  const nextTask = openTasks.filter(task => task.deadline).slice().sort((a, b) => byDeadline(a) - byDeadline(b))[0] || openTasks[0] || null;
+  const windowEnd = inOpenMonths.filter(task => task.deadline).slice().sort((a, b) => byDeadline(b) - byDeadline(a))[0];
+  const before = windowEnd ? getRelaunchDeadlineMeta(windowEnd.deadline)?.shortDate : null;
+  const done = inOpenMonths.length - openTasks.length;
+  const allDone = RELAUNCH_TASKS.every(isDone);
+  const taskWord = (n) => (n === 1 ? 'task' : 'tasks');
+  let label = 'Nothing else is open yet';
+  if (allDone) label = 'All tasks complete';
+  else if (openTasks.length && done === 0 && before) label = `${openTasks.length} ${taskWord(openTasks.length)} before ${before}`;
+  else if (openTasks.length && before) label = `${done} of ${inOpenMonths.length} done before ${before}`;
+  return { openTasks, nextTask, done, total: inOpenMonths.length, before, label, allDone };
+}
+
 function relaunchEntitiesForStart(doneTasks, query) {
   const q = query.trim().toLowerCase();
   return ENTITIES
@@ -1832,7 +1873,7 @@ function relaunchEntitiesForStart(doneTasks, query) {
     });
 }
 
-function AppModeSidebar({ active, onNav, pendingCount, onEnterSettings, setupInProgress, onboardingCount = 0, offboardingCount = 0, appEntity = null, doneTasks = new Set() }) {
+function AppModeSidebar({ active, onNav, pendingCount, onEnterSettings, setupInProgress, onboardingCount = 0, offboardingCount = 0, appEntity = null, doneTasks = new Set(), onOpenRelaunch }) {
   const isPeopleActive = active === 'employees' || active === 'employees:admin' || active === 'people-onboarding' || active === 'people-offboarding' || active?.startsWith('employee-detail');
   const [peopleOpen, setPeopleOpen] = useState(isPeopleActive);
   const [timeoffOpen, setTimeoffOpen] = useState(active === 'requests' || active === 'team-absences');
@@ -1883,42 +1924,43 @@ function AppModeSidebar({ active, onNav, pendingCount, onEnterSettings, setupInP
           <SidebarItem icon="settings" label="Settings" onClick={onEnterSettings} />
 
           {(() => {
-            const entityProgress = appEntity ? relaunchEntityProgress(doneTasks, appEntity) : null;
-            const stillOpen = ENTITIES.filter(entity => relaunchEntityProgress(doneTasks, entity.id).left > 0).length;
-            const title = appEntity ? relaunchHubCopy(appEntity).title : 'Relaunch';
-            const status = stillOpen === 0 ? 'All done' : stillOpen === 1 ? '1 still open' : `${stillOpen} still open`;
-            const pct = entityProgress ? Math.round((entityProgress.done / entityProgress.total) * 100) : 0;
+            const seasonProgress = appEntity ? relaunchEntityProgress(doneTasks, appEntity) : null;
+            const pct = seasonProgress ? Math.round((seasonProgress.done / seasonProgress.total) * 100) : 0;
             return (
-              <div style={{ padding: '4px var(--space-250)' }}>
-                <button onClick={() => onNav('relaunch-hub')} style={{
-                  display: 'flex', flexDirection: 'column', gap: 8,
-                  width: '100%', padding: '10px 12px', border: 'none', borderRadius: 10,
-                  background: P.action, textAlign: 'left', cursor: 'pointer', flexShrink: 0,
+              <div style={{ padding: '4px var(--space-150) 4px var(--space-250)' }}>
+                <button onClick={() => (onOpenRelaunch ? onOpenRelaunch() : onNav('relaunch-hub'))} style={{
+                  display: 'flex', flexDirection: 'column', gap: 'var(--space-200)',
+                  width: '100%', padding: 'var(--space-200)', borderRadius: 10,
+                  background: P.white, border: `${window.devicePixelRatio >= 2 ? '0.5px' : '1px'} solid ${P.border}`,
+                  textAlign: 'left', cursor: 'pointer', flexShrink: 0, color: P.ink,
                   transition: `background 150ms ${EASE_OUT}`,
                 }}
-                  onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-primary-hover)'}
-                  onMouseLeave={e => e.currentTarget.style.background = P.action}
+                  onMouseEnter={e => { e.currentTarget.style.background = P.bg; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = P.white; }}
+                  onMouseDown={e => { e.currentTarget.style.background = P.border; }}
+                  onMouseUp={e => { e.currentTarget.style.background = P.bg; }}
                 >
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                    <Icon name="Rocket" size={14} color="rgba(255,255,255,0.9)" style={{ marginBottom: 8 }} />
-                    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
-                      <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 13, color: '#fff', letterSpacing: '-0.01em' }}>{title}</span>
-                      <Icon name="chevron-right" size={11} color="rgba(255,255,255,0.5)" strokeWidth={2} style={{ flexShrink: 0, marginTop: 3 }} />
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-150)' }}>
+                    <div style={{ width: 36, height: 36, flexShrink: 0, borderRadius: 10, background: P.white, border: `1px solid ${P.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <Icon name="Rocket" size={16} color={P.ink} strokeWidth={1.5} />
                     </div>
-                    {!appEntity && (
-                      <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: 'rgba(255,255,255,0.7)', lineHeight: 1.4, fontVariantNumeric: 'tabular-nums' }}>{status}</span>
-                    )}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-100)' }}>
+                      <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 13, lineHeight: 1, color: P.ink, letterSpacing: '-0.01em' }}>Close the year</span>
+                      <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkSoft, lineHeight: 1.4 }}>Close 2026, prepare for 2027</span>
+                    </div>
                   </div>
-                  {entityProgress && (
-                    <>
-                      <div style={{ height: 6, borderRadius: 99, overflow: 'hidden', background: 'rgba(255,255,255,0.2)' }}>
-                        <div style={{ height: '100%', width: `${pct}%`, borderRadius: 99, background: '#fff', transition: `width 350ms ${EASE_OUT}` }} />
+                  {seasonProgress && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-075)' }}>
+                      <div style={{ height: 6, borderRadius: 99, overflow: 'hidden', background: P.border }}>
+                        <div style={{ height: '100%', width: `${pct}%`, borderRadius: 99, background: P.ink, transition: `width 350ms ${EASE_OUT}` }} />
                       </div>
-                      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
-                        <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: 'rgba(255,255,255,0.7)', fontVariantNumeric: 'tabular-nums' }}><RelaunchDoneCount value={entityProgress.done} /> done</span>
-                        <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: 'rgba(255,255,255,0.7)', fontVariantNumeric: 'tabular-nums' }}><span style={{ fontWeight: 700, color: '#fff', fontSize: 13 }}>{entityProgress.left}</span> left</span>
-                      </div>
-                    </>
+                      <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: P.inkSoft, fontVariantNumeric: 'tabular-nums' }}>{seasonProgress.done} of {seasonProgress.total} done</span>
+                    </div>
+                  )}
+                  {(!seasonProgress || seasonProgress.done < seasonProgress.total) && (
+                    <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 32, borderRadius: 8, background: P.ink, color: P.white, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 12 }}>
+                      {seasonProgress && seasonProgress.done > 0 ? 'Continue' : 'Get started'}
+                    </span>
                   )}
                 </button>
               </div>
@@ -2048,7 +2090,7 @@ function SettingsModeSidebar({ active, onNav, mobilityLive }) {
 }
 
 const PANEL_DUR = 280;
-function Sidebar({ active, onNav, pendingCount, sidebarMode, onSetSidebarMode, appEntity, onSetAppEntity, setupInProgress, onboardingCount = 0, offboardingCount = 0, mobilityLive = false, doneTasks = new Set() }) {
+function Sidebar({ active, onNav, pendingCount, sidebarMode, onSetSidebarMode, appEntity, onSetAppEntity, setupInProgress, onboardingCount = 0, offboardingCount = 0, mobilityLive = false, doneTasks = new Set(), onOpenRelaunch }) {
   const inSettings = sidebarMode === 'settings';
   const panelStyle = (offset) => ({
     position: 'absolute', inset: 0,
@@ -2059,12 +2101,11 @@ function Sidebar({ active, onNav, pendingCount, sidebarMode, onSetSidebarMode, a
 
   return (
     <div style={{
-      width: 255, flexShrink: 0, background: P.white,
-      borderRight: `1px solid ${P.border}`,
+      width: 255, flexShrink: 0, background: '#F8F7F7',
       display: 'flex', flexDirection: 'column',
       height: '100vh', position: 'sticky', top: 0,
     }}>
-      <div style={{ borderBottom: `1px solid ${P.border}`, flexShrink: 0, position: 'relative', height: 53, opacity: setupInProgress ? 0.35 : 1, transition: `opacity 250ms ${EASE_OUT}`, pointerEvents: setupInProgress ? 'none' : 'auto' }}>
+      <div style={{ flexShrink: 0, position: 'relative', height: 53, opacity: setupInProgress ? 0.35 : 1, transition: `opacity 250ms ${EASE_OUT}`, pointerEvents: setupInProgress ? 'none' : 'auto' }}>
         <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', padding: '0 var(--space-250)', opacity: inSettings ? 0 : 1, transition: `opacity 200ms ${EASE_OUT}`, pointerEvents: inSettings ? 'none' : 'auto' }}>
           <svg width="90" height="22" viewBox="0 0 115 28" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M45.753 5.26971C48.8202 5.29294 51.0277 7.91867 51.0277 10.5909C51.0277 13.2631 48.8202 15.8888 45.753 15.912H41.8725V22H39.1074V5.26971H45.753ZM45.7065 13.1236C47.1937 13.1236 48.2393 11.8921 48.2393 10.5909C48.2393 9.26639 47.1937 8.03485 45.7065 8.03485H41.8725V13.1236H45.7065ZM60.7159 10.01H63.481V22H60.7159V20.3502C59.8329 21.4656 58.6014 22.1394 57.0677 22.1394C54.1864 22.1394 51.8628 19.4207 51.8628 16.005C51.8628 12.5892 54.1864 9.87054 57.0677 9.87054C58.6014 9.87054 59.8794 10.5909 60.7159 11.683V10.01ZM57.6951 19.3975C59.4146 19.3975 60.7159 17.8871 60.7159 16.005C60.7159 14.1228 59.4146 12.6124 57.6951 12.6124C55.9524 12.6124 54.6511 14.1228 54.6511 16.005C54.6511 17.8871 55.9524 19.3975 57.6951 19.3975ZM77.1976 10.01V21.7444C77.1976 25.2299 74.7346 27.7162 71.4815 27.7162C67.8798 27.7162 65.9512 25.2066 65.8118 22.9062H68.6931C68.879 24.2075 69.8781 25.1369 71.5279 25.1369C73.3404 25.1369 74.4325 23.7195 74.4325 21.8141V20.4432C73.6192 21.4191 72.318 22.1394 70.9238 22.1394C68.1819 22.1394 66.6947 19.9784 66.6947 17.2365V10.01H69.4599V16.8183C69.4599 18.2357 70.552 19.3975 71.9462 19.3975C73.3404 19.3975 74.4325 18.2124 74.4325 16.8183V10.01H77.1976ZM87.1382 10.01V12.4266H84.1639V22H81.3987V12.4266H79.4701V10.01H81.3987V9.12697C81.3987 6.75684 82.9091 5.13029 85.1631 5.13029C86.046 5.13029 86.6037 5.26971 86.9755 5.36265V7.8722C86.7664 7.80249 86.2552 7.6863 85.7672 7.6863C84.8842 7.6863 84.1639 8.01162 84.1639 9.0805V10.01H87.1382ZM92.108 5.26971V22H89.3429V5.26971H92.108ZM96.8158 8.49958C95.7702 8.49958 94.9104 7.66307 94.9104 6.59419C94.9104 5.52531 95.7702 4.66556 96.8158 4.66556C97.9312 4.66556 98.7909 5.52531 98.7909 6.59419C98.7909 7.66307 97.8847 8.49958 96.8158 8.49958ZM98.1868 22H95.4216V10.01H98.1868V22ZM101.595 26.7402V10.01H104.361V11.7295C105.197 10.4282 106.452 9.87054 107.985 9.87054C110.797 9.87054 113.214 12.4498 113.214 16.005C113.214 19.5602 110.797 22.1394 107.985 22.1394C106.452 22.1394 105.127 21.3494 104.361 20.2573V26.7402H101.595ZM107.358 12.5892C105.592 12.5892 104.361 14.1228 104.361 16.005C104.361 17.8871 105.592 19.3975 107.358 19.3975C109.124 19.3975 110.449 17.8871 110.449 16.005C110.449 14.1228 109.124 12.5892 107.358 12.5892Z" fill={P.ink}/>
@@ -2093,6 +2134,7 @@ function Sidebar({ active, onNav, pendingCount, sidebarMode, onSetSidebarMode, a
             offboardingCount={offboardingCount}
             appEntity={appEntity}
             doneTasks={doneTasks}
+            onOpenRelaunch={onOpenRelaunch}
           />
         </div>
         <div style={panelStyle(inSettings ? '0%' : '100%')}>
@@ -6683,19 +6725,8 @@ function EmployeeRow({ emp, onNav, hasInssReview }) {
 }
 
 // ── Employees screen ──────────────────────────────────────────────────────
-function relaunchSalaryNote(appEntity) {
-  const inScope = appEntity ? ENTITIES.filter(entity => entity.id === appEntity) : ENTITIES;
-  const integrated = inScope.filter(entity => entity.integrationId);
-  const deadline = 'If you cannot finish before the deadline, contact your Payflip success manager.';
-  if (integrated.length === 0) return deadline;
-  const followUp = `Confirm it matches Payflip, because unplanned absences are not synced. ${deadline}`;
-  if (appEntity) {
-    return `Salary data comes from the integration with ${integrated[0].payrollProvider}. ${followUp}`;
-  }
-  const sources = integrated.map(entity => `${entity.payrollProvider} for ${entity.name}`);
-  const list = sources.length === 2 ? `${sources[0]} and ${sources[1]}` : `${sources.slice(0, -1).join(', ')}, and ${sources[sources.length - 1]}`;
-  const integrationWord = integrated.length === 1 ? 'integration' : 'integrations';
-  return `Salary data comes from the ${integrationWord} with ${list}. ${followUp}`;
+function relaunchSalaryNote() {
+  return 'Salary data comes from the integration with Liantis. Confirm it matches Payflip, because unplanned absences are not synced.';
 }
 
 function RelaunchGuidanceCard({ task, appEntity, confirmed, completed, onConfirm, onMarkDone, onNav, onStartNext, onDismiss }) {
@@ -6758,10 +6789,11 @@ function RelaunchGuidanceCard({ task, appEntity, confirmed, completed, onConfirm
       if (!latest || time > latest.time) return { time, label: item.deadline.replace(/ \d{4}$/, '') };
       return latest;
     }, null);
-    const taskWord = monthTasks.length === 1 ? 'task' : 'tasks';
+    const remaining = monthTasks.length - monthDoneCount;
+    const taskWord = remaining === 1 ? 'task' : 'tasks';
     const monthLead = latestDeadline
-      ? `${monthTasks.length} ${taskWord} to finish before ${latestDeadline.label}.`
-      : `${monthTasks.length} ${taskWord} to finish.`;
+      ? `${remaining} ${taskWord} to finish before ${latestDeadline.label}.`
+      : `${remaining} ${taskWord} to finish.`;
     const rowTitle = { fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', lineHeight: 1.4, color: '#fff' };
     const pill = { display: 'inline-flex', alignItems: 'center', flexShrink: 0, borderRadius: 20, padding: '1px 7px', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, lineHeight: 1.4, whiteSpace: 'nowrap' };
     return (
@@ -6938,7 +6970,7 @@ function RelaunchGuidanceCard({ task, appEntity, confirmed, completed, onConfirm
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, padding: '10px 12px', borderRadius: 8, background: 'rgba(255,255,255,0.06)' }}>
             <Icon name="info" size={14} color="rgba(255,255,255,0.72)" strokeWidth={2} style={{ flexShrink: 0, marginTop: 2 }} />
             <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: 'rgba(255,255,255,0.72)', lineHeight: 1.55 }}>
-              {relaunchSalaryNote(appEntity)}
+              {relaunchSalaryNote()}
             </p>
           </div>
         </div>}
@@ -9948,20 +9980,18 @@ function RelaunchVideoPlayer({ video, heading = null, description = null, showTi
   );
 }
 
-function RelaunchHubScreen({ appEntity = null, aiMode = false, onNav, doneTasks, startedTasks = new Set(), onMarkDone, onOpenTask, onChooseEntity }) {
-  const hubCopy = relaunchHubCopy(appEntity);
+function RelaunchHubScreen({ appEntity = null, aiMode = false, onNav, doneTasks, startedTasks = new Set(), onMarkDone, onOpenTask, onChooseEntity, onSelectEntity }) {
+  const scopeEntity = appEntity;
+  const hubCopy = relaunchHubCopy(scopeEntity);
   const [entityPickerTask, setEntityPickerTask] = useState(null);
   const [entityQuery, setEntityQuery] = useState('');
 
-  const isTaskDone = (task) => {
-    if (!appEntity) return task.status === 'done';
-    return task.status === 'done' || doneTasks.has(relaunchTaskKey(appEntity, task.id));
+  const taskDoneFor = (task, entityId) => {
+    if (!entityId) return task.status === 'done';
+    return task.status === 'done' || doneTasks.has(relaunchTaskKey(entityId, task.id));
   };
-
-  const doneCount = RELAUNCH_TASKS.filter(t => isTaskDone(t)).length;
-  const totalCount = RELAUNCH_TASKS.length;
-
-  const progressPct = Math.round((doneCount / totalCount) * 100);
+  const isTaskDone = (task) => taskDoneFor(task, scopeEntity);
+  const seasonProgress = scopeEntity ? relaunchEntityProgress(doneTasks, scopeEntity) : null;
   const hairline = `${window.devicePixelRatio >= 2 ? '0.5px' : '1px'} solid ${P.border}`;
 
   const tasksByMonth = RELAUNCH_MONTHS.reduce((acc, m) => {
@@ -9969,13 +9999,15 @@ function RelaunchHubScreen({ appEntity = null, aiMode = false, onNav, doneTasks,
     return acc;
   }, {});
 
-  const monthDone = (month) => tasksByMonth[month].filter(t => isTaskDone(t)).length;
-  const monthLocked = (month) => {
+  const monthDoneFor = (month, entityId) => tasksByMonth[month].filter(t => taskDoneFor(t, entityId)).length;
+  const monthLockedFor = (month, entityId) => {
     const mi = RELAUNCH_MONTHS.indexOf(month);
     if (mi === 0) return false;
     const prevMonth = RELAUNCH_MONTHS[mi - 1];
-    return !tasksByMonth[prevMonth].every(t => isTaskDone(t));
+    return !tasksByMonth[prevMonth].every(t => taskDoneFor(t, entityId));
   };
+  const monthDone = (month) => monthDoneFor(month, scopeEntity);
+  const monthLocked = (month) => monthLockedFor(month, scopeEntity);
 
   const activeMonth = RELAUNCH_MONTHS.find(m => !monthLocked(m) && monthDone(m) < tasksByMonth[m].length);
   const [expandedMonths, setExpandedMonths] = useState(() => new Set([activeMonth || RELAUNCH_MONTHS[0]]));
@@ -9995,43 +10027,15 @@ function RelaunchHubScreen({ appEntity = null, aiMode = false, onNav, doneTasks,
       return next;
     });
   };
-  return (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', background: P.white }}>
-      <PageHeader
-        title={hubCopy.title}
-        subtitle={hubCopy.subtitle}
-        maxWidth={880}
-      />
-
-      <div className="hide-scrollbar" style={{ flex: 1, overflowY: 'auto' }}>
-        <div style={{ maxWidth: 880, margin: '0 auto', padding: '28px 28px 48px' }}>
-
-          {/* Progress — company progress, once an entity is selected */}
-          {appEntity && <div style={{ marginBottom: 28 }}>
-            <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 8 }}>
-              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: doneCount === totalCount ? P.success : P.ink }}>
-                {doneCount === totalCount ? 'All tasks complete' : `${doneCount} of ${totalCount} done`}
-              </span>
-              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: doneCount === totalCount ? P.success : P.inkSoft }}>
-                {progressPct}%
-              </span>
-            </div>
-            <div style={{ height: 6, borderRadius: 99, overflow: 'hidden', background: 'repeating-linear-gradient(-45deg, var(--gray-300) 0px, var(--gray-300) 1px, var(--gray-200) 1px, var(--gray-200) 5px)' }}>
-              <div style={{ height: '100%', width: `${progressPct}%`, borderRadius: 99, background: doneCount === totalCount ? P.success : P.action, transition: 'width 400ms cubic-bezier(0.22,1,0.36,1)' }} />
-            </div>
-          </div>}
-
-          {/* Collapsible phase cards */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            {RELAUNCH_MONTHS.map((month) => {
+  const monthGroups = (groupEntity) => RELAUNCH_MONTHS.map((month) => {
               const tasks = tasksByMonth[month];
-              const done = monthDone(month);
-              const locked = monthLocked(month);
+              const done = monthDoneFor(month, groupEntity);
+              const locked = monthLockedFor(month, groupEntity);
               const allDone = done === tasks.length;
               const isExpanded = expandedMonths.has(month);
 
               return (
-                <div key={month} style={{ background: P.bg, border: hairline, borderRadius: 10, overflow: 'hidden' }}>
+                <div key={month} style={{ background: P.white, border: hairline, borderRadius: 10, overflow: 'hidden' }}>
                   <button
                     type="button"
                     onClick={() => toggleMonth(month)}
@@ -10047,8 +10051,14 @@ function RelaunchHubScreen({ appEntity = null, aiMode = false, onNav, doneTasks,
                       <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-heading-xs)', color: locked ? P.inkSoft : P.ink }}>{month}</div>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-125)', flexShrink: 0 }}>
-                      {allDone && <DotPill dot={false} bg={P.successBg} color={P.successDark} size={11}>Complete</DotPill>}
-                      <span style={{ minWidth: 24, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkFaint, fontVariantNumeric: 'tabular-nums' }}>{done}/{tasks.length}</span>
+                      {locked ? (
+                        <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkFaint }}>Not open yet</span>
+                      ) : (
+                        <>
+                          {allDone && <DotPill dot={false} bg={P.successBg} color={P.successDark} size={11}>Complete</DotPill>}
+                          <span style={{ minWidth: 24, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkFaint, fontVariantNumeric: 'tabular-nums' }}>{done}/{tasks.length}</span>
+                        </>
+                      )}
                       <div style={{ transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)', transition: `transform 180ms ${EASE_OUT}`, display: 'flex' }}>
                         <Icon name="chevron-down" size={15} color={P.inkFaint} strokeWidth={1.75} />
                       </div>
@@ -10064,10 +10074,10 @@ function RelaunchHubScreen({ appEntity = null, aiMode = false, onNav, doneTasks,
                     <div ref={(node) => { if (node) node.inert = !isExpanded; }} style={{ minHeight: 0, overflow: 'hidden' }}>
                     <div style={{ background: P.white, borderTop: hairline, borderTopLeftRadius: 10, borderTopRightRadius: 10, overflow: 'hidden' }}>
                     {tasks.map((task, ti) => {
-                          const isDone = isTaskDone(task);
+                          const isDone = taskDoneFor(task, groupEntity);
                           const taskIsActive = !locked && !isDone;
                           const isActionable = taskIsActive && (task.whatToDo || task.checklist || task.faq || task.navTarget);
-                          const isStarted = !!appEntity && startedTasks.has(relaunchTaskKey(appEntity, task.id));
+                          const isStarted = startedTasks.has(relaunchTaskKey(groupEntity, task.id));
                           const progressSummary = isStarted && !isDone
                             ? `In progress · ${task.description}`
                             : task.description;
@@ -10091,11 +10101,20 @@ function RelaunchHubScreen({ appEntity = null, aiMode = false, onNav, doneTasks,
                                 textAlign: 'left',
                               }}
                             >
-                              <span aria-hidden="true" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 16, height: 16, flexShrink: 0, borderRadius: '50%', border: `1.5px solid ${isDone ? P.inkSoft : P.border}`, color: isDone ? P.inkSoft : P.inkFaint }}>
-                                <Icon name="check" size={10} color="currentColor" strokeWidth={2.5} />
-                              </span>
+                              {isDone && (
+                                <span aria-hidden="true" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 16, height: 16, flexShrink: 0, borderRadius: '50%', border: `1.5px solid ${P.inkSoft}`, color: P.inkSoft }}>
+                                  <Icon name="check" size={10} color="currentColor" strokeWidth={2.5} />
+                                </span>
+                              )}
                               <div style={{ flex: 1, minWidth: 0 }}>
-                                <div style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: isDone ? P.inkSoft : P.ink, textDecoration: isDone ? 'line-through' : 'none' }}>{task.title}</div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-100)', minWidth: 0 }}>
+                                  <div style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', color: isDone ? P.inkSoft : P.ink, textDecoration: isDone ? 'line-through' : 'none' }}>{task.title}</div>
+                                  {taskIsActive && task.deadline && (
+                                    <DotPill bg={deadlineTone.bg} color={deadlineTone.color} size={11} whiteSpace="nowrap">
+                                      Due {task.deadline.replace(' 2026', '').replace(' 2027', '')}
+                                    </DotPill>
+                                  )}
+                                </div>
                                 {!isDone && progressSummary && (
                                   <div style={{ marginTop: 2, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: P.inkFaint, lineHeight: 1.4 }}>
                                     {progressSummary}
@@ -10105,21 +10124,9 @@ function RelaunchHubScreen({ appEntity = null, aiMode = false, onNav, doneTasks,
                                   <div style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: aiColor, marginTop: 2 }}>{aiResult.label}</div>
                                 )}
                               </div>
-                              {taskIsActive && task.deadline && (
-                                <DotPill dot={false} bg={deadlineTone.bg} color={deadlineTone.color} size={11} whiteSpace="nowrap">
-                                  Due {task.deadline.replace(' 2026', '').replace(' 2027', '')}
-                                </DotPill>
-                              )}
                               {!isDone && isActionable && (
-                                <Button variant="primary" onClick={() => {
-                                  if (!appEntity) {
-                                    setEntityQuery('');
-                                    setEntityPickerTask(task);
-                                    return;
-                                  }
-                                  onOpenTask(task);
-                                }} style={{ padding: '7px 12px', fontSize: 'var(--fs-body-xs)', whiteSpace: 'nowrap', minWidth: 96, justifyContent: 'center' }}>
-                                  {isStarted ? 'Continue' : 'Start task'}
+                                <Button variant="primary" onClick={() => onChooseEntity(groupEntity, task)} style={{ padding: '7px 12px', fontSize: 'var(--fs-body-xs)', whiteSpace: 'nowrap', justifyContent: 'center' }}>
+                                  {isStarted ? 'Continue' : 'Start'}
                                 </Button>
                               )}
                             </div>
@@ -10130,7 +10137,94 @@ function RelaunchHubScreen({ appEntity = null, aiMode = false, onNav, doneTasks,
                   </div>
                 </div>
               );
-            })}
+  });
+  return (
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+      <PageHeader
+        title={hubCopy.title}
+        subtitle={hubCopy.subtitle}
+        badge={hubCopy.badge}
+        maxWidth={880}
+        noBorder
+      />
+
+      <div className="hide-scrollbar" style={{ flex: 1, overflowY: 'auto' }}>
+        <div style={{ maxWidth: 880, margin: '0 auto', padding: '28px 28px 48px' }}>
+
+          {scopeEntity && seasonProgress && <div style={{ marginBottom: 28, display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-sm)', color: seasonProgress.done === seasonProgress.total ? P.success : P.ink }}>
+              {seasonProgress.done === seasonProgress.total ? 'All tasks complete' : `${seasonProgress.done} of ${seasonProgress.total} done`}
+            </span>
+            <div style={{ height: 6, borderRadius: 99, overflow: 'hidden', background: 'repeating-linear-gradient(-45deg, var(--gray-300) 0px, var(--gray-300) 1px, var(--gray-200) 1px, var(--gray-200) 5px)' }}>
+              <div style={{ height: '100%', width: `${Math.round((seasonProgress.done / seasonProgress.total) * 100)}%`, borderRadius: 99, background: seasonProgress.done === seasonProgress.total ? P.success : P.action, transition: 'width 400ms cubic-bezier(0.22,1,0.36,1)' }} />
+            </div>
+          </div>}
+
+          {!scopeEntity && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {relaunchEntitiesForStart(doneTasks, '').map(({ entity }) => {
+                const work = relaunchOpenWork(doneTasks, entity.id);
+                const progress = relaunchEntityProgress(doneTasks, entity.id);
+                const meta = work.nextTask?.deadline ? getRelaunchDeadlineMeta(work.nextTask.deadline) : null;
+                const deadlineTone = meta?.state === 'overdue'
+                  ? { bg: P.dangerBg, color: P.dangerDark }
+                  : { bg: P.warningBg, color: P.warningDark };
+                return (
+                  <button
+                    key={entity.id}
+                    type="button"
+                    onClick={() => onSelectEntity(entity.id)}
+                    style={{
+                      width: '100%', padding: '16px',
+                      display: 'flex', alignItems: 'center', gap: 12,
+                      background: P.white, border: hairline, borderRadius: 10,
+                      textAlign: 'left', cursor: 'pointer', color: P.ink,
+                      transition: `background 150ms ${EASE_OUT}`,
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.background = P.bg; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = P.white; }}
+                    onMouseDown={e => { e.currentTarget.style.background = P.border; }}
+                    onMouseUp={e => { e.currentTarget.style.background = P.bg; }}
+                  >
+                    <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                      <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-heading-xs)', minWidth: 0 }}>{entity.name}</div>
+                      <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, minWidth: 0 }}>
+                        <div style={{ minWidth: 0, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', color: work.allDone ? P.successDark : P.inkSoft, lineHeight: 1.4 }}>
+                          {work.allDone ? 'All tasks complete' : (work.nextTask ? work.nextTask.title : work.label)}
+                        </div>
+                        <span style={{ flexShrink: 0, fontFamily: 'var(--font-body)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.ink, fontVariantNumeric: 'tabular-nums' }}>{progress.done}/{progress.total}</span>
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
+                      {meta && !work.allDone && (
+                        <DotPill dot={false} bg={deadlineTone.bg} color={deadlineTone.color} size={11} whiteSpace="nowrap">
+                          Due {meta.shortDate}
+                        </DotPill>
+                      )}
+                      {!meta && !work.allDone && work.nextTask && (
+                        <DotPill dot={false} bg={P.white} color={P.inkSoft} size={11} border={P.border} whiteSpace="nowrap">
+                          Starts {work.nextTask.month}
+                        </DotPill>
+                      )}
+                      {work.allDone && <DotPill dot={false} bg={P.successBg} color={P.successDark} size={11}>Complete</DotPill>}
+                      <Icon name="chevron-right" size={15} color={P.inkFaint} strokeWidth={1.75} />
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Collapsible phase cards */}
+          {scopeEntity && <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {monthGroups(scopeEntity)}
+          </div>}
+
+          <div style={{ display: 'flex', gap: 'var(--space-150)', marginTop: 'var(--space-300)', padding: 'var(--space-200)', borderRadius: 10, background: 'var(--blue-100)', border: `1px solid var(--blue-200)`, alignItems: 'flex-start' }}>
+            <Icon name="info" size={14} color="var(--blue-500)" strokeWidth={2} style={{ flexShrink: 0, marginTop: 'var(--space-025)' }} />
+            <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, lineHeight: '18px', margin: 0 }}>
+              If you cannot finish before the deadline, contact your Payflip success manager.
+            </p>
           </div>
 
         </div>
@@ -14731,16 +14825,9 @@ function formatBudgetDate(iso) {
   return `${day}/${month}/${year}`;
 }
 
-const BUDGET_STATUS = {
-  active: { label: 'Active', bg: P.successBg, color: P.successDark },
-  inactive: { label: 'Inactive', bg: P.bg, color: P.inkSoft },
-  draft: { label: 'Draft', bg: P.warningBg, color: P.warningDark },
-};
-
 function BudgetRow({ budget, onActivate }) {
   const [hover, setHover] = useState(false);
   const [pressed, setPressed] = useState(false);
-  const status = BUDGET_STATUS[budget.status] || BUDGET_STATUS.draft;
   const inactive = budget.status === 'inactive';
   return (
     <tr
@@ -14760,9 +14847,6 @@ function BudgetRow({ budget, onActivate }) {
       </td>
       <td style={{ padding: 'var(--space-125) var(--space-200)', color: P.ink, fontVariantNumeric: 'tabular-nums' }}>{formatBudgetDate(budget.choiceDeadline)}</td>
       <td style={{ padding: 'var(--space-125) var(--space-200)', color: P.ink, fontVariantNumeric: 'tabular-nums' }}>{formatBudgetDate(budget.cashOut)}</td>
-      <td style={{ padding: 'var(--space-125) var(--space-200)' }}>
-        <DotPill bg={status.bg} color={status.color} size={11}>{status.label}</DotPill>
-      </td>
       <td style={{ padding: 'var(--space-075) var(--space-200)', textAlign: 'right' }}>
         <Button
           variant="secondary"
@@ -14778,9 +14862,18 @@ function BudgetRow({ budget, onActivate }) {
 
 function BudgetsSettings({ appEntity = null }) {
   const [budgets, setBudgets] = useState(BUDGETS_SEED);
-  const [statusFilter, setStatusFilter] = useState('all');
-  const visible = statusFilter === 'all' ? budgets : budgets.filter(budget => budget.status === statusFilter);
-  const selectStyle = { padding: 'var(--space-100) var(--space-400) var(--space-100) var(--space-125)', border: `1px solid ${P.border}`, borderRadius: 8, fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)', color: P.ink, background: P.white, cursor: 'pointer', outline: 'none', appearance: 'none', backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 8px center' };
+  const [tab, setTab] = useState('active');
+  const counts = {
+    active: budgets.filter(budget => budget.status === 'active').length,
+    draft: budgets.filter(budget => budget.status === 'draft').length,
+    inactive: budgets.filter(budget => budget.status === 'inactive').length,
+  };
+  const visible = budgets.filter(budget => budget.status === tab);
+  const emptyCopy = {
+    active: 'No active budgets',
+    draft: 'No drafts',
+    inactive: 'No inactive budgets',
+  };
   const th = { textAlign: 'left', padding: 'var(--space-125) var(--space-200)', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'var(--fs-body-xs)', color: P.inkFaint, textTransform: 'uppercase', letterSpacing: '0.04em' };
 
   return (
@@ -14791,26 +14884,33 @@ function BudgetsSettings({ appEntity = null }) {
         badge={appEntity ? ENTITIES.find(e => e.id === appEntity)?.name : null}
         maxWidth={880}
         padding="31px 28px 20px"
+        tabs={<TabBar
+          tabs={[
+            { id: 'active', label: `Active${counts.active > 0 ? ` (${counts.active})` : ''}` },
+            { id: 'draft', label: `Draft${counts.draft > 0 ? ` (${counts.draft})` : ''}` },
+            { id: 'inactive', label: `Inactive${counts.inactive > 0 ? ` (${counts.inactive})` : ''}` },
+          ]}
+          activeTab={tab}
+          onTabChange={setTab}
+          padding="0"
+        />}
       >
         <Button
           variant="primary"
           icon="plus"
-          onClick={() => setBudgets(prev => [...prev, { id: `draft-${Date.now()}`, name: 'New budget', status: 'draft' }])}
+          onClick={() => {
+            setBudgets(prev => [...prev, { id: `draft-${Date.now()}`, name: 'New budget', status: 'draft' }]);
+            setTab('draft');
+          }}
         >
           New budget
         </Button>
       </PageHeader>
       <div style={{ flex: 1, overflow: 'auto' }}>
         <div style={{ maxWidth: 880, margin: '0 auto', padding: 'var(--space-300) var(--space-400)', display: 'flex', flexDirection: 'column', gap: 'var(--space-200)' }}>
-          <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} style={{ ...selectStyle, alignSelf: 'flex-start' }}>
-            <option value="all">Status: All</option>
-            <option value="active">Status: Active</option>
-            <option value="draft">Status: Draft</option>
-            <option value="inactive">Status: Inactive</option>
-          </select>
-          <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 12, overflow: 'hidden' }}>
+          <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 16, overflow: 'hidden' }}>
             {visible.length === 0 ? (
-              <EmptyState icon="wallet" title="No budgets" description="Nothing matches this status." />
+              <EmptyState icon="wallet" title={emptyCopy[tab]} />
             ) : (
               <div style={{ overflowX: 'auto' }}><table style={{ width: 'max-content', minWidth: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-sm)' }}>
                 <thead>
@@ -14818,8 +14918,7 @@ function BudgetsSettings({ appEntity = null }) {
                     <th style={th}>Budget</th>
                     <th style={th}>Choice deadline</th>
                     <th style={th}>Cash-out date</th>
-                    <th style={th}>Status</th>
-                    <th style={{ ...th, textAlign: 'right' }}>Actions</th>
+                    <th style={{ ...th, textAlign: 'right' }} />
                   </tr>
                 </thead>
                 <tbody>
@@ -15741,7 +15840,10 @@ const reviewSection = (title, targetStep, rows) => (
 function App() {
   const [screen, setScreen] = useState(() => pathToScreen(window.location.pathname));
   const [relaunchAiMode, setRelaunchAiMode] = useState(false);
-  const [relaunchDoneTasks, setRelaunchDoneTasks] = useState(new Set());
+  const [relaunchDoneTasks, setRelaunchDoneTasks] = useState(() => new Set([
+    'lumio-group:q4-1',
+    'lumio-group:q4-2',
+  ]));
   const [relaunchLearnMore, setRelaunchLearnMore] = useState(null);
   const [relaunchContextTask, setRelaunchContextTask] = useState(null);
   const [relaunchStartedTasks, setRelaunchStartedTasks] = useState(new Set());
@@ -15770,6 +15872,7 @@ function App() {
   };
   const [sidebarMode, setSidebarMode] = useState('app');
   const [appEntity, setAppEntity] = useState(null);
+  const [relaunchHubNonce, setRelaunchHubNonce] = useState(0);
   const [requests, setRequests] = useState(() => mergeRequests(generatedRequests, readLS()));
   const [companyEvents, setCompanyEvents] = useState([]);
   const [toasts, setToasts] = useState([]);
@@ -16116,7 +16219,7 @@ function App() {
   const pendingCount = { requests: pendingRequestsCount, expenses: pendingExpensesCount, choices: pendingChoicesCount };
 
   return (
-    <div style={{ display: 'flex', height: '100vh', background: P.bg }}>
+    <div style={{ display: 'flex', height: '100vh', background: '#F8F7F7' }}>
       <style>{`
         @keyframes fadeUp {
           from { opacity: 0; transform: translateX(-50%) translateY(8px); }
@@ -16237,9 +16340,10 @@ function App() {
         <div onClick={() => setMobilityWidgetState(prev => ({ ...prev, hidden: true }))} style={{ position: 'fixed', inset: 0, zIndex: 1, cursor: 'pointer' }} />
       )}
 
-      <Sidebar active={screen} onNav={handleNav} pendingCount={pendingCount} sidebarMode={sidebarMode} onSetSidebarMode={setSidebarMode} appEntity={appEntity} onSetAppEntity={setAppEntity} setupInProgress={screen === 'dashboard' && !mobilityWidgetState.live && !mobilityWidgetState.hidden} onboardingCount={onboardingIds.size + drafts.size} offboardingCount={offboardingIds.size} mobilityLive={!!mobilityWidgetState.live} doneTasks={relaunchDoneTasks} />
+      <Sidebar active={screen} onNav={handleNav} pendingCount={pendingCount} sidebarMode={sidebarMode} onSetSidebarMode={setSidebarMode} appEntity={appEntity} onSetAppEntity={setAppEntity} setupInProgress={screen === 'dashboard' && !mobilityWidgetState.live && !mobilityWidgetState.hidden} onboardingCount={onboardingIds.size + drafts.size} offboardingCount={offboardingIds.size} mobilityLive={!!mobilityWidgetState.live} doneTasks={relaunchDoneTasks} onOpenRelaunch={() => { setRelaunchHubNonce(n => n + 1); handleNav('relaunch-hub'); }} />
 
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, overflow: 'hidden' }}>
+      <div style={{ flex: 1, minWidth: 0, padding: 8, display: 'flex' }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, overflow: 'hidden', background: P.white, borderRadius: 16, border: `1px solid ${P.border}` }}>
         {screen === 'dashboard' && <DashboardScreen key={appEntity ?? 'all'} requests={entityFilteredRequests} onNav={handleNav} onToast={addToast} appEntity={appEntity} physicalCardsAllowed={physicalCardsAllowed} onPhysicalCardsChange={setPhysicalCardsAllowed} cardDelivery={cardDelivery} onCardDeliveryChange={setCardDelivery} mobilityWidgetState={mobilityWidgetState} onMobilityWidgetStateChange={setMobilityWidgetState} pendingRequests={pendingRequestsCount} pendingExpenses={pendingExpensesCount} pendingChoices={pendingChoicesCount} activeBudgets={allowances.filter(a => a.active).length} onAddEmployee={(pf) => { setAddEmployeePrefill({ ...(pf||{}), _draftId: 'draft-' + Date.now() }); setAddEmployeeOpen(true); }} foodUnmatched={foodUnmatched} setFoodUnmatched={setFoodUnmatched} unmatchedQueue={unmatchedQueue} setUnmatchedQueue={setUnmatchedQueue} matchedEmpInssMap={matchedEmpInssMap} onboardingCount={[...onboardingIds].filter(id => !appEntity || EMPLOYEES[id]?.entityId === appEntity).length} offboardingCount={[...offboardingIds].filter(id => !appEntity || EMPLOYEES[id]?.entityId === appEntity).length} />}
         {screen === 'team-absences' && <TeamAbsencesScreen key={appEntity ?? 'all'} requests={entityFilteredRequests} pendingCount={pendingRequestsCount} onNav={setScreen} onShowDetail={setCalDetail} activeReqId={calDetail?.id} onSave={saveRequest} companyEvents={companyEvents} onCancelCompanyEvent={cancelCompanyEvent} initialDate={calendarJumpDate} initialDeptFilter={calendarDeptFilter} appEntity={appEntity} leaveTypes={leaveTypes} />}
         {screen === 'requests' && <RequestsScreen key={appEntity ?? 'all'} requests={entityFilteredRequests} onApprove={approve} onDecline={requestDecline} onSave={saveRequest} onCancel={requestCancel} onNav={setScreen} onViewInCalendar={(req) => { const d = req._selectedDates?.[0] || req.startDate; if (d) { const iso = typeof d === 'string' && d.match(/^\d{4}-/) ? d : null; setCalendarJumpDate(iso ? new Date(iso) : parseDisplayDate(d)); } setCalDetail(req); setScreen('team-absences'); }} appEntity={appEntity} />}
@@ -16251,7 +16355,7 @@ function App() {
         {screen === 'expense-history' && <ExpenseHistoryScreen key={appEntity ?? 'all'} expenses={entityFilteredExpenses} categories={expenseCategories} appEntity={appEntity} onDetail={(exp) => { setExpDetailRejectMode(false); setExpDetail(exp); }} onToast={addToast} />}
         {screen === 'expense-reports' && <ExpenseReportsScreen key={appEntity ?? 'all'} expenses={entityFilteredExpenses} appEntity={appEntity} onToast={addToast} />}
         {screen === 'time-off-history' && <TimeOffHistoryScreen key={appEntity ?? 'all'} requests={entityFilteredRequests} appEntity={appEntity} onToast={addToast} />}
-        {screen === 'relaunch-hub' && <RelaunchHubScreen key={appEntity ?? 'all'} appEntity={appEntity} aiMode={relaunchAiMode} onNav={handleNav} doneTasks={relaunchDoneTasks} startedTasks={relaunchStartedTasks} onMarkDone={(id) => markRelaunchDone(appEntity, id)} onOpenTask={(task) => openRelaunchTask(task, appEntity)} onChooseEntity={(entityId, task) => { setAppEntity(entityId); openRelaunchTask(task, entityId); }} />}
+        {screen === 'relaunch-hub' && <RelaunchHubScreen key={`${appEntity ?? 'all'}-${relaunchHubNonce}`} appEntity={appEntity} aiMode={relaunchAiMode} onNav={handleNav} doneTasks={relaunchDoneTasks} startedTasks={relaunchStartedTasks} onMarkDone={(id) => markRelaunchDone(appEntity, id)} onOpenTask={(task) => openRelaunchTask(task, appEntity)} onChooseEntity={(entityId, task) => { setAppEntity(entityId); openRelaunchTask(task, entityId); }} onSelectEntity={setAppEntity} />}
         {screen === 'choices' && <ChoicesScreen key={appEntity ?? 'all'} choices={entityFilteredChoices} onApprove={approveChoice} onDecline={declineChoice} onDetail={setChoiceDetail} appEntity={appEntity} />}
         {screen === 'payroll-overview' && <StubScreen title="Payroll Overview" description="Monthly payroll run and submission" />}
         {screen === 'payroll-reports' && <StubScreen title="Payroll Reports" description="Reporting and exports" />}
@@ -16269,6 +16373,7 @@ function App() {
         {screen === 'changelog' && <ChangelogScreen />}
         {screen === 'components' && <ComponentLibraryScreen />}
         {screen.startsWith('settings-') && screen !== 'settings-landing' && screen !== 'settings-allowances' && screen !== 'settings-expenses' && screen !== 'settings-team' && screen !== 'settings-timeoff' && screen !== 'settings-entities' && screen !== 'settings-documents' && screen !== 'settings-payroll' && screen !== 'settings-benefits' && screen !== 'settings-budgets' && screen !== 'settings-cardrules' && <StubScreen title={SETTINGS_TITLES[screen] || 'Settings'} description={`Configure ${(SETTINGS_TITLES[screen] || 'settings').toLowerCase()}`} />}
+      </div>
       </div>
 
       {/* Relaunch hub task drawer — lives at App level so it persists when navigating to People etc. */}
