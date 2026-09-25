@@ -643,6 +643,7 @@ function HoverTooltip({ label, children }) {
       {children}
       {pos && ReactDOM.createPortal(
         <span style={{ position: 'fixed', left: pos.x + 8, top: pos.y, transform: 'translateY(-50%)', maxWidth: 200, padding: 'var(--space-100) var(--space-150)', borderRadius: 8, background: P.action, color: '#fff', boxShadow: '0 4px 16px rgba(0,0,0,0.2)', fontFamily: 'var(--font-body)', fontSize: 'var(--fs-body-xs)', fontWeight: 400, lineHeight: 1.5, pointerEvents: 'none', zIndex: 9999 }}>
+          <span aria-hidden="true" style={{ position: 'absolute', left: -6, top: '50%', transform: 'translateY(-50%)', width: 0, height: 0, borderTop: '6px solid transparent', borderBottom: '6px solid transparent', borderRight: `6px solid ${P.action}` }} />
           {label}
         </span>,
         document.body
@@ -6685,11 +6686,13 @@ function relaunchSalaryNote() {
   return 'Salary data comes from the integration with Liantis. Confirm it matches Payflip, because unplanned absences are not synced.';
 }
 
-function RelaunchGuidanceCard({ task, appEntity, confirmed, completed, onConfirm, onMarkDone, onNav, onStartNext, onDismiss }) {
+function RelaunchGuidanceCard({ task, appEntity, confirmed, completed, doneTasks = new Set(), onConfirm, onMarkDone, onNav, onStartNext, onDismiss }) {
   const [open, setOpen] = useState(true);
   const [leaving, setLeaving] = useState(false);
-  const nextTask = RELAUNCH_TASKS.find(item => item.month === task.month && item.id !== task.id && item.status !== 'locked');
-  const deadlineMeta = getRelaunchDeadlineMeta(task.deadline);
+  const knownDone = new Set(doneTasks);
+  if (completed) knownDone.add(relaunchTaskKey(appEntity, task.id));
+  const nextTask = relaunchTasksFor(appEntity).find(item => item.month === task.month && item.id !== task.id && item.status !== 'locked' && !relaunchIsDone(item, appEntity, knownDone) && !relaunchTaskBlocked(item, appEntity, knownDone));
+  const deadlineMeta = getRelaunchDeadlineMeta(relaunchDeadline(task, appEntity));
   const floatMotion = PREFERS_REDUCED_MOTION ? 'none' : 'relaunchFloatIn 220ms cubic-bezier(0.23, 1, 0.32, 1)';
   const leaveMs = PREFERS_REDUCED_MOTION ? 160 : 180;
   useEffect(() => {
@@ -6733,16 +6736,17 @@ function RelaunchGuidanceCard({ task, appEntity, confirmed, completed, onConfirm
   }
 
   if (completed && nextTask) {
-    const dueLabel = nextTask.deadline ? `Due ${nextTask.deadline.replace(/ \d{4}$/, '')}` : '';
-    const monthTasks = RELAUNCH_TASKS.filter(item => item.month === task.month);
-    const monthDoneCount = monthTasks.filter(item => item.status === 'done' || item.id === task.id).length;
+    const deadlineText = (item) => relaunchDeadline(item, appEntity);
+    const dueText = deadlineText(nextTask);
+    const dueLabel = dueText ? `Due ${dueText.replace(/ \d{4}$/, '')}` : '';
+    const monthTasks = relaunchTasksFor(appEntity).filter(item => item.month === task.month);
+    const monthDoneCount = monthTasks.filter(item => relaunchIsDone(item, appEntity, knownDone)).length;
     const latestDeadline = monthTasks.reduce((latest, item) => {
-      if (!item.deadline) return latest;
-      const [day, monthName, year] = item.deadline.split(' ');
-      const monthIndex = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].indexOf(monthName);
-      const time = monthIndex < 0 ? null : new Date(Number(year), monthIndex, Number(day)).getTime();
-      if (time == null) return latest;
-      if (!latest || time > latest.time) return { time, label: item.deadline.replace(/ \d{4}$/, '') };
+      const label = deadlineText(item);
+      if (!label) return latest;
+      const time = relaunchDeadlineTime(label);
+      if (!Number.isFinite(time)) return latest;
+      if (!latest || time > latest.time) return { time, label: label.replace(/ \d{4}$/, '') };
       return latest;
     }, null);
     const remaining = monthTasks.length - monthDoneCount;
@@ -6856,7 +6860,7 @@ function RelaunchGuidanceCard({ task, appEntity, confirmed, completed, onConfirm
       </div>
 
       <div className="relaunch-float-body" style={{ display: 'flex', flexDirection: 'column', gap: 20, flex: 1, minHeight: 0, overflowY: 'auto' }}>
-        {task.id !== 'q4-1' && task.id !== 'q4-2' && (
+        {task.id !== 'q4-1' && task.id !== 'q4-2' && task.id !== 'q4-neg' && (
           <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', lineHeight: 1.45, color: '#fff', textWrap: 'pretty' }}>
             {task.description}
           </p>
@@ -6896,6 +6900,26 @@ function RelaunchGuidanceCard({ task, appEntity, confirmed, completed, onConfirm
         {task.id === 'q4-1' && <div style={{ borderRadius: 8, overflow: 'hidden' }}>
           <RelaunchVideoPlayer video={task.video} showTitle={false} aspectRatio="2.35 / 1" />
         </div>}
+        {task.id === 'q4-neg' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+            <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', lineHeight: 1.45, color: '#fff', textWrap: 'pretty' }}>
+              {task.description}
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              {relaunchNegativePeople(appEntity).map((person) => (
+                <div key={person.id} style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+                  <span style={{ width: 18, height: 18, flexShrink: 0, marginTop: 2, borderRadius: '50%', background: 'rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-body)', fontWeight: 600, fontSize: 9, color: 'rgba(255,255,255,0.7)' }}>
+                    {person.initials}
+                  </span>
+                  <div>
+                    <div style={{ fontFamily: 'var(--font-body)', fontWeight: 400, fontSize: 'var(--fs-body-sm)', color: 'rgba(255,255,255,0.88)', lineHeight: 1.4 }}>{person.name}</div>
+                    <div style={{ marginTop: 2, fontFamily: 'var(--font-body)', fontWeight: 400, fontSize: 'var(--fs-body-xs)', color: 'oklch(0.827 0 286)', lineHeight: 1.4, fontVariantNumeric: 'tabular-nums' }}>−€{person.amount.toLocaleString('en-US')}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
         {task.id === 'q4-1' && <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
           <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: 'var(--fs-body-sm)', lineHeight: 1.45, color: '#fff', textWrap: 'pretty' }}>
             Compare each employee with your HR system so their budget matches what they are entitled to.
@@ -9732,13 +9756,20 @@ const RELAUNCH_TASKS = [
 const RELAUNCH_MONTHS = ['October / November', 'December', 'January', 'February / March'];
 const RELAUNCH_MONTH_OPENS = { 'December': '1 Dec', 'January': '1 Jan', 'February / March': '1 Feb' };
 const RELAUNCH_ENTITY = {
-  'lumio-group':  { negative: 2, hasBonus: true, bonusUnsigned: 3, pendingChoices: 4, payrollNote: 'Sent 12 Dec to SD Worx', bike: 2, mobility: true, mobilityNote: null, pausedBenefits: 1, hasTopUpWork: true, topUpsLeft: 5, budgetActive: false, uninvited: 2 },
-  'lumio-france': { negative: 0, hasBonus: true, bonusUnsigned: 0, pendingChoices: 0, payrollNote: null, bike: 0, mobility: false, pausedBenefits: 2, hasTopUpWork: true, topUpsLeft: 0, budgetActive: false, uninvited: 1 },
-  'lumio-nl':     { negative: 1, hasBonus: false, bonusUnsigned: 0, pendingChoices: 2, payrollNote: 'Sent 12 Dec to Partena', bike: 0, mobility: true, mobilityNote: null, pausedBenefits: 0, hasTopUpWork: true, topUpsLeft: 2, budgetActive: true, uninvited: 0 },
+  'lumio-group':  { negativeIds: [{ id: 'emma-martens', amount: 1230 }, { id: 'thomas-vandenberghe', amount: 480 }], hasBonus: true, bonusUnsigned: 3, pendingChoices: 4, payrollNote: 'Sent 12 Dec to SD Worx', bike: 2, mobility: true, mobilityNote: null, pausedBenefits: 1, hasTopUpWork: true, topUpsLeft: 5, budgetActive: false, uninvited: 2 },
+  'lumio-france': { negativeIds: [], hasBonus: true, bonusUnsigned: 0, pendingChoices: 0, payrollNote: null, bike: 0, mobility: false, pausedBenefits: 2, hasTopUpWork: true, topUpsLeft: 0, budgetActive: false, uninvited: 1 },
+  'lumio-nl':     { negativeIds: [{ id: 'noor-de-smedt', amount: 760 }], hasBonus: false, bonusUnsigned: 0, pendingChoices: 2, payrollNote: 'Sent 12 Dec to Partena', bike: 0, mobility: true, mobilityNote: null, pausedBenefits: 0, hasTopUpWork: true, topUpsLeft: 2, budgetActive: true, uninvited: 0 },
 };
 
 function relaunchProfile(entityId) {
-  return RELAUNCH_ENTITY[entityId] || RELAUNCH_ENTITY['lumio-group'];
+  const profile = RELAUNCH_ENTITY[entityId] || RELAUNCH_ENTITY['lumio-group'];
+  return { ...profile, negative: (profile.negativeIds || []).length };
+}
+function relaunchNegativePeople(entityId) {
+  return (relaunchProfile(entityId).negativeIds || []).map((item) => {
+    const emp = EMPLOYEES[item.id] || {};
+    return { id: item.id, name: emp.name || item.id, initials: emp.initials || '?', amount: item.amount };
+  });
 }
 function relaunchMonthIsOpen(month) {
   const label = RELAUNCH_MONTH_OPENS[month];
@@ -16395,6 +16426,7 @@ function App() {
           appEntity={appEntity}
           confirmed={relaunchConfirmedTasks.has(relaunchTaskKey(appEntity, relaunchContextTask.id))}
           completed={relaunchDoneTasks.has(relaunchTaskKey(appEntity, relaunchContextTask.id))}
+          doneTasks={relaunchDoneTasks}
           onConfirm={() => toggleRelaunchConfirmed(appEntity, relaunchContextTask.id)}
           onMarkDone={(id) => markRelaunchDone(appEntity, id)}
           onNav={handleNav}
